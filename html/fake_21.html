@@ -1,0 +1,307 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SimulateComponents</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data simulation for sparse Principal Component Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Simulates data with with independent groups of variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SimulateComponents(
+  n = 100,
+  pk = c(10, 10),
+  adjacency = NULL,
+  nu_within = 1,
+  v_within = c(0.5, 1),
+  v_sign = -1,
+  continuous = TRUE,
+  pd_strategy = "min_eigenvalue",
+  ev_xx = 0.1,
+  scale_ev = TRUE,
+  u_list = c(1e-10, 1),
+  tol = .Machine$double.eps^0.25,
+  scale = TRUE,
+  output_matrices = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of observations in the simulated dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pk</code></td>
+<td>
+<p>vector of the number of variables per group in the simulated
+dataset. The number of nodes in the simulated graph is <code>sum(pk)</code>. With
+multiple groups, the simulated (partial) correlation matrix has a block
+structure, where blocks arise from the integration of the <code>length(pk)</code>
+groups. This argument is only used if <code>theta</code> is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjacency</code></td>
+<td>
+<p>optional binary and symmetric adjacency matrix encoding the
+conditional graph structure between observations. The clusters encoded in
+this argument must be in line with those indicated in <code>pk</code>. Edges in
+off-diagonal blocks are not allowed to ensure that the simulated orthogonal
+components are sparse. Corresponding entries in the precision matrix will
+be set to zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_within</code></td>
+<td>
+<p>probability of having an edge between two nodes belonging to
+the same group, as defined in <code>pk</code>. If <code>length(pk)=1</code>, this is
+the expected density of the graph. If <code>implementation=HugeAdjacency</code>,
+this argument is only used for <code>topology="random"</code> or
+<code>topology="cluster"</code> (see argument <code>prob</code> in
+<code>huge.generator</code>). Only used if <code>nu_mat</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_within</code></td>
+<td>
+<p>vector defining the (range of) nonzero entries in the
+diagonal blocks of the precision matrix. These values must be between -1
+and 1 if <code>pd_strategy="min_eigenvalue"</code>. If <code>continuous=FALSE</code>,
+<code>v_within</code> is the set of possible precision values. If
+<code>continuous=TRUE</code>, <code>v_within</code> is the range of possible precision
+values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_sign</code></td>
+<td>
+<p>vector of possible signs for precision matrix entries. Possible
+inputs are: <code>-1</code> for positive partial correlations, <code>1</code> for
+negative partial correlations, or <code>c(-1, 1)</code> for both positive and
+negative partial correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>continuous</code></td>
+<td>
+<p>logical indicating whether to sample precision values from
+a uniform distribution between the minimum and maximum values in
+<code>v_within</code> (diagonal blocks) or <code>v_between</code> (off-diagonal blocks)
+(if <code>continuous=TRUE</code>) or from proposed values in <code>v_within</code>
+(diagonal blocks) or <code>v_between</code> (off-diagonal blocks) (if
+<code>continuous=FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_strategy</code></td>
+<td>
+<p>method to ensure that the generated precision matrix is
+positive definite (and hence can be a covariance matrix). If
+<code>pd_strategy="diagonally_dominant"</code>, the precision matrix is made
+diagonally dominant by setting the diagonal entries to the sum of absolute
+values on the corresponding row and a constant u. If
+<code>pd_strategy="min_eigenvalue"</code>, diagonal entries are set to the sum of
+the absolute value of the smallest eigenvalue of the precision matrix with
+zeros on the diagonal and a constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev_xx</code></td>
+<td>
+<p>expected proportion of explained variance by the first Principal
+Component (PC1) of a Principal Component Analysis. This is the largest
+eigenvalue of the correlation (if <code>scale_ev=TRUE</code>) or covariance (if
+<code>scale_ev=FALSE</code>) matrix divided by the sum of eigenvalues. If
+<code>ev_xx=NULL</code> (the default), the constant u is chosen by maximising the
+contrast of the correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale_ev</code></td>
+<td>
+<p>logical indicating if the proportion of explained variance by
+PC1 should be computed from the correlation (<code>scale_ev=TRUE</code>) or
+covariance (<code>scale_ev=FALSE</code>) matrix. If <code>scale_ev=TRUE</code>, the
+correlation matrix is used as parameter of the multivariate normal
+distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u_list</code></td>
+<td>
+<p>vector with two numeric values defining the range of values to
+explore for constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>accuracy for the search of parameter u as defined in
+<code>optimise</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>logical indicating if the true mean is zero and true variance is
+one for all simulated variables. The observed mean and variance may be
+slightly off by chance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output_matrices</code></td>
+<td>
+<p>logical indicating if the true precision and (partial)
+correlation matrices should be included in the output.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The data is simulated from a centered multivariate Normal
+distribution with a block-diagonal covariance matrix. Independence between
+variables from the different blocks ensures that sparse orthogonal
+components can be generated.
+</p>
+<p>The block-diagonal partial correlation matrix is obtained using a graph
+structure encoding the conditional independence between variables. The
+orthogonal latent variables are obtained from eigendecomposition of the
+true correlation matrix. The sparse eigenvectors contain the weights of the
+linear combination of variables to construct the latent variable (loadings
+coefficients). The proportion of explained variance by each of the latent
+variable is computed from eigenvalues.
+</p>
+<p>As latent variables are defined from the true correlation matrix, the
+number of sparse orthogonal components is not limited by the number of
+observations and is equal to <code>sum(pk)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>simulated data with <code>n</code> observation and
+<code>sum(pk)</code> variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loadings</code></td>
+<td>
+<p>loadings coefficients of the
+orthogonal latent variables (principal components).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>support
+of the loadings coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev</code></td>
+<td>
+<p>proportion of explained variance
+by each of the orthogonal latent variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjacency</code></td>
+<td>
+<p>adjacency
+matrix of the simulated graph.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>simulated (true) precision
+matrix. Only returned if <code>output_matrices=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>simulated
+(true) partial correlation matrix. Only returned if
+<code>output_matrices=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p> simulated (true) correlation
+matrix. Only returned if <code>output_matrices=TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Bodinier B, Filippi S, Nost TH, Chiquet J, Chadeau-Hyam M (2021).
+“Automated calibration for stability selection in penalised regression and graphical models: a multi-OMICs network application exploring the molecular response to tobacco smoking.”
+<a href="https://arxiv.org/abs/2106.02521">https://arxiv.org/abs/2106.02521</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>MakePositiveDefinite</code>
+</p>
+<p>Other simulation functions: 
+<code>SimulateAdjacency()</code>,
+<code>SimulateClustering()</code>,
+<code>SimulateCorrelation()</code>,
+<code>SimulateGraphical()</code>,
+<code>SimulateRegression()</code>,
+<code>SimulateStructural()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Simulation of 3 components with high e.v.
+set.seed(1)
+simul &lt;- SimulateComponents(pk = c(5, 3, 4), ev_xx = 0.4)
+print(simul)
+plot(simul)
+plot(cumsum(simul$ev), ylim = c(0, 1), las = 1)
+
+# Simulation of 3 components with moderate e.v.
+set.seed(1)
+simul &lt;- SimulateComponents(pk = c(5, 3, 4), ev_xx = 0.25)
+print(simul)
+plot(simul)
+plot(cumsum(simul$ev), ylim = c(0, 1), las = 1)
+
+# Simulation of multiple components with low e.v.
+pk &lt;- sample(3:10, size = 5, replace = TRUE)
+simul &lt;- SimulateComponents(
+  pk = pk,
+  nu_within = 0.3, v_within = c(0.8, 0.5), v_sign = -1, ev_xx = 0.1
+)
+plot(simul)
+plot(cumsum(simul$ev), ylim = c(0, 1), las = 1)
+
+</code></pre>
+
+
+</div>

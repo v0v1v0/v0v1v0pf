@@ -1,0 +1,335 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pflm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal designs for functional linear models 
+using the coordinate exchange algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Optimal designs for functional linear models for which the functional factors are represented
+as B-spline basis functions and the functional parameters are represented as power series basis functions
+or as B-spline basis functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pflm(formula, nsd = 1, mc.cores = 1, npf, tbounds, 
+  nruns, startd = NULL, dx, knotsx, pars, db, 
+  knotsb = NULL, criterion = c("A", "D"), lambda = 0,
+  dlbound = -1, dubound = 1, tol = 1e-04, progress = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Object of type formula, to create the model equation. Elements need to match the list names for startd. Main effects are called using the names of the profile factors in startd, interactions are called using the names of the profile factors in startd seperated with :, and polynomial effects are called using
+the function P. Scalar factors are called using the same way and degree and knots through the arguments dx and knotsx are used to specify the scalar factors. A scalar factor is equivalent to a profile factor with degree 0 and no interior knots.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsd</code></td>
+<td>
+<p>The number of starting designs. The default entry is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.cores</code></td>
+<td>
+<p>The number of cores to use. The option is initialized from environment variable MC_CORES if set. Must be at least one, and for parallel computing at least two cores are required. The default entry is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npf</code></td>
+<td>
+<p>The total number of (profile) factors in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tbounds</code></td>
+<td>
+<p>A time vector of length 2, representing the boundaries of time, i.e., 0 and T.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nruns</code></td>
+<td>
+<p>The number of runs of the experiment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startd</code></td>
+<td>
+<p>Representing the starting design but if NULL then random designs are automatically generated. 
+It should be a list of length nsd, and each component should be a list of length npf.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dx</code></td>
+<td>
+<p>A vector of length npf, representing the degree of B-spline basis functions for the functions of the
+functional factors. A scalar factor must have a zero degree entry.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knotsx</code></td>
+<td>
+<p>A list of length npf, with every object in the list representing the knot vectors of 
+each functional factor. A Scalar factor must have no interior knots, i.e., an empty knot vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p>A vector of length equal to the total terms in formula, representing the basis choice for 
+the (functional) parameters. Entries should be "power" or "bspline". A scalar parameter is represented through a "power" basis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>db</code></td>
+<td>
+<p>A vector of length equal to the total terms in formula, representing the degree of the basis for
+the (functional) parameters. For power series basis the degree is: 1 for linear, 2 for quadratic, etc. A scalar parameter must have degree 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knotsb</code></td>
+<td>
+<p>A list of length equal to the total terms in formula, representing the knot vector of each 
+(functional) parameter. For parameters represented by a power series basis, the knot vector should be empty or NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Smoothing parameter to penalise the complexity of the functions of the profile factors. The default value is 0, i.e., no penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>The choice of objective function. Currently there are two available choices:
+1. A-optimality (criterion = "A");
+2. D-optimality (criterion = "D").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The tolerance value in the optimisation algorithm. Default value is 0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dlbound</code></td>
+<td>
+<p>The design's lower bound. The default lower bound is -1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dubound</code></td>
+<td>
+<p>The design's upper bound. The default upper bound is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>If TRUE, it returns the progress of iterations from the optimisation process. The default entry is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function returns an object of class "pflm" which is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>objval</code></td>
+<td>
+<p>The objective value of the final design found from pflm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>The final design found from pflm. The final design is a list of length equal to the number
+of profile factors, exactly as the starting design startd.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nits</code></td>
+<td>
+<p>The total number of iterations needed to identify the final design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The computational elapsed time in finding the final design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startd</code></td>
+<td>
+<p>If starting designs were passed as an argument in pflm, then this is the starting design from the argument startd that led to the final design. If no starting designs were passed to pflm, this is the starting design generated randomly by pflm that led to the final design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tbounds</code></td>
+<td>
+<p>The argument tbounds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npf</code></td>
+<td>
+<p>The argument npf.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>The argument criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nruns</code></td>
+<td>
+<p>The argument nruns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>The argument formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dx</code></td>
+<td>
+<p>The argument dx.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knotsx</code></td>
+<td>
+<p>The argument knotsx.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The argument lambda.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbounds</code></td>
+<td>
+<p>A vector of length 2, containing the arguments dlbound and dubound.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bestrep</code></td>
+<td>
+<p>A scalar value indicating the repetition that led to the final design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allobjvals</code></td>
+<td>
+<p>A vector of length equal to nsd, representing the objective value from all of the repetitions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alldesigns</code></td>
+<td>
+<p>A list of length equal to nsd of all the final designs. Each component of the list is a list of length equal to npf representing the final design in each repetition of the coordinate exchange algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allstartd</code></td>
+<td>
+<p>If starting designs were passed as an argument in pflm, then this is the argument. If no starting designs were passed to pflm, this is the starting designs generated randomly by pflm.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Damianos Michaelides &lt;<a href="mailto:dm3g15@soton.ac.uk">dm3g15@soton.ac.uk</a>&gt;, Antony Overstall, Dave Woods
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1:
+## This example involves finding an A-optimal design for a functional linear model of 4 runs
+## depending on one profile factor. The settings of the profile factor are represented by a 
+## B-spline basis of degree zero and a single knot at (0.5). The single functional parameter 
+## is represented with a linear power series basis. Five random starts are chosen.
+
+example1 &lt;- pflm(formula = ~ x1, nsd = 5, mc.cores = 1, npf = 1,
+  tbounds = c(0, 1), nruns = 4, startd = NULL,  dx = c(0), 
+  knotsx = list(c(0.5)), pars = c("power"), db = c(1), 
+  knotsb = list(c()), criterion = "A", lambda = 0, 
+  dlbound = -1, dubound = 1, tol = 0.0001, progress = FALSE)
+
+print(example1) ##  prints the output of example1.
+##
+## The number of profile factors is: 1
+##
+## The number of runs is: 4
+##
+## The objective criterion is: A-optimality
+##
+## The objective value is: 8.75
+##
+## The number of iterations is: 6
+##
+## The computing elapsed time is: 00:00:00
+
+## plot(example1)
+## then give the number of profile factor to plot
+
+
+## Example 2:
+## This example involves finding a D-optimal design for a functional linear model of n=20 runs
+## depending on two profile factors. In addition to the main effects, the model includes the
+## interaction of the profile factors and the quadratic effect of the second profile factor. 
+## The settings of the profile factors are represented by B-spline basis of quadratic degrees
+## and knots at (0.33, 0.66) and (0.25, 0.50, 0.75). The functional parameters are represented 
+## with linear power basis and quadratic B-spline basis with knots at (0.25, 0.50, 0.75). 
+## The complexity of the designs is penalised with the smoothing value equal to 1.
+
+example2 &lt;- pflm(formula = ~ x1 + x2 + x1:x2 + P(x2, 2), nsd = 1, mc.cores = 1,
+  npf = 2, tbounds = c(0, 1), nruns = 20, startd = NULL, dx = c(2, 2),
+  knotsx = list(c(0.33, 0.66), c(0.25, 0.50, 0.75)), 
+  pars = c("power", "power", "bspline", "bspline"), db = c(1, 1, 2, 2), 
+  knotsb = list(c(), c(), c(0.25, 0.50, 0.75), c(0.25, 0.50, 0.75)), 
+  criterion = "D", lambda = 1, tol = 0.0001, dlbound = -1, dubound = 1, 
+  progress = FALSE)
+
+print(example2) ##  prints the output of example2.
+##
+## The number of profile factors is: 2
+##
+## The number of runs is: 20
+##
+## The objective criterion is: D-optimality
+##
+## The objective value is: 0.05706758
+##
+## The number of iterations is: 6
+##
+## The computing elapsed time is: 00:00:17
+
+</code></pre>
+
+
+</div>

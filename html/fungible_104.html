@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>smoothAPA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Smooth a NPD R matrix to PD using the Alternating Projection Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Smooth a Non positive defnite (NPD) correlation matrix to PD using the
+Alternating Projection Algorithm with Dykstra's correction via Theory
+described in Higham 2002.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">smoothAPA(R, delta = 1e-06, fixR = NULL, Wghts = NULL, maxTries = 1000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>A p x p indefinite matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>Desired value of the smallest eigenvalue of smoothed matrix,
+RAPA. (Default = 1e-06).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixR</code></td>
+<td>
+<p>User-supplied integer list that instructs the program to
+constrain elements in RAPA to equal corresponding elements in R. For
+example if fixR = c(1,2) then smoothed matrix, RAPA[1:2,1:2] = R[1:2,1:2].
+Default (fixR = NULL).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Wghts</code></td>
+<td>
+<p>A p-length vector of weights for differential variable
+weighting. Default (Wghts = NULL).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxTries</code></td>
+<td>
+<p>Maximum number of iterations in the alternating projections
+algorithm. Default (maxTries = 1000).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>RAPA</code></td>
+<td>
+<p>A smoothed matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>User-supplied delta
+value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Wghts</code></td>
+<td>
+<p>User-supplied weight vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixR</code></td>
+<td>
+<p>User-supplied
+integer list that instructs the program to constrain elements in RAPA to
+equal corresponding elements in R.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>A value of 0
+indicates that the algorithm located a feasible solution. A value of 1
+indicates that no feasible solution was located within maxTries.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Niels Waller
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(BadRKtB)
+
+###################################################################
+##  Replicate analyses in Table 2 of Knol and ten Berge (1989).
+###################################################################
+
+## n1 = 0,1
+out&lt;-smoothAPA(R = BadRKtB, delta = .0, fixR = NULL, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+## n1 = 2
+out&lt;-smoothAPA(R = BadRKtB, fixR =c(1,2), delta=.0, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+## n1 = 4
+out&lt;-smoothAPA(R = BadRKtB, fixR = 1:4, delta=.0, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+## n1 = 5
+out&lt;-smoothAPA(R = BadRKtB, fixR = 1:5, delta=0, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+###################################################################
+##  Replicate analyses in Table 3 of Knol and ten Berge (1989).
+###################################################################
+
+## n1 = 0,1
+out&lt;-smoothAPA(R = BadRKtB, delta = .05, fixR = NULL, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+## n1 = 2
+out&lt;-smoothAPA(R = BadRKtB, fixR =c(1,2), delta=.05, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+## n1 = 4
+out&lt;-smoothAPA(R = BadRKtB, fixR = 1:4, delta=.05, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+## n1 = 5
+out&lt;-smoothAPA(R = BadRKtB, fixR = 1:5, delta=.05, Wghts = NULL, maxTries=1e06)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+###################################################################
+## This example illustrates differential variable weighting.
+## 
+## Imagine a scenerio in which variables 1 &amp; 2 were collected with 
+## 5 times more subjects than variables 4 - 6 then . . .
+###################################################################
+## n1 = 2
+out&lt;-smoothAPA(R = BadRKtB, delta=.0, fixR = NULL, Wghts = c(5, 5, rep(1,4)), maxTries=1e5)
+S &lt;- out$RAPA
+round(S - BadRKtB,3)
+normF(S - BadRKtB)
+eigen(S)$val
+
+</code></pre>
+
+
+</div>

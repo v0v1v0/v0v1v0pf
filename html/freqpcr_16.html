@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim_dummy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate freqpcr estimation based on user-generated dummy data.</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper of <code>freqpcr()</code> suitable for the performance test using a randomly-generated data object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim_dummy(
+  CqList,
+  EPCR,
+  zeroAmount,
+  P = NULL,
+  K = NULL,
+  targetScale = NULL,
+  sdMeasure = NULL,
+  beta,
+  diploid,
+  maxtime,
+  print.level,
+  aux = NULL,
+  verbose = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>CqList</code></td>
+<td>
+<p>Object belonging to the CqList class, typically the output from <code>make_dummy()</code>. Having the slots <code>N</code>, <code>housek0</code>, <code>target0</code>, <code>housek1</code>, and <code>target1</code>, all of which are numeric vectors of the same length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EPCR</code></td>
+<td>
+<p>(<code class="reqn">\eta</code>) Amplification efficiency per PCR cycle, given as a positive numeric. When <code>EPCR = 1</code>, template DNA doubles every cycle (<code>EPCR + 1 = 2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeroAmount</code></td>
+<td>
+<p>A numeric between 0 and 1, usually near 0, giving the residue rate of restriction enzyme digestion in RED-<code class="reqn">\Delta\Delta</code>Cq method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P, K, targetScale, sdMeasure</code></td>
+<td>
+<p>If NULL (default), the parameter is considered unknown and estimated via <code>freqpcr()</code>. If a value is specified, it is passed to <code>freqpcr()</code> as a fixed parameter. On the contrary, <code>EPCR</code> and <code>zeroAmount</code> are always treated as fixed parameters, for which values must be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta, diploid, maxtime, print.level</code></td>
+<td>
+<p>Configuration parameters which are passed directly to <code>freqpcr()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aux</code></td>
+<td>
+<p>Additional information to be displayed on the console. The default is <code>NULL</code>. If some value is input by the user, it is echoed to stdout together with the contents of the argument <code>CqList</code>. This option is convenient when you want to record the original dummy dataset and the corresponding result sequentially e.g. using <code>capture.output()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Prints more information e.g. system time. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>freqpcr()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object of the S4 class CqFreq, which is same as <code>freqpcr()</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other estimation procedures: 
+<code>freqpcr()</code>,
+<code>knownqpcr_unpaired()</code>,
+<code>knownqpcr()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Prepare the parameter values.
+K &lt;- 2 # You already know the size of K in this case.
+EPCR &lt;- 0.97 # The sizes of EPCR and zeroAmount must always be supplied.
+zeroAmount &lt;- 1.6e-03
+is.diploid &lt;- FALSE
+
+# First, make a dummy Cq dataset with six bulk DNA samples,
+# each of which comprises of eight haploid individuals.
+dmy_cq &lt;- make_dummy( rand.seed=1, P=0.75, K=K, ntrap=6, npertrap=8, scaleDNA=1e-07,
+                      targetScale=1.5, baseChange=0.3, EPCR=EPCR,
+                      zeroAmount=zeroAmount, sdMeasure=0.3, diploid=is.diploid )
+
+# Estimate the population allele frequency on the dummy dataset, presupposing K = 2.
+sim_dummy(  CqList=dmy_cq, EPCR=EPCR, zeroAmount=zeroAmount,
+            K=K,
+            beta=TRUE, diploid=is.diploid, maxtime=60, print.level=2, aux="test" )
+
+# If the maximum calculation time was too short to converge, nlm() returns error.
+# Then sim_dummy() returns a matrix filled with zeros.
+sim_dummy(  CqList=dmy_cq, EPCR=EPCR, zeroAmount=zeroAmount,
+            beta=TRUE, diploid=is.diploid, maxtime=0.01, print.level=2 )
+</code></pre>
+
+
+</div>

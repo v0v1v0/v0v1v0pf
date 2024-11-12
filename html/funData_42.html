@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autoplot.multiFunData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Visualize multivariate functional data objects using ggplot</h2>
+
+<h3>Description</h3>
+
+<p>This function allows to plot <code>multiFunData</code> objects based on the <span class="pkg">ggplot2</span> package. The 
+function applies the <code>autoplot.funData</code> function to each element and returns either a 
+combined plot with all elements plotted in one row or a list containing the different subplots as
+<code>ggplot</code> objects. The individual objects can be customized using all 
+functionalities of the <span class="pkg">ggplot2</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autoplot.multiFunData(
+  object,
+  obs = seq_len(nObs(object)),
+  dim = seq_len(length(object)),
+  plotGrid = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>multiFunData</code> object that is to be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>A vector of numerics giving the observations to plot. Defaults to all observations in 
+<code>object</code>. For two-dimensional functions (images) <code>obs</code> must have length 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p>The dimensions to plot. Defaults to <code>length(object)</code>, i.e. all functions in 
+<code>object</code> are plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotGrid</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, the data is plotted using 
+<code>grid.arrange</code> and the list of <code>ggplot</code> objects is 
+returned invisibly. If <code>FALSE</code>, only the list of objects is returned. Defaults to 
+<code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further parameters passed to the univariate <code>autoplot.funData</code> functions for 
+<code>funData</code> objects.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of <code>ggplot</code> objects that are also printed directly as a grid 
+if <code>plotGrid = TRUE</code>.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>Currently, the function does not accept different parameters for the univariate
+elements.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>multiFunData</code>, <code>ggplot</code>, 
+<code>plot.multiFunData</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load packages ggplot2 and gridExtra before running the examples
+library("ggplot2"); library("gridExtra")
+
+# One-dimensional elements
+argvals &lt;- seq(0, 2*pi, 0.01)
+f1 &lt;- funData(argvals, outer(seq(0.75, 1.25, length.out = 11), sin(argvals)))
+f2 &lt;- funData(argvals, outer(seq(0.75, 1.25, length.out = 11), cos(argvals)))
+
+m1 &lt;- multiFunData(f1, f2)
+
+g &lt;- autoplot(m1) # default
+g[[1]] # plot first element
+g[[2]] # plot second element
+gridExtra::grid.arrange(grobs = g, nrow = 1) # requires gridExtra package
+
+autoplot(m1, plotGrid = TRUE) # the same directly with plotGrid = TRUE
+
+
+# Mixed-dimensional elements
+X &lt;- array(0, dim = c(11, length(argvals), length(argvals)))
+X[1,,] &lt;- outer(argvals, argvals, function(x,y){sin((x-pi)^2 + (y-pi)^2)})
+f2 &lt;- funData(list(argvals, argvals), X)
+
+m2 &lt;- multiFunData(f1, f2)
+
+autoplot(m2, obs = 1, plotGrid = TRUE)
+
+# Customizing plots (see ggplot2 documentation for more details)
+g2 &lt;- autoplot(m2, obs = 1)
+g2[[1]] &lt;- g2[[1]] + ggtitle("First element") + theme_bw()
+g2[[2]] &lt;- g2[[2]] + ggtitle("Second element") + 
+                     scale_fill_gradient(high = "green", low = "blue")
+gridExtra::grid.arrange(grobs = g2, nrow = 1) # requires gridExtra package
+
+</code></pre>
+
+
+</div>

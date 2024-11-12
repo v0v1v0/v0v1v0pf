@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pHotellingT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>CDF of Hotelling-<code class="reqn">T^2</code> statistic.</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+<p>The function <code>pHotellingT()</code> computes the cumulative distribution function (CDF)
+of the two-sample Hotelling-<code class="reqn">T^2</code> statistic (<code class="reqn">P(T &gt; q)</code>) in the multivariate response
+setting. This function is used to compute the power function
+of Two-Sample (TS) Projection-based test (Wang 2021, EJS.)
+for sparsely observed univariate functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pHotellingT(
+  q,
+  total_sample_size,
+  mean_diff,
+  sig1,
+  sig2,
+  alloc.ratio = c(1, 1),
+  lower.tail = TRUE,
+  nsim = 10000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>The point at which the CDF needs to be evaluated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total_sample_size</code></td>
+<td>
+<p>Target sample size, must be a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_diff</code></td>
+<td>
+<p>The difference in the mean vector between the two groups, must be a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig1</code></td>
+<td>
+<p>The true (or estimate) of covariance matrix for the first group. Must be symmetric
+(<code>is.symmetric(sig1) == TRUE</code>) and positive definite (<code>chol(sig1)</code> without an error!).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig2</code></td>
+<td>
+<p>The true (or estimate) of covariance matrix for the second group. Must be symmetric
+(<code>is.symmetric(sig2) == TRUE</code>) and positive definite (<code>chol(sig2)</code> without an error!).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alloc.ratio</code></td>
+<td>
+<p>Allocation of total sample size into the two groups. Must set as a vector of two
+positive numbers. For equal allocation it should be put as c(1,1), for non-equal
+allocation one can put c(2,1) or c(3,1) etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower.tail</code></td>
+<td>
+<p>if TRUE, the CDF is returned, otherwise right tail probability is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of samples to be generated from the alternate distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Under the assumption of the equal variance, we know that the alternative
+distribution of the Hotelling-<code class="reqn">T^2</code> statistic (<code class="reqn">(n-k-1)T/(n-2)*K</code>) has an
+F distribution with the
+non-centrality depending on the difference between the true mean vectors and the
+(common) covariance of the response. However, when the true covariance of the true groups
+of responses differ, the alternate distribution becomes non-trivial. Koner and Luo (2023)
+proved that the alternate distribution of the test-statistic approximately follows
+a ratio of the linear combination of the K (dimension of the response) non-central
+chi-squared random variables (where the non-centrality parameter depends on the mean difference)
+and a chi-squared distribution whose degrees of freedom depends on a complicated functions of
+sample size in the two groups. This function initially calls the
+Sim_HotellingT_unequal_var function to obtain the samples from the non-null distribution
+and computes the CDF numerically with high precision based on a large number of samples.
+See Koner and Luo (2023) for more details on the formula of the non-null distribution.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The CDF of the Hotelling T statistic, if <code>lower.tail == TRUE</code>,
+otherwise the right tail probability is returned.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Salil Koner <br> Maintainer: Salil Koner
+<a href="mailto:salil.koner@duke.edu">salil.koner@duke.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Hotelling::hotelling.test()</code>, <code>Hotelling::hotelling.stat()</code> to generate empirical samples
+from the Hotelling T-statistic from empirical data.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+B           &lt;- 10000
+k           &lt;- 4
+n2          &lt;- 60
+n1_by_n2    &lt;- 2
+n1          &lt;- n1_by_n2 * n2
+mu1         &lt;- rep(0,k)
+del         &lt;- 0.4
+mu2         &lt;- mu1 + rep(del, k) # rep(0.19,k)  # 0.23 (0.9), 0.18 (0.7) 0.20 (0.8)
+sig1        &lt;- diag(k)
+sig2        &lt;- sig1
+cutoff      &lt;- seq(0,30, length.out=20)
+the_cdf     &lt;- round(pHotellingT(cutoff, n1+n2, mu1 - mu2,
+                                 sig1, sig2, alloc.ratio=c(2,1),
+                                 lower.tail=FALSE, nsim = 1e4),3)
+
+</code></pre>
+
+
+</div>

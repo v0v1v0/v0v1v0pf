@@ -1,0 +1,258 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AverageMarginalEffects</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>R6 Class computing Average Marginal Effects (AME) based on Forward Marginal Effects (FME) for a model</h2>
+
+<h3>Description</h3>
+
+<p>The AME is a simple mean FME and computed w.r.t. a feature variable and a model.
+</p>
+
+
+<h3>Public fields</h3>
+
+<div class="r6-fields">
+
+<dl>
+<dt><code>predictor</code></dt>
+<dd>
+<p><code>Predictor</code> object</p>
+</dd>
+<dt><code>features</code></dt>
+<dd>
+<p>vector of features for which AMEs should be computed</p>
+</dd>
+<dt><code>ep.method</code></dt>
+<dd>
+<p>string specifying extrapolation detection method</p>
+</dd>
+<dt><code>results</code></dt>
+<dd>
+<p>data.table with AMEs computed</p>
+</dd>
+<dt><code>computed</code></dt>
+<dd>
+<p>logical specifying if compute() has been run</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-AverageMarginalEffects-new"><code>AverageMarginalEffects$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AverageMarginalEffects-compute"><code>AverageMarginalEffects$compute()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AverageMarginalEffects-clone"><code>AverageMarginalEffects$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-AverageMarginalEffects-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Create a new AME object.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AverageMarginalEffects$new(model, data, features = NULL, ep.method = "none")</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>model</code></dt>
+<dd>
+<p>The (trained) model, with the ability to predict on new data. This must be a <code>train.formula</code> (<code>tidymodels</code>), <code>Learner</code> (<code>mlr3</code>), <code>train</code> (<code>caret</code>), <code>lm</code> or <code>glm</code> object.</p>
+</dd>
+<dt><code>data</code></dt>
+<dd>
+<p>The data used for computing AMEs, must be data.frame or data.table.</p>
+</dd>
+<dt><code>features</code></dt>
+<dd>
+<p>If not NULL, a named list of the names of the feature variables for which AMEs should be computed, together with the desired step sizes.
+For numeric features, the step size must be a single number.
+For categorial features, the step size must be a character vector of category names that is a subset of the levels of the factor variable.</p>
+</dd>
+<dt><code>ep.method</code></dt>
+<dd>
+<p>String specifying the method used for extrapolation detection. One of <code>"none"</code> or <code>"envelope"</code>. Defaults to <code>"none"</code>.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A new <code>AME</code> object.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># Train a model:
+
+library(mlr3verse)
+library(ranger)
+set.seed(123)
+data(bikes, package = "fmeffects")
+task = as_task_regr(x = bikes, id = "bikes", target = "count")
+forest = lrn("regr.ranger")$train(task)
+
+# Compute AMEs for all features:
+\dontrun{
+overview = AverageMarginalEffects$new(
+  model = forest,
+  data = bikes)$compute()
+summary(overview)
+
+# Compute AMEs for a subset of features with non-default step.sizes:
+overview = AverageMarginalEffects$new(model = forest,
+                                      data = bikes,
+                                      features = list(humidity = 0.1,
+                                                   weather = c("clear", "rain")))$compute()
+summary(overview)
+}
+</pre>
+</div>
+
+
+<hr>
+<a id="method-AverageMarginalEffects-compute"></a>
+
+
+
+<h4>Method <code>compute()</code>
+</h4>
+
+<p>Computes results, i.e., AMEs including the SD of FMEs, for an <code>AME</code> object.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AverageMarginalEffects$compute()</pre></div>
+
+
+
+<h5>Returns</h5>
+
+<p>An <code>AME</code> object with results.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># Compute results:
+\dontrun{
+overview$compute()
+}
+</pre>
+</div>
+
+
+<hr>
+<a id="method-AverageMarginalEffects-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AverageMarginalEffects$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## ------------------------------------------------
+## Method `AverageMarginalEffects$new`
+## ------------------------------------------------
+
+# Train a model:
+
+library(mlr3verse)
+library(ranger)
+set.seed(123)
+data(bikes, package = "fmeffects")
+task = as_task_regr(x = bikes, id = "bikes", target = "count")
+forest = lrn("regr.ranger")$train(task)
+
+# Compute AMEs for all features:
+## Not run: 
+overview = AverageMarginalEffects$new(
+  model = forest,
+  data = bikes)$compute()
+summary(overview)
+
+# Compute AMEs for a subset of features with non-default step.sizes:
+overview = AverageMarginalEffects$new(model = forest,
+                                      data = bikes,
+                                      features = list(humidity = 0.1,
+                                                   weather = c("clear", "rain")))$compute()
+summary(overview)
+
+## End(Not run)
+
+## ------------------------------------------------
+## Method `AverageMarginalEffects$compute`
+## ------------------------------------------------
+
+# Compute results:
+## Not run: 
+overview$compute()
+
+## End(Not run)
+</code></pre>
+
+
+</div>

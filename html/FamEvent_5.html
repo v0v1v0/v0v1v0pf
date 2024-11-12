@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>penetrance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Penetrance function and confidence intervals
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the cumulative disease risks (penetrances) and confidence intervals at given age(s) based on the fitted penetrance model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  penetrance(fit, fixed, age, CI = TRUE, MC = 100)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+
+<p>An object class of <code>'penmodel'</code>, a fitted model by <code>penmodel</code> or <code>penmodelEM</code> functions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+
+<p>Vector of fixed values of the covariates used for penetrance calculation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+
+<p>Vector of ages used for penetrance calculation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI</code></td>
+<td>
+
+<p>Logical; if <code>TRUE</code>, the 95% confidence interval will be obtained using a Monte-Carlo method, 
+otherwise no confidence interval will be provided. Default is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MC</code></td>
+<td>
+
+<p>Number of simulated samples used to calculate confidence intervals with a Monte-Carlo method. 
+If <code>MC=0</code>, no confidence intervals will be calculated. Default value is 100.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The penetrance function is defined as the probability of developing a disease by age <code class="reqn">t</code> given fixed values of covariates <code class="reqn">x</code>, 
+</p>
+<p style="text-align: center;"><code class="reqn"> P(T &lt; t | x) = 1 - S(t; x),</code>
+</p>
+
+<p>where <code class="reqn">t</code> is greater than the minimum age t<sub>0</sub> and <code class="reqn">S(t; x)</code>  is the survival distribution based on a proportional hazards model with a specified baseline hazard distribution.
+</p>
+<p>The proportional hazards model is specified as:
+h(t|x) = h<sub>0</sub>(t) exp(β*x),
+where h<sub>0</sub>(t) is the baseline hazards function, <code class="reqn">x</code> is the vector of covariates and β is the vector of corresponding regression coefficients.
+</p>
+<p>Calculations of standard errors of the penetrance estimates and 95% confidence intervals (CIs) for the penetrance at a given age are based on Monte-Carlo simulations of the estimated penetrance model. 
+</p>
+<p>A multivariate normal distribution is assumed for the parameter estimates, and <code>MC = n</code> sets of the parameters are generated from the multivariate normal distribution with the parameter estimates and their variance-covariance matrix.
+For each simulated set, a penetrance estimate is calculated at a given age by substituting the simulated parameters into the penetrance function.
+</p>
+<p>The standard error of the penetrance estimate at a given age is calculated by the standard deviation of penetrance estimates obtained from <code class="reqn">n</code> simulations.
+</p>
+<p>The 95% CI for the penetrance at a given age is calculated using the 2.5th and 97.5th percentiles of the penetrance estimates obtained from <code class="reqn">n</code> simulations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns the following values:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>Ages at which the penetrances are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penetrance</code></td>
+<td>
+<p>Penetrance estimates at given ages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>Lower limit of the 95% confidence interval; simulation-based 2.5th percentile of the penetrance estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>Upper limit of the 95% confidence interval; simulation-based 97.5th percentile of the penetrance estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Simulation-based standard errors of the penetrance estimates.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yun-Hee Choi
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>simfam, penmodel, penmodelEM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  set.seed(4321)
+  fam &lt;- simfam(N.fam = 100, design = "pop+", base.dist = "Weibull", allelefreq = 0.02, 
+         base.parms = c(0.01,3), vbeta = c(-1.13, 2.35))
+	
+  fit &lt;- penmodel(Surv(time, status) ~ gender +  mgene, cluster = "famID", 
+         parms = c(0.01, 3, -1.13, 2.35),  data = fam, base.dist = "Weibull", design = "pop+")
+ 
+ # Compute penetrance estimates for male carriers at age 40, 50, 60, and 70 and
+ # their 95% CIs based on 100 Monte Carlo simulations.
+ 
+ penetrance(fit, fixed = c(1,1), age = c(40, 50, 60, 70), CI = TRUE, MC = 100)
+
+</code></pre>
+
+
+</div>

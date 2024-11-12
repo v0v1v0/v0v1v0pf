@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autoplot.funData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Visualize functional data objects using ggplot</h2>
+
+<h3>Description</h3>
+
+<p>This function allows to plot <code>funData</code> objects based on the 
+<span class="pkg">ggplot2</span> package. The function provides a wrapper that rearranges the 
+data in a <code>funData</code> object on a one- or two-dimensional domain and 
+provides a basic <code>ggplot</code> object, which can be 
+customized using all functionalities of the <span class="pkg">ggplot2</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autoplot.funData(
+  object,
+  obs = seq_len(nObs(object)),
+  geom = "line",
+  plotNA = FALSE,
+  ...
+)
+
+autolayer.funData(
+  object,
+  obs = seq_len(nObs(object)),
+  geom = "line",
+  plotNA = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>funData</code> object on a one- or two-dimensional domain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>A vector of numerics giving the observations to plot. Defaults to 
+all observations in <code>object</code>. For two-dimensional functions (images) 
+<code>obs</code> must have length 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom</code></td>
+<td>
+<p>A character string describing the geometric object to use.
+Defaults to <code>"line"</code>. See <span class="pkg">ggplot2</span> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotNA</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, missing values are interpolated using 
+the <code>approxNA</code> function (only for one-dimensional functions). 
+Defaults to <code>FALSE</code>. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further parameters passed to <code>geom_line</code> (for
+one dimensional domains, e.g. <code>alpha, color, fill, linetype, size</code>) or
+to <code>geom_raster</code> (for two-dimensional domains, e.g.
+<code>hjust, vjust, interpolate</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If some observations contain missing values (coded via <code>NA</code>), the 
+functions can be interpolated using the option <code>plotNA = TRUE</code>. This 
+option relies on the <code>na.approx</code> function in package 
+<code>zoo</code> and is currently implemented for one-dimensional 
+functions only in the function <code>approxNA</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>ggplot</code> object that can be customized  using 
+all functionalities of the <span class="pkg">ggplot2</span> package.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>funData</code>, <code>ggplot</code>, 
+<code>plot.funData</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Install / load package ggplot2 before running the examples
+library("ggplot2")
+
+# One-dimensional
+argvals &lt;- seq(0,2*pi,0.01)
+object &lt;- funData(argvals,
+                   outer(seq(0.75, 1.25, length.out = 11), sin(argvals)))
+
+g &lt;- autoplot(object) # returns ggplot object
+g # plot the object
+
+# add the mean function in red
+g + autolayer(meanFunction(object),  col = 2)
+
+# Two-dimensional
+X &lt;- array(0, dim = c(2, length(argvals), length(argvals)))
+X[1,,] &lt;- outer(argvals, argvals, function(x,y){sin((x-pi)^2 + (y-pi)^2)})
+X[2,,] &lt;- outer(argvals, argvals, function(x,y){sin(2*x*pi) * cos(2*y*pi)})
+object2D &lt;- funData(list(argvals, argvals), X)
+
+
+autoplot(object2D, obs = 1)
+autoplot(object2D, obs = 2)
+## Not run: autoplot(object2D) # must specify obs!
+
+### More examples ###
+
+par(mfrow = c(1,1))
+
+# using plotNA (needs packages zoo and gridExtra)
+
+
+objectMissing &lt;- funData(1:5, rbind(c(1, NA, 5, 4, 3), c(10, 9, NA, NA, 6)))
+g1 &lt;- autoplot(objectMissing) # the default
+g2 &lt;- autoplot(objectMissing, plotNA = TRUE) # requires zoo
+
+gridExtra::grid.arrange(g1 + ggtitle("plotNA = FALSE (default)"),
+                        g2 + ggtitle("plotNA = TRUE")) # requires gridExtra
+
+# Customizing plots (see ggplot2 documentation for more details)
+# parameters passed to geom_line are passed via the ... argument
+gFancy &lt;- autoplot(object, color = "red", linetype = 2) 
+gFancy
+
+# new layers can be added directly to the ggplot object
+gFancy + theme_bw() # add new layers to the ggplot object
+gFancy + ggtitle("Fancy Plot with Title and Axis Legends") + 
+         xlab("The x-Axis") + ylab("The y-Axis")
+
+autoplot(object2D, obs = 1) + ggtitle("Customized 2D plot") + theme_minimal() +
+          scale_fill_gradient(high = "green", low = "blue", name = "Legend here")
+
+</code></pre>
+
+
+</div>

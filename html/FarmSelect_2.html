@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>farm.res</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adjusting a data matrix for underlying factors</h2>
+
+<h3>Description</h3>
+
+<p>Given a matrix of covariates, this function estimates the underlying factors and computes data residuals after regressing out those factors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">farm.res(X, K.factors = NULL, robust = TRUE, cv = FALSE, tau = 2,
+  verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an n x p data matrix with each row being a sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K.factors</code></td>
+<td>
+<p>a <em>optional</em> number of factors to be estimated. Otherwise estimated internally. K&gt;0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>a boolean, specifying whether or not to use robust estimators for mean and variance. Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv</code></td>
+<td>
+<p>a boolean, specifying whether or  not to run cross-validation for the tuning parameter. Default is FALSE. Only used if <code>robust</code> is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p><code>&gt;0</code> multiplier for the tuning parameter for Huber loss function. Default is 2. Only used if <code>robust</code> is TRUE and <code>cv</code> is FALSE. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>a boolean specifying whether to print runtime updates to the console. Default is TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For details about the method, see Fan et al.(2017).
+</p>
+<p>Using <code>robust = TRUE</code> uses the Huber's loss to estimate parameters robustly. For details of covariance estimation method see Fan et al.(2017).
+</p>
+<p>Number of rows and columns of the data matrix must be at least 4 in order to be able to calculate latent factors.
+</p>
+<p>Number of latent factors, if not provided, is estimated by the eignevalue ratio test. See Ahn and Horenstein(2013). The maximum number is taken to be min(n,p)/2. User can supply a larger number is desired.
+</p>
+<p>The tuning parameter <code>= tau *  sigma * optimal rate </code> where <code>optimal rate</code> is the optimal rate for the tuning parameter. For details, see Fan et al.(2017). <code>sigma</code> is the standard deviation of the data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following items
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>residual</code></td>
+<td>
+<p>the data after being adjusted for underlying factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loadings</code></td>
+<td>
+<p>estimated factor loadings</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+<p>estimated factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfactors</code></td>
+<td>
+<p>the number of (estimated) factors</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ahn, S. C., and A. R. Horenstein (2013): "Eigenvalue Ratio Test for the Number of Factors," Econometrica, 81 (3), 1203–1227.
+</p>
+<p>Fan J., Ke Y., Wang K., "Decorrelation of Covariates for High Dimensional Sparse Regression." <a href="https://arxiv.org/abs/1612.08490">https://arxiv.org/abs/1612.08490</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>farm.select</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(100)
+P = 200 #dimension
+N = 50 #samples
+K = 3 #nfactors
+Q = 3 #model size
+Lambda = matrix(rnorm(P*K, 0,1), P,K)
+F = matrix(rnorm(N*K, 0,1), N,K)
+U = matrix(rnorm(P*N, 0,1), P,N)
+X = Lambda%*%t(F)+U
+X = t(X)
+output = farm.res(X) #default options
+output$nfactors
+output = farm.res(X, K.factors = 10) #inputting factors
+names(output) #list of output
+</code></pre>
+
+
+</div>

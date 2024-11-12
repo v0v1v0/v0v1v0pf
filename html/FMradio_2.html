@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autoFMradio</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Wrapper for automated workflow
+</h2>
+
+<h3>Description</h3>
+
+<p><code>autoFMradio</code> is a wrapper function that automates the three main steps of the <code>FMradio</code> workflow.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autoFMradio(X, t = .95, fold = 5, GB = 1, type = "thomson",
+            verbose = TRUE, printInfo = TRUE, seed = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>A data <code>matrix</code> or an <code>ExpressionSet</code> object. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+
+<p>A scalar <code>numeric</code> indicating the absolute value for thresholding.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+
+<p>A <code>numeric</code> integer or <code>integer</code> indicating the number of folds to use in cross-validation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GB</code></td>
+<td>
+
+<p>A <code>numeric</code> integer or <code>integer</code> indicating which Guttman bound to use for determining the number of latent features to retain.<br>
+Must be either 1, 2, or 3.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>A <code>character</code> indicating the type of factor score to calculate.<br>
+Must be one of: "thomson", "bartlett", "anderson".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if function should run silently.<br>
+Runs silently when <code>verbose = FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>printInfo</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if additional information should be printed on-screen.<br>
+Suppresses printing when <code>verbose = FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>A <code>numeric</code> integer or <code>integer</code> indicating the seed for the random number generator.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>autoFMradio</code> function automates the three main steps of the workflow by providing a wrapper around all core functions.
+</p>
+<p>Step 1 (regularized correlation matrix estimation) is performed using the <code>X</code>, <code>t</code>, and fold arguments.
+The raw correlation matrix based on data <code>X</code> is redundancy-filtered using the threshold provided in <code>t</code>.
+Subsequently, a regularized estimate of the correlation matrix (on the possibly filtered feature set) is computed with the optimal penalty value determined by cross-validation.
+The number of folds is set by the <code>fold</code> argument.
+For more information on Step 1 see <code>RF</code>, <code>subSet</code>, and <code>regcor</code>.
+</p>
+<p>Step 2 (factor analytic data compression) is performed using the <code>GB</code> argument.
+With this argument one can use either the first, second, or third Guttman bound to select the intrinsic dimensionality of the latent vector.
+This bound, together with the regularized correlation matrix, is used in a maximum likelihood factor analysis with simple-structure rotation.
+For more information on Step 2, see <code>dimGB</code> and <code>mlFA</code>.
+</p>
+<p>Step 3 (obtaining factor scores) is performed using the <code>type</code> argument.
+It determines factor scores: the score each object/individual would obtain on each of the latent factors.
+The <code>type</code> argument determines the type of factor score that is calculated.
+For more information on Step 3, see <code>facScore</code>.
+</p>
+<p>When <code>printInfo = TRUE</code> additional information is printed on-screen after the full procedure has run its course. 
+This additional information pertains to each of the steps mentioned above.
+For Step 1 it reiterates the thresholding value for redundancy filtering and gives the number of features retained after this filtering.
+It also reiterates the number of folds used in determining the optimal penalty value as well as this value itself.
+Moreover, it provides the value of the Kaiser-Meyer-Olkin index on the optimal regularized correlation matrix estimate (see <code>SA</code>).
+For Step 2 it reiterates which Guttman bound was used in determining the number of latent factors as well as the number of latent factors retained.
+It also gives the proportion of explained variance under the factor solution of the chosen latent dimension (see <code>dimVAR</code>).
+For step 3 it reiterates the type of factor score that was calculated.
+Also, it prints the lowest ‘determinacy score’ amongst the latent factors (see <code>facSMC</code>).
+</p>
+<p>The factor scores in the <code>$Scores</code> slot of the output (see below) can be directly used as input features in any prediction or classification procedure.
+In case of external (rather than internal) validation one can use the parameter matrices in the <code>$Loadings</code> and <code>$Uniqueness</code> slots in combination with fresh data to provide a validation factor projection based on the training solution.
+See Peeters <em>et al.</em> (2019).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>list</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$Scores</code></td>
+<td>
+<p>An object of class <code>data.frame</code> containing the factor scores. Observations are represented in the rows. Each column represent a latent factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$FilteredData</code></td>
+<td>
+<p>Subsetted data <code>matrix</code> containing only those features retained after redundancy filtering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$FilteredCor</code></td>
+<td>
+<p>A correlation <code>matrix</code> based on the data in the <code>$FilteredData</code> slot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$optPen</code></td>
+<td>
+<p>A <code>numeric</code> scalar representing the optimal value for the penalty parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$optCor</code></td>
+<td>
+<p>A <code>matrix</code> representing the regularized correlation matrix under the optimal penalty-value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$m</code></td>
+<td>
+<p>An <code>integer</code> correspond to number of latent factors retained under the chosen Guttman bound.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$Loadings</code></td>
+<td>
+<p>A matrix of class <code>loadings</code> representing the loadings matrix in which in which each element <code class="reqn">\lambda_{jk}</code> is the loading of the <code class="reqn">j</code>th feature on the <code class="reqn">k</code>th latent factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$Uniqueness</code></td>
+<td>
+<p>A <code>matrix</code> representing the diagonal matrix carrying the unique variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$Exvariance</code></td>
+<td>
+<p>A <code>numeric</code> vector representing the cumulative variance for each respective latent feature.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$determinacy</code></td>
+<td>
+<p>A <code>numeric</code> vector indicating, for each factor, the squared multiple correlation between the observed features and the common latent factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$used.seed</code></td>
+<td>
+<p>A <code>numeric</code> or <code>integer</code> used as the starting seed in random number generation.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>When <code>seed = NULL</code> the starting seed is determined by drawing a single integer from the integers <code>1:9e5</code>. This non-user-supplied seed is also found in the <code>$used.seed</code> slot of the output.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carel F.W. Peeters &lt;cf.peeters@vumc.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Peeters, C.F.W. <em>et al.</em> (2019). Stable prediction with radiomics data.
+<a href="https://arxiv.org/abs/1903.11696">arXiv:1903.11696 [stat.ML]</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>RF</code>, <code>subSet</code>, <code>regcor</code>, <code>dimGB</code>, <code>mlFA</code>, <code>facScore</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate some data according to a factor model with 3 latent factors
+simDAT &lt;- FAsim(p = 24, m = 3, n = 40, loadingvalue = .9)
+X &lt;- simDAT$data
+
+## Perform the lot
+FullMonty &lt;- autoFMradio(X, GB = 1, seed = 303)
+</code></pre>
+
+
+</div>

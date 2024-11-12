@@ -1,0 +1,284 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>baseline_corr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic or Manual Baseline Correction of Time Series</h2>
+
+<h3>Description</h3>
+
+<p>If baseline (zero-line) of measurement is unstable (e.g. due to temperature fluctuations, wind, ...),
+the baseline needs to be continually adjusted throughout the measurement. This script allows an
+automatic adjustment of the baseline.
+The automatic approach invokes a sliding window, during which the 'minimum' within each sliding window
+is stored. A 'minimum' is defined by the <code>quantile.size</code>: if set to <code>0.05</code>, the value below which only 5% of
+the measurement data within the sliding window lies, is treated as the current window's minimum. This
+prevents the treatment of potential artifacts as minima. In a second iteration, another sliding window
+calculates the average of these 'minima'. The resulting values are subtracted from
+the original time series. This approach works well for time series with relatively short peaks.
+If the automatic approach does not yield acceptable results, an interactive manual approach to correct
+the baseline can be performed instead.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">baseline_corr(
+  filename,
+  corr.type = "auto",
+  window.size.mins = 1000,
+  window.size.means = NULL,
+  quantile.size = 0.05,
+  y.scale = 0.5,
+  res.reduction = 10,
+  Hz = 100,
+  plot.to.screen = FALSE,
+  write.data = FALSE,
+  write.PDFs = FALSE,
+  write.logs = FALSE,
+  output.folder = NULL,
+  show.progress = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>A character string containing the full path to the measurement file that needs correction.
+See Details for info on what the file should look like.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr.type</code></td>
+<td>
+<p>Character string defining the desired mode of baseline correction. One of <code>"auto"</code>
+or <code>"manual"</code>. Default: <code>"auto"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window.size.mins</code></td>
+<td>
+<p>A numeric value for the size of the search window to find minima in. Should be
+in the same time unit as the measurement. Longer peaks require higher values, shorter peaks require
+smaller values. Default: <code>1000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window.size.means</code></td>
+<td>
+<p>A numeric value for the size of the window to average the minima in. Should be
+in the same time unit as the measurement. By default (<code>NULL</code>), the same value as specified for
+<code>window.size.mins</code> is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantile.size</code></td>
+<td>
+<p>A numerical value between <code>0</code> and <code>1</code> to define the quantile which is treated as
+the 'minimum' of a sliding window. Default: <code>0.05</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.scale</code></td>
+<td>
+<p>A numeric value to reduce the y-axis range during plotting. This simplifies the manual
+placement of the points during the manual correction procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res.reduction</code></td>
+<td>
+<p>A numeric value to reduce the number of time steps by during plotting. Speeds up
+the plotting process and reduces PDF size. Has no effect on the results, only on the plots. Default: <code>10</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Hz</code></td>
+<td>
+<p>A numeric value to reduce sampling frequency for temporary analyses. This works as a smoothing
+filter during temporary analyses and does not reduce the actual sampling frequency of the data.
+Default: <code>100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.to.screen</code></td>
+<td>
+<p>A logical value indicating if results should be
+plotted in the current R plot device. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write.data</code></td>
+<td>
+<p>A logical value indicating if drift-corrected file should
+be saved. If yes, it will be saved in <code>output.folder</code>.
+Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write.PDFs</code></td>
+<td>
+<p>A logical value indicating whether results should be saved
+as PDFs. Does not slow
+down the process as much as printing to the R plot device and is considered
+necessary to quality check the results. If yes, it will be saved in
+<code>output.folder/PDFs</code>. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write.logs</code></td>
+<td>
+<p>A logical value indicating whether a log file with
+information on the method and values used to correct the baseline drift should be
+saved. Is considered necessary for reproducibility. If yes, it will be saved
+in <code>output.folder/logs</code>. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output.folder</code></td>
+<td>
+<p>Path to folder where data, PDF and log files should
+be stored. Default: <code>NULL.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.progress</code></td>
+<td>
+<p>A logical value indicating if progress should be
+printed to the console. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>forceR</code> generally expects file names to start with a leading number specifying the
+measurement number (E.g. "0001_G_maculatus.csv"). The number ("0001") is used to
+keep data files, log files, and PDF files of the same measurement associated
+with each other.
+</p>
+<p>The input files should to be in the following format:</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+   <code>t</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.1</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.2</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>...</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>...</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.n</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.n</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+</td>
+</tr>
+</table>
+<p>In case there are more than two columns, only the first two columns will be used. If the first two columns
+are not named 't' and 'y', they will be renamed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a tibble containing the amplifier baseline drift-corrected data in the
+following format</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+   <code>t</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.1</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.2</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>...</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>...</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.n</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.n</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">#'########### AUTOMATIC MODE
+# define file to apply the baseline drift correction to
+filename &lt;- forceR_example(type = "ampdriftcorr")
+
+# run automatic baseline drift corrections without saving files or
+#   printing to screen:
+file.baseline_corr &lt;- baseline_corr(filename = filename,
+                                     corr.type = "auto",
+                                     window.size.mins = 1000,
+                                     window.size.means = NULL,
+                                     quantile.size = 0.05,
+                                     y.scale = 0.5,
+                                     res.reduction = 10,
+                                     Hz = 100,
+                                     plot.to.screen = FALSE,
+                                     write.data = FALSE,
+                                     write.PDFs = FALSE,
+                                     write.logs = FALSE,
+                                     show.progress = FALSE)
+
+file.baseline_corr
+
+#'########### MANUAL MODE
+
+# define file to apply the baseline drift correction to
+filename &lt;- forceR_example(type = "ampdriftcorr")
+
+# run interactive baseline drift corrections with saving files and
+#   printing to screen:  - out-commented to pass package tests
+
+# file.baseline_corr &lt;- baseline_corr(filename = filename,
+#                                       corr.type = "manual",
+#                                       window.size.mins = 1000,
+#                                       window.size.means = NULL,
+#                                       quantile.size = 0.05,
+#                                       y.scale = 0.5,
+#                                       res.reduction = 10,
+#                                       Hz = 100,
+#                                       plot.to.screen = TRUE,
+#                                       output.folder = "./baselinecorr",
+#                                       show.progress = TRUE)
+
+# file.baseline_corr
+</code></pre>
+
+
+</div>

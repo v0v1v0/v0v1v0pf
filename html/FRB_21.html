@@ -1,0 +1,392 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FRBpcaMM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> PCA based on Multivariate MM-estimators with Fast and Robust Bootstrap </h2>
+
+<h3>Description</h3>
+
+<p>Performs principal components analysis based on the robust MM-estimate of the shape matrix. Additionally uses the Fast and Robust Bootstrap
+method to compute inference measures such as standard errors and confidence intervals. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+FRBpcaMM(formula, data=NULL, ...)
+
+
+## Default S3 method:
+FRBpcaMM(Y, R = 999, conf = 0.95, control=MMcontrol(...),
+na.action=na.omit, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p> an object of class <code>formula</code>; a symbolic description of the model to be fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p> data frame from which variables specified in formula are to be taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p> matrix or data frame. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p> number of bootstrap samples. Default is <code>R=999</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p> level of the bootstrap confidence intervals. Default is <code>conf=0.95</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list with control parameters for tuning the MM-estimate and its computing algorithm, 
+see <code>MMcontrol</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p> a function which indicates what should happen when the data contain NAs. Defaults to <code>na.omit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>allows for specifying control parameters directly instead of via <code>control</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Multivariate MM-estimates are defined by first computing an S-estimate of location and covariance, then fixing its scale component and 
+re-estimating the location and the shape by a more efficient M-estimate, see Tatsuoka and Tyler (2000). Tukey's biweight is used for 
+the loss functions. By default, the first loss function (in the S-estimate) is tuned in order to obtain 50% breakdown point. 
+The default tuning of the second loss function (M-estimate) ensures 95% efficiency for the shape matrix estimate at the normal model.
+The desired efficiency can be changed through argument <code>control</code>. (However, control parameter 
+<code>shapeEff</code> will always be considered as <code>TRUE</code> by this function, whichever value is specified.) The MM-estimates are computed by a call to the implementation in the <span class="pkg">rrcov</span> package of Todorov and Filzmoser (2009). 
+The result of this call is also returned as the value <code>est</code>.
+</p>
+<p>PCA is performed by computing the eigenvalues (<code>eigval</code>) and eigenvectors (<code>eigvec</code>) of the MM-estimate of shape, which is a rescaled version of the
+MM-estimate of covariance (rescaled to have determinant equal to 1). With <code>pvar</code> the function also provides the estimates for the percentage of 
+variance explained by the first <code class="reqn">k</code> principal components, which are simply the cumulative proportions of the eigenvalues sum. 
+Here, <code class="reqn">k</code> ranges from 1 to <code class="reqn">p-1</code> (with <code class="reqn">p</code> the number of variables in <code>Y</code>). 
+The eigenvectors are always given in the order of descending eigenvalues.
+</p>
+<p>The Fast and Robust Bootstrap (Salibian-Barrera and Zamar 2002) is used to calculate standard errors, and also so-called
+basic bootstrap confidence intervals and bias corrected and accelerated (BCa) confidence intervals (Davison and Hinkley 1997, p.194 and p.204 respectively) corresponding
+to the estimates <code>eigval</code>, <code>eigvec</code> and <code>pvar</code>. 
+The bootstrap is also used to estimate the average angles between true and estimated eigenvectors, returned as <code>avgangle</code>.
+See Salibian-Barrera, Van Aelst and Willems (2006).
+The fast and robust bootstrap computations for the MM-estimates are performed by <code>MMboot_loccov</code>() and its raw result can be found in <code>bootest</code>.
+The actual bootstrap recalculations for the PCA-related quantities can be found in <code>eigval.boot</code>, <code>eigvec.boot</code> and <code>pvar.boot</code>, where each column 
+represents a bootstrap sample. For <code>eigvec.boot</code>, the eigenvectors are stacked on top of each other and the same goes for 
+<code>eigvec.CI.bca</code> and <code>eigvec.CI.basic</code> which hold the confidence limits. 
+</p>
+<p>The two columns in the confidence limits always respectively represent the lower and upper limits.
+For the percentage of variance the function also provides one-sided confidence intervals ([-infty upper]), which can be
+used to test the hypothesis that the true percentage at least equals a certain value.  
+</p>
+<p>Bootstrap samples are discarded if the fast and robust shape estimate is not positive definite, such that the actual number 
+of recalculations used can be lower than <code>R</code>. This actual number equals <code>R</code> - <code>failedsamples</code>.
+However, if more than <code>0.75R</code> of the bootstrap shape estimates is non-positive definite, all bootstrap samples will be
+used anyway, and the negative eigenvalues are simply set to zero (which may impact the confidence limits and standard errors
+for the smallest eigenvalues in <code>eigval</code> and <code>pvar</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FRBpca</code>, which contains the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>shape</code></td>
+<td>
+<p>(p x p) MM-estimate of the shape matrix of <code>Y</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigval</code></td>
+<td>
+<p>(p x 1) eigenvalues of MM shape </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigvec</code></td>
+<td>
+<p>(p x p) eigenvectors of MM-shape </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvar</code></td>
+<td>
+<p>(p-1 x 1) percentages of variance for MM eigenvalues </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigval.boot</code></td>
+<td>
+<p>(p x R) eigenvalues of MM shape </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigvec.boot</code></td>
+<td>
+<p>(p*p x R) eigenvectors of MM-shape (vectorized) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvar.boot</code></td>
+<td>
+<p>(p-1 x R) percentages of variance for MM eigenvalues </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigval.SE</code></td>
+<td>
+<p>(p x 1) bootstrap standard error for MM eigenvalues </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigvec.SE</code></td>
+<td>
+<p>(p x p) bootstrap standard error for MM eigenvectors </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvar.SE</code></td>
+<td>
+<p>(p-1 x 1) bootstrap standard error for percentage of variance for MM-eigenvalues </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>angles</code></td>
+<td>
+<p>(p x R) angles between bootstrap eigenvectors and original MM eigenvectors (in radians; in [0 pi/2])</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>avgangle</code></td>
+<td>
+<p>(p x 1) average angles between bootstrap eigenvectors and original MM eigenvectors (in radians; in [0 pi/2])</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigval.CI.bca</code></td>
+<td>
+<p>(p x 2) BCa intervals for MM eigenvalues </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigvec.CI.bca</code></td>
+<td>
+<p>(p*p x 2) BCa intervals for MM eigenvectors (vectorized)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvar.CI.bca</code></td>
+<td>
+<p>(p-1 x 2) BCa intervals for percentage of variance for MM-eigenvalues</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvar.CIone.bca</code></td>
+<td>
+<p>(p-1 x 1) one-sided BCa intervals for percentage of variance for MM-eigenvalues ([-infty upper]) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigval.CI.basic</code></td>
+<td>
+<p>(p x 2) basic bootstrap intervals for MM eigenvalues </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigvec.CI.basic</code></td>
+<td>
+<p>(p*p x 2) basic bootstrap intervals for MM eigenvectors (vectorized)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvar.CI.basic</code></td>
+<td>
+<p>(p-1 x 2) basic bootstrap intervals for percentage of variance for MM-eigenvalues </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvar.CIone.basic</code></td>
+<td>
+<p>(p-1 x 1) one-sided basic bootstrap intervals for percentage of variance for MM-eigenvalues ([-infty upper]) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>list containing the MM-estimates of location and scatter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootest</code></td>
+<td>
+<p>(list) result of <code>MMboot_loccov</code>() </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>failedsamples</code></td>
+<td>
+<p>number of bootstrap samples with non-positive definiteness of shape </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p> a copy of the <code>conf</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p> a character string giving the robust PCA method that was used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>implicit weights corresponding to the MM-estimates (i.e. final weights in the RWLS procedure)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outFlag</code></td>
+<td>
+<p>outlier flags: 1 if the robust distance of the observation exceeds the .975 quantile of (the square root of)
+the chi-square distribution with degrees of freedom equal to the dimension of <code>Y</code>; 0 otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>copy of the data argument as a matrix</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Gert Willems, Stefan Van Aelst and Ella Roelant </p>
+
+
+<h3>References</h3>
+
+ 
+
+<ul>
+<li>
+<p> A.C. Davison and D.V. Hinkley (1997) <em>Bootstrap Methods and their Application</em>. 
+Cambridge Series in Statistical and Probabilistic Mathematics. Cambridge: Cambridge University Press.
+</p>
+</li>
+<li>
+<p> M. Salibian-Barrera, S. Van Aelst and G. Willems (2006) PCA based on multivariate MM-estimators with fast and robust bootstrap. 
+<em>Journal of the American Statistical Association</em>, <b>101</b>, 1198-1211.
+</p>
+</li>
+<li>
+<p> M. Salibian-Barrera, S. Van Aelst and G. Willems (2008) Fast and robust bootstrap. 
+<em>Statistical Methods and Applications</em>, <b>17</b>, 41-71.
+</p>
+</li>
+<li>
+<p> M. Salibian-Barrera, R.H. Zamar (2002) Bootstrapping robust estimates of regression. 
+<em>The Annals of Statistics</em>, <b>30</b>, 556-582.
+</p>
+</li>
+<li>
+<p> K.S. Tatsuoka and D.E. Tyler (2000) The uniqueness of S and M-functionals under non-elliptical distributions.
+<em>The Annals of Statistics</em>, <b>28</b>, 1219-1243
+</p>
+</li>
+<li>
+<p> V. Todorov and P. Filzmoser (2009), An Object Oriented Framework for Robust Multivariate Analysis. 
+<em>Journal of Statistical Software</em>, <b>32</b>(3), 1–47.
+<a href="https://doi.org/10.18637/jss.v032.i03">doi:10.18637/jss.v032.i03</a>.
+</p>
+</li>
+<li>
+<p> S. Van Aelst and G. Willems (2013), Fast and robust bootstrap for multivariate inference: The R package FRB. 
+<em>Journal of Statistical Software</em>, <b>53</b>(3), 1–32.
+<a href="https://doi.org/10.18637/jss.v053.i03">doi:10.18637/jss.v053.i03</a>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>plot.FRBpca</code>, <code>summary.FRBpca</code>, <code>print.FRBpca</code>, <code>FRBpcaS</code>, 
+<code>MMboot_loccov</code>, <code>MMcontrol</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(ForgedBankNotes)
+
+MMpcares &lt;- FRBpcaMM(ForgedBankNotes, R=999, conf=0.95)
+# or using the formula interface
+
+MMpcares &lt;- FRBpcaMM(~.,data=ForgedBankNotes, R=999, conf=0.95)
+
+
+# the simple print method shows the standard deviations with confidence limits:
+MMpcares
+
+# the summary functions shows a lot more (see help(summary.FRBpca)):
+summary(MMpcares)
+
+# ask for the eigenvalues:
+MMpcares$eigval
+
+# or, in more pretty format, with confidence limits:
+summary(MMpcares)$eigvals
+
+# note that the standard deviations of the print-output can also be asked for by:
+sqrt( summary(MMpcares)$eigvals )
+
+# the eigenvectors and their standard errors:
+MMpcares$eigvec   # or prettier: summary(MMpcares)$eigvecs
+MMpcares$eigvec.SE
+
+ 
+    # take a look at the bootstrap distribution of the first eigenvalue
+    hist(MMpcares$eigval.boot[1,])
+    
+    # that bootstrap distribution is used to compute confidence limits as depicted 
+    # by the screeplot function:
+    plotFRBvars(MMpcares, cumul=0)
+    
+    # all plots for the FRB-PCA result:
+    plot(MMpcares)
+
+</code></pre>
+
+
+</div>

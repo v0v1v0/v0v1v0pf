@@ -1,0 +1,266 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SimulateClustering</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation of data with underlying clusters</h2>
+
+<h3>Description</h3>
+
+<p>Simulates mixture multivariate Normal data with clusters of items (rows)
+sharing similar profiles along (a subset of) attributes (columns).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SimulateClustering(
+  n = c(10, 10),
+  pk = 10,
+  sigma = NULL,
+  theta_xc = NULL,
+  nu_xc = 1,
+  ev_xc = 0.5,
+  output_matrices = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>vector of the number of items per cluster in the simulated data. The
+total number of items is <code>sum(n)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pk</code></td>
+<td>
+<p>vector of the number of attributes in the simulated data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>optional within-cluster correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_xc</code></td>
+<td>
+<p>optional binary matrix encoding which attributes (columns)
+contribute to the clustering structure between which clusters (rows). If
+<code>theta_xc=NULL</code>, variables contributing to the clustering are sampled
+with probability <code>nu_xc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_xc</code></td>
+<td>
+<p>expected proportion of variables contributing to the clustering
+over the total number of variables. Only used if <code>theta_xc</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev_xc</code></td>
+<td>
+<p>vector of expected proportion of variance in each of the
+contributing attributes that can be explained by the clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output_matrices</code></td>
+<td>
+<p>logical indicating if the cluster and attribute
+specific means and cluster specific covariance matrix should be included
+in the output.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The data is simulated from a Gaussian mixture where for all <code class="reqn">i
+  \in {1, \dots, n}</code>:
+</p>
+<p><code class="reqn">Z_i i.i.d. ~ M(1, \kappa)</code>
+</p>
+<p><code class="reqn">X_i | Z_i indep. ~ N_p(\mu_{Z_i}, \Sigma)</code>
+</p>
+<p>where <code class="reqn">M(1, \kappa)</code> is the multinomial distribution with parameters 1
+and <code class="reqn">\kappa</code>, the vector of length <code class="reqn">G</code> (the number of clusters)
+with probabilities of belonging to each of the clusters, and
+<code class="reqn">N_p(\mu_{Z_i}, \Sigma)</code> is the multivariate Normal distribution with a
+mean vector <code class="reqn">\mu_{Z_i}</code> that depends on the cluster membership encoded
+in <code class="reqn">Z_i</code> and the same covariance matrix <code class="reqn">\Sigma</code> within all <code class="reqn">G</code>
+clusters.
+</p>
+<p>The mean vectors <code class="reqn">\mu_{g}, g \in {1, \dots G}</code> are simulated so that
+the desired proportion of variance in each of attributes explained by the
+clustering (argument <code>ev_xc</code>) is reached.
+</p>
+<p>The covariance matrix <code class="reqn">\Sigma</code> is obtained by re-scaling a correlation
+matrix (argument <code>sigma</code>) to ensure that the desired proportions of
+explained variances by the clustering (argument <code>ev_xc</code>) are reached.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>simulated data with <code>sum(n)</code>
+observation and <code>sum(pk)</code> variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>simulated (true)
+cluster membership.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_xc</code></td>
+<td>
+<p>binary vector encoding variables
+contributing to the clustering structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev</code></td>
+<td>
+<p>vector of marginal
+expected proportions of explained variance for each variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_mixture</code></td>
+<td>
+<p>simulated (true) cluster-specific means. Only returned if
+<code>output_matrices=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>simulated (true) covariance
+matrix. Only returned if <code>output_matrices=TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>MakePositiveDefinite</code>
+</p>
+<p>Other simulation functions: 
+<code>SimulateAdjacency()</code>,
+<code>SimulateComponents()</code>,
+<code>SimulateCorrelation()</code>,
+<code>SimulateGraphical()</code>,
+<code>SimulateRegression()</code>,
+<code>SimulateStructural()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldpar &lt;- par(no.readonly = TRUE)
+par(mar = rep(7, 4))
+
+## Example with 3 clusters
+
+# Data simulation
+set.seed(1)
+simul &lt;- SimulateClustering(
+  n = c(10, 30, 15),
+  nu_xc = 1,
+  ev_xc = 0.5
+)
+print(simul)
+plot(simul)
+
+# Checking the proportion of explained variance
+x &lt;- simul$data[, 1]
+z &lt;- as.factor(simul$theta)
+summary(lm(x ~ z)) # R-squared
+
+
+## Example with 2 variables contributing to clustering
+
+# Data simulation
+set.seed(1)
+simul &lt;- SimulateClustering(
+  n = c(20, 10, 15), pk = 10,
+  theta_xc = c(1, 1, rep(0, 8)),
+  ev_xc = 0.8
+)
+print(simul)
+plot(simul)
+
+# Visualisation of the data
+Heatmap(
+  mat = simul$data,
+  col = c("navy", "white", "red")
+)
+simul$ev # marginal proportions of explained variance
+
+# Visualisation along contributing variables
+plot(simul$data[, 1:2], col = simul$theta, pch = 19)
+
+
+## Example with different levels of separation
+
+# Data simulation
+set.seed(1)
+simul &lt;- SimulateClustering(
+  n = c(20, 10, 15), pk = 10,
+  theta_xc = c(1, 1, rep(0, 8)),
+  ev_xc = c(0.99, 0.5, rep(0, 8))
+)
+
+# Visualisation along contributing variables
+plot(simul$data[, 1:2], col = simul$theta, pch = 19)
+
+
+## Example with correlated contributors
+
+# Data simulation
+pk &lt;- 10
+adjacency &lt;- matrix(0, pk, pk)
+adjacency[1, 2] &lt;- adjacency[2, 1] &lt;- 1
+set.seed(1)
+sigma &lt;- SimulateCorrelation(
+  pk = pk,
+  theta = adjacency,
+  pd_strategy = "min_eigenvalue",
+  v_within = 0.6, v_sign = -1
+)$sigma
+simul &lt;- SimulateClustering(
+  n = c(200, 100, 150), pk = pk, sigma = sigma,
+  theta_xc = c(1, 1, rep(0, 8)),
+  ev_xc = c(0.9, 0.8, rep(0, 8))
+)
+
+# Visualisation along contributing variables
+plot(simul$data[, 1:2], col = simul$theta, pch = 19)
+
+# Checking marginal proportions of explained variance
+mymodel &lt;- lm(simul$data[, 1] ~ as.factor(simul$theta))
+summary(mymodel)$r.squared
+mymodel &lt;- lm(simul$data[, 2] ~ as.factor(simul$theta))
+summary(mymodel)$r.squared
+
+par(oldpar)
+
+</code></pre>
+
+
+</div>

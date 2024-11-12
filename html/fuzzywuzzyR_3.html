@@ -1,0 +1,474 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FuzzExtract</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuzzy extraction from a sequence</h2>
+
+<h3>Description</h3>
+
+<p>Fuzzy extraction from a sequence
+</p>
+<p>Fuzzy extraction from a sequence
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"># init &lt;- FuzzExtract$new(decoding = NULL)
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>the <em>decoding</em> parameter is useful in case of non-ascii character strings. If this parameter is not NULL then the <em>force_ascii</em> parameter (if applicable) is internally set to FALSE. Decoding applies only to python 2 configurations, as in python 3 character strings are decoded to unicode by default.
+</p>
+<p>the <em>Extract</em> method selects the best match of a character string vector. It returns a list with the match and it's score.
+</p>
+<p>the <em>ExtractBests</em> method returns a list of the best matches for a sequence of character strings.
+</p>
+<p>the <em>ExtractWithoutOrder</em> method returns the best match of a character string vector (in python it returns a generator of tuples containing the match and it's score).
+</p>
+<p>the <em>ExtractOne</em> method finds the single best match above a score for a character string vector. This is a convenience method which returns the single best choice.
+</p>
+<p>the <em>Dedupe</em> is a convenience method which takes a character string vector containing duplicates and uses fuzzy matching to identify and remove duplicates. Specifically, it uses the <em>Extract</em> method
+to identify duplicates that score greater than a user defined threshold. Then, it looks for the longest item in the duplicate vector since we assume this item contains the most entity information and returns that.
+It breaks string length ties on an alphabetical sort. Note: as the threshold DECREASES the number of duplicates that are found INCREASES. This means that the returned deduplicated list will likely be shorter.
+Raise the threshold for fuzzy_dedupe to be less sensitive.
+</p>
+
+
+<h3>Methods</h3>
+
+
+<dl>
+<dt><code>FuzzExtract$new(decoding = NULL)</code></dt>
+<dd></dd>
+<dt><code>--------------</code></dt>
+<dd></dd>
+<dt><code>Extract(string = NULL, sequence_strings = NULL, processor = NULL, scorer = NULL, limit = 5L)</code></dt>
+<dd></dd>
+<dt><code>--------------</code></dt>
+<dd></dd>
+<dt><code>ExtractBests(string = NULL, sequence_strings = NULL, processor = NULL, scorer = NULL, score_cutoff = 0L, limit = 5L)</code></dt>
+<dd></dd>
+<dt><code>--------------</code></dt>
+<dd></dd>
+<dt><code>ExtractWithoutOrder(string = NULL, sequence_strings = NULL, processor = NULL, scorer = NULL, score_cutoff = 0L)</code></dt>
+<dd></dd>
+<dt><code>--------------</code></dt>
+<dd></dd>
+<dt><code>ExtractOne(string = NULL, sequence_strings = NULL, processor = NULL, scorer = NULL, score_cutoff = 0L)</code></dt>
+<dd></dd>
+<dt><code>--------------</code></dt>
+<dd></dd>
+<dt><code>Dedupe(contains_dupes = NULL, threshold = 70L, scorer = NULL)</code></dt>
+<dd></dd>
+</dl>
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-new"><code>FuzzExtract$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Extract"><code>FuzzExtract$Extract()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-ExtractBests"><code>FuzzExtract$ExtractBests()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-ExtractWithoutOrder"><code>FuzzExtract$ExtractWithoutOrder()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-ExtractOne"><code>FuzzExtract$ExtractOne()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Dedupe"><code>FuzzExtract$Dedupe()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-clone"><code>FuzzExtract$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>FuzzExtract$new(decoding = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>decoding</code></dt>
+<dd>
+<p>either NULL or a character string. If not NULL then the <em>decoding</em> parameter takes one of the standard python encodings (such as 'utf-8'). See the <em>details</em> and <em>references</em> link for more information.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Extract"></a>
+
+
+
+<h4>Method <code>Extract()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>FuzzExtract$Extract(
+  string = NULL,
+  sequence_strings = NULL,
+  processor = NULL,
+  scorer = NULL,
+  limit = 5L
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>string</code></dt>
+<dd>
+<p>a character string.</p>
+</dd>
+<dt><code>sequence_strings</code></dt>
+<dd>
+<p>a character string vector</p>
+</dd>
+<dt><code>processor</code></dt>
+<dd>
+<p>either NULL or a function of the form f(a) -&gt; b, where a is the query or individual choice and b is the choice to be used in matching. See the examples for more details.</p>
+</dd>
+<dt><code>scorer</code></dt>
+<dd>
+<p>a function for scoring matches between the query and an individual processed choice. This should be a function of the form f(query, choice) -&gt; int. By default, FuzzMatcher.WRATIO() is used and expects both query and choice to be strings. See the examples for more details.</p>
+</dd>
+<dt><code>limit</code></dt>
+<dd>
+<p>An integer value for the maximum number of elements to be returned. Defaults to 5L</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-ExtractBests"></a>
+
+
+
+<h4>Method <code>ExtractBests()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>FuzzExtract$ExtractBests(
+  string = NULL,
+  sequence_strings = NULL,
+  processor = NULL,
+  scorer = NULL,
+  score_cutoff = 0L,
+  limit = 5L
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>string</code></dt>
+<dd>
+<p>a character string.</p>
+</dd>
+<dt><code>sequence_strings</code></dt>
+<dd>
+<p>a character string vector</p>
+</dd>
+<dt><code>processor</code></dt>
+<dd>
+<p>either NULL or a function of the form f(a) -&gt; b, where a is the query or individual choice and b is the choice to be used in matching. See the examples for more details.</p>
+</dd>
+<dt><code>scorer</code></dt>
+<dd>
+<p>a function for scoring matches between the query and an individual processed choice. This should be a function of the form f(query, choice) -&gt; int. By default, FuzzMatcher.WRATIO() is used and expects both query and choice to be strings. See the examples for more details.</p>
+</dd>
+<dt><code>score_cutoff</code></dt>
+<dd>
+<p>an integer value for the score threshold. No matches with a score less than this number will be returned. Defaults to 0</p>
+</dd>
+<dt><code>limit</code></dt>
+<dd>
+<p>An integer value for the maximum number of elements to be returned. Defaults to 5L</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-ExtractWithoutOrder"></a>
+
+
+
+<h4>Method <code>ExtractWithoutOrder()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>FuzzExtract$ExtractWithoutOrder(
+  string = NULL,
+  sequence_strings = NULL,
+  processor = NULL,
+  scorer = NULL,
+  score_cutoff = 0L
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>string</code></dt>
+<dd>
+<p>a character string.</p>
+</dd>
+<dt><code>sequence_strings</code></dt>
+<dd>
+<p>a character string vector</p>
+</dd>
+<dt><code>processor</code></dt>
+<dd>
+<p>either NULL or a function of the form f(a) -&gt; b, where a is the query or individual choice and b is the choice to be used in matching. See the examples for more details.</p>
+</dd>
+<dt><code>scorer</code></dt>
+<dd>
+<p>a function for scoring matches between the query and an individual processed choice. This should be a function of the form f(query, choice) -&gt; int. By default, FuzzMatcher.WRATIO() is used and expects both query and choice to be strings. See the examples for more details.</p>
+</dd>
+<dt><code>score_cutoff</code></dt>
+<dd>
+<p>an integer value for the score threshold. No matches with a score less than this number will be returned. Defaults to 0</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-ExtractOne"></a>
+
+
+
+<h4>Method <code>ExtractOne()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>FuzzExtract$ExtractOne(
+  string = NULL,
+  sequence_strings = NULL,
+  processor = NULL,
+  scorer = NULL,
+  score_cutoff = 0L
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>string</code></dt>
+<dd>
+<p>a character string.</p>
+</dd>
+<dt><code>sequence_strings</code></dt>
+<dd>
+<p>a character string vector</p>
+</dd>
+<dt><code>processor</code></dt>
+<dd>
+<p>either NULL or a function of the form f(a) -&gt; b, where a is the query or individual choice and b is the choice to be used in matching. See the examples for more details.</p>
+</dd>
+<dt><code>scorer</code></dt>
+<dd>
+<p>a function for scoring matches between the query and an individual processed choice. This should be a function of the form f(query, choice) -&gt; int. By default, FuzzMatcher.WRATIO() is used and expects both query and choice to be strings. See the examples for more details.</p>
+</dd>
+<dt><code>score_cutoff</code></dt>
+<dd>
+<p>an integer value for the score threshold. No matches with a score less than this number will be returned. Defaults to 0</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Dedupe"></a>
+
+
+
+<h4>Method <code>Dedupe()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>FuzzExtract$Dedupe(contains_dupes = NULL, threshold = 70L, scorer = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>contains_dupes</code></dt>
+<dd>
+<p>a vector of strings that we would like to dedupe</p>
+</dd>
+<dt><code>threshold</code></dt>
+<dd>
+<p>the numerical value (0, 100) point at which we expect to find duplicates. Defaults to 70 out of 100</p>
+</dd>
+<dt><code>scorer</code></dt>
+<dd>
+<p>a function for scoring matches between the query and an individual processed choice. This should be a function of the form f(query, choice) -&gt; int. By default, FuzzMatcher.WRATIO() is used and expects both query and choice to be strings. See the examples for more details.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>FuzzExtract$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>References</h3>
+
+<p>https://github.com/seatgeek/fuzzywuzzy/blob/master/fuzzywuzzy/process.py, https://docs.python.org/3/library/codecs.html#standard-encodings
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+try({
+  if (reticulate::py_available(initialize = FALSE)) {
+
+    if (check_availability()) {
+
+      library(fuzzywuzzyR)
+
+      word = "new york jets"
+
+      choices = c("Atlanta Falcons", "New York Jets", "New York Giants", "Dallas Cowboys")
+
+      duplicat = c('Frodo Baggins', 'Tom Sawyer', 'Bilbo Baggin', 'Samuel L. Jackson',
+
+                   'F. Baggins', 'Frody Baggins', 'Bilbo Baggins')
+
+      #------------
+      # processor :
+      #------------
+
+      init_proc = FuzzUtils$new()
+
+      PROC = init_proc$Full_process    # class process-method
+
+      PROC1 = tolower                  # base R function
+
+      #---------
+      # scorer :
+      #---------
+
+      init_scor = FuzzMatcher$new()
+
+      SCOR = init_scor$WRATIO
+
+
+      init &lt;- FuzzExtract$new()
+
+      init$Extract(string = word, sequence_strings = choices, processor = PROC, scorer = SCOR)
+
+      init$ExtractBests(string = word, sequence_strings = choices, processor = PROC1,
+
+                        scorer = SCOR, score_cutoff = 0L, limit = 2L)
+
+      init$ExtractWithoutOrder(string = word, sequence_strings = choices, processor = PROC,
+
+                               scorer = SCOR, score_cutoff = 0L)
+
+      init$ExtractOne(string = word, sequence_strings = choices, processor = PROC,
+
+                      scorer = SCOR, score_cutoff = 0L)
+
+      init$Dedupe(contains_dupes = duplicat, threshold = 70L, scorer = SCOR)
+
+    }
+  }
+}, silent=TRUE)
+</code></pre>
+
+
+</div>

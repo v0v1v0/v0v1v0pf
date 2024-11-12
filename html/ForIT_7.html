@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PlottingINFCaccuracy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plotting the accuracy and reliability region (or 'domain') of the volume and
+phytomass estimation functions</h2>
+
+<h3>Description</h3>
+
+<p>Volume and phytomass functions are tabulated in Tabacchi et al. (2011a).
+The tabulation covers a limited region of the <code>dbh</code> by <code>h_tot</code> rectangle.
+This region is the "domain" of the reliable estimates, based on the
+distribution of the sample trees used to calibrate the functions.
+The coefficient of variation (CV = standard_deviation / estimate) is computed
+and plotted (as 'filled contours') for the whole rectangular area,
+the limits of the region of reliable estimates (the "domain"), is
+superimposed as a light colored line. Function output is a <code>ggplot</code> object that can be used
+by its self or as a background on top of which the user can plot his/her data to
+verify eventual accuracy or reliability problems.<br>
+Two functions are available.
+</p>
+
+<ul>
+<li> <p><code>INFCaccuracyPlot()</code> - allows the plots to be fully customized but, beware,
+all values required for the 'fill' will be computed and,
+at finer resolution, the process can be slow.
+</p>
+</li>
+<li> <p><code>INFCaccuracyPlot0()</code> - produces, much faster, the plots at the finest
+resolution, using pre-calculated values stored in
+a specific auxiliary dataframe (see <code>INFC_CVgrid</code>),
+necessarily leaving less customization freedom.
+</p>
+</li>
+</ul>
+<p>(** <code>compute_grid0()</code> - is an internal function exported for the sake of
+the <code>Populate_INFC_CVgrid()</code> function **)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">INFCaccuracyPlot(
+  EPPOcod,
+  quantity = "vol",
+  ie.Var = FALSE,
+  cv.ul = 0.1,
+  fixed = TRUE,
+  plot.est = FALSE,
+  dbh.step = 5,
+  htot.step = dbh.step,
+  dbh.buf = 1,
+  htot.buf = dbh.buf
+)
+
+INFCaccuracyPlot0(
+  EPPOcod,
+  quantity = "vol",
+  ie.Var = FALSE,
+  cv.ul = 0.1,
+  fixed = TRUE,
+  plot.est = FALSE
+)
+
+compute_grid0(pag, EPPOcod, quantity)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>EPPOcod</code></td>
+<td>
+<p>A string, one of the EPPO tree species codes listed in
+<code>INFCspecies</code> table (Reference: <a href="https://gd.eppo.int">https://gd.eppo.int</a> )</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantity</code></td>
+<td>
+<p>(optional) A string specifying the quantity to be estimated,
+one of <code>c("vol", "dw1" : "dw4")</code>.
+Lookup <code>Qantities</code> table to retrieve codes definitions.
+Defaults to "vol".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ie.Var</code></td>
+<td>
+<p>(optional) Logical. Choose variance estimator:
+</p>
+
+<ul>
+<li> <p><code>TRUE</code> = variance for an 'individual estimate'
+</p>
+</li>
+<li> <p><code>FALSE</code> = variance for the 'estimate of an average' value
+Default <code>ie.Va = FALSE</code></p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.ul</code></td>
+<td>
+<p>(optional) Numeric. Cutoff CV level for the plot. Defaults to 0.1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>(optional) Logical. Contour plot breaks:
+</p>
+
+<ul>
+<li> <p><code>TRUE</code> = break levels are fixed
+</p>
+</li>
+<li> <p><code>FALSE</code> = breaks are tailored to the specific case
+(in order to split the values within the range of interest [0, <code>cv.ul</code>],
+into equally numerous bins)
+Default <code>fixed = TRUE</code></p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.est</code></td>
+<td>
+<p>(optional) Logical. Add the 'estimated quantity' layer as
+contour lines. Default <code>plot.est = FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbh.step</code></td>
+<td>
+<p>(optional) Numeric. Computation with smaller step produces a
+plot with better resolution but increases consistently computation time
+(see <code>INFCaccuracyPlot0()</code>). To reduce computation time, the step
+defaults to 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>htot.step</code></td>
+<td>
+<p>(optional) Numeric. As for dbh.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbh.buf</code></td>
+<td>
+<p>(optional) Numeric. Extra space in the plot beyond the 'domain'.
+Default: 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>htot.buf</code></td>
+<td>
+<p>(optional) Numeric. As for dbh.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pag</code></td>
+<td>
+<p>for the internal function <code>compute_grid0()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>INFCaccuracyPlot</code> The function returns a ggplot object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+INFCaccuracyPlot("FRXAN") # 'INFCaccuracyPlot()' can be slow because
+#       it computes all the CV values needed to fill backgroud plot,
+#              hence default values are set to a coarser resolution.
+\donttest{
+  INFCaccuracyPlot("FRXAN",
+                   dbh.step = 1,
+                   htot.step = 1) 
+  # computing with high resolution is slow
+}
+
+INFCaccuracyPlot0("FRXAN") 
+# 'INFCaccuracyPlot0()' is quick, it uses stored values
+INFCaccuracyPlot0("FRXAN", "dw4")
+INFCaccuracyPlot0("FRXAN", "dw4", ie.Var = TRUE) 
+# deafult fixed break values are not alwais optimal
+INFCaccuracyPlot0("FRXAN", "dw4", ie.Var = TRUE, fixed = FALSE, cv.ul=.9) 
+# tailoring can improve
+INFCaccuracyPlot0("FRXAN", plot.est = TRUE) 
+# 'quantity' estimation iso-lines can be superimposed
+
+
+background &lt;- INFCaccuracyPlot0("ACROP", plot.est = TRUE)
+foreground &lt;-  ForIT_test_data %&gt;%
+  dplyr::filter(specie == "ACROP") %&gt;%
+  dplyr::mutate(vol = INFCvpe(specie, d130, h_dendro)) %&gt;%
+  ggplot2::geom_point(map = ggplot2::aes(h_dendro, d130, size = vol))
+background + foreground  # Adding a custom foreground
+rm(background, foreground)
+
+INFCaccuracyPlot0("ABIAL") 
+# high resolution and quick, using pre-calculated backgroung values
+INFCaccuracyPlot("ABIAL") 
+# default values produce a coarser resolution
+
+## End(Not run)
+</code></pre>
+
+
+</div>

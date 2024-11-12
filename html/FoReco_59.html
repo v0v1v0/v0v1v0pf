@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lcmat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear combination (aggregation) matrix for a general linearly constrained multiple time series</h2>
+
+<h3>Description</h3>
+
+<p>This function transforms a general (possibly redundant) zero constraints matrix into a
+linear combination (aggregation) matrix <code class="reqn">\mathbf{A}_{cs}</code>.
+When working with a general linearly constrained multiple (<code class="reqn">n</code>-variate)
+time series, getting a linear combination matrix <code class="reqn">\mathbf{A}_{cs}</code> is a critical
+step to obtain a structural-like representation such that
+</p>
+<p style="text-align: center;"><code class="reqn">\mathbf{C}_{cs} = [\mathbf{I} \quad -\mathbf{A}],</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{C}_{cs}</code> is the full rank zero constraints matrix (Girolimetto and
+Di Fonzo, 2023).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lcmat(cons_mat, method = "rref", tol = sqrt(.Machine$double.eps),
+       verbose = FALSE, sparse = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cons_mat</code></td>
+<td>
+<p>A (<code class="reqn">r \times n</code>) numeric matrix representing the cross-sectional
+zero constraints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method to use: "<code>rref</code>" for the Reduced Row Echelon
+Form through Gauss-Jordan elimination (<em>default</em>), or "<code>qr</code>"
+for the (pivoting) QR decomposition (Strang, 2019).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Tolerance for the "<code>rref</code>" or "<code>qr</code>" method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code>, intermediate steps are printed (<em>default</em> is <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>Option to return a sparse matrix (<em>default</em> is <code>TRUE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with two elements: (i) the linear combination (aggregation) matrix
+(<code>agg_mat</code>) and (ii) the vector of the column permutations (<code>pivot</code>).
+</p>
+
+
+<h3>References</h3>
+
+<p>Girolimetto, D. and Di Fonzo, T. (2023), Point and probabilistic forecast reconciliation
+for general linearly constrained multiple time series,
+<em>Statistical Methods &amp; Applications</em>, in press. <a href="https://doi.org/10.1007/s10260-023-00738-6">doi:10.1007/s10260-023-00738-6</a>.
+</p>
+<p>Strang, G. (2019), <em>Linear algebra and learning from data</em>, Wellesley, Cambridge Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Utilities: 
+<code>FoReco2matrix()</code>,
+<code>aggts()</code>,
+<code>balance_hierarchy()</code>,
+<code>commat()</code>,
+<code>csprojmat()</code>,
+<code>cstools()</code>,
+<code>ctprojmat()</code>,
+<code>cttools()</code>,
+<code>df2aggmat()</code>,
+<code>recoinfo()</code>,
+<code>res2matrix()</code>,
+<code>shrink_estim()</code>,
+<code>teprojmat()</code>,
+<code>tetools()</code>,
+<code>unbalance_hierarchy()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Two hierarchy sharing the same top-level variable, but not sharing the bottom variables
+#        X            X
+#    |-------|    |-------|
+#    A       B    C       D
+#  |---|
+# A1   A2
+# 1) X = C + D,
+# 2) X = A + B,
+# 3) A = A1 + A2.
+cons_mat &lt;- matrix(c(1,-1,-1,0,0,0,0,
+               1,0,0,-1,-1,0,0,
+               0,0,0,1,0,-1,-1), nrow = 3, byrow = TRUE)
+obj &lt;- lcmat(cons_mat = cons_mat, verbose = TRUE)
+agg_mat &lt;- obj$agg_mat # linear combination matrix
+pivot &lt;- obj$pivot # Pivot vector
+
+</code></pre>
+
+
+</div>

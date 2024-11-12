@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fixModelMatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fix the "factor" matrix of a terms object.</h2>
+
+<h3>Description</h3>
+
+<p>The function takes the factor matrix of the terms object corresponding to a
+model formula and changes it so that model hierarchy is preserved also for
+powers of terms (e.g., <code>I(a^2)</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fixModelMatrix(mOld)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>mOld</code></td>
+<td>
+<p>The factor matrix (i.e. the <code>"factor"</code> attribute) of a
+terms object.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The ordinary model handling functions in do not treat powers of terms
+(<code class="reqn">a^n</code>) as being higher order terms (like interaction terms).
+<code>fixModelMatrix</code> takes the <code>"factor"</code> attribute of a terms object
+(usually created from a model formula) and changes it such that power terms
+can be treated hierarchically just like interaction terms.
+</p>
+<p>The factor matrix has one row for each variable and one coloumn for each
+term.  Originally, an entry is 0 if the term does not contain the variable.
+If it contains the variable, the entry is 1 if the variable should be coded
+with contrasts, and 2 if it should be coded with dummy variables.  See
+<code>terms.object</code> for details.
+</p>
+<p>The changes performed by <code>fixModelMatrix</code> are:
+</p>
+ <ul>
+<li>
+<p> Any 2's are changed to 1.
+</p>
+</li>
+<li>
+<p> In any coloumn corresponding to a term that contains <code>I(a^n)</code>,
+where <code>a</code> is the name of a variable and <code>n</code> is a positive integer,
+the element in the row corresponding to <code>a</code> is set to <code class="reqn">n</code>.  For
+instance, the entry of row <code>D</code> and coloumn <code>C:I(D^2)</code> is set to 2.
+</p>
+</li>
+<li>
+<p> Rows corresponding to <code>I(a^n)</code> are deleted.  </p>
+</li>
+</ul>
+<p>Note that this changes the semantics of the factor matrix: <code>2</code> no
+longer means ‘code via dummy variables’.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A factor matrix.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Øyvind Langsrud and Bjørn-Helge Mevik
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>terms</code>, <code>terms.object</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+mt &lt;- terms(y ~ a + b + a:b + a:c + I(a^2) + I(a^3) + I(a^2):b)
+print(mOld &lt;- attr(mt, "factor"))
+fixModelMatrix(mOld)
+
+</code></pre>
+
+
+</div>

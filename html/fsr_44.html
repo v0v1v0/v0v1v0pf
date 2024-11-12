@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spa_add_component</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add components to a <code>pgeometry</code> object</h2>
+
+<h3>Description</h3>
+
+<p><code>spa_add_component()</code> inserts components into a spatial plateau object (i.e., <code>pgeometry</code> object).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spa_add_component(pgo, components, is_valid = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pgo</code></td>
+<td>
+<p>A <code>pgeometry</code> object of any type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>components</code></td>
+<td>
+<p>A <code>component</code> object or a list of <code>component</code> objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is_valid</code></td>
+<td>
+<p>A Boolean value to check if the user wants to validate the updated spatial plateau object at the end. If <code>is_valid = TRUE</code>, it calls <code>validObject()</code> method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements the <code class="reqn">\odot</code> operator defined by Spatial Plateau Algebra.
+The goal of this function is to insert a component or a list of components into a <code>pgeometry</code> object.
+The crisp spatial object of the component must be compatible with the type of the plateau spatial object.
+For instance, a <code>pregion</code> object accepts only components containing polygons (e.g., <code>POLYGON</code> or <code>MULTIPOLYGON</code>).
+In the case of <code>pcomposition</code> object any type of component is compatible to be added.
+For instance, a point component is added to the plateau point sub-object of the plateau composition object.
+On the other hand, as a <code>pcollection</code> object can have multiple spatial objects of the same type, this function is not applicable to it.
+</p>
+<p>The insertion is based on the membership degree of the component. Thus, it preserves the properties of a spatial plateau object.
+However, <code>spa_add_component()</code> assumes that the geometric format of the component is valid (i.e., it does not overlap with existing components).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>pgeometry</code> object containing the <code>component</code> objects.
+</p>
+
+
+<h3>References</h3>
+
+<p>The formal definition of the <code class="reqn">\odot</code> operator is described in:
+</p>
+
+<ul><li> <p><a href="https://ieeexplore.ieee.org/document/8491565">Carniel, A. C.; Schneider, M. Spatial Plateau Algebra: An Executable Type System for Fuzzy Spatial Data Types. In Proceedings of the 2018 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2018), pp. 1-8, 2018.</a>
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">comp1 &lt;- create_component("MULTIPOINT(1 1, 2 2)", 0.2) 
+comp2 &lt;- create_component("POINT(1 5)", 0.8)  
+
+# appending these components into an empty pgeometry object
+pp &lt;- create_empty_pgeometry("PLATEAUPOINT")
+pp &lt;- spa_add_component(pp, list(comp1, comp2))
+pp
+
+# inserting components with existing membership degrees are merged
+comp3 &lt;- create_component("MULTIPOINT(0 0, 4 4)", 0.2)
+pp &lt;- spa_add_component(pp, comp3)
+pp
+
+comp4 &lt;- create_component("MULTIPOINT(0 1, 3 4)", 1)
+pc &lt;- create_pgeometry(list(comp4), "PLATEAUCOMPOSITION")
+pc
+
+# appending these components into pc
+comp5 &lt;- create_component("LINESTRING(-1 1, 2 2)", 0.9)
+comp6 &lt;- create_component("POLYGON((0 0, 1 4, 2 2, 0 0))", 0.4)
+pc &lt;- spa_add_component(pc, list(comp5, comp6))
+pc
+</code></pre>
+
+
+</div>

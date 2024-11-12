@@ -1,0 +1,226 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsim.kNN.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Functional single-index kNN predictor
+</h2>
+
+<h3>Description</h3>
+
+<p>This function computes predictions for a functional single-index model (FSIM) with a scalar response, which is estimated using the Nadaraya-Watson kNN estimator. It requires a functional index (<code class="reqn">\theta</code>), a global bandwidth (<code>h</code>), and the new observations of the functional covariate (<code>x.test</code>) as inputs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsim.kNN.test(x, y, x.test, y.test = NULL, theta, order.Bspline = 3, 
+nknot.theta = 3, k = 4, kind.of.kernel = "quad", range.grid = NULL, 
+nknot = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>Matrix containing the observations of the functional covariate in the training sample, collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>Vector containing the scalar responses in the training sample.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.test</code></td>
+<td>
+
+<p>Matrix containing the observations of the functional covariate in the the testing sample, collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.test</code></td>
+<td>
+
+<p>(optional) Vector or matrix containing the scalar responses in the testing sample.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+
+<p>Vector containing the coefficients of <code class="reqn">\theta</code> in a B-spline basis, such that <code>length(theta)=order.Bspline+nknot.theta</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot.theta</code></td>
+<td>
+<p>Number of regularly spaced interior knots in the B-spline expansion of <code class="reqn">\theta_0</code>. The default is 3. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order.Bspline</code></td>
+<td>
+
+<p>Order of the B-spline basis functions. This is the number of coefficients in each piecewise polynomial segment. The default is 3</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+
+<p>The number of nearest neighbours. The default is 4.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kind.of.kernel</code></td>
+<td>
+
+<p>The type of kernel function used. Currently, only Epanechnikov kernel (<code>"quad"</code>) is available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.grid</code></td>
+<td>
+
+<p>Vector of length 2 containing the endpoints of the grid at which the observations of the functional covariate <code>x</code> are evaluated (i.e. the range of the discretisation). If <code>range.grid=NULL</code>, then <code>range.grid=c(1,p)</code> is considered, where <code>p</code> is the discretisation size of <code>x</code> (i.e. <code>ncol(x))</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot</code></td>
+<td>
+
+<p>Number of regularly spaced interior knots for the B-spline expansion of the functional covariate. The default value is <code>(p - order.Bspline - 1)%/%2</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The functional single-index model (FSIM) is given by the expression:
+</p>
+<p style="text-align: center;"><code class="reqn">Y_i=r(\langle\theta_0,X_i\rangle)+\varepsilon_i, \quad i=1,\dots,n,</code>
+</p>
+
+<p>where <code class="reqn">Y_i</code> denotes a scalar response, 
+<code class="reqn">X_i</code> is a functional covariate valued in a separable Hilbert space <code class="reqn">\mathcal{H}</code> with an inner product <code class="reqn">\langle \cdot, \cdot\rangle</code>. The term <code class="reqn">\varepsilon</code> denotes the random error, <code class="reqn">\theta_0 \in \mathcal{H}</code> is the unknown functional index and <code class="reqn">r(\cdot)</code> denotes the unknown smooth link function; <code class="reqn">n</code> is the training sample size.
+</p>
+<p>Given <code class="reqn">\theta \in \mathcal{H}</code>, <code class="reqn">1&lt;k&lt;n</code> and a testing sample {<code class="reqn">X_j,\ j=1,\dots,n_{test}</code>}, the predicted responses (see the value <code>y.estimated.test</code>) can be computed using the kNN procedure by means of 
+</p>
+<p style="text-align: center;"><code class="reqn">
+\widehat{r}_{k,\theta}(X_j)=\sum_{i=1}^nw_{n,k,\theta}(X_j,X_i)Y_i,\quad  j=1,\dots,n_{test}, 
+</code>
+</p>
+
+<p>with Nadaraya-Watson weights
+</p>
+<p style="text-align: center;"><code class="reqn">
+w_{n,k,\theta}(X_j,X_i)=\frac{K\left(H_{k,X_j,{\theta}}^{-1}d_{\theta}\left(X_i,X_j\right)\right)}{\sum_{i=1}^nK\left(H_{k,X_j,\theta}^{-1}d_{\theta}\left(X_i,X_j\right)\right)},
+</code>
+</p>
+
+<p>where
+</p>
+
+<ul>
+<li> <p><code class="reqn">K</code> is a kernel function (see the argument <code>kind.of.kernel</code>).
+</p>
+</li>
+<li>
+<p> for <code class="reqn">x_1,x_2 \in \mathcal{H}, </code>  <code class="reqn">d_{\theta}(x_1,x_2)=|\langle\theta,x_1-x_2\rangle|</code> is the projection semi-metric. 
+</p>
+</li>
+<li> <p><code class="reqn">H_{k,x,\theta}=\min\left\{h\in R^+ \text{ such that } \sum_{i=1}^n1_{B_{\theta}(x,h)}(X_i)=k\right\}</code>, where <code class="reqn">1_{B_{\theta}(x,h)}(\cdot)</code> is the indicator function of the open ball  defined by the projection semi-metric, with centre <code class="reqn">x\in\mathcal{H}</code> and radius <code class="reqn">h</code>.
+</p>
+</li>
+</ul>
+<p>If the argument <code>y.test</code> is provided to the program (i. e. <code>if(!is.null(y.test))</code>), the function calculates the mean squared error of prediction (see the value <code>MSE.test</code>). This is computed as <code>mean((y.test-y.estimated.test)^2)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y.estimated.test</code></td>
+<td>
+<p>Predicted responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MSE.test</code></td>
+<td>
+<p>Mean squared error between predicted and observed responses in the testing sample.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>German Aneiros Perez <a href="mailto:german.aneiros@udc.es">german.aneiros@udc.es</a> 
+</p>
+<p>Silvia Novo Diaz  <a href="mailto:snovo@est-econ.uc3m.es">snovo@est-econ.uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Novo S., Aneiros, G., and Vieu, P., (2019) Automatic and location-adaptive estimation in functional single–index regression. <em>Journal of Nonparametric Statistics</em>, <b>31(2)</b>, 364–392, <a href="https://doi.org/10.1080/10485252.2019.1567726">doi:10.1080/10485252.2019.1567726</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>fsim.kNN.fit</code>, <code>fsim.kNN.fit.optim</code>  and <code>predict.fsim.kNN</code>.
+</p>
+<p>Alternative procedure <code>fsim.kernel.test</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(Tecator)
+y&lt;-Tecator$fat
+X&lt;-Tecator$absor.spectra2
+
+
+train&lt;-1:160
+test&lt;-161:215
+
+#FSIM fit. 
+ptm&lt;-proc.time()
+fit&lt;-fsim.kNN.fit(y=y[train],x=X[train,],max.knn=20,nknot.theta=4,nknot=20,
+      range.grid=c(850,1050))
+proc.time()-ptm
+fit
+
+#FSIM prediction
+test&lt;-fsim.kNN.test(y=y[train],x=X[train,],x.test=X[test,],y.test=y[test],
+        theta=fit$theta.est,k=fit$k.opt,nknot.theta=4,nknot=20,
+        range.grid=c(850,1050))
+
+#MSEP
+test$MSE.test
+
+  
+</code></pre>
+
+
+</div>

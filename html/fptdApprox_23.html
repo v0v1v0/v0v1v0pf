@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.fptl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Locating a Conditioned First-Passage-Time Variable</h2>
+
+<h3>Description</h3>
+
+<p><code>summary.fptl</code> summary method for class “fptl”.
+</p>
+<p><code>is.summary.fptl</code> tests if its argument is an object of class “summary.fptl”.
+</p>
+<p><code>print.summary.fptl</code> shows an object of class “summary.fptl”.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fptl'
+summary(object, zeroSlope = 0.01, p0.tol = 8, k = 3, ...)
+
+is.summary.fptl(obj)
+
+## S3 method for class 'summary.fptl'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class ‘fptl’, a result of a call to <code>FPTL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> object to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class ‘summary.fptl’, a result of a call to <code>summary.fptl</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeroSlope</code></td>
+<td>
+<p>maximum slope required to consider that a growing function is constant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p0.tol</code></td>
+<td>
+<p>controls where the First-Passage-Time Location function begins to increase significantly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>controls whether the First-Passage-Time Location function decreases very slowly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to functions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>summary.fptl</code> function extracts the information contained in <code>object</code> about the
+location of the variation range of a conditioned first-passage-time (f.p.t.) variable. <br></p>
+<p>It makes an internal call to <code>growth.intervals</code> function in order to determine the time instants 
+<code class="reqn">t_i, \ i=1, \ldots, m</code>, from which the First-Passage-Time Location (FPTL)
+function starts growing, and its local maximums <code class="reqn">t_{max,i}</code>. For this, <code>zeroSlope</code> argument
+is considered. <br></p>
+<p>If there is no growth subinterval, the execution of the function <code>summary.fptl</code> is stopped and an error is reported.
+Otherwise, for each of the subintervals <code class="reqn">I_{i} = [t_{i},t_{i+1}]</code> the function determines:
+</p>
+
+<ul>
+<li>
+<p> The first time instant <code class="reqn">t_i^* \in [t_i, t_{max,i}]</code> at which the function is bigger than
+or equal to </p>
+<p style="text-align: center;"><code class="reqn">p_i^* = p_i + 10^{-p0.tol}(p_{max,i} - p_i) \ ,</code>
+</p>
+
+<p>where <code class="reqn">p_i = FPTL(t_i)</code> and <code class="reqn">p_{max,i} = FPTL(t_{max,i}) \ . </code> <br><br><code class="reqn">10^{-p0.tol}</code> is the ratio of the global increase of the function in the growth subinterval <code class="reqn">[t_i, t_{max,i}]</code> that
+should be reached to consider that it begins to increase significantly.
+</p>
+</li>
+<li>
+<p> The first time instant <code class="reqn">t_{max,i}^{-} \in [t_i, t_{max,i}]</code> at which the FPTL function is
+bigger than or equal to </p>
+<p style="text-align: center;"><code class="reqn">p_{max,i}^{-} = p_{max,i} \big( 1 - 0.05(p_{max,i} - p_i) \big) \ .</code>
+</p>
+
+</li>
+<li>
+<p> The last time instant <code class="reqn">t_{max,i}^{+} \in \big[ t_{max,i}, \thinspace T_i \big]</code> at which the FPTL function is bigger
+than or equal to </p>
+<p style="text-align: center;"><code class="reqn">p_{max,i}^{+} = max \left\{ 1 - (1 - p_{max,i}^2)^{(1+q)/2}, FPTL(T_i) \right\},</code>
+</p>
+
+<p>where </p>
+<p style="text-align: center;"><code class="reqn">T_i = min \big\{ t_{max,i} + k \thinspace (t_{max,i}-t_i^*)(1 - p_{max,i}),
+\thinspace t_{i+1} \big\}</code>
+</p>
+<p> and
+</p>
+<p style="text-align: center;"><code class="reqn">q = \displaystyle{\frac{p_{max,i} - p_i}{p_{max,i}}} \ . </code>
+</p>
+
+</li>
+</ul>
+<p><code>print.summary.fptl</code> displays an object of class “summary.fptl” for immediate understanding of the information it contains.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>summary.fptl</code> function computes and returns an object of class “summary.fptl” and length 1. <br></p>
+<p>An object of class “summary.fptl” is a list of length 1 for a conditioned f.p.t problem, or of the same length as the number of 
+values selected from the non-degenerate initial distribution for an unconditioned f.p.t problem. 
+Each component of the list is again a named list with two components: <br></p>
+<table><tr style="vertical-align: top;">
+<td><code>instants</code></td>
+<td>
+<p>a matrix whose columns correspond to <code class="reqn">t_i</code>, <code class="reqn">t_i^*</code>, 
+<code class="reqn">t_{max,i}^{-}</code>, <code class="reqn">t_{max,i}</code>and <code class="reqn">t_{max,i}^{+}</code> values for each conditioned f.p.t problem.</p>
+</td>
+</tr></table>
+<p><br></p>
+<table><tr style="vertical-align: top;">
+<td><code>FPTLValues</code></td>
+<td>
+<p>the matrix of values of the FPTL function on <code>instants</code>.</p>
+</td>
+</tr></table>
+<p><br></p>
+<p>It also includes four additional attributes:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+<code>Call</code> </td>
+<td style="text-align: left;"> a list of the unevaluated calls to the <code>summary.fptl</code> function, substituting each name </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+ </td>
+<td style="text-align: left;"> in these calls by its value when the latter has length 1. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<code>FPTLCall</code> </td>
+<td style="text-align: left;"> a list of the unevaluated calls to the <code>FPTL</code> function that resulted in the objects  </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+ </td>
+<td style="text-align: left;"> used as <code>object</code> argument in <code>Call</code>. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<code>dp</code> </td>
+<td style="text-align: left;"> the common object used as <code>dp</code> argument in the unevaluated calls to the <code>FPTL</code> </td>
+</tr>
+<tr>
+<td style="text-align: right;"> 
+ </td>
+<td style="text-align: left;"> function in <code>FPTLCall</code>. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<code>vars</code> </td>
+<td style="text-align: left;"> NULL or a list containing the common values of names in <code>FPTLCall</code> for those names </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+ </td>
+<td style="text-align: left;"> with values of length greater than 1. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+</tr>
+</table>
+<p>For an unconditioned f.p.t problem, the object includes the additional attribute <code>id</code> specifying the non-degenerate initial distribution. <br></p>
+<p>The attribute “<code>summary.fptl</code>” of the value (of class “fpt.density”) of the <code>Approx.fpt.density</code> function is 
+an object of class <code>summary.fptl</code> of length 1 for a conditioned problem, and of length greather than 1 for an unconditioned problem. 
+It is created from one or successive internal calls to the <code>summary.fptl</code> function. <br></p>
+<p><code>is.summary.fptl</code> returns <code>TRUE</code> or <code>FALSE</code> depending on whether its argument is an object of class
+“summary.fptl” or not. <br></p>
+
+
+<h3>Author(s)</h3>
+
+<p>Patricia Román-Román, Juan J. Serrano-Pérez and Francisco Torres-Ruiz.</p>
+
+
+<h3>References</h3>
+
+<p>Román, P., Serrano, J. J., Torres, F. (2008) First-passage-time location function: Application to determine first-passage-time densities in diffusion processes. <em>Comput. Stat. Data Anal.</em>, <b>52</b>, 4132–4146.
+</p>
+<p>P. Román-Román, J.J. Serrano-Pérez, F. Torres-Ruiz. (2012) An R package for an efficient approximation of first-passage-time densities for diffusion processes based on the FPTL function. <em>Applied Mathematics and Computation</em>, <b>218</b>, 8408–8428.
+</p>
+<p>P. Román-Román, J.J. Serrano-Pérez, F. Torres-Ruiz. (2014) More general problems on first-passage times for diffusion processes: A new version of the fptdApprox R package. <em>Applied Mathematics and Computation</em>, <b>244</b>, 432–446.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Approx.cfpt.density</code> to approximate densities of f.p.t. variables conditioned to a fixed initial value
+from objects of class “summary.fptl” and create objects of class “fpt.density”.
+</p>
+<p><code>Approx.fpt.density</code> to approximate densities of conditioned or unconditioned f.p.t. variables and create objects of 
+class “fpt.density” from objects of class “dp”.
+</p>
+<p><code>FPTL</code> to evaluate the FPTL function and create objects of class “fptl”.
+</p>
+<p><code>report.summary.fptl</code> to generate a report.
+</p>
+<p><code>growth.intervals</code> to study the growth of the vector of values resulting from the evaluation of a function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Continuing the FPTL(.) example:
+
+## Summarizing an object of class fptl
+yy &lt;- summary(y)
+yy
+print(yy, digits=10)
+yy1 &lt;- summary(y, zeroSlope = 0.001)
+yy1
+yy2 &lt;- summary(y, zeroSlope = 0.001, p0.tol = 10)
+yy2
+
+zz &lt;- summary(z)
+zz
+
+## Testing summary.fptl objects
+is.summary.fptl(yy)
+is.summary.fptl(zz)
+</code></pre>
+
+
+</div>

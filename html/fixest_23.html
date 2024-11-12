@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>collinearity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Collinearity diagnostics for <code>fixest</code> objects</h2>
+
+<h3>Description</h3>
+
+<p>In some occasions, the optimization algorithm of <code>femlm</code> may fail to converge, or
+the variance-covariance matrix may not be available. The most common reason of why
+this happens is collinearity among variables. This function helps to find out which
+set of variables is problematic.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">collinearity(x, verbose)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>fixest</code> object obtained from, e.g. functions <code>femlm</code>, <code>feols</code> or <code>feglm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>An integer. If higher than or equal to 1, then a note is prompted at
+each step of the algorithm. By default <code>verbose = 0</code> for small problems
+and to 1 for large problems.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function tests: 1) collinearity with the fixed-effect variables,
+2) perfect multi-collinearity between the variables, 3) perfect multi-collinearity
+between several variables and the fixed-effects, and 4) identification issues
+when there are non-linear in parameters parts.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns a text message with the identified diagnostics.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Creating an example data base:
+set.seed(1)
+fe_1 = sample(3, 100, TRUE)
+fe_2 = sample(20, 100, TRUE)
+x = rnorm(100, fe_1)**2
+y = rnorm(100, fe_2)**2
+z = rnorm(100, 3)**2
+dep = rpois(100, x*y*z)
+base = data.frame(fe_1, fe_2, x, y, z, dep)
+
+# creating collinearity problems:
+base$v1 = base$v2 = base$v3 = base$v4 = 0
+base$v1[base$fe_1 == 1] = 1
+base$v2[base$fe_1 == 2] = 1
+base$v3[base$fe_1 == 3] = 1
+base$v4[base$fe_2 == 1] = 1
+
+# Estimations:
+
+# Collinearity with the fixed-effects:
+res_1 = femlm(dep ~ log(x) + v1 + v2 + v4 | fe_1 + fe_2, base)
+collinearity(res_1)
+
+# =&gt; collinearity with the first fixed-effect identified, we drop v1 and v2
+res_1bis = femlm(dep ~ log(x) + v4 | fe_1 + fe_2, base)
+collinearity(res_1bis)
+
+# Multi-Collinearity:
+res_2 =  femlm(dep ~ log(x) + v1 + v2 + v3 + v4, base)
+collinearity(res_2)
+
+
+</code></pre>
+
+
+</div>

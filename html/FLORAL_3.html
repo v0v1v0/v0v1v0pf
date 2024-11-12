@@ -1,0 +1,237 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mcv.FLORAL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarizing selected compositional features over multiple cross validations</h2>
+
+<h3>Description</h3>
+
+<p>Summarizing <code>FLORAL</code> outputs from multiple random k-fold cross validations
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mcv.FLORAL(
+  mcv = 10,
+  ncore = 1,
+  seed = NULL,
+  x,
+  y,
+  ncov = 0,
+  family = "gaussian",
+  longitudinal = FALSE,
+  id = NULL,
+  tobs = NULL,
+  failcode = NULL,
+  corstr = "exchangeable",
+  scalefix = FALSE,
+  scalevalue = 1,
+  pseudo = 1,
+  length.lambda = 100,
+  lambda.min.ratio = NULL,
+  ncov.lambda.weight = 0,
+  a = 1,
+  mu = 1,
+  maxiter = 100,
+  ncv = 5,
+  intercept = FALSE,
+  step2 = TRUE,
+  progress = TRUE,
+  plot = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mcv</code></td>
+<td>
+<p>Number of random 'ncv'-fold cross-validation to be performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncore</code></td>
+<td>
+<p>Number of cores used for parallel computation. Default is to use only 1 core.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>A random seed for reproducibility of the results. By default the seed is the numeric form of <code>Sys.Date()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Feature matrix, where rows specify subjects and columns specify features. The first <code>ncov</code> columns should be patient characteristics and the rest columns are microbiome absolute counts corresponding to various taxa. If <code>x</code> contains longitudinal data, the rows must be sorted in the same order of the subject IDs used in <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Outcome. For a continuous or binary outcome, <code>y</code> is a vector. For survival outcome, <code>y</code> is a <code>Surv</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncov</code></td>
+<td>
+<p>An integer indicating the number of first <code>ncov</code> columns in <code>x</code> that will not be subject to the zero-sum constraint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Available options are <code>gaussian</code>, <code>binomial</code>, <code>cox</code>, <code>finegray</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>longitudinal</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>, indicating whether longitudinal data matrix is specified for input <code>x</code>. (<code>Longitudinal=TRUE</code> and <code>family="cox"</code> or <code>"finegray"</code> will fit a time-dependent covariate model. <code>Longitudinal=TRUE</code> and <code>family="gaussian"</code> or <code>"binomial"</code> will fit a GEE model.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>If <code>longitudinal</code> is <code>TRUE</code>, <code>id</code> specifies subject IDs corresponding to the rows of input <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tobs</code></td>
+<td>
+<p>If <code>longitudinal</code> is <code>TRUE</code>, <code>tobs</code> specifies time points corresponding to the rows of input <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>failcode</code></td>
+<td>
+<p>If <code>family = finegray</code>, <code>failcode</code> specifies the failure type of interest. This must be a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corstr</code></td>
+<td>
+<p>If a GEE model is specified, then <code>corstr</code> is the corresponding working correlation structure. Options are <code>independence</code>, <code>exchangeable</code>, <code>AR-1</code> and <code>unstructured</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scalefix</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>, indicating whether the scale parameter is estimated or fixed if a GEE model is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scalevalue</code></td>
+<td>
+<p>Specify the scale parameter if <code>scalefix=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pseudo</code></td>
+<td>
+<p>Pseudo count to be added to <code>x</code> before taking log-transformation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length.lambda</code></td>
+<td>
+<p>Number of penalty parameters used in the path</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.ratio</code></td>
+<td>
+<p>Ratio between the minimum and maximum choice of lambda. Default is <code>NULL</code>, where the ratio is chosen as 1e-2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncov.lambda.weight</code></td>
+<td>
+<p>Weight of the penalty lambda applied to the first <code>ncov</code> covariates. Default is 0 such that the first <code>ncov</code> covariates are not penalized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>A scalar between 0 and 1: <code>a</code> is the weight for lasso penalty while <code>1-a</code> is the weight for ridge penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>Value of penalty for the augmented Lagrangian</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Number of iterations needed for the outer loop of the augmented Lagrangian algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncv</code></td>
+<td>
+<p>Folds of cross-validation. Use <code>NULL</code> if cross-validation is not wanted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>, indicating whether an intercept should be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step2</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>, indicating whether a second-stage feature selection for specific ratios should be performed for the features selected by the main lasso algorithm. Will only be performed if cross validation is enabled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>, indicating whether printing progress bar as the algorithm runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>, indicating whether returning summary plots of selection probability for taxa features.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with relative frequencies of a certain feature being selected over <code>mcv</code> <code>ncv</code>-fold cross-validations.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Teng Fei. Email: feit1@mskcc.org
+</p>
+
+
+<h3>References</h3>
+
+<p>Fei T, Funnell T, Waters N, Raj SS et al. Scalable Log-ratio Lasso Regression Enhances Microbiome Feature Selection for Predictive Models. bioRxiv 2023.05.02.538599.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(23420)
+
+dat &lt;- simu(n=50,p=30,model="linear")
+fit &lt;- mcv.FLORAL(mcv=2,ncore=1,x=dat$xcount,y=dat$y,ncv=2,progress=FALSE,step2=TRUE,plot=FALSE)
+
+</code></pre>
+
+
+</div>

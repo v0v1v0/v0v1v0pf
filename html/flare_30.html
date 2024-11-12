@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sugm.select</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Model selection for high-dimensional undirected graphical models
+</h2>
+
+<h3>Description</h3>
+
+<p>Implements the regularization parameter selection for high dimensional undirected graphical models. The optional approaches are stability approach to regularization selection (stars) and cross validation selection (cv).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sugm.select(est, criterion = "stars", stars.subsample.ratio = NULL, 
+            stars.thresh = 0.1,rep.num = 20, fold = 5, 
+            loss="likelihood", verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+
+<p>An object with S3 class <code>"sugm"</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+
+<p>Model selection criterion. <code>"stars"</code> and <code>"cv"</code> are available for both graph estimation methods. The default value is <code>"stars"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stars.subsample.ratio</code></td>
+<td>
+
+<p>The subsampling ratio. The default value is <code>10*sqrt(n)/n</code> when <code>n&gt;144</code> and <code>0.8</code> when <code>n&lt;=144</code>, where <code>n</code> is the sample size. Only applicable when <code>criterion = "stars"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stars.thresh</code></td>
+<td>
+
+<p>The variability threshold in stars. The default value is <code>0.1</code>. Only applicable when <code>criterion = "stars"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep.num</code></td>
+<td>
+
+<p>The number of subsamplings. The default value is <code>20</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+
+<p>The number of folds used in cross validation. The default value is <code>5</code>. Only applicable when <code>criterion = "cv"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+
+<p>Loss to be used in cross validation. Two losses are available: <code>"likelihood"</code> and <code>"tracel2"</code>. Default <code>"likelihood"</code>. Only applicable when <code>criterion = "cv"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>If <code>verbose = FALSE</code>, tracing information printing is disabled. The default value is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Stability approach to regularization selection (stars) is a natural way to select optimal regularization parameter for all three estimation methods. It selects the optimal graph by variability of subsamplings and tends to over-select edges in Gaussian graphical models. Besides selecting the regularization parameters, stars can also provide an additional estimated graph by merging the corresponding subsampled graphs using the frequency counts. The K-fold cross validation is also provided for selecting the parameter <code>lambda</code>, and two loss functions are adopted as follow
+</p>
+<p style="text-align: center;"><code class="reqn">
+likelihood: Tr(\Sigma \Omega) - \log|\Omega|
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">
+tracel2: Tr(diag(\Sigma \Omega - I)^2).
+</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class "select" is returned:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>refit</code></td>
+<td>
+
+<p>The optimal graph selected from the graph path
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.icov</code></td>
+<td>
+
+<p>The optimal precision matrix selected.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge</code></td>
+<td>
+
+<p>The graph path estimated by merging the subsampling paths. Only applicable when the input <code>criterion = "stars"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variability</code></td>
+<td>
+
+<p>The variability along the subsampling paths. Only applicable when the input <code>criterion = "stars"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.index</code></td>
+<td>
+
+<p>The index of the selected regularization parameter.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.lambda</code></td>
+<td>
+
+<p>The selected regularization/thresholding parameter.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.sparsity</code></td>
+<td>
+
+<p>The sparsity level of <code>"refit"</code>.
+</p>
+</td>
+</tr>
+</table>
+<p>and anything else inluded in the input <code>est</code>
+</p>
+
+
+<h3>Note</h3>
+
+<p>The model selection is NOT available when the data input is the sample covaraince matrix.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xingguo Li, Tuo Zhao, Lie Wang, Xiaoming Yuan and Han Liu <br>
+Maintainer: Xingguo Li &lt;xingguo.leo@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>1. T. Cai, W. Liu and X. Luo. A constrained <code class="reqn">\ell_1</code> minimization approach to sparse precision matrix estimation. <em>Journal of the American Statistical Association</em>, 2011.<br>
+2. B. He and X. Yuan. On non-ergodic convergence rate of Douglas-Rachford alternating direction method of multipliers. <em>Technical Report</em>, 2012.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sugm</code> and <code>flare-package</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load package required
+library(flare)
+
+#generate data
+L = sugm.generator(d = 10, graph="hub")
+out1 = sugm(L$data)
+
+#model selection using stars
+#out1.select1 = sugm.select(out1, criterion = "stars", stars.thresh = 0.1)
+#plot(out1.select1)
+
+#model selection using cross validation
+out1.select2 = sugm.select(out1, criterion = "cv")
+plot(out1.select2)
+</code></pre>
+
+
+</div>

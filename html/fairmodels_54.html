@@ -1,0 +1,89 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reweight</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reweight</h2>
+
+<h3>Description</h3>
+
+<p>Function returns weights for model training. The purpose of this weights is to mitigate bias in statistical parity.
+In fact this could potentially worsen the overall performance in other fairness metrics. This affects also model's performance metrics (accuracy).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reweight(protected, y)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>protected</code></td>
+<td>
+<p>factor, protected variables with subgroups as levels (sensitive attributes)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>numeric, vector with classes 0 and 1, where 1 means favorable class.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Method produces weights for each subgroup for each class. Firstly assumes that protected variable and class are independent and
+calculates expected probability of this certain event (that subgroup == a and class = c). Than it calculates the actual probability of this event based
+on empirical data. Finally the weight is quotient of those probabilities
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric, vector of weights
+</p>
+
+
+<h3>References</h3>
+
+<p>This method was implemented based on Kamiran, Calders 2011 <a href="https://link.springer.com/content/pdf/10.1007/s10115-011-0463-8.pdf">https://link.springer.com/content/pdf/10.1007/s10115-011-0463-8.pdf</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("german")
+
+data &lt;- german
+data$Age &lt;- as.factor(ifelse(data$Age &lt;= 25, "young", "old"))
+data$Risk &lt;- as.numeric(data$Risk) - 1
+
+# training 2 models
+weights &lt;- reweight(protected = data$Age, y = data$Risk)
+
+gbm_model &lt;- gbm::gbm(Risk ~ ., data = data)
+gbm_model_weighted &lt;- gbm::gbm(Risk ~ ., data = data, weights = weights)
+
+gbm_explainer &lt;- DALEX::explain(gbm_model, data = data[, -1], y = data$Risk)
+gbm_weighted_explainer &lt;- DALEX::explain(gbm_model_weighted, data = data[, -1], y = data$Risk)
+
+fobject &lt;- fairness_check(gbm_explainer, gbm_weighted_explainer,
+  protected = data$Age,
+  privileged = "old",
+  label = c("original", "weighted")
+)
+# fairness check
+fobject
+plot(fobject)
+
+# radar
+plot(fairness_radar(fobject))
+</code></pre>
+
+
+</div>

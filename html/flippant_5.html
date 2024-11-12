@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parse_fluorimeter_output</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>parse_fluorimeter_output</h2>
+
+<h3>Description</h3>
+
+<p>Parse fluorimeter spectra
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">parse_fluorimeter_output(
+  spec_file = NULL,
+  timepoint_of_measurement = NULL,
+  n_averaging = 10,
+  determine_zero_time = TRUE,
+  adjust = TRUE,
+  file_type = c("auto", "FelixGXv4.1.0.3096", "Felix32v1.20", "FluorSEssencev3.8",
+    "manual")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spec_file</code></td>
+<td>
+<p>Path to a ‘<span class="file">*.txt</span>’ file as a <code>character</code> 
+object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timepoint_of_measurement</code></td>
+<td>
+<p>A <code>numeric</code> indicating the time
+(in sec) at which fluorescence extrema are calculated (DEPENDENT ON
+<code>adjust</code>!).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_averaging</code></td>
+<td>
+<p>A <code>numeric</code> indicating the number of
+data points used for extrema calculations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>determine_zero_time</code></td>
+<td>
+<p>A <code>logical</code> indicating whether
+(default) or not the timepoint of dithionite addition should be determined
+using <span class="pkg">pracma</span>-derived functionality.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust</code></td>
+<td>
+<p>A <code>logical</code> indicating of whether (default) or not
+acquisition time should be reset to have <code>0</code> (zero) coincide with the 
+addition of dithionite (see 'Details' section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_type</code></td>
+<td>
+<p>A string specifying whether or the file was created using
+Felix GX or Felix 32 or FluorS Essence v3.8 or is a "manual" tab delimited
+file.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A function to read fluorimeter output directly. Intended as a helper
+function to scramblase activity determinations from dithionite assays.
+</p>
+<p>The function is currently capable to deal with input derived from 
+QuantaMaster instruments (Photon Technology International, Inc., Edison, 
+New Jersey)running software versions <code>FelixGX v4.1</code> 
+(see <code>parse_felix_gx_output</code>), <code>Felix32 v1.20</code> (see 
+<code>parse_felix_32_output</code>) as well as Horiba fluorimeters 
+(HORIBA Europe GmbH, Oberursel, Germany) using <code>FluorS Essence v3.8</code>.
+The format used in a given file is divined from the data structure and
+appropriate internal parsing functions are called.
+</p>
+<p>If requested the time point of dithionite addition to a sample is determined 
+using <span class="pkg">pracma</span>-supplied methodology and the acquisition time reset
+accordingly (<code>0</code> henceforth corresponds to the time of addition).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame with two columns:
+</p>
+
+<dl>
+<dt>Time.in.sec</dt>
+<dd>
+<p>Numeric. Number of seconds since the start of experiment.</p>
+</dd>
+<dt>Fluorescence.Intensity</dt>
+<dd>
+<p>Numeric. Intensity of fluorescence (relative 
+scale, no official unit).</p>
+</dd>
+</dl>
+<p>If <code>determine_zero_time</code> and/or <code>adjust</code> are set to <code>TRUE</code>,
+the return value will have an attribute <code>ZeroTimePoint</code> corresponding to
+the determined time point of dithionite addition (always <code>0</code> (zero)
+where <code>adjust == TRUE</code>).
+</p>
+<p>For Felix GX, if the file contains the information, the return value will  
+also have an attribute <code>WavelengthsInNanometres</code>, which contains the 
+excitation and emission wavelengths.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Johannes Graumann
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>scramblase_assay_input_validation</code>,
+<code>parse_felix_gx_output</code>, 
+<code>parse_felix_32_output</code>,
+<code>parse_FluorS_Essence_3.8_output</code>,
+<code>parse_manual_output</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(magrittr)
+# Extract example data
+analysis_dir &lt;- file.path(tempdir(), "flippant-case-study")
+fluor_file &lt;- extract_case_study_data(analysis_dir, "wildtypeEx1_0.txt")
+# Parse an exemplary file
+parse_fluorimeter_output(fluor_file, timepoint_of_measurement = 350) %&gt;%
+  str()
+</code></pre>
+
+
+</div>

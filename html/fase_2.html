@@ -1,0 +1,397 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fase_seq</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional adjacency spectral embedding (sequential algorithm)</h2>
+
+<h3>Description</h3>
+
+<p><code>fase_seq</code> fits a functional adjacency spectral embedding to snapshots
+of (undirected) functional network data, with each
+of the <code class="reqn">d</code> latent dimensions fit sequentially. The latent processes are fit
+in a spline basis specified by the user, with additional options for
+ridge penalization.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fase_seq(A,d,self_loops,spline_design,lambda,optim_options,output_options)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>An <code class="reqn">n \times n \times m</code> array containing
+the snapshots of the functional network.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A positive integer, the number of latent space dimensions of the
+functional embedding.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>self_loops</code></td>
+<td>
+<p>A Boolean, if <code>FALSE</code>, all diagonal entries are ignored in
+optimization. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_design</code></td>
+<td>
+<p>A list, containing the spline design information.
+For fitting with a <code class="reqn">B</code>-spline design (the default):
+</p>
+
+<dl>
+<dt>type</dt>
+<dd>
+<p>The string <code>'bs'</code>.</p>
+</dd>
+<dt>q</dt>
+<dd>
+<p>A positive integer, the dimension of the <code class="reqn">B</code>-spline basis.</p>
+</dd>
+<dt>x_vec</dt>
+<dd>
+<p>A vector, the snapshot evaluation indices for the data.
+Defaults to an equally spaced vector of length <code class="reqn">m</code> from <code>0</code>
+to <code>1</code>.</p>
+</dd>
+<dt>x_max</dt>
+<dd>
+<p>A scalar, the maximum of the index space. Defaults to
+<code>max(spline_design$x_vec)</code>.</p>
+</dd>
+<dt>x_min</dt>
+<dd>
+<p>A scalar, the minimum of the index space. Defaults to
+<code>min(spline_design$x_vec)</code>.</p>
+</dd>
+<dt>spline_matrix</dt>
+<dd>
+<p>An <code class="reqn">m \times q</code> matrix, the B-spline basis
+evaluated at the snapshot indices. If not specified, it will be
+calculated internally.</p>
+</dd>
+<dt>ridge_mat</dt>
+<dd>
+<p>The <code class="reqn">m \times m</code> matrix for the generalized
+ridge penalty. If <code>lambda</code><code class="reqn">&gt; 0</code>,
+defaults to <code>diag(m)</code>.</p>
+</dd>
+</dl>
+<p>For fitting with a smoothing spline design:
+</p>
+
+<dl>
+<dt>type</dt>
+<dd>
+<p>The string <code>'ss'</code>.</p>
+</dd>
+<dt>x_vec</dt>
+<dd>
+<p>A vector, the snapshot evaluation indices for the data.
+Defaults to an equally spaced vector of length <code class="reqn">m</code> from <code>0</code>
+to <code>1</code>.</p>
+</dd>
+<dt>x_max</dt>
+<dd>
+<p>A scalar, the maximum of the index space. Defaults to
+<code>max(spline_design$x_vec)</code>.</p>
+</dd>
+<dt>x_min</dt>
+<dd>
+<p>A scalar, the minimum of the index space. Defaults to
+<code>min(spline_design$x_vec)</code>.</p>
+</dd>
+<dt>spline_matrix</dt>
+<dd>
+<p>An <code class="reqn">m \times m</code> matrix, the
+natural cubic spline basis
+evaluated at the snapshot indices. If not specified, it will be
+calculated internally.</p>
+</dd>
+<dt>ridge_mat</dt>
+<dd>
+<p>The <code class="reqn">m \times m</code> matrix for the generalized
+ridge penalty. Defaults to the second derivatives of the natural cubic spline
+basis evaluated at the snapshot indices.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A positive scalar, the scale factor for the generalized ridge
+penalty (see Details). Defaults to <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim_options</code></td>
+<td>
+<p>A list, containing additional optional arguments controlling
+the gradient descent algorithm.
+</p>
+
+<dl>
+<dt>eps</dt>
+<dd>
+<p>A positive scalar, the convergence threshold for gradient
+descent in terms of relative change in objective value.
+Defaults to <code>1e-5</code>.</p>
+</dd>
+<dt>eta</dt>
+<dd>
+<p>A positive scalar, the step size for gradient descent.
+Defaults to <code>1/(n*m)</code>.</p>
+</dd>
+<dt>K_max</dt>
+<dd>
+<p>A positive integer, the maximum iterations for gradient
+descent. Defaults to <code>2e3</code>.</p>
+</dd>
+<dt>verbose</dt>
+<dd>
+<p>A Boolean, if <code>TRUE</code>, console output will provide
+updates on the progress of gradient descent. Defaults to
+<code>FALSE</code>.</p>
+</dd>
+<dt>init_W</dt>
+<dd>
+<p>A 3-dimensional array
+containing initial basis coordinates for gradient descent. Dimension should be
+<code class="reqn">n \times</code><code>spline_design$q</code><code class="reqn"> \times d</code> for <code class="reqn">B</code>-spline designs,
+and <code class="reqn">n \times m \times d</code> for smoothing spline designs. If included,
+<code>init_M</code>, <code>init_L</code> and <code>init_sigma</code> are ignored.</p>
+</dd>
+<dt>init_sigma</dt>
+<dd>
+<p>A positive scalar, the estimated edge dispersion parameter to calibrate
+initialization. If not provided, it is either estimated using the robust method proposed by
+Gavish and Donoho (2014) for weighted edge networks, or set to a default value <code>0.5</code>
+for binary edge networks.</p>
+</dd>
+<dt>init_L</dt>
+<dd>
+<p>A positive integer, the number of contiguous groups used for initialization.
+Defaults to the floor of <code class="reqn">(2nm/\texttt{init\_sigma}^2)^{1/3}</code>.</p>
+</dd>
+<dt>init_M</dt>
+<dd>
+<p>A positive integer, the number of snapshots averaged in each group for
+initialization. Defaults use all snapshots.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output_options</code></td>
+<td>
+<p>A list, containing additional optional arguments controlling
+the output of <code>fase</code>.
+</p>
+
+<dl>
+<dt>return_coords</dt>
+<dd>
+<p>A Boolean, if <code>TRUE</code>, the basis coordinates for
+each latent process component are also returned as an array.
+Defaults to <code>FALSE</code>.</p>
+</dd>
+<dt>return_ngcv</dt>
+<dd>
+<p>A Boolean, if <code>TRUE</code> and <code>spline_design$type=='bs'</code>,
+the network generalized cross validation criterion is returned.
+Defaults to <code>TRUE</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that <code>fase_seq</code> is a wrapper for <code>fase</code>. When <code class="reqn">d=1</code>,
+<code>fase_seq</code> coincides with <code>fase</code>.
+</p>
+<p><code>fase_seq</code> finds a functional adjacency spectral embedding of an
+<code class="reqn">n \times n \times m</code> array <code class="reqn">A</code> of
+symmetric adjacency matrices on a common set of nodes, where
+each <code class="reqn">n \times n</code> slice is associated to a scalar index <code class="reqn">x_k</code>
+for <code class="reqn">k=1,...,m</code>.
+Embedding requires the specification of a latent space dimension
+<code class="reqn">d</code> and spline design information (with the argument
+<code>spline_design</code>).
+</p>
+<p><code>fase_seq</code> can fit latent processes using either a cubic <code class="reqn">B</code>-spline
+basis with
+equally spaced knots, or a natural cubic spline basis with a second
+derivative (generalized ridge) smoothing penalty: a smoothing spline.
+To fit with a <code class="reqn">B</code>-spline design (<code>spline_design$type = 'bs'</code>),
+one must minimally provide a basis
+dimension <code class="reqn">q</code> of at least <code>4</code> and at most <code class="reqn">m</code>.
+</p>
+<p>When fitting with a smoothing spline design, the generalized ridge
+penalty is scaled by
+<code class="reqn">\lambda/n</code>, where <code class="reqn">\lambda</code> is specified by the argument <code>lambda</code>.
+see <a href="https://arxiv.org/abs/2210.07491">MacDonald et al., (2022+)</a>,
+Appendix E for more details.
+<code>lambda</code> can also be used to introduce a ridge penalty on the
+basis coordinates when fitting with <code class="reqn">B</code>-splines.
+</p>
+<p>Fitting minimizes a least squares loss,
+using gradient descent (Algorithm 1) on the basis coordinates <code class="reqn">w_{i,r}</code>
+of each component process
+</p>
+<p style="text-align: center;"><code class="reqn">z_{i,r}(x) = w_{i,r}^{T}B(x).</code>
+</p>
+
+<p>Additional options for the fitting algorithm, including initialization,
+can be specified by the argument <code>optim_options</code>.
+For more details on the fitting and initialization algorithms, see
+<a href="https://arxiv.org/abs/2210.07491">MacDonald et al., (2022+)</a>,
+Section 3.
+</p>
+<p>By default, <code>fase_seq</code> will return estimates of the latent processes
+evaluated at the snapshot indices as an <code class="reqn">n \times d \times m</code> array, after
+performing a Procrustes alignment of the consecutive snapshots.
+This extra alignment step can be skipped.
+<code>fase_seq</code> will also return the spline design information used to fit the
+embedding, convergence information for gradient descent, and (if specified)
+the basis coordinates.
+</p>
+<p>When fitting with <code class="reqn">B</code>-splines, <code>fase_seq</code> can return a
+network generalized cross validation criterion, described in
+<a href="https://arxiv.org/abs/2210.07491">MacDonald et al., (2022+)</a>,
+Section 3.3. This criterion can be minimized to choose appropriate values
+for <code class="reqn">q</code> and <code class="reqn">d</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list is returned with the functional adjacency spectral embedding,
+the spline design information, and some additional optimization
+output:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>An <code class="reqn">n \times d \times m</code> array containing the latent process embedding
+evaluated at the indices in <code>spline_design$x_vec</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>For <code class="reqn">B</code>-spline designs, an <code class="reqn">n \times q \times d</code> array; or for
+smoothing spline designs, an <code class="reqn">n \times m \times d</code> array of estimated basis
+coordinates. If <code>output_options$return_coords</code> is <code>FALSE</code>,
+this is not returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_design</code></td>
+<td>
+<p>A list, describing the spline design:
+</p>
+
+<dl>
+<dt>type</dt>
+<dd>
+<p>A string, either <code>'bs'</code> or <code>'ss'</code>.</p>
+</dd>
+<dt>q</dt>
+<dd>
+<p>A positive integer, the dimension of the <code class="reqn">B</code>-spline basis.
+Only returned for <code class="reqn">B</code>-spline designs.</p>
+</dd>
+<dt>x_vec</dt>
+<dd>
+<p>A vector, the snapshot evaluation indices for the data.</p>
+</dd>
+<dt>x_max</dt>
+<dd>
+<p>A scalar, the maximum of the index space.</p>
+</dd>
+<dt>x_min</dt>
+<dd>
+<p>A scalar, the minimum of the index space.</p>
+</dd>
+<dt>spline_matrix</dt>
+<dd>
+<p>For <code class="reqn">B</code>-spline designs, an <code class="reqn">m \times q</code> matrix;
+or for smoothing spline designs, an <code class="reqn">m \times m</code> matrix, the basis
+evaluated at the snapshot indices.</p>
+</dd>
+<dt>ridge_matrix</dt>
+<dd>
+<p>An <code class="reqn">m \times m</code> matrix used in the generalized
+ridge penalty. Only returned for <code>lambda &gt; 0</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ngcv</code></td>
+<td>
+<p>A scalar, the network generalized cross validation criterion
+(see Details). Only returned for <code class="reqn">B</code>-spline designs and when
+<code>output_options$return_ngcv</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>A positive integer, the number of iterations run in
+gradient descent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+<p>An integer convergence code, <code>1</code> if
+gradient descent converged in fewer than <code>optim_options$K_max</code> iterations,
+<code>0</code> otherwise.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Gaussian edge data with sinusoidal latent processes
+set.seed(1)
+data &lt;- gaussian_snapshot_ss(n=50,d=2,
+                             x_vec=seq(0,1,length.out=50),
+                             self_loops=FALSE,sigma_edge=4)
+
+
+# fase fit with B-spline design
+fit_bs &lt;- fase_seq(data$A,d=2,self_loops=FALSE,
+                   spline_design=list(type='bs',q=9,x_vec=data$spline_design$x_vec),
+                   optim_options=list(eps=1e-4,K_max=40),
+                   output_options=list(return_coords=TRUE))
+
+# fase fit with smoothing spline design
+fit_ss &lt;- fase_seq(data$A,d=2,self_loops=FALSE,
+                   spline_design=list(type='ss',x_vec=data$spline_design$x_vec),
+                   lambda=.5,
+                   optim_options=list(eta=1e-4,K_max=40,verbose=FALSE))
+
+#NOTE: both models fit with small optim_options$K_max=40 for demonstration
+
+</code></pre>
+
+
+</div>

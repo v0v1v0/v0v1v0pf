@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>center.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Center test</h2>
+
+<h3>Description</h3>
+
+<p>Performs a one- or two-sample test for a family of centers.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">center.test(
+  x,
+  y = NULL,
+  family = "huber",
+  alternative = c("two.sided", "less", "greater"),
+  mu = 0,
+  paired = FALSE,
+  nboot = 1000,
+  loss = NULL,
+  cluster = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector of data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>an optional numeric vector of data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>the family of centers; currently only allows 'huber' for Huber family</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>the form of the alternative hypothesis; must be one of 'two.sided' (default),
+'greater', or 'less'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>the null value of the center for a one-sample test, or the
+null value of the center of differences for a paired two-sample test, or the null value of the
+difference of centers for an independent two-sample test; can be an interval</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paired</code></td>
+<td>
+<p>a logical indicating whether to treat <code>x</code> and <code>y</code> as paired</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>the number of bootstraps to perform</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>an optional c×2 matrix of losses incurred from an incorrect decision, where c is the
+number of candidate choices (typically c=3: H0, H1, or indeterminate)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>an optional cluster for running bootstraps in parallel; must be set up using
+<code>parallel::makeCluster</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>any other arguments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Uses the Bayesian bootstrap to compute posterior probabilities for the hypotheses
+<code class="reqn">\mathrm{H}_0:\mu(\lambda)=\mu_0</code> for some <code class="reqn">\lambda\in\Lambda</code> vs.
+<code class="reqn">\mathrm{H}_1:\mu(\lambda)\neq\mu_0</code> for all <code class="reqn">\lambda\in\Lambda</code>,
+where <code class="reqn">\{\mu(\lambda):\lambda\in\Lambda\}</code> is a family of centers. <br>
+The default loss matrix results in a decision whenever the posterior probability
+for one of the hypotheses is greater than 0.95 and otherwise is indeterminate.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>center.test</code>; a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>expected.loss</code></td>
+<td>
+<p>the expected loss, calculated by post-multiplying <code>loss</code> with
+<code>prob</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decision</code></td>
+<td>
+<p>the optimal decision given the expected loss</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>the loss matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob</code></td>
+<td>
+<p>the estimated posterior probabilities of the null and alternative</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot</code></td>
+<td>
+<p>the bootstrap output from <code>bayes.boot</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the <code>x</code> that was supplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the <code>y</code> that was supplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>the <code>mu</code> that was supplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>the <code>family</code> that was supplied</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ryan Thompson &lt;ryan.thompson1@unsw.edu.au&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Thompson, R., Forbes, C. S., MacEachern, S. N., and Peruggia, M. (2023). 'Familial
+inference: Tests for hypotheses on a family of centres'. arXiv:
+<a href="https://arxiv.org/abs/2202.12540">2202.12540</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+
+test &lt;- center.test(MASS::galaxies, mu = 21000, nboot = 100)
+print(test)
+plot(test)
+
+cl &lt;- parallel::makeCluster(2)
+test &lt;- center.test(MASS::galaxies, mu = 21000, nboot = 100, cluster = cl)
+parallel::stopCluster(cl)
+print(test)
+</code></pre>
+
+
+</div>

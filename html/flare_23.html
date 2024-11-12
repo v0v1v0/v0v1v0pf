@@ -1,0 +1,285 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sugm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+High-deimensional Sparse Undirected Graphical Models.
+</h2>
+
+<h3>Description</h3>
+
+<p>The function "sugm" estimates sparse undirected graphical models, i.e. Gaussian precision matrix, in high dimensions. We adopt two estimation procedures based on column by column regression scheme: (1) Tuning-Insensitive Graph Estimation and Regression based on square root Lasso (tiger); (2) The Constrained L1 Minimization for Sparse Precision Matrix Estimation using either L1 penalty (clime). The optimization algorithm for all three methods are implemented based on the alternating direction method of multipliers (ADMM) with the linearization method and multi-stage screening of variables. Missing values can be tolerated for CLIME in the data matrix. The computation is memory-optimized using the sparse matrix output.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sugm(data, lambda = NULL, nlambda = NULL, lambda.min.ratio = NULL, 
+     rho = NULL, method = "tiger", sym = "or", shrink=NULL, 
+     prec = 1e-4, max.ite = 1e4, standardize = FALSE, 
+     perturb = TRUE, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>There are 2 options for <code>"clime"</code>: (1) <code>data</code> is an <code>n</code> by <code>d</code> data matrix (2) a <code>d</code> by <code>d</code> sample covariance matrix. The program automatically identifies the input matrix by checking the symmetry. (<code>n</code> is the sample size and <code>d</code> is the dimension). For <code>"tiger"</code>, covariance input is not supported and <code>d</code><code class="reqn"> \ge </code>3 is required. For <code>"clime"</code>, <code>d</code><code class="reqn"> \ge </code>2 is required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A sequence of decresing positive numbers to control the regularization. Typical usage is to leave the input <code>lambda = NULL</code> and have the program compute its own <code>lambda</code> sequence based on <code>nlambda</code> and <code>lambda.min.ratio</code>. Users can also specify a sequence to override this. Default value is from <code>lambda.max</code> to <code>lambda.min.ratio*lambda.max</code>. For <code>"tiger"</code>, the default value of <code>lambda.max</code> is <code class="reqn">\pi\sqrt{\log(d)/n}</code>. For <code>"clime"</code> , the default value of <code>lambda.max</code> is the minimum regularization parameter, which yields an all-zero off-diagonal estiamtes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>The number of values used in <code>lambda</code>. Default value is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.ratio</code></td>
+<td>
+<p>The smallest value for <code>lambda</code>, as a fraction of the uppperbound (<code>lambda.max</code>) of the regularization parameter. The program can automatically generate <code>lambda</code> as a sequence of length = <code>nlambda</code> starting from <code>lambda.max</code> to <code>lambda.min.ratio*lambda.max</code> in log scale. The default value is 0.25 for <code>"tiger"</code> and 0.5 for <code>"clime"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>Penalty parameter used in the optimization algorithm for <code>clime</code>. The default value is <code class="reqn">\sqrt{d}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p><code>"tiger"</code> is applied if <code>method = "tiger"</code> and <code>"clime"</code> is applied if <code>method="clime"</code>. Default value is <code>"tiger"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sym</code></td>
+<td>
+<p>Symmetrization of output graphs. If <code>sym = "and"</code>, the edge between node <code>i</code> and node <code>j</code> is selected ONLY when both node <code>i</code> and node <code>j</code> are selected as neighbors for each other. If <code>sym = "or"</code>, the edge is selected when either node <code>i</code> or node <code>j</code> is selected as the neighbor for each other. The default value is <code>"or"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrink</code></td>
+<td>
+<p>Shrinkage of regularization parameter based on precision of estimation. The default value is 1.5 if <code>method = "clime"</code> and the default value is 0 if <code>method="tiger"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prec</code></td>
+<td>
+<p>Stopping criterion. The default value is 1e-4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.ite</code></td>
+<td>
+<p>The iteration limit. The default value is 1e4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Variables are standardized to have mean zero and unit standard deviation if <code>standardize = TRUE</code>. The default value is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perturb</code></td>
+<td>
+<p>The diagonal of <code>Sigma</code> is added by a positive value to guarantee that <code>Sigma</code> is positive definite if <code>perturb = TRUE</code>. User can specify a numeric value for <code>perturbe</code>. The default value is <code>perturb = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Tracing information printing is disabled if <code>verbose = FALSE</code>. The default value is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>CLIME solves the following minimization problem<br></p>
+<p style="text-align: center;"><code class="reqn">
+    \min || \Omega ||_1 \quad \textrm{s.t. } || S \Omega - I ||_\infty \le \lambda,
+  </code>
+</p>
+<p><br>
+where <code class="reqn">||\cdot||_1</code> and <code class="reqn">||\cdot||_\infty</code> are element-wise 1-norm and <code class="reqn">\infty</code>-norm respectively. 
+</p>
+<p><code>"tiger"</code> solves the following minimization problem<br></p>
+<p style="text-align: center;"><code class="reqn">
+    \min ||X-XB||_{2,1} + \lambda ||B||_1 \quad \textrm{s.t. } B_{jj} = 0,
+  </code>
+</p>
+<p><br>
+where <code class="reqn">||\cdot||_{1}</code> and <code class="reqn">||\cdot||_{2,1}</code> are element-wise 1-norm and <code class="reqn">L_{2,1}</code>-norm respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"sugm"</code> is returned:  
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The <code>n</code> by <code>d</code> data matrix or <code>d</code> by <code>d</code> sample covariance matrix from the input.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov.input</code></td>
+<td>
+
+<p>An indicator of the sample covariance. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>The sequence of regularization parameters <code>lambda</code> used in the program.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+
+<p>The number of values used in <code>lambda</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>icov</code></td>
+<td>
+
+<p>A list of <code>d</code> by <code>d</code> precision matrices corresponding to regularization parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sym</code></td>
+<td>
+
+<p>The <code>sym</code> from the input.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>The <code>method</code> from the input. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+
+<p>A list of <code>d</code> by <code>d</code> adjacency matrices of estimated graphs as a graph path corresponding to <code>lambda</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparsity</code></td>
+<td>
+
+<p>The sparsity levels of the graph path.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ite</code></td>
+<td>
+
+<p>If <code>method = "clime"</code>, it is a list of two matrices where ite[[1]] is the number of external iterations and ite[[2]] is the number of internal iterations with the entry of (i,j) as the number of iteration of i-th column and j-th lambda. If <code>method="tiger"</code>, it is a matrix of iteration with the entry of (i,j) as the number of iteration of i-th column and j-th lambda. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+
+<p>It is a <code>d</code> by <code>nlambda</code> matrix. Each row contains the number of nonzero coefficients along the lasso solution path. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>The <code>standardize</code> from the input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perturb</code></td>
+<td>
+<p>The <code>perturb</code> from the input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>The <code>verbose</code> from the input.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Xingguo Li, Tuo Zhao, Lie Wang, Xiaoming Yuan and Han Liu <br>
+Maintainer: Xingguo Li &lt;xingguo.leo@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>1. T. Cai, W. Liu and X. Luo. A constrained L1 minimization approach to sparse precision matrix estimation. <em>Journal of the American Statistical Association</em>, 2011. <br>
+2. H. Liu, L. Wang. TIGER: A tuning-insensitive approach for optimally estimating large undirected graphs. <em>Technical Report</em>, 2012. <br>
+3. B. He and X. Yuan. On non-ergodic convergence rate of Douglas-Rachford alternating direction method of multipliers. <em>Technical Report</em>, 2012.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flare-package</code>, <code>sugm.generator</code>, <code>sugm.select</code>, <code>sugm.plot</code>, <code>sugm.roc</code>, <code>plot.sugm</code>, <code>plot.select</code>, <code>plot.roc</code>, <code>plot.sim</code>, <code>print.sugm</code>, <code>print.select</code>, <code>print.roc</code> and <code>print.sim</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## load package required
+library(flare)
+
+## generating data
+n = 50
+d = 50
+D = sugm.generator(n=n,d=d,graph="band",g=1)
+plot(D)
+
+## sparse precision matrix estimation with method "clime"
+out1 = sugm(D$data, method = "clime")
+plot(out1)
+sugm.plot(out1$path[[4]])
+
+## sparse precision matrix estimation with method "tiger"
+out2 = sugm(D$data, method = "tiger")
+plot(out2)
+sugm.plot(out2$path[[5]])
+</code></pre>
+
+
+</div>

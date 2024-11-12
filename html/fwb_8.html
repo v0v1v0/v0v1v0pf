@@ -1,0 +1,272 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fwb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fractional Weighted Bootstrap</h2>
+
+<h3>Description</h3>
+
+<p><code>fwb()</code> implements the fractional (random) weighted bootstrap, also known as the Bayesian bootstrap. Rather than resampling units to include in bootstrap samples, weights are drawn to be applied to a weighted estimator.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fwb(
+  data,
+  statistic,
+  R = 999,
+  cluster = NULL,
+  simple = FALSE,
+  wtype = getOption("fwb_wtype", "exp"),
+  verbose = TRUE,
+  cl = NULL,
+  ...
+)
+
+## S3 method for class 'fwb'
+print(x, digits = getOption("digits"), index = 1L:ncol(x$t), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the dataset used to compute the statistic</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>a function, which, when applied to <code>data</code>, returns a vector containing the statistic(s) of interest. The function should take at least two arguments; the first argument should correspond to the dataset and the second argument should correspond to a vector of weights. Any further arguments can be passed to <code>statistic</code> through the <code>...</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>the number of bootstrap replicates. Default is 999 but more is always better. For the percentile bootstrap confidence interval to be exact, it can be beneficial to use one less than a multiple of 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>optional; a vector containing cluster membership. If supplied, will run the cluster bootstrap. See Details. Evaluated first in <code>data</code> and then in the global environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simple</code></td>
+<td>
+<p><code>logical</code>; if <code>TRUE</code>, weights will be computed on-the-fly in each bootstrap replication rather than all at once. This can save memory at the cost of some speed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wtype</code></td>
+<td>
+<p>string; the type of weights to use. Allowable options include <code>"exp"</code> (the default), <code>"pois"</code>, <code>"multinom"</code>, and <code>"mammen"</code>. See Details. See <code>set_fwb_wtype()</code> to set a global default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>logical</code>; whether to display a progress bar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>a cluster object created by <code>parallel::makeCluster()</code>, or an integer to indicate the number of child-processes (integer values are ignored on Windows) for parallel evaluations. See <code>pbapply::pblapply()</code> for details. If <code>NULL</code>, no parallelization will take place.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to <code>statistic</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an <code>fwb</code> object; the output of a call to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>the number of significant digits to print</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>the index or indices of the position of the quantity of interest in <code>x$t0</code> if more than one was specified in <code>fwb()</code>. Default is to print all quantities.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fwb()</code> implements the fractional weighted bootstrap and is meant to function as a drop-in for <code>boot::boot(., stype = "f")</code> (i.e., the usual bootstrap but with frequency weights representing the number of times each unit is drawn). In each bootstrap replication, when <code>wtype = "exp"</code> (the default), the weights are sampled from independent exponential distributions with rate parameter 1 and then normalized to have a mean of 1, equivalent to drawing the weights from a Dirichlet distribution. Other weights are allowed as determined by the <code>wtype</code> argument (see <code>set_fwb_wtype()</code> for details). The function supplied to <code>statistic</code> must incorporate the weights to compute a weighted statistic. For example, if the output is a regression coefficient, the weights supplied to the <code>w</code> argument of <code>statistic</code> should be supplied to the <code>weights</code> argument of <code>lm()</code>. These weights should be used any time frequency weights would be, since they are meant to function like frequency weights (which, in the case of the traditional bootstrap, would be integers). Unfortunately, there is no way for <code>fwb()</code> to know whether you are using the weights correctly, so care should be taken to ensure weights are correctly incorporated into the estimator.
+</p>
+<p>When fitting binomial regression models (e.g., logistic) using <code>glm()</code>, it may be useful to change the <code>family</code> to a "quasi" variety (e.g., <code>quasibinomial()</code>) to avoid a spurious warning about "non-integer #successes".
+</p>
+<p>The cluster bootstrap can be requested by supplying a vector of cluster membership to <code>cluster</code>. Rather than generating a weight for each unit, a weight is generated for each cluster and then applied to all units in that cluster.
+</p>
+<p>Ideally, <code>statistic</code> should not involve a random element, or else it will not be straightforward to replicate the bootstrap results using the <code>seed</code> included in the output object. Setting a seed using <code>set.seed()</code> is always advised.
+</p>
+<p>The <code>print()</code> method displays the value of the statistics, the bias (the difference between the statistic and the mean of its bootstrap distribution), and the standard error (the standard deviation of the bootstrap distribution).
+</p>
+
+
+<h4>Weight types</h4>
+
+<p>Different types of weights can be supplied to the <code>wtype</code> argument. A global default can be set using <code>set_fwb_wtype()</code>. The allowable weight types are described below.
+</p>
+
+<ul><li> <p><code>"exp"</code>
+</p>
+</li></ul>
+<p>Draws weights from an exponential distribution with rate parameter 1 using <code>rexp()</code>. These weights are the usual "Bayesian bootstrap" weights described in Xu et al. (2020). They are equivalent to drawing weights from a uniform Dirichlet distribution, which is what gives these weights the interpretation of a Bayesian prior.
+</p>
+
+<ul><li> <p><code>"multinom"</code>
+</p>
+</li></ul>
+<p>Draws integer weights using <code>sample()</code>, which samples unit indices with replacement and uses the tabulation of the indices as frequency weights. This is equivalent to drawing weights from a multinomial distribution. Using <code>wtype = "multinom"</code> is the same as using <code>boot::boot(., stype = "f")</code> instead of <code>fwb()</code> (i.e., the resulting estimates will be identical).
+</p>
+
+<ul><li> <p><code>"poisson"</code>
+</p>
+</li></ul>
+<p>Draws integer weights from a Poisson distribution with 1 degree of freedom using <code>rpois()</code>. This is an alternative to the multinomial weights that yields similar estimates (especially as the sample size grows) but can be faster.
+</p>
+
+<ul><li> <p><code>"mammen"</code>
+</p>
+</li></ul>
+<p>Draws weights from a modification of the distribution described by Mammen (1983) for use in the wild bootstrap. These positive weights have a mean, variance, and skewness of 1, making them second-order accurate (in contrast to the usual exponential weights, which are only first-order accurate). The weights <code class="reqn">w</code> are drawn such that <code class="reqn">P(w=(3+\sqrt{5})/2)=(\sqrt{5}-1)/2\sqrt{5}</code> and <code class="reqn">P(w=(3-\sqrt{5})/2)=(\sqrt{5}+1)/2\sqrt{5}</code>.
+</p>
+<p>In general, <code>"mammen"</code> should be used for all cases. <code>"exp"</code> is the default due to it being the formulation described in Xu et al. (2020) and in the most formulations of the Bayesian bootstrap; it should be used if one wants to remain in line with these guidelines or to maintain a Bayesian flavor to the analysis, whereas <code>"mammen"</code>should be preferred for its frequentist operating characteristics. <code>"multinom"</code> and <code>"poisson"</code> should only be used for comparison purposes.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A <code>fwb</code> object, which also inherits from <code>boot</code>, with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>t0</code></td>
+<td>
+<p>The observed value of <code>statistic</code> applied to <code>data</code> with uniform weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>A matrix with <code>R</code> rows, each of which is a bootstrap replicate of the result of calling <code>statistic</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>The value of <code>R</code> as passed to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The <code>data</code> as passed to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>The value of <code>.Random.seed</code> just prior to generating the weights (after the first call to <code>statistic</code> with uniform weights).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>The function <code>statistic</code> as passed to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The original call to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>The vector passed to <code>cluster</code>, if any.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wtype</code></td>
+<td>
+<p>The type of weights used as determined by the <code>wtype</code> argument.</p>
+</td>
+</tr>
+</table>
+<h3>Methods (by generic)</h3>
+
+
+<ul><li> <p><code>print(fwb)</code>: Print an <code>fwb</code> object
+</p>
+</li></ul>
+<h3>References</h3>
+
+<p>Mammen, E. (1993). Bootstrap and Wild Bootstrap for High Dimensional Linear Models. <em>The Annals of Statistics</em>, 21(1). <a href="https://doi.org/10.1214/aos/1176349025">doi:10.1214/aos/1176349025</a>
+</p>
+<p>Rubin, D. B. (1981). The Bayesian Bootstrap. <em>The Annals of Statistics</em>, 9(1), 130–134. <a href="https://doi.org/10.1214/aos/1176345338">doi:10.1214/aos/1176345338</a>
+</p>
+<p>Xu, L., Gotwalt, C., Hong, Y., King, C. B., &amp; Meeker, W. Q. (2020). Applications of the Fractional-Random-Weight Bootstrap. <em>The American Statistician</em>, 74(4), 345–358. <a href="https://doi.org/10.1080/00031305.2020.1731599">doi:10.1080/00031305.2020.1731599</a>
+</p>
+<p>The use of the <code>"mammen"</code> formulation of the bootstrap weights was suggested by Lihua Lei <a href="https://twitter.com/lihua_lei_stat/status/1641538993090351106">here</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fwb.ci()</code> for calculating confidence intervals; <code>summary.fwb()</code> for displaying output in a clean way; <code>plot.fwb()</code> for plotting the bootstrap distributions; <code>vcovFWB()</code> for estimating the covariance matrix of estimates using the FWB; <code>set_fwb_wtype()</code> for an example of using weights other than the default exponential weights; <code>boot::boot()</code> for the traditional bootstrap.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Performing a Weibull analysis of the Bearing Cage
+# failure data as done in Xu et al. (2020)
+set.seed(123)
+data("bearingcage")
+
+weibull_est &lt;- function(data, w) {
+  fit &lt;- survival::survreg(survival::Surv(hours, failure) ~ 1,
+                           data = data, weights = w,
+                           dist = "weibull")
+
+  c(eta = unname(exp(coef(fit))), beta = 1/fit$scale)
+}
+
+boot_est &lt;- fwb(bearingcage, statistic = weibull_est,
+                R = 199, verbose = FALSE)
+boot_est
+
+#Get standard errors and CIs; uses bias-corrected
+#percentile CI by default
+summary(boot_est, ci.type = "bc")
+
+#Plot statistic distributions
+plot(boot_est, index = "beta", type = "hist")
+
+
+</code></pre>
+
+
+</div>

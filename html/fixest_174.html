@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>[.fixest_panel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Method to subselect from a <code>fixest_panel</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Subselection from a <code>fixest_panel</code> which has been created with the function <code>panel</code>.
+Also allows to create lag/lead variables with functions <code>l</code>/<code>f</code> if
+the <code>fixest_panel</code> is also a <code>data.table::data.table</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fixest_panel'
+x[i, j, ...]
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>fixest_panel</code> object, created with the function <code>panel</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>Row subselection. Allows <code>data.table::data.table</code> style selection (provided the
+data is also a data.table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>Variable selection. Allows <code>data.table::data.table</code> style selection/variable
+creation (provided the data is also a data.table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to <code style="white-space: pre;">⁠[.data.frame⁠</code> or <code>data.table::data.table</code>
+(or whatever the class of the initial data).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the original data was also a data.table, some calls to <code style="white-space: pre;">⁠[.fixest_panel⁠</code> may dissolve
+the <code>fixest_panel</code> object and return a regular data.table. This is the case for
+subselections with additional arguments. If so, a note is displayed on the console.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns a <code>fixest_panel</code> data base, with the attributes allowing to create
+lags/leads properly bookkeeped.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Alternatively, the function <code>panel</code> changes a <code>data.frame</code> into a panel from which the
+functions <code>l</code> and <code>f</code> (creating leads and lags) can be called. Otherwise you can set the
+panel 'live' during the estimation using the argument <code>panel.id</code> (see for example in
+the function <code>feols</code>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(base_did)
+
+# Creating a fixest_panel object
+pdat = panel(base_did, ~id+period)
+
+# Subselections of fixest_panel objects bookkeeps the leads/lags engine
+pdat_small = pdat[!pdat$period %in% c(2, 4), ]
+a = feols(y~l(x1, 0:1), pdat_small)
+
+# we obtain the same results, had we created the lags "on the fly"
+base_small = base_did[!base_did$period %in% c(2, 4), ]
+b = feols(y~l(x1, 0:1), base_small, panel.id = ~id+period)
+etable(a, b)
+
+
+# Using data.table to create new lead/lag variables
+if(require("data.table")){
+  pdat_dt = panel(as.data.table(base_did), ~id+period)
+
+  # Variable creation
+  pdat_dt[, x_l1 := l(x1)]
+  pdat_dt[, c("x_l1", "x_f1_2") := .(l(x1), f(x1)**2)]
+
+  # Estimation on a subset of the data
+  #  (the lead/lags work appropriately)
+  feols(y~l(x1, 0:1), pdat_dt[!period %in% c(2, 4)])
+}
+
+
+</code></pre>
+
+
+</div>

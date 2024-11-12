@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>onephase</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>onephase</h2>
+
+<h3>Description</h3>
+
+<p><code>onephase</code> is used to calculate estimations exclusively based on
+terrestrial observations of a forest inventory (i.e. the <em>local densities</em>).
+The estimation method is available for simple and cluster-sampling
+and provides point estimates of the sample mean and their variances.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">onephase(
+  formula,
+  data,
+  phase_id = list(phase.col = NA, terrgrid.id = NA),
+  cluster = NA,
+  area = list(sa.col = NA, areas = NA)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class "<code>formula</code>" that
+must be of the form <code>Y ~ 1</code>, where Y is the terrestrial response
+value of interest provided in <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame or vector containing the response value Y.
+Specifications are given under 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phase_id</code></td>
+<td>
+<p>an object of class "<code>list</code>" containing two elements:
+</p>
+
+<ul>
+<li> <p><code>phase.col</code>: the column name in <code>data</code> that specifies the
+phase membership of each observation
+</p>
+</li>
+<li> <p><code>terrgrid.id</code>: the indicator identifying the the terrestrial
+(a.k.a. "ground truth") phase for that column
+(must be of type "<code>numeric</code>")
+</p>
+</li>
+</ul>
+<p><strong>Note:</strong> Only has to be specified if <code>data</code> is of class <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>Specifies the column name in <code>data</code>
+containing the cluster identification. Only used in case of
+cluster sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>(<em>Optional</em>) an object of class "<code>list</code>" containing two elements:
+</p>
+
+<ul>
+<li> <p><code>sa.col</code>: the column name in <code>data</code> containing
+domain identification
+</p>
+</li>
+<li> <p><code>areas</code>: vector of desired domains for which the estimation
+should be computed. If estimations for multiple domains should be computed,
+the domains have to be defined within a <code>character</code> vector using <code>c()</code>
+</p>
+</li>
+</ul>
+<p>Further details of the parameter-specifications are given under <em>'Details'</em>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>data</code> can either be a vector only containing the observations of the
+response variable Y,
+<em>or</em> a data frame containing a column for the response variable and
+a column for the sample-grid indication that has to be further specified
+by argument <code>phase_id</code>.
+Additional <em>optional</em> columns include a cluster identification in case of
+cluster sampling, as well as a column that specifies a domain (e.g. a forest district)
+the respective terrestrial observation falls into.
+The latter allows to compute onephase-estimations
+for multiple domains at a time (see <em>'Examples'</em>).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>onephase</code> returns an object of class <code>"onephase"</code>.
+</p>
+<p>The functions <code>summary</code> and <code>confint</code> can be used to obtain a summary of the
+estimation results (point estimations, variances and sample sizes) and the confidence intervals
+for the respective point estimates.
+</p>
+<p>An object of class <code>"onephase"</code> returns a <code>list</code> of the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>a <code>list</code> containing the function inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimation</code></td>
+<td>
+<p>a data frame containing the following components:
+</p>
+
+<ul>
+<li> <p><code>area:</code> the domain (only present if argument <code>area</code> has been used)
+</p>
+</li>
+<li> <p><code>estimate:</code> the point estimate
+</p>
+</li>
+<li> <p><code>variance:</code> the variance of the point estimate
+</p>
+</li>
+<li> <p><code>n2:</code> the terrestrial sample size
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samplesizes</code></td>
+<td>
+<p>a named numeric vector giving the terrestrial samplesize</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Hill, A., Massey, A. F. (2021). <em>The R Package forestinventory: Design-Based Global and Small Area Estimations for Multiphase Forest Inventories.</em> Journal of Statistical Software, 97(4), 1-40.
+</p>
+<p>Mandallaz, D. (2007). <em>Sampling techniques for forest inventories.</em> Chapter 4. CRC Press.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># ----------- non-cluster sampling------------------#
+
+## load grisons dataset:
+data(grisons)
+
+## 1) calculate onephase-estimation for entire dataset:
+op &lt;- onephase(formula = tvol~1 ,data = grisons,
+              phase_id =list(phase.col = "phase_id_2p",terrgrid.id = 2))
+summary(op)
+confint(op)
+
+## 2) calculate onephase-estimation for given domains (areas) in dataset:
+op.a &lt;- onephase(formula = tvol~1,
+                 data = grisons,
+                 phase_id = list(phase.col = "phase_id_2p", terrgrid.id = 2),
+                 area = list(sa.col = "smallarea", areas = c("A", "B")))
+summary(op.a)
+confint(op.a)
+
+# ----------- cluster sampling ------------------#
+
+## load zurichberg dataset:
+data(zberg)
+
+## 1) calculate onephase-estimation for entire dataset:
+op.clust &lt;- onephase(formula = basal~1, data = zberg,
+                     phase_id = list(phase.col = "phase_id_2p",terrgrid.id = 2),
+                     cluster = "cluster")
+summary(op.clust)
+confint(op.clust)
+
+## 2) calculate onephase-estimation for given areas in dataset:
+op.clust.a &lt;- onephase(formula = basal~1,
+                       data = zberg,
+                       phase_id = list(phase.col = "phase_id_2p", terrgrid.id = 2),
+                       cluster = "cluster",
+                       area = list(sa.col = "ismallg23", areas = c("2", "3")))
+summary(op.clust.a)
+confint(op.clust.a)
+</code></pre>
+
+
+</div>

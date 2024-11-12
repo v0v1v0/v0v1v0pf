@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BsProb.design</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Bayesian posterior probabilities from Box and Meyer method </h2>
+
+<h3>Description</h3>
+
+<p>The function calculates Bayesian posterior probabilities according 
+to Box and Meyer (1993) for screening experiments with 2-level factors.
+The function is modified from function BsProb in packge <span class="pkg">BsMD</span>
+with the purpose of providing usage comfort for 
+class design objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BsProb.design(design, mFac = NULL, response=NULL, select=NULL, mInt = 2, p = 0.25, g = 2,
+    ng = 1, nMod = 10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>an experimental design of class <code>design</code> 
+with the <code>type</code> element of the <code>design.info</code> attribute 
+containing “FrF2” or “pb” and at least one response variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p> NULL or a character string that specifies response variable to be used, 
+must be an element of <code>response.names(obj)</code>; 
+if NULL, the first response from <code>response.names(obj)</code> is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mFac</code></td>
+<td>
+<p>integer. Maximum number of factors included in the models.
+The default is the number of factors in the design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p> vector with position numbers of the factors to be included; <br>
+default: all factors. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mInt</code></td>
+<td>
+<p>integer &lt;= 3. Maximum order of interactions considered in the models.
+This can strongly impact the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>numeric. Prior probability assigned to active factors.
+This can strongly impact the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>numeric vector. Variance inflation factor(s) gamma associated to active and interaction factors;
+see "Details" section</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>integer &lt;=20. Number of different variance inflation factors (g) used in calculations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nMod</code></td>
+<td>
+<p>integer &lt;=100. Number of models to keep with the highest posterior probability.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Factor and model posterior probabilities are computed by the Box and Meyer (1993) Bayesian procedure. 
+The design factors - or a selection of these given by column numbers in <code>select</code> - 
+are considered together with the specified response or the first response of the design. 
+The function has been adapted from function <code>BsProb</code> in package <span class="pkg">BsMD</span>, 
+and a vignette in that package (<a href="../../BsMD/doc/BsMD.pdf">../../BsMD/doc/BsMD.pdf</a>) explains 
+details of the usage regarding the parameters.
+</p>
+<p>If <code>g</code>, the variance inflation factor (VIF) gamma, is a vector of length 1, 
+the same VIF is used for factor main effects and interactions. 
+If the length of <code>g</code> is 2 and <code>ng</code> is 1, <code>g[1]</code> 
+is used for factor main effects and <code>g[2]</code> for the interaction effects. 
+If <code>ng</code> greater than 1, then <code>ng</code> values of VIFs between <code>g[1]</code> and 
+<code>g[2]</code> are used for calculations with the same gamma value for main effects 
+and interactions. The function calls the FORTRAN subroutine <code>bm</code> and captures 
+summary results. The complete output of the FORTRAN code is save in the <code>BsPrint.out</code> 
+file in the working directory. The output is a list of class <code>BsProb</code> 
+for which print, plot and summary methods are available from package <span class="pkg">BsMD</span>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>cf. documentation of function <code>BsProb</code>
+</p>
+
+
+<h3>Note</h3>
+
+<p>This method relies on the availability of package <span class="pkg">BsMD</span>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Meyer, ported to R by Ernesto Barrios, port adapted to designs by Ulrike Groemping.</p>
+
+
+<h3>References</h3>
+
+<p>Barrios, E. (2013). Using the BsMD Package for Bayesian Screening and Model
+Discrimination. Vignette. <a href="../../BsMD/doc/BsMD.pdf">../../BsMD/doc/BsMD.pdf</a>.
+</p>
+<p>Box, G. E. P and R. D. Meyer (1986). An Analysis for Unreplicated Fractional 
+Factorials. <em>Technometrics</em> <b>28</b>, 11-18.
+</p>
+<p>Box, G. E. P and R. D. Meyer (1993). 
+Finding the Active Factors in Fractionated Screening Experiments. 
+<em>Journal of Quality Technology</em> <b>25</b>, 94-105. </p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.BsProb</code>, <code>print.BsProb</code>, 
+<code>summary.BsProb</code>, <code>BsMD</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">   ### there are several success stories and recommendations for this method
+   ### in the simulated example here (not fabricated, 
+   ###         it was the first one that came to my mind), 
+   ### the method goes wrong, at least when using mInt=2 (the default, because 
+   ###         Daniel plots work quite well for pure main effects models):
+   ### active factors are A to E (perhaps too many for the method to work),
+   ### the method identifies F, J, and L with highest probability 
+   ### (but is quite undecided)
+   plan &lt;- pb(12)
+   dn &lt;- desnum(plan)
+   set.seed(8655)
+   y &lt;- dn%*%c(2,2,2,2,3,0,0,0,0,0,0) + dn[,1]*dn[,3]*2 - dn[,5]*dn[,4] + rnorm(12)/10
+   plan.r &lt;- add.response(plan, response=y)
+   if (requireNamespace("BsMD", quiet=TRUE)){
+   plot(bpmInt2 &lt;- BsProb.design(plan.r), code=FALSE)
+   plot(bpmInt1 &lt;- BsProb.design(plan.r, mInt=1), code=FALSE) ## much better!
+   summary(bpmInt2)
+   summary(bpmInt1)
+   }
+   ### For comparison: A Daniel plot does not show any significant effects according 
+   ### to Lenths method, but makes the right effects stick out
+   DanielPlot(plan.r, half=TRUE, alpha=1)
+</code></pre>
+
+
+</div>

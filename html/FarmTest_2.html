@@ -1,0 +1,241 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>farm.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Factor-adjusted robust multiple testing</h2>
+
+<h3>Description</h3>
+
+<p>This function conducts factor-adjusted robust multiple testing (FarmTest) for means of multivariate data proposed in Fan et al. (2019) via a tuning-free procedure.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">farm.test(
+  X,
+  fX = NULL,
+  KX = -1,
+  Y = NULL,
+  fY = NULL,
+  KY = -1,
+  h0 = NULL,
+  alternative = c("two.sided", "less", "greater"),
+  alpha = 0.05,
+  p.method = c("bootstrap", "normal"),
+  nBoot = 500
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>An <code class="reqn">n</code> by <code class="reqn">p</code> data matrix with each row being a sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fX</code></td>
+<td>
+<p>An <strong>optional</strong> factor matrix with each column being a factor for <code>X</code>. The number of rows of <code>fX</code> and <code>X</code> must be the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>KX</code></td>
+<td>
+<p>An <strong>optional</strong> positive number of factors to be estimated for <code>X</code> when <code>fX</code> is not specified. <code>KX</code> cannot exceed the number of columns of <code>X</code>. If <code>KX</code> is not specified or specified to be negative, it will be estimated internally. If <code>KX</code> is specified to be 0, no factor will be adjusted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>An <strong>optional</strong> data matrix used for two-sample FarmTest. The number of columns of <code>X</code> and <code>Y</code> must be the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fY</code></td>
+<td>
+<p>An <strong>optional</strong> factor matrix for two-sample FarmTest with each column being a factor for <code>Y</code>. The number of rows of <code>fY</code> and <code>Y</code> must be the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>KY</code></td>
+<td>
+<p>An <strong>optional</strong> positive number of factors to be estimated for <code>Y</code> for two-sample FarmTest when <code>fY</code> is not specified. <code>KY</code> cannot exceed the number of columns of <code>Y</code>. If <code>KY</code> is not specified or specified to be negative, it will be estimated internally. If <code>KY</code> is specified to be 0, no factor will be adjusted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h0</code></td>
+<td>
+<p>An <strong>optional</strong> <code class="reqn">p</code>-vector of true means, or difference in means for two-sample FarmTest. The default is a zero vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>An <strong>optional</strong> character string specifying the alternate hypothesis, must be one of "two.sided" (default), "less" or "greater".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>An <strong>optional</strong> level for controlling the false discovery rate. The value of <code>alpha</code> must be between 0 and 1. The default value is 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.method</code></td>
+<td>
+<p>An <strong>optional</strong> character string specifying the method to calculate p-values when <code>fX</code> is known or when <code>KX = 0</code>, possible options are multiplier bootstrap or normal approximation. It must be one of "bootstrap"(default) or "normal".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nBoot</code></td>
+<td>
+<p>An <strong>optional</strong> positive integer specifying the size of bootstrap sample, only available when <code>p.method = "bootstrap"</code>. The dafault value is 500.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For two-sample FarmTest, <code>means</code>, <code>stdDev</code>, <code>loadings</code>, <code>eigenVal</code>, <code>eigenRatio</code>, <code>nfactors</code> and <code>n</code> will be lists of items for sample X and Y separately.
+</p>
+<p><code>alternative = "greater"</code> is the alternative that <code class="reqn">\mu &gt; \mu_0</code> for one-sample test or <code class="reqn">\mu_X &gt; \mu_Y</code> for two-sample test.
+</p>
+<p>Setting <code>p.method = "bootstrap"</code> for factor-known model will slow down the program, but it will achieve lower empirical FDP than setting <code>p.method = "normal"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>farm.test</code> containing the following items will be returned:
+</p>
+
+<dl>
+<dt><code>means</code></dt>
+<dd>
+<p>Estimated means, a vector with length <code class="reqn">p</code>.</p>
+</dd>
+<dt><code>stdDev</code></dt>
+<dd>
+<p>Estimated standard deviations, a vector with length <code class="reqn">p</code>. It's not available for bootstrap method.</p>
+</dd>
+<dt><code>loadings</code></dt>
+<dd>
+<p>Estimated factor loadings, a matrix with dimension <code class="reqn">p</code> by <code class="reqn">K</code>, where <code class="reqn">K</code> is the number of factors.</p>
+</dd>
+<dt><code>eigenVal</code></dt>
+<dd>
+<p>Eigenvalues of estimated covariance matrix, a vector with length <code class="reqn">p</code>. It's only available when factors <code>fX</code> and <code>fY</code> are not given.</p>
+</dd>
+<dt><code>eigenRatio</code></dt>
+<dd>
+<p>Ratios of <code>eigenVal</code> to estimate <code>nFactors</code>, a vector with length <code class="reqn">min(n, p) / 2</code>. It's only available when number of factors <code>KX</code> and <code>KY</code> are not given.</p>
+</dd>
+<dt><code>nFactors</code></dt>
+<dd>
+<p>Estimated or input number of factors, a positive integer.</p>
+</dd>
+<dt><code>tStat</code></dt>
+<dd>
+<p>Values of test statistics, a vector with length <code class="reqn">p</code>. It's not available for bootstrap method.</p>
+</dd>
+<dt><code>pValues</code></dt>
+<dd>
+<p>P-values of tests, a vector with length <code class="reqn">p</code>.</p>
+</dd>
+<dt><code>pAdjust</code></dt>
+<dd>
+<p>Adjusted p-values of tests, a vector with length <code class="reqn">p</code>.</p>
+</dd>
+<dt><code>significant</code></dt>
+<dd>
+<p>Boolean values indicating whether each test is significant, with 1 for significant and 0 for non-significant, a vector with length <code class="reqn">p</code>.</p>
+</dd>
+<dt><code>reject</code></dt>
+<dd>
+<p>Indices of tests that are rejected. It will show "no hypotheses rejected" if none of the tests are rejected.</p>
+</dd>
+<dt><code>type</code></dt>
+<dd>
+<p>Indicator of whether factor is known or unknown.</p>
+</dd>
+<dt><code>n</code></dt>
+<dd>
+<p>Sample size.</p>
+</dd>
+<dt><code>p</code></dt>
+<dd>
+<p>Data dimension.</p>
+</dd>
+<dt><code>h0</code></dt>
+<dd>
+<p>Null hypothesis, a vector with length <code class="reqn">p</code>.</p>
+</dd>
+<dt><code>alpha</code></dt>
+<dd>
+<p><code class="reqn">\alpha</code> value.</p>
+</dd>
+<dt><code>alternative</code></dt>
+<dd>
+<p>Althernative hypothesis.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Ahn, S. C. and Horenstein, A. R. (2013). Eigenvalue ratio test for the number of factors. Econometrica, 81(3) 1203–1227.
+</p>
+<p>Benjamini, Y. and Hochberg, Y. (1995). Controlling the false discovery rate: A practical and powerful approach to multiple testing. J. R. Stat. Soc. Ser. B. Stat. Methodol., 57 289–300.
+</p>
+<p>Fan, J., Ke, Y., Sun, Q. and Zhou, W-X. (2019). FarmTest: Factor-adjusted robust multiple testing with approximate false discovery control. J. Amer. Statist. Assoc., 114, 1880-1893.
+</p>
+<p>Huber, P. J. (1964). Robust estimation of a location parameter. Ann. Math. Statist., 35, 73–101.
+</p>
+<p>Storey, J. D. (2002). A direct approach to false discovery rates. J. R. Stat. Soc. Ser. B. Stat. Methodol., 64, 479–498.
+</p>
+<p>Sun, Q., Zhou, W.-X. and Fan, J. (2020). Adaptive Huber regression. J. Amer. Statist. Assoc., 115, 254-265.
+</p>
+<p>Zhou, W-X., Bose, K., Fan, J. and Liu, H. (2018). A new perspective on robust M-estimation: Finite sample theory and applications to dependence-adjusted multiple testing. Ann. Statist., 46 1904-1931.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.farm.test</code>, <code>summary.farm.test</code> and <code>plot.farm.test</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n = 20
+p = 50
+K = 3
+muX = rep(0, p)
+muX[1:5] = 2
+epsilonX = matrix(rnorm(p * n, 0, 1), nrow = n)
+BX = matrix(runif(p * K, -2, 2), nrow = p)
+fX = matrix(rnorm(K * n, 0, 1), nrow = n)
+X = rep(1, n) %*% t(muX) + fX %*% t(BX) + epsilonX
+# One-sample FarmTest with two sided alternative
+output = farm.test(X)
+# One-sample FarmTest with one sided alternative
+output = farm.test(X, alternative = "less")
+# One-sample FarmTest with known factors
+output = farm.test(X, fX = fX)
+
+# Two-sample FarmTest
+muY = rep(0, p)
+muY[1:5] = 4
+epsilonY = matrix(rnorm(p * n, 0, 1), nrow = n)
+BY = matrix(runif(p * K, -2, 2), nrow = p)
+fY = matrix(rnorm(K * n, 0, 1), nrow = n)
+Y = rep(1, n) %*% t(muY) + fY %*% t(BY) + epsilonY
+output = farm.test(X, Y = Y)
+</code></pre>
+
+
+</div>

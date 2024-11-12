@@ -1,0 +1,269 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>control_charts_sof_pc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Control charts for monitoring a scalar quality characteristic adjusted for
+by the effect of multivariate functional covariates</h2>
+
+<h3>Description</h3>
+
+<p>This function builds a data frame needed to
+plot control charts
+for monitoring a monitoring a scalar quality characteristic adjusted for
+the effect of multivariate functional covariates based on
+scalar-on-function regression,
+as proposed in Capezza et al. (2020).
+</p>
+<p>In particular, this function provides:
+</p>
+
+<ul>
+<li>
+<p> the Hotelling's T2 control chart,
+</p>
+</li>
+<li>
+<p> the squared prediction error (SPE) control chart,
+</p>
+</li>
+<li>
+<p> the scalar regression control chart.
+</p>
+</li>
+</ul>
+<p>This function calls <code>control_charts_pca</code> for the control charts on
+the multivariate functional covariates and <code>regr_cc_sof</code>
+for the scalar regression control chart.
+</p>
+<p>The training data have already been used to fit the model.
+An optional tuning data set can be provided that is used to estimate
+the control chart limits.
+A phase II data set contains the observations to be monitored
+with the control charts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">control_charts_sof_pc(
+  mod,
+  y_test,
+  mfdobj_x_test,
+  mfdobj_x_tuning = NULL,
+  alpha = list(T2 = 0.0125, spe = 0.0125, y = 0.025),
+  limits = "standard",
+  seed,
+  nfold = NULL,
+  ncores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+<p>A list obtained as output from <code>sof_pc</code>,
+i.e. a fitted scalar-on-function linear regression model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_test</code></td>
+<td>
+<p>A numeric vector containing the observations
+of the scalar response variable
+in the phase II data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_test</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the phase II data set of the functional covariates observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_tuning</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the tuning set of the multivariate functional data, used to estimate the
+T2 and SPE control chart limits.
+If NULL, the training data, i.e. the data used to fit the MFPCA model,
+are also used as the tuning data set, i.e. <code>tuning_data=pca$data</code>.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>A named list with three elements, named <code>T2</code>, <code>spe</code>,
+and <code>y</code>,
+respectively, each containing
+the desired Type I error probability of the corresponding control chart
+(<code>T2</code> corresponds to the T2 control chart,
+<code>spe</code>  corresponds to the SPE control chart,
+<code>y</code> corresponds to the scalar regression control chart).
+Note that at the moment you have to take into account manually
+the family-wise error rate and adjust
+the two values accordingly. See Capezza et al. (2020)
+for additional details. Default value is
+<code>list(T2 = 0.0125, spe = 0.0125, y = 0.025)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limits</code></td>
+<td>
+<p>A character value.
+If "standard", it estimates the control limits on the tuning
+data set. If "cv", the function calculates the control limits only on the
+training data using cross-validation
+using <code>calculate_cv_limits</code>. Default is "standard".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>If <code>limits=="cv"</code>,
+since the split in the k groups is random,
+you can fix a seed to ensure reproducibility.
+Deprecated: use <code>set.seed()</code> before calling
+the function for reproducibility.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfold</code></td>
+<td>
+<p>If <code>limits=="cv"</code>, this gives the number of groups k
+used for k-fold cross-validation.
+If it is equal to the number of observations in the training data set,
+then we have
+leave-one-out cross-validation.
+Otherwise, this argument is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>If <code>limits=="cv"</code>, if you want perform the analysis
+in the k groups in parallel,
+give the number of cores/threads.
+Otherwise, this argument is ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with as many rows as the number of
+multivariate functional observations in the phase II data set and
+the following columns:
+</p>
+
+<ul>
+<li>
+<p> one <code>id</code> column identifying the multivariate functional observation
+in the phase II data set,
+</p>
+</li>
+<li>
+<p> one <code>T2</code> column containing the Hotelling T2 statistic calculated
+for all observations,
+</p>
+</li>
+<li>
+<p> one column per each functional variable, containing its contribution
+to the T2 statistic,
+</p>
+</li>
+<li>
+<p> one <code>spe</code> column containing the SPE statistic calculated
+for all observations,
+</p>
+</li>
+<li>
+<p> one column per each functional variable, containing its contribution
+to the SPE statistic,
+</p>
+</li>
+<li> <p><code>T2_lim</code> gives the upper control limit of the
+Hotelling's T2 control chart,
+</p>
+</li>
+<li>
+<p> one <code>contribution_T2_*_lim</code> column per each
+functional variable giving the
+limits of the contribution of that variable to the
+Hotelling's T2 statistic,
+</p>
+</li>
+<li> <p><code>spe_lim</code> gives the upper control limit of the SPE control chart
+</p>
+</li>
+<li>
+<p> one <code>contribution_spe*_lim</code> column per
+each functional variable giving the
+limits of the contribution of that variable to the SPE statistic.
+</p>
+</li>
+<li> <p><code>y_hat</code>: the predictions of the response variable
+corresponding to <code>mfdobj_x_new</code>,
+</p>
+</li>
+<li> <p><code>y</code>: the same as the argument <code>y_new</code>
+given as input to this function,
+</p>
+</li>
+<li> <p><code>lwr</code>: lower limit of the <code>1-alpha</code>
+prediction interval on the response,
+</p>
+</li>
+<li> <p><code>pred_err</code>: prediction error calculated as <code>y-y_hat</code>,
+</p>
+</li>
+<li> <p><code>pred_err_sup</code>: upper limit of the <code>1-alpha</code>
+prediction interval on the prediction error,
+</p>
+</li>
+<li> <p><code>pred_err_inf</code>: lower limit of the <code>1-alpha</code>
+prediction interval on the prediction error.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>control_charts_pca</code>, <code>regr_cc_sof</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#' library(funcharts)
+data("air")
+air &lt;- lapply(air, function(x) x[201:300, , drop = FALSE])
+fun_covariates &lt;- c("CO", "temperature")
+mfdobj_x &lt;- get_mfd_list(air[fun_covariates],
+                         n_basis = 15,
+                         lambda = 1e-2)
+y &lt;- rowMeans(air$NO2)
+y1 &lt;- y[1:60]
+y2 &lt;- y[91:100]
+mfdobj_x1 &lt;- mfdobj_x[1:60]
+mfdobj_x_tuning &lt;- mfdobj_x[61:90]
+mfdobj_x2 &lt;- mfdobj_x[91:100]
+mod &lt;- sof_pc(y1, mfdobj_x1)
+cclist &lt;- control_charts_sof_pc(mod = mod,
+                                y_test = y2,
+                                mfdobj_x_test = mfdobj_x2,
+                                mfdobj_x_tuning = mfdobj_x_tuning)
+plot_control_charts(cclist)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

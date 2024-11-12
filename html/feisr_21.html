@@ -1,0 +1,346 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>feis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fixed Effects Individual Slope Estimator</h2>
+
+<h3>Description</h3>
+
+<p>Estimates fixed effects individual slope estimators by applying linear <code>lm</code> models
+to "detrended" data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">feis(
+  formula,
+  data,
+  id,
+  weights = NULL,
+  robust = FALSE,
+  intercept = FALSE,
+  dropgroups = FALSE,
+  tol = .Machine$double.eps,
+  ...
+)
+
+## S3 method for class 'feis'
+formula(x, lhs = NULL, rhs = NULL, ...)
+
+## S3 method for class 'feis'
+terms(x, lhs = NULL, rhs = NULL, ...)
+
+## S3 method for class 'feis'
+residuals(object, ...)
+
+## S3 method for class 'feis'
+df.residual(object, ...)
+
+## S3 method for class 'feis'
+coef(object, ...)
+
+## S3 method for class 'feis'
+sigma(object, ...)
+
+## S3 method for class 'feis'
+deviance(object, ...)
+
+## S3 method for class 'feis'
+nobs(object, ...)
+
+## S3 method for class 'feis'
+fitted(object, ...)
+
+## S3 method for class 'feis'
+hatvalues(model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description for the model to be fitted (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>data.frame</code> containing the specified variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>the name of a unique group / person identifier (as string).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>an optional vector of weights to be used in the fitting process. See <code>lm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>logical. If <code>TRUE</code> estimates cluster robust standard errors (default is <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>logical. If <code>TRUE</code> estimates the model with an intercept (default is <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dropgroups</code></td>
+<td>
+<p>logical. If <code>TRUE</code> groups without any within variance on a slope variable are dropped
+, if <code>FALSE</code> those variables are omitted for the respective groups only (default is <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>the tolerance for detecting linear dependencies in the residual maker transformation
+(see <code>solve</code>). The argument is forwarded to <code>bsfeistest</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lhs, rhs</code></td>
+<td>
+<p>indexes of the left- and right-hand side for the methods formula and terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object, x, model</code></td>
+<td>
+<p>an object of class "<code>feis</code>".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>feis</code> is a special function to estimate linear fixed effects models with individual-specific slopes.
+In contrast to conventional fixed effects models, data are not person "demeaned", but "detrended" by
+the predicted individual slope of each person
+(Bruederl and Ludwig 2015; Ruettenauer and Ludwig 2020; Wooldridge 2010).
+</p>
+<p>Estimation requires at least <code>q+1</code> observations per unit, where <code>q</code> is the number of slope
+parameters (including a constant).
+<code>feis</code> automatically selects only those groups from the current data set which have at least <code>q+1</code> observations.
+The function returns a warning if units with <code>&lt;q+1</code> observations are dropped.
+</p>
+<p>The function requires a two-part formula, in which the second part indicates the slope parameter(s).
+If, for example, the model is <code>y ~ x1 + x2</code>, with the slope variables <code>x3</code> and <code>x4</code>,
+the model can be estimated with:
+</p>
+
+<ul><li> <p><code>formula = y ~ x1 + x2 | x3 + x4</code>
+</p>
+</li></ul>
+<p>To estimate a conventional fixed effects model without individual slopes, please use
+<code>y ~ x1 + x2 | 1</code> to indicate that the slopes should only contain an individual-specific intercept.
+</p>
+<p>If specified, <code>feis</code> estimates panel-robust standard errors. Panel-robust standard errors are
+robust to arbitrary forms of serial correlation within groups formed by <code>id</code> as well as
+heteroscedasticity across groups (see Wooldridge 2010, pp. 379-381).
+</p>
+<p>The model output can be exported using the <code>texreg</code> package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "<code>feis</code>", containing the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>the vector of coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>the scaled (if specified, robust) variance-covariance matrix of the coefficients.
+See <code>vcov.feis</code> for unscaled vcov</p>
+</td>
+</tr>
+</table>
+<p>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>the vector of residuals (computed from the "detrended" data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df.residual</code></td>
+<td>
+<p>degrees of freedom of the residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class "<code>Formula</code>" describing the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>the original model frame as a <code>data.frame</code> containing the original
+variables used for estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelhat</code></td>
+<td>
+<p>a constructed model frame as a <code>data.frame</code> containing the predicted
+values from the first stage regression using the slope variable(s) as predictor(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modeltrans</code></td>
+<td>
+<p>a constructed model frame as a <code>data.frame</code> containing the "detrended"
+variables used for the final model estimation.
+Note that the weights are already used for detrending if specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>the vector of the "detrended" response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>the vector of fitted values (computed from the "detrended" data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>a vector containing the unique person identifier.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>a vector containing weights used in fitting, or integer 1 if not speficied in call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>assign</code></td>
+<td>
+<p>assign attributes of the formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.omit</code></td>
+<td>
+<p>(where relevant) a vector of the omitted observations. The only handling method
+of <code>NA</code>s is "<code>omit</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts</code></td>
+<td>
+<p>(only where relevant) the contrasts used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arg</code></td>
+<td>
+<p>a list containing the used methods. Only "<code>feis</code>" and "<code>individual</code>" effects available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slopevars</code></td>
+<td>
+<p>a character vector containing the names of the slope variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r2</code></td>
+<td>
+<p>R squared of the "detrended" model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj.r2</code></td>
+<td>
+<p>adjusted R squared of the "detrended" model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov_arg</code></td>
+<td>
+<p>a character containing the method used to compute the variance-covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>the tolerance parameter (for use in bsfeistest).</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Bruederl J, Ludwig V (2015).
+“Fixed-Effects Panel Regression.”
+In Best H, Wolf C (eds.), <em>The Sage Handbook of Regression Analysis and Causal Inference</em>, 327–357.
+Sage, Los Angeles.
+ISBN 1446252442.<br><br> Ruettenauer T, Ludwig V (2020).
+“Fixed Effects Individual Slopes: Accounting and Testing for Heterogeneous Effects in Panel Data or Other Multilevel Models.”
+<em>Sociological Methods and Research</em>, <b>OnlineFirst</b>.
+ISSN 0049-1241, doi: <a href="https://doi.org/10.1177/0049124120926211">10.1177/0049124120926211</a>.<br><br> Wooldridge JM (2010).
+<em>Econometric Analysis of Cross Section and Panel Data</em>.
+MIT Press, Cambridge, Mass.
+ISBN 0262294354.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.feis</code>, <code>plm</code>, <code>pvcm</code>,
+<code>pmg</code>, <code>feistest</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("mwp", package = "feisr")
+feis.mod &lt;- feis(lnw ~ marry + enrol + as.factor(yeargr) | exp + I(exp^2),
+                 data = mwp, id = "id", robust = TRUE)
+summary(feis.mod)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsf.ada</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive Fast Structural Filtering</h2>
+
+<h3>Description</h3>
+
+<p>This is a function that solves the structural filtering problem with L0 penalty via the primal dual active set algorithm. It fits a non-parametric regression model by minimizing the number of nonzero values in D*beta with constraints on the least squares error.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"> fsf.ada(y, D, tau=1, s.max=20,  eps=0.1, ddinv=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response sequence to be filtered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>Penalty matrix on coeffient beta.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Step length for searching the best model, i.e., in the t-th iteration, a model with tau*t knots will be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s.max</code></td>
+<td>
+<p>The maximum nubmer of knots in the penalized coefficient(breaks in <code>D*beta</code>, default is 20</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Early stop criterion. The algorithm stops when mean squared error is less than eps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ddinv</code></td>
+<td>
+<p>The inverse matrix of <code>D*t(D)</code>, could be NULL input.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>The observed response vector. Useful for plotting and other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Fitted value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Primal coefficient. The indexes of the nonzero values correspond to the locations of the breaks. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.all</code></td>
+<td>
+<p>Solution path of fitted value, beta, corresponding to different degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A vector giving an unbiased estimate of the degrees of freedom of the fit, i.e., the number of nonzero values in <code>v</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Canhong Wen, Xueqin Wang, Yanhe Shen, Aijun Zhang</p>
+
+
+<h3>References</h3>
+
+<p>Wen,C., Wang, X., Shen, Y., and Zhang, A. (2017). "L0 trend filtering", technical report.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plotl0</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+require(limSolve)
+n &lt;- 1000
+sigma &lt;- 0.5
+y0 &lt;- rep(0,n)
+y0[100:150] &lt;- 2
+y0[400:600] &lt;- -1
+y0[800:810] &lt;- 4
+y &lt;- y0 + sigma*rnorm(n)
+y[800:810] &lt;- y0[800:810] + sigma*rnorm(11)
+D0 &lt;- matrix(0, n-1,n)
+diag(D0) &lt;- -1
+for(i in 1:(n-1)) D0[i,i+1] &lt;- 1
+ddt &lt;- D0%*%t(D0)
+ddinv&lt;- Solve.banded(ddt, 1,1, B = diag(1,dim(D0)[1]))
+
+re &lt;- fsf.ada(y, D0, tau = 1, s.max = 10, eps = 0.1, ddinv = ddinv)
+
+</code></pre>
+
+
+</div>

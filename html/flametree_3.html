@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flametree_plot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a plot from a flametree data frame</h2>
+
+<h3>Description</h3>
+
+<p>Create a plot from a flametree data frame
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flametree_plot(
+  data,
+  background = "black",
+  palette = c("#1E2640", "#F3EAC0", "#DC9750", "#922C40"),
+  style = "plain"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The data frame specifying the flametree</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>background</code></td>
+<td>
+<p>The background colour of the image</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>palette</code></td>
+<td>
+<p>A vector of colours</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>style</code></td>
+<td>
+<p>Style of tree to draw</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>flametree_plot()</code> function provides several ways to
+visualise the data created by the generative system implemented by
+<code>flametree_grow()</code>. The <code>background</code> argument sets the background
+colour of the image, and should either be a string specifying an RGB hex
+colour (e.g., "#000000") or the of a colour recognised by R (see the
+<code>colours()</code> function for details). Analogously, the <code>palette</code>
+argument should be a vector of colours. However, the <code>palette</code> argument
+is  interpreted slightly differently depending on which style of plot is
+created, discussed below. To set the <code>style</code> of the resulting plot,
+pass one of the following style names: "plain" (the default), "voronoi",
+"wisp", "nativeflora", "minimal", or "themegray".
+</p>
+<p>Plots in the "plain" style have the following properties. Branches of
+the trees vary in width using the <code>seg_wid</code> data column. Each branch
+is shown as a curved segment created using <code>geom_bezier2()</code>, and the
+colour of the segments is mapped to the <code>seg_col</code> column in the data.
+No leaves are drawn. In this style, the elements of the <code>palette</code> are
+used to create a continuous n-colour gradient using
+<code>scale_colour_gradientn()</code>.
+</p>
+<p>Plots in the "voronoi" style draw the shape of the tree the same way as
+the plain style, except that the segments do not vary in colour and are
+rendered using <code>geom_bezier()</code> instead of <code>geom_bezier2()</code>. Unlike
+the plain style, stylised "leaves" are drawn by constructing a Voronoi
+tesselation of the terminal nodes in the tree. Note that computing the
+tesselation is computationally expensive and this will likely produce
+errors if there are too many nodes (typically when the <code>time</code> parameter
+to <code>flametree_grow()</code> is large). The interpretation of the
+<code>palette</code> argument is slightly different: the first element of the
+palette is used to set the colour of the trees, and the rest of the palette
+colours are used to create the gradient palette used to colour the tiles
+depicted in the Voronoi tesselation.
+</p>
+<p>The <code>style = "nativeflora"</code> style creates a plot in which tree branches
+are rendered as thin segments, with a proportion of those segments removed,
+and small points are drawn at the end of each terminal segment. The width of
+the branches does not vary (i.e., <code>seg_wid</code> is ignored) and the colour
+of the branches is constant within tree, but does vary across trees, ignoring
+the continuous valued <code>seg_col</code> variable and using only the
+<code>id_tree</code> variable to do so. As with the plain style, the
+<code>palette</code> colours are used to define an n-colour gradient.
+</p>
+<p>The "wisp" style is similar to nativeflora, but no segments are removed, and
+the wdith of the branches is mapped to <code>seg_wid</code>. It only uses the first
+two elements of <code>palette</code>: the first element specifies the colour of the
+branches, and the second element specifies the colour of the leaf dots.
+</p>
+<p>The final two styles are simplifications of other styles. The "minimal"
+style is similar to the plain style but does not use curved segments, relying
+on <code>geom_path()</code> to draw the branches. The "themegray" style does this
+too, but it ignores the <code>palette</code> argument entirely, rendering the trees
+in black, set against the default gray background specified by the ggplot2
+<code>theme_gray()</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A ggplot object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># the default tree in the plain style
+flametree_grow() %&gt;% flametree_plot()
+
+# 10 trees drawn in the nativeflora style
+flametree_grow(trees = 10, shift_x = spark_nothing()) %&gt;%
+  flametree_plot(style = "nativeflora")
+
+# changing the palette
+shades &lt;- c("#A06AB4", "#FFD743", "#07BB9C", "#D773A2")
+flametree_grow() %&gt;% flametree_plot(palette = shades)
+
+</code></pre>
+
+
+</div>

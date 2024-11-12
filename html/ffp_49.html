@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>entropy_pooling</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Numerical Entropy Minimization</h2>
+
+<h3>Description</h3>
+
+<p>This function solves the entropy minimization problem with equality and inequality
+constraints. The solution is a vector of posterior probabilities that distorts
+the least the prior (equal-weights probabilities) given the constraints (views on
+the market).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">entropy_pooling(
+  p,
+  A = NULL,
+  b = NULL,
+  Aeq = NULL,
+  beq = NULL,
+  solver = c("nlminb", "solnl", "nloptr"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>A vector of prior probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>The linear inequality constraint (left-hand side).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>The linear inequality constraint (right-hand side).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Aeq</code></td>
+<td>
+<p>The linear equality constraint (left-hand side).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beq</code></td>
+<td>
+<p>The linear equality constraint (right-hand side).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solver</code></td>
+<td>
+<p>A <code>character</code>. One of: "nlminb", "solnl" or "nloptr".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to one of the solvers.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When imposing views constraints there is no need to specify the non-negativity
+constraint for probabilities, which is done automatically by <code>entropy_pooling</code>.
+</p>
+<p>For the arguments accepted in <code>...</code>, please see the documentation of
+<code>nlminb</code>, <code>solnl</code>, <code>nloptr</code>
+and the examples bellow.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of posterior probabilities.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># setup
+ret &lt;- diff(log(EuStockMarkets))
+n   &lt;- nrow(ret)
+
+# View on expected returns (here is 2% for each asset)
+mean &lt;- rep(0.02, 4)
+
+# Prior probabilities (usually equal weight scheme)
+prior &lt;- rep(1 / n, n)
+
+# View
+views &lt;- view_on_mean(x = ret, mean = mean)
+
+# Optimization
+ep &lt;- entropy_pooling(
+ p      = prior,
+ Aeq    = views$Aeq,
+ beq    = views$beq,
+ solver = "nlminb"
+)
+ep
+
+### Using the ... argument to control the optimization parameters
+
+# nlminb
+ep &lt;- entropy_pooling(
+ p      = prior,
+ Aeq    = views$Aeq,
+ beq    = views$beq,
+ solver = "nlminb",
+ control = list(
+     eval.max = 1000,
+     iter.max = 1000,
+     trace    = TRUE
+   )
+)
+ep
+
+# nloptr
+ep &lt;- entropy_pooling(
+ p      = prior,
+ Aeq    = views$Aeq,
+ beq    = views$beq,
+ solver = "nloptr",
+ control = list(
+     xtol_rel = 1e-10,
+     maxeval  = 1000,
+     check_derivatives = TRUE
+   )
+)
+ep
+</code></pre>
+
+
+</div>

@@ -1,0 +1,222 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FCVARlikeGrid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Grid Search to Maximize Likelihood Function</h2>
+
+<h3>Description</h3>
+
+<p><code>FCVARlikeGrid</code> performs a grid-search optimization
+by calculating the likelihood function
+on a grid of candidate parameter values.
+This function evaluates the likelihood over a grid of values
+for <code>c(d,b)</code> (or <code>phi</code>).
+It can be used when parameter estimates are sensitive to
+starting values to give an approximation of the global maximum that can
+then be used as the starting value in the numerical optimization in
+<code>FCVARestn</code>.
+<code>plot.FCVAR_grid</code> plots the likelihood function from <code>FCVARlikeGrid</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FCVARlikeGrid(x, k, r, opt)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A matrix of variables to be included in the system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The number of lags in the system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>The cointegrating rank.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt</code></td>
+<td>
+<p>An S3 object of class <code>FCVAR_opt</code> that stores the chosen estimation options,
+generated from <code>FCVARoptions()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 object of type <code>FCVAR_grid</code> containing the optimization results,
+including the following parameters:
+</p>
+
+<dl>
+<dt><code>params</code></dt>
+<dd>
+<p>A vector <code>params</code> of <code>d</code> and <code>b</code>
+(and <code>mu</code> if level parameter is selected)
+corresponding to a maximum over the grid of <code>c(d,b)</code> or <code>phi</code>.</p>
+</dd>
+<dt><code>dbHatStar</code></dt>
+<dd>
+<p>A vector of <code>d</code> and <code>b</code>
+corresponding to a maximum over the grid of <code>c(d,b)</code> or <code>phi</code>.</p>
+</dd>
+<dt><code>muHatStar</code></dt>
+<dd>
+<p>A vector of the optimal <code>mu</code> if level parameter is selected. </p>
+</dd>
+<dt><code>Grid2d</code></dt>
+<dd>
+<p>An indicator for whether or not the optimization
+is conducted over a 2-dimensional parameter space,
+i.e. if there is no equality restriction on <code>d</code> and <code>b</code>.</p>
+</dd>
+<dt><code>dGrid</code></dt>
+<dd>
+<p>A vector of the grid points in the parameter <code>d</code>,
+after any transformations for restrictions, if any.</p>
+</dd>
+<dt><code>bGrid</code></dt>
+<dd>
+<p>A vector of the grid points in the parameter <code>b</code>,
+after any transformations for restrictions, if any.</p>
+</dd>
+<dt><code>dGrid_orig</code></dt>
+<dd>
+<p>A vector of the grid points in the parameter <code>d</code>,
+in units of the fractional integration parameter.</p>
+</dd>
+<dt><code>bGrid_orig</code></dt>
+<dd>
+<p>A vector of the grid points in the parameter <code>b</code>,
+in units of the fractional integration parameter.</p>
+</dd>
+<dt><code>like</code></dt>
+<dd>
+<p>The maximum value of the likelihood function over the chosen grid.</p>
+</dd>
+<dt><code>k</code></dt>
+<dd>
+<p>The number of lags in the system.</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p>The cointegrating rank.</p>
+</dd>
+<dt><code>opt</code></dt>
+<dd>
+<p>An S3 object of class <code>FCVAR_opt</code> that stores the chosen estimation options,
+generated from <code>FCVARoptions()</code>.</p>
+</dd>
+</dl>
+<h3>Note</h3>
+
+<p>If <code>opt$LocalMax == 0</code>, <code>FCVARlikeGrid</code> returns the parameter values
+corresponding to the global maximum of the likelihood on the grid.
+If <code>opt$LocalMax == 1</code>, <code>FCVARlikeGrid</code> returns the parameter values for the
+local maximum corresponding to the highest value of <code>b</code>. This
+alleviates the identification problem mentioned in Johansen and
+Nielsen (2010, section 2.3).
+</p>
+
+
+<h3>References</h3>
+
+<p>Johansen, S. and M. Ø. Nielsen (2010).
+"Likelihood inference for a nonstationary fractional
+autoregressive model," Journal of Econometrics 158, 51-66.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FCVARoptions</code> to set default estimation options.
+<code>plot.FCVAR_grid</code> plots the likelihood function from <code>FCVARlikeGrid</code>.
+</p>
+<p>Other FCVAR auxiliary functions: 
+<code>FCVARforecast()</code>,
+<code>FCVARsimBS()</code>,
+<code>FCVARsim()</code>,
+<code>FracDiff()</code>,
+<code>plot.FCVAR_grid()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Restrict equality of fractional parameters.
+
+opt &lt;- FCVARoptions()
+opt$dbStep1D     &lt;- 0.2 # Coarser grid for plotting example.
+opt$dbMin        &lt;- c(0.01, 0.01) # Set lower bound for d,b.
+opt$dbMax        &lt;- c(2.00, 2.00) # Set upper bound for d,b.
+opt$constrained  &lt;- 0 # impose restriction dbMax &gt;= d &gt;= b &gt;= dbMin ? 1 &lt;- yes, 0 &lt;- no.
+opt$restrictDB   &lt;- 1 # impose restriction d=b ? 1 &lt;- yes, 0 &lt;- no.
+opt$progress     &lt;- 2 # Show progress report on each value of b.
+x &lt;- votingJNP2014[, c("lib", "ir_can", "un_can")]
+likeGrid_params &lt;- FCVARlikeGrid(x, k = 2, r = 1, opt)
+plot(likeGrid_params)
+
+
+# Linear restriction on fractional parameters.
+
+opt &lt;- FCVARoptions()
+opt$dbStep1D     &lt;- 0.2 # Coarser grid for plotting example.
+opt$dbMin        &lt;- c(0.01, 0.01) # Set lower bound for d,b.
+opt$dbMax        &lt;- c(2.00, 2.00) # Set upper bound for d,b.
+opt$constrained  &lt;- 0 # impose restriction dbMax &gt;= d &gt;= b &gt;= dbMin ? 1 &lt;- yes, 0 &lt;- no.
+opt$restrictDB   &lt;- 0 # impose restriction d=b ? 1 &lt;- yes, 0 &lt;- no.
+# Impose linear restriction on d and b:
+opt$R_psi        &lt;- matrix(c(2, -1), nrow = 1, ncol = 2)
+opt$r_psi        &lt;- 0.5
+opt$progress     &lt;- 2 # Show progress report on each value of b.
+x &lt;- votingJNP2014[, c("lib", "ir_can", "un_can")]
+likeGrid_params &lt;- FCVARlikeGrid(x, k = 2, r = 1, opt)
+plot(likeGrid_params)
+
+
+# Constrained 2-dimensional optimization.
+# Impose restriction dbMax &gt;= d &gt;= b &gt;= dbMin.
+
+opt &lt;- FCVARoptions()
+opt$dbStep1D     &lt;- 0.2 # Coarser grid for plotting example.
+opt$dbStep2D     &lt;- 0.2 # Coarser grid for plotting example.
+opt$dbMin        &lt;- c(0.01, 0.01) # Set lower bound for d,b.
+opt$dbMax        &lt;- c(2.00, 2.00) # Set upper bound for d,b.
+opt$constrained  &lt;- 1 # impose restriction dbMax &gt;= d &gt;= b &gt;= dbMin ? 1 &lt;- yes, 0 &lt;- no.
+opt$restrictDB   &lt;- 0 # impose restriction d=b ? 1 &lt;- yes, 0 &lt;- no.
+opt$progress     &lt;- 2 # Show progress report on each value of b.
+x &lt;- votingJNP2014[, c("lib", "ir_can", "un_can")]
+likeGrid_params &lt;- FCVARlikeGrid(x, k = 2, r = 1, opt)
+
+
+# Unconstrained 2-dimensional optimization.
+
+opt &lt;- FCVARoptions()
+opt$dbStep1D     &lt;- 0.1 # Coarser grid for plotting example.
+opt$dbStep2D     &lt;- 0.2 # Coarser grid for plotting example.
+opt$dbMin        &lt;- c(0.01, 0.01) # Set lower bound for d,b.
+opt$dbMax        &lt;- c(2.00, 2.00) # Set upper bound for d,b.
+opt$constrained  &lt;- 0 # impose restriction dbMax &gt;= d &gt;= b &gt;= dbMin ? 1 &lt;- yes, 0 &lt;- no.
+opt$restrictDB   &lt;- 0 # impose restriction d=b ? 1 &lt;- yes, 0 &lt;- no.
+opt$progress     &lt;- 2 # Show progress report on each value of b.
+x &lt;- votingJNP2014[, c("lib", "ir_can", "un_can")]
+likeGrid_params &lt;- FCVARlikeGrid(x, k = 2, r = 1, opt)
+
+</code></pre>
+
+
+</div>

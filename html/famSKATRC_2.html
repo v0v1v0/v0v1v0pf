@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>famSKAT_RC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+famSKAT_RC
+</h2>
+
+<h3>Description</h3>
+
+<p>FamSKAT-RC is a family-based association kernel test for both rare and common variants.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">famSKAT_RC (PHENO, genotypes, id, fullkins, covariates=NULL, sqrtweights_c,
+            sqrtweights_r, binomialimpute=FALSE, acc=NULL, maf, phi)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>PHENO</code></td>
+<td>
+
+<p>The vector of the phenotype values. The missing values must be represented by NA.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genotypes</code></td>
+<td>
+
+<p>The genotype matrix. Its size should be N * P, where N is the number of individuals and P is the number of SNPs.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+
+<p>The vector of individual IDs to be included in the test. These IDs are present in the kinship matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fullkins</code></td>
+<td>
+
+<p>The full kinship matrix that contains all individuals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+
+<p>A matrix of possible covariates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sqrtweights_c</code></td>
+<td>
+
+<p>The weight function to be assigned for common variants. An example is: function(maf) ifelse(maf&gt;0, dbeta(maf,0.5,0.5), 0).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sqrtweights_r</code></td>
+<td>
+
+<p>The weight function to be assigned for rare variants. An example is: function(maf) ifelse(maf&gt;0, dbeta(maf,1,25), 0).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binomialimpute</code></td>
+<td>
+
+<p>If TRUE, then impute missing genotypes using a binomial distribution (e.g. rbinom(10, 2, MAF), if 10 genotypes are missing).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acc</code></td>
+<td>
+
+<p>The accuracy used in the Davies approximation. For example, acc= 1e-06.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maf</code></td>
+<td>
+
+<p>A MAF threshold used to define rare and common variants (e.g. maf=0.01).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+
+<p>This parameter indicates the contribution portion of rare variants. For example, a value of phi=0.5 means that the contribution of rare and common variants to the test is equaland a value of phi=1 means that only rare variants contribute to the test. You can vary the phi values as you wish and you can also provide a grid of different values (e.g. phi = c(0,0.2,0.5,0.9)). In this case, four p-values will be obtained, one for each value of phi.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>FamSKAT-RC is a family-based association kernel test for both rare and common variants. This test is general and several special cases are known as other methods: famSKAT, which only focuses on rare variants in family-based data, SKAT, which focuses on rare variants in population-based data (unrelated individuals), and SKAT-RC, which focuses on both rare and common variants in population-based data. When one applies famSKAT-RC and sets the value of phi to 1, famSKAT-RC becomes famSKAT. When one applies famSKAT-RC and set the value of phi to 1 and the kinship matrix to the identity matrix, famSKAT-RC becomes SKAT. When one applies famSKAT-RC and set the kinship matrix (fullkins) to the identity matrix (and phi is not equal to 1), famSKAT-RC becomes SKAT-RC.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The test statistic p-value.
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>temp_pvalues</code></td>
+<td>
+<p>Some Description</p>
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(kinship2)
+sample.ped.geno &lt;- process_data()
+KIN = kinship(sample.ped.geno$IID, sample.ped.geno$FA, sample.ped.geno$MO)
+IID = sample.ped.geno$IID
+wuweights_r &lt;- function(maf) ifelse(maf&gt;0, dbeta(maf,1,25), 0)
+wuweights_c &lt;- function(maf) ifelse(maf&gt;0, dbeta(maf,0.5,0.5), 0)
+P_VALUES &lt;- famSKAT_RC(PHENO=sample.ped.geno[,"Phenotype"],genotypes=as.matrix(
+            sample.ped.geno[,7:ncol(sample.ped.geno)]), binomialimpute=TRUE,
+            id=IID,fullkins=KIN,maf=0.05, sqrtweights_c=wuweights_c,
+            sqrtweights_r=wuweights_r, phi = c(0,0.2,0.5,0.9))
+print(P_VALUES)
+</code></pre>
+
+
+</div>

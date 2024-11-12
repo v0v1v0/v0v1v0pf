@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generate.mdl_df</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate responses from a mable</h2>
+
+<h3>Description</h3>
+
+<p>Use a model's fitted distribution to simulate additional data with similar
+behaviour to the response. This is a tidy implementation of
+<code>stats::simulate()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'mdl_df'
+generate(x, new_data = NULL, h = NULL, times = 1, seed = NULL, ...)
+
+## S3 method for class 'mdl_ts'
+generate(
+  x,
+  new_data = NULL,
+  h = NULL,
+  times = 1,
+  seed = NULL,
+  bootstrap = FALSE,
+  bootstrap_block_size = 1,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A mable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_data</code></td>
+<td>
+<p>The data to be generated (time index and exogenous regressors)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>The simulation horizon (can be used instead of <code>new_data</code> for regular
+time series with no exogenous regressors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>The number of replications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>The seed for the random generation from distributions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for individual simulation methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>If TRUE, then forecast distributions are computed using simulation with resampled errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap_block_size</code></td>
+<td>
+<p>The bootstrap block size specifies the number of contiguous residuals to be taken in each bootstrap sample.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Innovations are sampled by the model's assumed error distribution.
+If <code>bootstrap</code> is <code>TRUE</code>, innovations will be sampled from the model's
+residuals. If <code>new_data</code> contains the <code>.innov</code> column, those values will be
+treated as innovations for the simulated paths.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fable)
+library(dplyr)
+UKLungDeaths &lt;- as_tsibble(cbind(mdeaths, fdeaths), pivot_longer = FALSE)
+UKLungDeaths %&gt;% 
+  model(lm = TSLM(mdeaths ~ fourier("year", K = 4) + fdeaths)) %&gt;% 
+  generate(UKLungDeaths, times = 5)
+
+</code></pre>
+
+
+</div>

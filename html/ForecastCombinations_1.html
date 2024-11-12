@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Forecast_comb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forecasts combination using regression, robust regression, constrained regression or variance based</h2>
+
+<h3>Description</h3>
+
+<p>Combine different forecasts. Use simple average, Ordinary Least Squares (OLS), robust regression, inverse mean squared error
+(IMSE), constrained least squares (CLS), or simply use the best forecast based on the MSE metric.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Forecast_comb(obs, fhat, fhat_new= NULL, Averaging_scheme= c("simple", "ols", "robust",
+"cls", "variance based", "best") )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>Observed series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fhat</code></td>
+<td>
+<p>fhat Matrix of available forecasts. These are used to retrieve the weights. How each forecast should be weighted in the overall combined forecast.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fhat_new</code></td>
+<td>
+<p>Matrix of available forecasts as a test set. Optional, default to NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Averaging_scheme</code></td>
+<td>
+<p>Which averaging scheme should be used?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Performs simple forecast averaging where each forecast carries equal weight:  <code class="reqn">\frac{1}{p}</code> with p the column dimension of <code>fhat</code>. OLS forecast combination is based on </p>
+<p style="text-align: center;"><code class="reqn"> obs_t = const + \sum_{i = 1}^p w_{i} \widehat{obs}_{it} + e_t, </code>
+</p>
+<p> where <code class="reqn">obs</code> is the observed values and <code class="reqn">\widehat{obs}</code> is the forecast, one out of the p forecasts available.
+</p>
+<p>Robust regression performs the same, but minimize different loss function, which is less sensitive to outliers (see quantile regression and references therein).
+</p>
+<p>Constrained least squares minimize the sum of squared errors under the restriction that the weights sum up to 1, and that the forecasts themselves are unbiased (no intercept in the regression).
+</p>
+<p>The variance-based method computes the mean squared error and weigh the forecasts according to their accuracy. Accurate forecasts (based on MSE metric) receive relatively more weight.
+</p>
+<p>The best restric all the weights to zero apart from the best forecast, again based on the MSE. Essentially selecting only one forecast to be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>Forecast_comb</code> returns a list that contains the following objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fitted</code></td>
+<td>
+<p>Vector of fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>Vector of prediction. This object is empty if there was no test matrix <code>fhat_new</code> provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Vector of weights based on the <code>Averaging_scheme</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Eran Raviv (<a href="mailto:eeraviv@gmail.com">eeraviv@gmail.com</a>)</p>
+
+
+<h3>References</h3>
+
+<p><cite>Bates, J. M., Granger, C.W. (1969), The combination of forecasts, Operations Research Quarterly, 20(4), 451-468</cite>
+</p>
+<p><cite>Clemen, R.T. (1989) Combining forecasts: A review and annotated bibliography. International Journal of Forecasting
+5, 559-583.</cite>
+</p>
+<p><cite>Koenker, R. (2005) Quantile Regression. Cambridge University Press.</cite>
+</p>
+<p><cite>Timmermann, A.G. (2006) Forecast combinations. In: Elliott, G., Granger, C.W., Timmermann, A. (Eds.), Handbook
+of Economic Forecasting, Elsevier, 135-196.</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> library(MASS)
+ tt &lt;- NROW(Boston)/2
+ TT &lt;- NROW(Boston)
+ y &lt;- Boston[1:tt, 14] # dependent variable is columns number 14
+
+ # Create two sets of explanatory variables
+ x1 &lt;- Boston[1:tt, 1:6] # The first 6 explanatories
+ x2 &lt;- Boston[1:tt, 7:13]# The last 6 explanatories
+
+#create two forecasts based on the two different x1 and x2
+ coef1 &lt;- lm(y~as.matrix(x1))$coef
+ coef2 &lt;- lm(y~as.matrix(x2))$coef
+ f1 &lt;- t(coef1 %*% t(cbind(rep(1,tt), Boston[(tt+1):TT, 1:6] )))
+ f2 &lt;- t(coef2 %*% t(cbind(rep(1,tt), Boston[(tt+1):TT, 7:13] )))
+ ff &lt;- cbind(f1, f2)
+scheme=c("simple", "ols", "robust", "variance based", "cls", "best")
+
+example0 &lt;- list()
+
+ for ( i in 	scheme) {
+ 	example0[[i]] &lt;- Forecast_comb(obs = Boston[(tt+1):TT, 14] ,
+ 	fhat = ff, Averaging_scheme = i)
+ 	cat(i, ":",  sqrt(mean((example0[[i]]$fitted - Boston[(tt+1):TT, 14] )^2)), "\n" )
+ }
+
+# Compare with
+apply(ff, 2, function(x) {  sqrt(mean((x - Boston[(tt+1):TT, 14])^2)) }  )
+</code></pre>
+
+
+</div>

@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sfa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Slow Feature Analysis</h2>
+
+<h3>Description</h3>
+
+<p><code>sfa</code> performs Slow Feature Analysis (SFA) on a 
+<code class="reqn">K</code>-dimensional time series with <code class="reqn">T</code> observations.
+</p>
+<p><strong>Important:</strong> This implementation of SFA is just the most basic
+version; it is merely included here for convenience in 
+<code>initialize_weightvector</code>.  If you want to actually use full functionality of SFA in R 
+use the <span class="pkg">rSFA</span> package, which has a much more advanced and efficient implementations.
+<code>sfa()</code> here corresponds to <code>sfa1</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sfa(series, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>series</code></td>
+<td>
+<p>a <code class="reqn">T \times K</code> array with <code>T</code> observations from the 
+<code class="reqn">K</code>-dimensional time series <code class="reqn">\mathbf{X}_t</code>. Can be a <code>matrix</code>, <code>data.frame</code>, 
+or a multivariate <code>ts</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Slow Feature Analysis (SFA) finds <em>slow</em> signals (see References below). The problem has an
+analytic solution and thus can be computed quickly using generalized eigen-value solvers.
+For ForeCA it is important to know that SFA is equivalent to
+finding a linear combination signal with largest lag <code class="reqn">1</code> autocorrelation.
+</p>
+<p>The disadvantage of SFA for forecasting is that, e.g., white noise (WN) 
+is ranked higher than an AR(1) with negative autocorrelation coefficient 
+<code class="reqn">\rho_1 &lt; 0</code>.  While it is true that WN is slower, it is not more 
+forecastable.  Thus we are also interested in the fastest signal, i.e.,
+the last eigenvector. The so obtained fastest signal corresponds to minimizing
+the lag 1 auto-correlation (possibly <code class="reqn">\rho_1 &lt; 0</code>).
+</p>
+<p>Note though that maximizing (or minimizing) the lag <code class="reqn">1</code> auto-correlation does 
+not necessarily yield the most forecastable signal (as measured 
+by <code>Omega</code>), but it is a good start.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>sfa</code> which inherits methods from <code>princomp</code>.
+Signals are ordered from slowest to fastest.
+</p>
+
+
+<h3>References</h3>
+
+<p>Laurenz Wiskott and Terrence J. Sejnowski (2002). 
+“Slow Feature Analysis: Unsupervised Learning of Invariances”, 
+Neural Computation 14:4, 715-770.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>initialize_weightvector</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">XX &lt;- diff(log(EuStockMarkets[-c(1:100),])) * 100
+plot(ts(XX))
+ss &lt;- sfa(XX[,1:4])
+
+summary(ss)
+plot(ss)
+plot(ts(ss$scores))
+apply(ss$scores, 2, function(x) acf(x, plot = FALSE)$acf[2])
+biplot(ss)
+
+</code></pre>
+
+
+</div>

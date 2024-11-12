@@ -1,0 +1,297 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ctrec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal combination cross-temporal reconciliation</h2>
+
+<h3>Description</h3>
+
+<p>This function performs optimal (in least squares sense) combination cross-temporal forecast
+reconciliation (Di Fonzo and Girolimetto 2023a, Girolimetto et al. 2023). The reconciled
+forecasts are calculated using either a projection approach (Byron, 1978, 1979) or the
+equivalent structural approach by Hyndman et al. (2011). Non-negative (Di Fonzo and
+Girolimetto, 2023) and immutable reconciled forecasts can be considered.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ctrec(base, agg_mat, cons_mat, agg_order, comb = "ols", res = NULL,
+      tew = "sum", approach = "proj", nn = NULL, settings = NULL,
+      bounds = NULL, immutable = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix containing the base forecasts to
+be reconciled; <code class="reqn">n</code> is the total number of variables, <code class="reqn">m</code> is the max. order of temporal
+aggregation, <code class="reqn">k^\ast</code> is the sum of (a subset of) (<code class="reqn">p-1</code>) factors of <code class="reqn">m</code>,
+excluding <code class="reqn">m</code>, and <code class="reqn">h</code> is the forecast horizon for the lowest frequency time series.
+The row identifies a time series, and the forecasts in each row are ordered from the
+lowest frequency (most temporally aggregated) to the highest frequency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_mat</code></td>
+<td>
+<p>A (<code class="reqn">n_a \times n_b</code>) numeric matrix representing the cross-sectional
+aggregation matrix. It maps the <code class="reqn">n_b</code> bottom-level (free)
+variables into the <code class="reqn">n_a</code> upper (constrained) variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cons_mat</code></td>
+<td>
+<p>A (<code class="reqn">n_a \times n</code>) numeric matrix representing the cross-sectional
+zero constraints. It spans the null space for the reconciled forecasts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_order</code></td>
+<td>
+<p>Highest available sampling frequency per seasonal cycle (max. order
+of temporal aggregation, <code class="reqn">m</code>), or a vector representing a subset of <code class="reqn">p</code> factors
+of <code class="reqn">m</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comb</code></td>
+<td>
+<p>A string specifying the reconciliation method. For a complete list, see ctcov.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>A (<code class="reqn">n \times N(k^\ast+m)</code>) optional numeric matrix containing the
+in-sample residuals at all the temporal frequencies ordered from the lowest frequency
+to the highest frequency (columns) for each variable (rows). This matrix is used
+to compute some covariance matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tew</code></td>
+<td>
+<p>A string specifying the type of temporal aggregation. Options include:
+"<code>sum</code>" (simple summation, <em>default</em>), "<code>avg</code>" (average),
+"<code>first</code>" (first value of the period), and "<code>last</code>"
+(last value of the period).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approach</code></td>
+<td>
+<p>A string specifying the approach used to compute the reconciled
+forecasts. Options include:
+</p>
+
+<ul>
+<li>
+<p> "<code>proj</code>" (<em>default</em>): Projection approach according to Byron (1978, 1979).
+</p>
+</li>
+<li>
+<p> "<code>strc</code>": Structural approach as proposed by Hyndman et al. (2011).
+</p>
+</li>
+<li>
+<p> "<code>proj_osqp</code>": Numerical solution using <a href="https://osqp.org/"><span class="pkg">osqp</span></a>
+for projection approach.
+</p>
+</li>
+<li>
+<p> "<code>strc_osqp</code>": Numerical solution using <a href="https://osqp.org/"><span class="pkg">osqp</span></a>
+for structural approach.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nn</code></td>
+<td>
+<p>A string specifying the algorithm to compute non-negative reconciled forecasts:
+</p>
+
+<ul>
+<li>
+<p> "<code>osqp</code>": quadratic programming optimization
+(<a href="https://osqp.org/"><span class="pkg">osqp</span></a> solver).
+</p>
+</li>
+<li>
+<p> "<code>sntz</code>": heuristic "set-negative-to-zero" (Di Fonzo and Girolimetto, 2023).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>settings</code></td>
+<td>
+<p>An object of class <code>osqpSettings</code> specifying settings
+for the <a href="https://osqp.org/"><span class="pkg">osqp</span></a> solver. For details, refer to the
+<a href="https://osqp.org/"><span class="pkg">osqp</span> documentation</a> (Stellato et al., 2020).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>A (<code class="reqn">n(k^\ast + m) \times 2</code>) numeric matrix specifying the
+cross-temporal bounds. The first column represents the lower bound, and the
+second column represents the upper bound.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>immutable</code></td>
+<td>
+<p>A matrix with three columns (<code class="reqn">i,k,j</code>), such that
+</p>
+
+<dl>
+<dt>Column 1</dt>
+<dd>
+<p>Represents the cross-sectional series (<code class="reqn">i = 1, \dots, n</code>).</p>
+</dd>
+<dt>Column 2</dt>
+<dd>
+<p>Denotes the temporal aggregation order (<code class="reqn">k = m,\dots,1</code>).</p>
+</dd>
+<dt>Column 3</dt>
+<dd>
+<p>Indicates the temporal forecast horizon (<code class="reqn">j = 1,\dots,m/k</code>).</p>
+</dd>
+</dl>
+<p>For example, when working with a quarterly multivariate time series (<code class="reqn">n = 3</code>):
+</p>
+
+<ul>
+<li> <p><code>t(c(1, 4, 1))</code> - Fix the one step ahead annual forecast of the first time series.
+</p>
+</li>
+<li> <p><code>t(c(2, 1, 2))</code> - Fix the two step ahead quarterly forecast of the second time series.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>ctcov</code>
+</p>
+
+<dl>
+<dt><code>mse</code></dt>
+<dd>
+<p>If <code>TRUE</code> (<em>default</em>) the residuals used to compute the covariance
+matrix are not mean-corrected.</p>
+</dd>
+<dt><code>shrink_fun</code></dt>
+<dd>
+<p>Shrinkage function of the covariance matrix, shrink_estim (<em>default</em>).</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix of cross-temporal reconciled forecasts.
+</p>
+
+
+<h3>References</h3>
+
+<p>Byron, R.P. (1978), The estimation of large social account matrices,
+<em>Journal of the Royal Statistical Society, Series A</em>, 141, 3, 359-367.
+<a href="https://doi.org/10.2307/2344807">doi:10.2307/2344807</a>
+</p>
+<p>Byron, R.P. (1979), Corrigenda: The estimation of large social account matrices,
+<em>Journal of the Royal Statistical Society, Series A</em>, 142(3), 405.
+<a href="https://doi.org/10.2307/2982515">doi:10.2307/2982515</a>
+</p>
+<p>Di Fonzo, T. and Girolimetto, D. (2023a), Cross-temporal forecast reconciliation:
+Optimal combination method and heuristic alternatives, <em>International Journal
+of Forecasting</em>, 39, 1, 39-57. <a href="https://doi.org/10.1016/j.ijforecast.2021.08.004">doi:10.1016/j.ijforecast.2021.08.004</a>
+</p>
+<p>Di Fonzo, T. and Girolimetto, D. (2023), Spatio-temporal reconciliation of solar
+forecasts, <em>Solar Energy</em>, 251, 13–29. <a href="https://doi.org/10.1016/j.solener.2023.01.003">doi:10.1016/j.solener.2023.01.003</a>
+</p>
+<p>Girolimetto, D., Athanasopoulos, G., Di Fonzo, T. and Hyndman, R.J. (2024),
+Cross-temporal probabilistic forecast reconciliation: Methodological and
+practical issues. <em>International Journal of Forecasting</em>, 40, 3, 1134-1151.
+<a href="https://doi.org/10.1016/j.ijforecast.2023.10.003">doi:10.1016/j.ijforecast.2023.10.003</a>
+</p>
+<p>Hyndman, R.J., Ahmed, R.A., Athanasopoulos, G. and Shang, H.L. (2011),
+Optimal combination forecasts for hierarchical time series,
+<em>Computational Statistics &amp; Data Analysis</em>, 55, 9, 2579-2589.
+<a href="https://doi.org/10.1016/j.csda.2011.03.006">doi:10.1016/j.csda.2011.03.006</a>
+</p>
+<p>Stellato, B., Banjac, G., Goulart, P., Bemporad, A. and Boyd, S. (2020), OSQP:
+An Operator Splitting solver for Quadratic Programs,
+<em>Mathematical Programming Computation</em>, 12, 4, 637-672.
+<a href="https://doi.org/10.1007/s12532-020-00179-2">doi:10.1007/s12532-020-00179-2</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Regression-based reconciliation: 
+<code>csrec()</code>,
+<code>terec()</code>
+</p>
+<p>Cross-temporal framework: 
+<code>ctboot()</code>,
+<code>ctbu()</code>,
+<code>ctcov()</code>,
+<code>ctlcc()</code>,
+<code>ctmo()</code>,
+<code>cttd()</code>,
+<code>cttools()</code>,
+<code>iterec()</code>,
+<code>tcsrec()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# (3 x 7) base forecasts matrix (simulated), Z = X + Y and m = 4
+base &lt;- rbind(rnorm(7, rep(c(20, 10, 5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))))
+# (3 x 70) in-sample residuals matrix (simulated)
+res &lt;- rbind(rnorm(70), rnorm(70), rnorm(70))
+
+A &lt;- t(c(1,1)) # Aggregation matrix for Z = X + Y
+m &lt;- 4 # from quarterly to annual temporal aggregation
+reco &lt;- ctrec(base = base, agg_mat = A, agg_order = m, comb = "wlsv", res = res)
+
+C &lt;- t(c(1, -1, -1)) # Zero constraints matrix for Z - X - Y = 0
+reco &lt;- ctrec(base = base, cons_mat = C, agg_order = m, comb = "wlsv", res = res)
+
+# Immutable reconciled forecasts
+# Fix all the quarterly forecasts of the second variable.
+imm_mat &lt;- expand.grid(i = 2, k = 1, j = 1:4)
+immreco &lt;- ctrec(base = base, cons_mat = C, agg_order = m, comb = "wlsv",
+                 res = res, immutable = imm_mat)
+
+# Non negative reconciliation
+base[2,7] &lt;- -2*base[2,7] # Making negative one of the quarterly base forecasts for variable X
+nnreco &lt;- ctrec(base = base, cons_mat = C, agg_order = m, comb = "wlsv",
+                res = res, nn = "osqp")
+recoinfo(nnreco, verbose = FALSE)$info
+
+</code></pre>
+
+
+</div>

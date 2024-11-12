@@ -1,0 +1,184 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RoMFCC_PhaseI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Robust Multivariate Functional Control Charts - Phase I</h2>
+
+<h3>Description</h3>
+
+<p>It performs Phase I of the Robust Multivariate Functional Control Chart
+(RoMFCC) as proposed by Capezza et al. (2024).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RoMFCC_PhaseI(
+  mfdobj,
+  mfdobj_tuning = NULL,
+  functional_filter_par = list(filter = TRUE),
+  imputation_par = list(method_imputation = "RoMFDI"),
+  pca_par = list(fev = 0.7),
+  alpha = 0.05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mfdobj</code></td>
+<td>
+<p>A multivariate functional data object of class mfd.
+A functional filter is applied to this data set, then
+flagged functional componentwise outliers are imputed in the
+robust imputation step.
+Finally robust multivariate functional principal component analysis
+is applied to the imputed data set for dimension reduction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_tuning</code></td>
+<td>
+<p>An additional functional data object of class mfd.
+After applying the filter and imputation steps on this data set,
+it is used to robustly estimate the distribution of the Hotelling's T2 and
+SPE statistics in order to calculate control limits
+to prevent overfitting issues that could reduce the
+monitoring performance of the RoMFCC.
+Default is NULL, but it is strongly recommended to use a tuning data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>functional_filter_par</code></td>
+<td>
+<p>A list with an argument <code>filter</code> that can be TRUE or FALSE depending
+on if the functional filter step must be performed or not.
+All the other arguments of this list are passed as arguments to the function
+<code>functional_filter</code> in the filtering step.
+All the arguments that are not passed take their default values.
+See <code>functional_filter</code> for all the arguments and their default
+values.
+Default is <code>list(filter = TRUE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imputation_par</code></td>
+<td>
+<p>A list with an argument <code>method_imputation</code>
+that can be <code>"RoMFDI"</code> or <code>"mean"</code> depending
+on if the imputation step must be done by means of <code>RoMFDI</code> or
+by just using the mean of each functional variable.
+If <code>method_imputation = "RoMFDI"</code>,
+all the other arguments of this list are passed as arguments to the function
+<code>RoMFDI</code> in the imputation step.
+All the arguments that are not passed take their default values.
+See <code>RoMFDI</code> for all the arguments and their default
+values.
+Default value is <code>list(method_imputation = "RoMFDI")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pca_par</code></td>
+<td>
+<p>A list with an argument <code>fev</code>, indicating a number between 0 and 1
+denoting the fraction of variability that must be explained by the
+principal components to be selected in the RoMFPCA step.
+All the other arguments of this list are passed as arguments to the function
+<code>rpca_mfd</code> in the RoMFPCA step.
+All the arguments that are not passed take their default values.
+See <code>rpca_mfd</code> for all the arguments and their default
+values.
+Default value is <code>list(fev = 0.7)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The overall nominal type-I error probability used to set
+control chart limits.
+Default value is 0.05.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of the following elements that are needed in Phase II:
+</p>
+
+<ul>
+<li> <p><code>T2</code> the Hotelling's T2 statistic values for the Phase I data set,
+</p>
+</li>
+<li> <p><code>SPE</code> the SPE statistic values for the Phase I data set,
+</p>
+</li>
+<li> <p><code>T2_tun</code> the Hotelling's T2 statistic values for the tuning data set,
+</p>
+</li>
+<li> <p><code>SPE_tun</code> the SPE statistic values for the tuning data set,
+</p>
+</li>
+<li> <p><code>T2_lim</code> the Phase II control limit of
+the Hotelling's T2 control chart,
+</p>
+</li>
+<li> <p><code>spe_lim</code> the Phase II control limit of
+the SPE control chart,
+</p>
+</li>
+<li> <p><code>tuning</code> TRUE if the tuning data set is provided, FALSE otherwise,
+</p>
+</li>
+<li> <p><code>mod_pca</code> the final RoMFPCA model fitted on the Phase I data set,
+</p>
+</li>
+<li> <p><code>K</code> = K the number of selected principal components,
+</p>
+</li>
+<li> <p><code>T_T2_inv</code> if a tuning data set is provided,
+it returns the inverse of the covariance matrix
+of the first <code>K</code> scores, needed to calculate the Hotelling's T2
+statistic for the Phase II observations.
+</p>
+</li>
+<li> <p><code>mean_scores_tuning_rob_mean</code> if a tuning data set is provided,
+it returns the robust location estimate of the scores, needed to calculate
+the Hotelling's T2 and SPE
+statistics for the Phase II observations.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Capezza, C., Centofanti, F., Lepore, A., Palumbo, B. (2024)
+Robust Multivariate Functional Control Charts.
+<em>Technometrics</em>, <a href="doi:10.1080/00401706.2024.2327346">doi:10.1080/00401706.2024.2327346</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(funcharts)
+mfdobj &lt;- get_mfd_list(air, n_basis = 5)
+nobs &lt;- dim(mfdobj$coefs)[2]
+set.seed(0)
+ids &lt;- sample(1:nobs)
+mfdobj1 &lt;- mfdobj[ids[1:100]]
+mfdobj_tuning &lt;- mfdobj[ids[101:300]]
+mfdobj2 &lt;- mfdobj[ids[-(1:300)]]
+mod_phase1 &lt;- RoMFCC_PhaseI(mfdobj = mfdobj1,
+                            mfdobj_tuning = mfdobj_tuning)
+phase2 &lt;- RoMFCC_PhaseII(mfdobj_new = mfdobj2,
+                         mod_phase1 = mod_phase1)
+plot_control_charts(phase2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

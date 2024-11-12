@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>whiten</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>whitens multivariate data</h2>
+
+<h3>Description</h3>
+
+<p><code>whiten</code> transforms a multivariate K-dimensional signal <code class="reqn">\mathbf{X}</code> with mean
+<code class="reqn">\boldsymbol \mu_X</code> and covariance matrix <code class="reqn">\Sigma_{X}</code> to a <em>whitened</em>
+signal <code class="reqn">\mathbf{U}</code> with mean <code class="reqn">\boldsymbol 0</code> and <code class="reqn">\Sigma_U = I_K</code>.
+Thus it centers the signal and makes it contemporaneously uncorrelated.
+See Details.
+</p>
+<p><code>check_whitened</code> checks if data has been whitened; i.e., if it has
+zero mean, unit variance, and is uncorrelated.
+</p>
+<p><code>sqrt_matrix</code> computes the square root <code class="reqn">\mathbf{B}</code> of a square matrix
+<code class="reqn">\mathbf{A}</code>. The matrix <code class="reqn">\mathbf{B}</code> satisfies
+<code class="reqn">\mathbf{B} \mathbf{B} = \mathbf{A}</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">whiten(data)
+
+check_whitened(data, check.attribute.only = TRUE)
+
+sqrt_matrix(mat, return.sqrt.only = TRUE, symmetric = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p><code class="reqn">n \times K</code> array representing <code>n</code> observations of
+<code>K</code> variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.attribute.only</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it checks the 
+attribute only.  This is much faster (it just needs to look up one attribute
+value), but it might not surface silent bugs.  For sake of performance
+the package uses the attribute version by default.  However, for 
+testing/debugging the full computational version can be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mat</code></td>
+<td>
+<p>a square <code class="reqn">K \times K</code> matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.sqrt.only</code></td>
+<td>
+<p>logical; if <code>TRUE</code> (default) it returns only the square root matrix;
+if <code>FALSE</code> it returns other auxiliary results (eigenvectors and
+eigenvalues, and inverse of the square root matrix).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symmetric</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the <code>eigen</code>-solver assumes
+that the matrix is symmetric (which makes it much faster).  This is in particular
+useful for a covariance matrix (which is used in <code>whiten</code>). Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>whiten</code> uses zero component analysis (ZCA) (aka zero-phase whitening filters)
+to whiten the data; i.e., it uses the
+inverse square root of the covariance matrix of <code class="reqn">\mathbf{X}</code> (see
+<code>sqrt_matrix</code>) as the whitening transformation.
+This means that on top of PCA, the uncorrelated principal components are
+back-transformed to the original space using the
+transpose of the eigenvectors. The advantage is that this makes them comparable
+to the original <code class="reqn">\mathbf{X}</code>.  See References for details.
+</p>
+<p>The <em>square root</em> of a quadratic <code class="reqn">n \times n</code> matrix <code class="reqn">\mathbf{A}</code>
+can be computed by using the eigen-decomposition of <code class="reqn">\mathbf{A}</code>
+</p>
+<p style="text-align: center;"><code class="reqn">
+ \mathbf{A} = \mathbf{V} \Lambda \mathbf{V}',
+</code>
+</p>
+
+<p>where <code class="reqn">\Lambda</code> is an <code class="reqn">n \times n</code> matrix with the eigenvalues
+<code class="reqn">\lambda_1, \ldots, \lambda_n</code> in the diagonal.
+The square root is simply <code class="reqn">\mathbf{B} = \mathbf{V} \Lambda^{1/2} \mathbf{V}'</code> where
+<code class="reqn">\Lambda^{1/2} = diag(\lambda_1^{1/2}, \ldots, \lambda_n^{1/2})</code>.
+</p>
+<p>Similarly, the <em>inverse square root</em> is defined as
+<code class="reqn">\mathbf{A}^{-1/2} = \mathbf{V} \Lambda^{-1/2} \mathbf{V}'</code>, where
+<code class="reqn">\Lambda^{-1/2} = diag(\lambda_1^{-1/2}, \ldots, \lambda_n^{-1/2})</code>
+(provided that <code class="reqn">\lambda_i \neq 0</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>whiten</code> returns a list with the whitened data, the transformation,
+and other useful quantities.
+</p>
+<p><code>check_whitened</code> throws an error if the input is not
+<code>whiten</code>ed, and returns (invisibly) the data with an attribute <code>'whitened'</code>
+equal to <code>TRUE</code>.  This allows to simply update data to have the
+attribute and thus only check it once on the actual data (slow) but then
+use the attribute lookup (fast).
+</p>
+<p><code>sqrt_matrix</code> returns an <code class="reqn">n \times n</code>  matrix.  If <code class="reqn">\mathbf{A}</code>
+is not semi-positive definite it returns a complex-valued <code class="reqn">\mathbf{B}</code>
+(since square root of negative eigenvalues are complex).
+</p>
+<p>If <code>return.sqrt.only = FALSE</code> then it returns a list with:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>eigenvalues of <code class="reqn">\mathbf{A}</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vectors</code></td>
+<td>
+<p>eigenvectors of <code class="reqn">\mathbf{A}</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sqrt</code></td>
+<td>
+<p>square root matrix <code class="reqn">\mathbf{B}</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sqrt.inverse</code></td>
+<td>
+<p>inverse of <code class="reqn">\mathbf{B}</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>See appendix in <a href="http://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf">http://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf</a>.
+</p>
+<p>See <a href="http://ufldl.stanford.edu/wiki/index.php/Implementing_PCA/Whitening">http://ufldl.stanford.edu/wiki/index.php/Implementing_PCA/Whitening</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+XX &lt;- matrix(rnorm(100), ncol = 2) %*% matrix(runif(4), ncol = 2)
+cov(XX)
+UU &lt;- whiten(XX)$U
+cov(UU)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

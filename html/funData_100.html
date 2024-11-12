@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multiFunData-class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>A class for multivariate functional data</h2>
+
+<h3>Description</h3>
+
+<p>The <code>multiFunData</code> class represents multivariate functional data on 
+(potentially) different domains, i.e. a multivariate functional data object 
+is a vector of (univariate) functional data objects, just as a vector in 
+<code class="reqn">\mathrm{IR}^n</code> is a vector of <code class="reqn">n</code> scalars. In this implementation, a 
+<code>multiFunData</code> object is represented as a list of univariate 
+<code>funData</code> objects, see Details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multiFunData(...)
+
+## S4 method for signature 'ANY'
+multiFunData(...)
+
+## S4 method for signature 'multiFunData'
+names(x)
+
+## S4 replacement method for signature 'multiFunData'
+names(x) &lt;- value
+
+## S4 method for signature 'multiFunData'
+str(object, ...)
+
+## S4 method for signature 'multiFunData'
+summary(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>A list of funData objects or several funData objects passed as one
+argument, each. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The <code>multiFunData</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>The names to be given to the <code>multiFunData</code> curves.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>multiFunData</code> object.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A <code>multiFunData</code> object is represented as a list of univariate 
+<code>funData</code> objects, each having a <code>argvals</code> and <code>X</code> slot, 
+representing the x-values and the observed y-values (see the 
+<code>funData</code> class). When constructing a <code>multiFunData</code> object,
+the  elements can be supplied as a list of <code>funData</code> objects or can be
+passed directly as arguments to the constructor function.
+</p>
+<p>Most functions implemented for the <code>funData</code> class are also 
+implemented for <code>multiFunData</code> objects. In most cases, they simply apply
+the corresponding univariate method to each element of the multivariate 
+object and return it as a vector (if the result of the univariate function is
+scalar, such as <code>dimSupp</code>) or as a <code>multiFunData</code> object (if
+the result of the univariate function is a <code>funData</code> object, such as 
+<code>extractObs</code>).
+</p>
+<p>The norm of a multivariate functional data <code class="reqn">f = (f_1 , \ldots, f_p)</code> is defined as </p>
+<p style="text-align: center;"><code class="reqn">||| f ||| := \left(\sum_{j=1}^p ||
+f_j ||^2 \right) ^{1/2}.</code>
+</p>
+
+<p>A <code>funData</code> object can be coerced to a <code>multiFunData</code> object with
+one element using <code>as.multiFunData(funDataObject).</code>
+</p>
+
+
+<h3>Methods (by generic)</h3>
+
+
+<ul>
+<li> <p><code>multiFunData(ANY)</code>: Constructor for multivariate functional data
+objects.
+</p>
+</li>
+<li> <p><code>names(multiFunData)</code>: Get the names of the <code>multiFunData</code> object.
+</p>
+</li>
+<li> <p><code>names(multiFunData) &lt;- value</code>: Set the names of the <code>multiFunData</code> object.
+</p>
+</li>
+<li> <p><code>str(multiFunData)</code>: A <code>str</code> method for <code>multiFunData</code> objects, giving a compact overview of the structure.
+</p>
+</li>
+<li> <p><code>summary(multiFunData)</code>: A <code>summary</code> method for <code>multiFunData</code> objects.
+</p>
+</li>
+</ul>
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>multiFunData()</code>: Constructor for multivariate functional data objects
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p><code>funData</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Creating a multifunData object with 2 observations on the same domain
+# Univariate elements
+x &lt;- 1:5
+f1 &lt;- funData(x, rbind(x, x+1))
+f2 &lt;- funData(x,rbind(x^2, sin(x)))
+# Basic
+m1 &lt;- new("multiFunData", list(f1,f2))
+# Using the constructor, passing the elements as list
+m2 &lt;- multiFunData(list(f1,f2))
+# Using the constructor, passing the elements directly
+m3 &lt;- multiFunData(f1,f2)
+# Test if all the same
+all.equal(m1,m2)
+all.equal(m1,m3)
+# Display multiFunData object in the console
+m3
+# Summarize
+summary(m3)
+
+### Creating a multifunData object with 2 observations on different domains (both 1D)
+# A new element
+y &lt;- 1:3
+g1 &lt;- funData(y, rbind(3*y, y+4))
+# Create the multiFunData object
+m4 &lt;- multiFunData(f1,g1)
+# Display multiFunData object in the console
+m4
+
+### Creating a multifunData object with 2 observations on different domains (1D and 2D)
+# A new element
+y &lt;- 1:3; z &lt;- 1:4
+g2 &lt;- funData(list(y,z), array(rnorm(24), dim = c(2,3,4)))
+# Create the multiFunData object
+m5 &lt;- multiFunData(f1,g2)
+# Display multiFunData object in the console
+m5
+
+### A more realistic object
+# element 1
+x &lt;- seq(0,2*pi, 0.01)
+f1 &lt;- funData(x, outer(seq(0.75, 1.25, length.out = 6), sin(x)))
+# element 2
+y &lt;- seq(-1,1, 0.01); z &lt;- seq(-0.5, 0.5, 0.01)
+X2 &lt;- array(NA, c(6, length(y), length(z)))
+for(i in 1:6) X2[i,,] &lt;- outer(y, z, function(x,y){sin(i*pi*y)*cos(i*pi*z)})
+f2 &lt;- funData(list(y,z), X2)
+# MultiFunData Object
+m6 &lt;- multiFunData(f1,f2)
+# Display multiFunData object in the console for basic information
+m6
+# Summarize
+summary(m6)
+# Use the plot function to get an impression of the data
+## Not run: plot(m6) # m6 has 2D element, must specify one observation for plotting
+plot(m6, obs = 1, main = c("1st element (obs 1)", "2nd element (obs 1)"))
+plot(m6, obs = 6, main = c("1st element (obs 6)", "2nd element (obs 6)"))
+</code></pre>
+
+
+</div>

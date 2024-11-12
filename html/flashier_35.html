@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash_set_verbose</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Set verbose output</h2>
+
+<h3>Description</h3>
+
+<p>Used in a <code>flash</code> pipeline to set the output that will be printed
+after each greedy or backfitting iteration.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash_set_verbose(
+  flash,
+  verbose = 1L,
+  fns = NULL,
+  colnames = NULL,
+  colwidths = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>flash</code></td>
+<td>
+<p>A <code>flash</code> or <code>flash_fit</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>When and how to display progress updates. Set to <code>0</code>
+for no updates; <code>1</code> for updates after a "greedy" factor is added or
+a backfit is completed; <code>2</code> for additional notifications about the
+variational lower bound (ELBO); and <code>3</code> for updates after every
+iteration. By default, per-iteration update information includes the
+change in ELBO and the maximum (absolute) change over all L2-normalized
+loadings <code class="reqn">\ell_1, \ldots, \ell_K</code> and factors <code class="reqn">f_1, \ldots, f_K</code>.
+Update information is customizable via parameters <code>fns</code>,
+<code>colnames</code>, and <code>colwidths</code>.
+</p>
+<p>A single tab-delimited table of values may also be output using
+option <code>verbose = -1</code>. This format is especially convenient for
+downstream analysis of the fitting history. For example, it may be used
+to plot the value of the ELBO after each iteration (see the "Advanced
+Flashier" vignette for an illustration).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fns</code></td>
+<td>
+<p>A vector of functions. Used to calculate values to display
+after each greedy/backfit iteration when <code>verbose</code> is either -1 or 3
+(see Details below). Ignored for other values of <code>verbose</code> (0, 1, or 2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colnames</code></td>
+<td>
+<p>A vector of column names, one for each function in
+<code>fns</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colwidths</code></td>
+<td>
+<p>A vector of column widths, one for each function in
+<code>fns</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>flash_set_verbose</code> can be used to customize
+the output that is printed to console while fitting a <code>flash</code> object.
+After each greedy or backfitting iteration (see, respectively,
+<code>flash_greedy</code> and <code>flash_backfit</code>), each
+function in argument <code>fns</code> is successively evaluated and the
+result is printed to console in a table with column names defined by
+argument <code>colnames</code> and column widths defined by argument
+<code>colwidths</code>.
+</p>
+<p>Each function in <code>fns</code> must accept exactly three parameters,
+<code>curr</code>, <code>prev</code>, and <code>k</code>: <code>curr</code> refers to the
+<code>flash_fit</code> object from the current iteration; <code>prev</code>,
+to the <code>flash_fit</code> object from the previous iteration;
+and, if the iteration is a sequential backfitting iteration (that is, a
+<code>flash_backfit</code> iteration with argument
+<code>extrapolate = FALSE</code>), <code>k</code> identifies the factor/loadings pair
+that is currently being updated (in all other cases, <code>k</code> is
+<code>NULL</code>). Package <code>flashier</code> provides a number of functions that
+may be used to customize output: see
+<code>flash_verbose_elbo</code>,
+<code>flash_verbose_elbo_diff</code>,
+<code>flash_verbose_max_chg</code>,
+<code>flash_verbose_max_chg_L</code>, and
+<code>flash_verbose_max_chg_F</code>. Custom functions may also be
+defined. They might inspect the current <code>flash_fit</code> object
+via argument <code>curr</code>; compare the fit in <code>curr</code> to the fit from the
+previous iteration (provided by argument <code>prev</code>); or
+ignore both <code>flash_fit</code> objects entirely (for example, to
+track progress over time, one might simply call <code>Sys.time</code>).
+To facilitate working with <code>flash_fit</code> objects, package
+<code>flashier</code> provides a number of accessors, which are enumerated in
+the documentation for object <code>flash_fit</code>. Custom functions
+should return a character string that contains the output exactly as it is
+to displayed; see <strong>Examples</strong> below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>flash</code> object from argument <code>flash</code>, with the
+new verbose settings reflected in updates to the "internal"
+<code>flash_fit</code> object. These settings will persist across
+all subsequent calls to <code>flash_xxx</code> functions until they are modified
+by another call to <code>flash_set_verbose</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Suppress all verbose output.
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_set_verbose(0) %&gt;%
+  flash_greedy(Kmax = 5)
+
+# Set custom verbose output.
+sparsity_F &lt;- function(curr, prev, k) {
+  g_F &lt;- flash_fit_get_g(curr, n = 2)
+  g_F_pi0 &lt;- g_F$pi[1] # Mixture weight of the "null" component.
+  return(g_F_pi0)
+}
+verbose_fns &lt;- c(flash_verbose_elbo, flash_verbose_max_chg_F, sparsity_F)
+colnames &lt;- c("ELBO", "Max Chg (Tiss)", "Sparsity (Tiss)")
+colwidths &lt;- c(12, 18, 18)
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_set_verbose(
+    verbose = 3,
+    fns = verbose_fns,
+    colnames = colnames,
+    colwidths = colwidths
+  ) %&gt;%
+  flash_greedy(Kmax = 3)
+
+# Output can be changed as needed.
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_set_verbose(verbose = 1) %&gt;%
+  flash_greedy(Kmax = 5L) %&gt;%
+  flash_backfit(verbose = 3) %&gt;%
+  flash_greedy(Kmax = 1L)
+
+</code></pre>
+
+
+</div>

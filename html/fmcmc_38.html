@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kernel_adapt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive Metropolis (AM) Transition Kernel</h2>
+
+<h3>Description</h3>
+
+<p>Implementation of Haario et al. (2001)'s Adaptive Metropolis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kernel_adapt(
+  mu = 0,
+  bw = 0L,
+  lb = -.Machine$double.xmax,
+  ub = .Machine$double.xmax,
+  freq = 1L,
+  warmup = 500L,
+  Sigma = NULL,
+  Sd = NULL,
+  eps = 1e-04,
+  fixed = FALSE,
+  until = Inf
+)
+
+kernel_am(
+  mu = 0,
+  bw = 0L,
+  lb = -.Machine$double.xmax,
+  ub = .Machine$double.xmax,
+  freq = 1L,
+  warmup = 500L,
+  Sigma = NULL,
+  Sd = NULL,
+  eps = 1e-04,
+  fixed = FALSE,
+  until = Inf
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>Either a numeric vector or a scalar. Proposal mean.
+If scalar, values are recycled to match the number of parameters in the
+objective function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>Integer scalar. The bandwidth, is the number of observations to
+include in the computation of the variance-covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb, ub</code></td>
+<td>
+<p>Either a numeric vector or a scalar. Lower and upper bounds for
+bounded kernels. When of length 1, the values are recycled to match the number
+of parameters in the objective function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>Integer scalar. Frequency of updates. How often the
+variance-covariance matrix is updated. The implementation is different from that
+described in the original paper (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warmup</code></td>
+<td>
+<p>Integer scalar. The number of iterations that the algorithm has
+to wait before starting to do the updates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma</code></td>
+<td>
+<p>The variance-covariance matrix. By default this will be an
+identity matrix during the warmup period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sd</code></td>
+<td>
+<p>Overall scale for the algorithm. By default, the variance-covariance
+is scaled to <code class="reqn">2.4^2/d</code>, with <code class="reqn">d</code> the number of dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Double scalar. Default size of the initial step (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>Logical scalar or vector of length <code>k</code>. Indicates which parameters
+will be treated as fixed or not. Single values are recycled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>until</code></td>
+<td>
+<p>Integer scalar. Last step at which adaptation takes place (see
+details).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>While it has been shown that under regular conditions this transition kernel
+generates ergodic chains even when the adaptation does not stop, some
+practitioners may want to stop adaptation at some point.
+</p>
+<p><code>kernel_adapt</code> Implements the adaptive Metropolis (AM) algorithm of Haario
+et al. (2001). If the value of bw is greater than zero, then the algorithm
+folds back AP, a  previous version which is known to have ergodicity problems.
+</p>
+<p>The parameter <code>eps</code> has two functions. The first one is to set the initial
+scale for the multivariate normal kernel, which is replaced after <code>warmup</code>
+steps with the actual variance-covariance computed by the main algorithm.
+The second usage is in the equation that ensures that the variance-covariance
+is greater than zero, this is, the <code class="reqn">\varepsilon</code> parameter in the
+original paper.
+</p>
+<p>The update of the covariance matrix is done using <code>cov_recursive()</code> function,
+which makes the updates faster. The <code>freq</code> parameter, besides of indicating the
+frequency with which the updates are done, it specifies what are the samples
+included in each update, in other words, like a thinning parameter, only every
+<code>freq</code> samples will be used to compute the covariance matrix. Since this
+implementation uses the recursive formula for updating the covariance, there is
+no practical need to set <code>freq != 1</code>.
+</p>
+<p><code>kernel_am</code> is just an alias for <code>kernel_adapt</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class fmcmc_kernel. <code>fmcmc_kernel</code> objects are intended
+to be used with the <code>MCMC()</code> function.
+</p>
+
+
+<h3>References</h3>
+
+<p>Haario, H., Saksman, E., &amp; Tamminen, J. (2001). An adaptive Metropolis algorithm.
+Bernoulli, 7(2), 223–242.
+<a href="https://projecteuclid.org/euclid.bj/1080222083">https://projecteuclid.org/euclid.bj/1080222083</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other kernels: 
+<code>kernel_mirror</code>,
+<code>kernel_new()</code>,
+<code>kernel_normal()</code>,
+<code>kernel_ram()</code>,
+<code>kernel_unif()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Update every-step and wait 1,000 steps before starting to adapt
+kern &lt;- kernel_adapt(freq = 1, warmup = 1000)
+
+# Two parameters model, the second parameter with a restricted range, i.e.
+# a lower bound of 1
+kern &lt;- kernel_adapt(lb = c(-.Machine$double.xmax, 0))
+</code></pre>
+
+
+</div>

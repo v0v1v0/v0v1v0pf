@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ggplotFeatureImportance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Feature Importance Plot</h2>
+
+<h3>Description</h3>
+
+<p>Creates a feature importance plot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ggplotFeatureImportance(featureList, control = list(), ...)
+
+plotFeatureImportance(featureList, control = list(), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>featureList</code></td>
+<td>
+<p>[<code>list</code>]<br>
+List of vectors of features. One list element is expected to belong to
+one resampling iteration / fold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>[<code>list</code>]<br>
+A list, which stores additional configuration parameters:
+</p>
+
+<ul>
+<li>
+<p><code>featimp.col_{high/medium/low}</code>: Color of the features, which
+are used often, sometimes or only a few times.
+</p>
+</li>
+<li>
+<p><code>featimp.perc_{high/low}</code>: Percentage of the total number of folds,
+defining when a features, is used often, sometimes or only a few times.
+</p>
+</li>
+<li>
+<p><code>featimp.las</code>: Alignment of axis labels.
+</p>
+</li>
+<li>
+<p><code>featimp.lab_{feat/resample}</code>: Axis labels (features and resample iterations).
+</p>
+</li>
+<li>
+<p><code>featimp.string_angle</code>: Angle for the features on the x-axis.
+</p>
+</li>
+<li>
+<p><code>featimp.pch_{active/inactive}</code>: Plot symbol of the active and
+inactive points.
+</p>
+</li>
+<li>
+<p><code>featimp.col_inactive</code>: Color of the inactive points.
+</p>
+</li>
+<li>
+<p><code>featimp.col_vertical</code>: Color of the vertical lines.
+</p>
+</li>
+<li>
+<p><code>featimp.lab_{title/strip}</code>: Label used for the title and/or strip label.
+These parameters are only relevant for <code>ggplotFeatureImportance</code>.
+</p>
+</li>
+<li>
+<p><code>featimp.legend_position</code>: Location of the legend.
+This parameter is only relevant for <code>ggplotFeatureImportance</code>.
+</p>
+</li>
+<li>
+<p><code>featimp.flip_axes</code>: Should the axes be flipped?
+This parameter is only relevant for <code>ggplotFeatureImportance</code>.
+</p>
+</li>
+<li>
+<p><code>featimp.plot_tiles</code>: Visualize (non-)selected features with tiles?
+This parameter is only relevant for <code>ggplotFeatureImportance</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>[any]<br>
+Further arguments, which can be passed to <code>plot</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>[<code>plot</code>].<br>
+Feature Importance Plot, indicating which feature was used during which iteration.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# At the beginning, one needs a list of features, e.g. derived during a
+# nested feature selection within mlr (see the following 8 steps):
+library(mlr)
+library(mlbench)
+data(Glass)
+
+# (1) Create a classification task:
+classifTask = makeClassifTask(data = Glass, target = "Type")
+
+# (2) Define the model (here, a classification tree):
+lrn = makeLearner(cl = "classif.rpart")
+
+# (3) Define the resampling strategy, which is supposed to be used within 
+# each inner loop of the nested feature selection:
+innerResampling = makeResampleDesc("Holdout")
+
+# (4) What kind of feature selection approach should be used? Here, we use a
+# sequential backward strategy, i.e. starting from a model with all features,
+# in each step the feature decreasing the performance measure the least is
+# removed from the model:
+ctrl = makeFeatSelControlSequential(method = "sbs")
+
+# (5) Wrap the original model (see (2)) in order to allow feature selection:
+wrappedLearner = makeFeatSelWrapper(learner = lrn,
+  resampling = innerResampling, control = ctrl)
+
+# (6) Define a resampling strategy for the outer loop. This is necessary in
+# order to assess whether the selected features depend on the underlying
+# fold:
+outerResampling = makeResampleDesc(method = "CV", iters = 10L)
+
+# (7) Perform the feature selection:
+featselResult = resample(learner = wrappedLearner, task = classifTask,
+  resampling = outerResampling, models = TRUE)
+
+# (8) Extract the features, which were selected during each iteration of the
+# outer loop (i.e. during each of the 10 folds of the cross-validation):
+featureList = lapply(featselResult$models, 
+  function(mod) getFeatSelResult(mod)$x)
+## End(Not run)
+
+########################################################################
+
+# Now, one could inspect the features manually:
+featureList
+
+# Alternatively, one might use visual means such as the feature
+# importance plot. There exist two versions for the feature importance
+# plot. One based on the classical R figures
+plotFeatureImportance(featureList)
+
+# and one using ggplot
+ggplotFeatureImportance(featureList)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>is.connListObj</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Connection List Objects</h2>
+
+<h3>Description</h3>
+
+<p>Describes the makeup of a connection list object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">is.connListObj(obj)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>the object to be tested</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>A connection list object can be used to specifiy which differences in
+<code>fusedlasso</code> or <code>flsa</code> functions are to be penalized. Here, it
+is assumed that the n coefficients in the model are numbered from 0 to
+n-1. The connection list object is a list of length n with each element
+corresponding to one of the coefficients. The i-th element of the list
+here corresponds to coefficient with number i-1. Each element of the
+list is a vector of integers, naming the numbers of the coefficients to
+which the coefficient corresponding to the current list element is
+linked (i.e. the difference of the two coefficients is being penalized).
+I.e., assume that value $j$ is a member of the list under list element
+$i$. Then this means that coeffient $i-1$ and coefficient $j$ are being
+penalized. To understand this, consider that R-lists when viewed in
+C-code are being numbered starting with 0, not 1 and note that all
+computation is being done in C-code.
+</p>
+<p>Furthermore, the connection list object has class <code>connListObj</code>.
+</p>
+<p>Also note that the vectors in the list are of type <code>integer</code> not <code>numeric</code>. An empty vector should be set to <code>NULL</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Holger Hoefling</p>
+
+
+<h3>See Also</h3>
+
+<p><code>connListObj</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+connList &lt;- vector("list", 4)
+y &lt;- 1:4
+
+class(connList) = "connListObj"
+connList[[1]] = as.integer(c(1,2))
+connList[[2]] = as.integer(c(0,3))
+connList[[3]] = as.integer(c(3,0))
+connList[[4]] = as.integer(c(2,1))
+names(connList) &lt;- as.character(0:3) ## not necessary, just for illustration
+
+res &lt;- flsa(y, connListObj=connList)
+res2 &lt;- flsa(matrix(y, nrow=2))
+
+res$BeginLambda
+res2$BeginLambda
+flsaGetSolution(res, lambda2=c(0, 0.5, 1))
+flsaGetSolution(res2, lambda2=c(0, 0.5, 1))
+</code></pre>
+
+
+</div>

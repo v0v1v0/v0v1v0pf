@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predCoef</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+<code class="reqn">h</code>-step Prediction coefficients</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the localised and iterated Yule-Walker coefficients
+for h-step ahead forecasting of <code class="reqn">X_{t+h}</code> from <code class="reqn">X_{t}, ..., X_{t-p+1}</code>,
+where <code class="reqn">h = 1, \ldots,</code> <code>H</code> and <code class="reqn">p = 1, \ldots,</code> <code>P</code>.
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the data <code class="reqn">X_1, \ldots, X_T</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>the maximum order of coefficients to be computed; has to be a positive integer</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>the maximum lead time; has to be a positive integer</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>a vector of values <code class="reqn">t</code>; the elements have to satisfy
+<code>max(t) &lt;= length(X)</code> and  <code>min(t) &gt;= min(max(N[N != 0]),p)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>a vector of values <code class="reqn">N</code>; the elements have to satisfy
+<code>max(N[N != 0]) &lt;= min(t)</code> and <code>min(N[N != 0]) &gt;= 1 + P</code>.
+<code class="reqn">N = 0</code> corresponds to the case where all data is taken into account.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For every <code class="reqn">t \in</code> <code>t</code> and every <code class="reqn">N \in</code> <code>N</code> the (iterated) Yule-Walker
+estimates <code class="reqn">\hat v_{N,T}^{(p,h)}(t)</code> are computed. They are defined as
+</p>
+<p style="text-align: center;"><code class="reqn">\hat v_{N,T}^{(p,h)}(t) :=  e'_1 \big( e_1 \big( \hat a_{N,T}^{(p)}(t) \big)' + H \big)^h, \quad N \geq 1,</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">\hat v_{0,T}^{(p,h)}(t) :=  \hat v_{t,T}^{(p,h)}(t),</code>
+</p>
+
+<p>with
+</p>
+<p style="text-align: center;"><code class="reqn"> e_1 := \left(\begin{array}{c} 1 \\ 0 \\ \vdots \\ 0 \end{array} \right), \quad H := \left( \begin{array}{ccccc} 0 &amp; 0 &amp; \cdots &amp; 0 &amp; 0 \\ 1 &amp; 0 &amp; \cdots &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; \cdots &amp; 0 &amp; 0 \\ \vdots &amp; \ddots &amp; \cdots &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; \cdots &amp; 1 &amp; 0 \end{array} \right)</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn"> \hat a_{N,T}^{(p)}(t) := \big( \hat\Gamma_{N,T}^{(p)}(t) \big)^{-1} \hat\gamma_{N,T}^{(p)}(t),</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">\hat\Gamma_{N,T}^{(p)}(t) := \big[ \hat \gamma_{i-j;N,T}(t) \big]_{i,j = 1, \ldots, p}, \quad \hat \gamma_{N,T}^{(p)}(t) := \big( \hat \gamma_{1;N,T}(t), \ldots, \hat \gamma_{p;N,T}(t) \big)'</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">\hat \gamma_{k;N,T}(t) := \frac{1}{N} \sum_{\ell=t-N+|k|+1}^{t} X_{\ell-|k|,T} X_{\ell,T}</code>
+</p>
+
+<p>is the usual lag-<code class="reqn">k</code> autocovariance estimator (without mean adjustment),
+computed from the observations <code class="reqn">X_{t-N+1}, \ldots, X_{t}</code>.
+</p>
+<p>The Durbin-Levinson Algorithm is used to successively compute the solutions to the
+Yule-Walker equations (cf. Brockwell/Davis (1991), Proposition 5.2.1).
+To compute the <code class="reqn">h</code>-step ahead coefficients we use the recursive relationship
+</p>
+<p style="text-align: center;"><code class="reqn">\hat v_{i,N,T}^{(p)}(t,h) = \hat a_{i,N,T}^{(p)}(t) \hat v_{1,N,T}^{(p,h-1)}(t) + \hat v_{i+1,N,T}^{(p,h-1)}(t) I\{i \leq p-1\},</code>
+</p>
+
+<p>(cf. Section 3.2, Step 3, in Kley et al. (2019)).
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a named list with elements <code>coef</code>, <code>t</code>, and <code>N</code>,
+where <code>coef</code> is an array of dimension
+<code>P</code> <code class="reqn">\times</code> <code>P</code> <code class="reqn">\times</code> <code>H</code> <code class="reqn">\times</code>
+<code>length(t)</code> <code class="reqn">\times</code> <code>length(N)</code>, and
+<code>t</code>, and <code>N</code> are the parameters provided on the call of the
+function. See the example on how to access the vector
+<code class="reqn">\hat v_{N,T}^{(p,h)}(t)</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Brockwell, P. J. &amp; Davis, R. A. (1991).
+Time Series: Theory and Methods. Springer, New York.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">T &lt;- 100
+X &lt;- rnorm(T)
+
+P &lt;- 5
+H &lt;- 1
+m &lt;- 20
+
+Nmin &lt;- 25
+pcoef &lt;- predCoef(X, P, H, (T - m - H + 1):T, c(0, seq(Nmin, T - m - H, 1)))
+
+## Access the prediction vector for p = 2, h = 1, t = 95, N = 25
+p &lt;- 2
+h &lt;- 1
+t &lt;- 95
+N &lt;- 35
+res &lt;- pcoef$coef[p, 1:p, h, pcoef$t == t, pcoef$N == N]
+</code></pre>
+
+
+</div>

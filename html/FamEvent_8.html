@@ -1,0 +1,256 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>penmodelEM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>EM algorithm for estimating the penetrance model with missing genotypes</h2>
+
+<h3>Description</h3>
+
+<p>Fits a penetrance model for family data with missing genotypes via the EM algorithm and provides model parameter estimates. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">penmodelEM(formula, cluster = "famID", gvar = "mgene", parms, cuts = NULL, data, 
+design = "pop", base.dist = "Weibull", agemin = NULL, robust = FALSE, method = "data", 
+mode = "dominant", q = 0.02)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula expression as for other regression models. The response should be a survival object as returned by the <code>Surv</code> function. See the documentation for <code>Surv</code>, <code>lm</code> and <code>formula</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+
+<p>Name of cluster variable. Default is <code>"famID"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gvar</code></td>
+<td>
+<p>Name of genetic variable. Default is <code>"mgene"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parms</code></td>
+<td>
+
+<p>Vector of initial values for the parameters in the model including baseline parameters and regression coefficients. <code>parms = c(baseparm, coef)</code>, where <code>baseparm</code> includes the initial values for baseline parameters used for <code>base.dist</code>, and <code>coef</code> includes the initial values for regression coefficients for the variables specified in <code>formula</code>. See details for the baseline parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cuts</code></td>
+<td>
+ 
+<p>Vector of cuts that define the intervals where the hazard function is constant. The <code>cuts</code> should be specified <code>base.dist="piecewise"</code> and must be strictly positive and finite. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Data frame generated from <code>simfam</code> or data frame containing specific variables: <code>famID</code>, <code>indID</code>, <code>gender</code>, <code>currentage</code>, <code>mgene</code>, <code>time</code>, <code>status</code> and <code>weight</code> with <code>attr(data,"agemin")</code> specified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+
+<p>Study design of the family data. Possible choices are: <code>"pop"</code>, <code>"pop+"</code>, <code>"cli"</code>, <code>"cli+"</code> or <code>"twostage"</code>, where <code>"pop"</code> is for the population-based design with affected probands whose mutation status can be either carrier or non-carrier, <code>"pop+"</code> is similar to <code>"pop"</code> but with mutation carrier probands, <code>"cli"</code> is for the clinic-based design that includes affected probands with at least one parent and one sib affected, <code>"cli+"</code> is similar to <code>"cli"</code> but with mutation carrier probands, and <code>"twostage"</code> is for the two-stage design with oversampling of high risks families. Default is <code>"pop"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base.dist</code></td>
+<td>
+
+<p>Choice of baseline hazard distributions to fit. Possible choices are: <code>"Weibull"</code>, <code>"loglogistic"</code>, <code>"Gompertz"</code>, <code>"lognormal"</code>, <code>"gamma"</code>, <code>"logBurr"</code>, or <code>"piecewise"</code>. Default is <code>"Weibull"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agemin</code></td>
+<td>
+
+<p>Minimum age of disease onset or minimum age. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+
+<p>Logical; if <code>TRUE</code>, the robust ‘sandwich’ standard errors and variance-covariance matrix are provided, otherwise the conventional standard errors and variance-covariance matrix are provided.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Choice of methods for calculating the carrier probabilities for individuals with missing mutation status. Possible choices are <code>"data"</code> for empirical calculation of the carrier probabilities based on the observed carriers' statuses in the entire sample, specific to generation and proband's mutation status or <code>"mendelian"</code> for calculating carrier probabilities based on Mendelian transmission probabilies with the given allele frequency and mutation statuses observed in the family. Default is <code>"data"</code>.
+</p>
+<p>If <code>method = "mendelian"</code>, specify both <code>mode</code> of the inheritance and the allele frequency <code>q</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+
+<p>Choice of modes of inheritance for calculating carrier probabilies for individuals with missing mutation status. Possible choices are <code>"dominant"</code> for dominant model or <code>"recessive"</code> for recessive model. Default is <code>"dominant"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+
+<p>Frequency of the disease causing allele used for calculating carrier pobabilities. The value should be between 0 and 1. If <code>NULL</code>, the estimated allele frequency from data will be used. Default value  is <code>0.02</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The expectation and maximization (EM) algorithm is applied for making inference about the missing genotypes. In the expectation step, for individuals with unknown carrier status, we first compute their carrier probabilities given their family's observed phenotype and genotype information based on current estimates of parameters θ as follows,
+w<sub>fi</sub> = P(X<sub>fi</sub> = 1 | Y<sub>fi</sub>, X<sub>f</sub><sup>o</sup>), 
+where  X<sub>fi</sub> represents the mutation carrier status and Y<sub>fi</sub> represents the phenotype in terms of age at onset t<sub>fi</sub> and disease status δ<sub>fi</sub> for individual i, i = 1, ..., n<sub>f</sub>, in family <code class="reqn">f, f = 1, ..., n,</code> and X<sub>f</sub><sup>o</sup> represents the observed genotypes in family <code class="reqn">f</code>.
+</p>
+<p>Then, we obtain the conditional expectation of the log-likelihood function (<code class="reqn">\ell</code>) of the complete data given the observed data as a weighted log-likelihood, which has the form
+ E<sub>θ</sub> [ l (θ | Y, X<sup>o</sup>) ] =  ∑<sub>f</sub> ∑<sub>i</sub> l <sub> fi</sub> (θ | X<sub>fi</sub> = 1) * w<sub>fi</sub> +  l<sub>fi</sub> (θ | X<sub>fi</sub> = 0) * ( 1 - w<sub>fi</sub> ). 
+In the maximization step, the updated parameter estimates are obtained by maximizing the weighted log likelihood computed in the E-step. These expectation and maximization steps iterate until convergence to obtain the maximum likelihood estimates. See more details in Choi and Briollais (2011) or Choi et al. (2014).
+</p>
+<p>Note that the baseline parameters include <code>lambda</code> and <code>rho</code>, which represent the scale and shape parameters, respectively, and <code>eta</code>, additional parameter to specify for <code>"logBurr"</code> distribution. For the <code>"lognormal"</code> baseline distribution, <code>lambda</code> and <code>rho</code> represent the location and scale parameters for the normally distributed logarithm, where <code>lambda</code> can take any real values and <code>rho</code> &gt; 0. For the other baselinse distributions, <code>lambda</code> &gt; 0, <code>rho</code> &gt; 0, and <code>eta</code> &gt; 0. When a piecewise constant distribution is specified for the baseline hazards, <code>base.dist="piecewise"</code>, <code>baseparm</code> should specify the initial interval-constant values, one more than the cut points specified by<code>cuts</code>.
+</p>
+<p>Transformed baseline parameters are used for estimation; log transformation is applied to both scale and shape parameters (<code class="reqn">\lambda, \rho</code>) for <code>"Weibull"</code>, <code>"loglogistic"</code>, <code>"Gompertz"</code> and <code>"gamma"</code> baselines, to (<code class="reqn">\lambda, \rho, \eta</code>) for <code>"logBurr"</code> and to the piecewise constant parameters for a <code>piecewise</code> baseline hazard. For <code>"lognormal"</code> baseline distribution, the log transformation is applied only to <code class="reqn">\rho</code>, not to <code class="reqn">\lambda</code>, which represents the location parameter for the normally distributed logarithm.
+</p>
+<p>Calculations of penetrance estimates and their standard errors and 95% confidence intervals at given ages can be obtained by <code>penetrance</code> function via Monte-Carlo simulations of the estimated penetrance model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>'penmodel'</code>, including the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>estimates</code></td>
+<td>
+
+<p>Parameter estimates of transformed baseline parameters and regression coefficients.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcov</code></td>
+<td>
+
+<p>Variance-covariance matrix of parameter estimates obtained from the inverse of Hessian matrix. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcov.robust</code></td>
+<td>
+
+<p>Robust ‘sandwich’ variance-covariance matrix of parameter estimates when <code>robust=TRUE</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+
+<p>Standard errors of parameter estimates obtained from the inverse of Hessian matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.robust</code></td>
+<td>
+
+<p>Robust ‘sandwich’ standard errors of parameter estimates when <code>robust=TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik</code></td>
+<td>
+<p>Loglikelihood value for the fitted penetrance model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC</code></td>
+<td>
+<p>Akaike information criterion (AIC) value of the model; AIC = 2*k - 2*logLik, where k is the number of parameters used in the model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yun-Hee Choi
+</p>
+
+
+<h3>References</h3>
+
+<p>Choi, Y.-H., Briollais, L., He, W. and Kopciuk, K. (2021) FamEvent: An R Package for Generating and Modeling Time-to-Event Data in Family Designs, Journal of Statistical Software 97 (7), 1-30. doi:10.18637/jss.v097.i07
+</p>
+<p>Choi, Y.-H. and Briollais, L. (2011) An EM composite likelihood approach for multistage sampling of family data with missing genetic covariates, Statistica Sinica 21, 231-253.
+</p>
+<p>Choi, Y.-H., Briollais, L., Green, J., Parfrey, P., and Kopciuk, K. (2014) Estimating successive cancer risks in Lynch Syndrome families using a progressive three-state model, Statistics in Medicine 33, 618-638.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>simfam</code>, <code>penmodel</code>, <code>print.penmodel</code>, <code>summary.penmodel</code>,
+<code>print.summary.penmodel</code>, <code>plot.penmodel</code>, <code>carrierprob</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Family data simulated with 20% of members missing their genetic information.
+
+set.seed(4321)
+fam &lt;- simfam(N.fam = 100, design = "pop+", base.dist = "Weibull", base.parms = c(0.01, 3),
+       vbeta = c(1, 2), agemin = 20, allelefreq = 0.02, mrate = 0.2)
+ 
+# EM algorithm for fitting family data with missing genotypes
+
+fit &lt;- penmodelEM(Surv(time, status) ~ gender + mgene, cluster = "famID", gvar = "mgene", 
+       parms = c(0.01, 3, 1, 2), data = fam, design="pop+", robust = TRUE, 
+       base.dist = "Weibull", method = "mendelian", mode = "dominant", q = 0.02)
+
+# Summary of the model parameter estimates from the model fit by penmodelEM 
+
+summary(fit)
+
+# Plot the lifetime penetrance curves from model fit for gender and 
+# mutation status groups along with their nonparametric penetrance curves 
+# based on observed data excluding probands.
+ 
+plot(fit)
+
+</code></pre>
+
+
+</div>

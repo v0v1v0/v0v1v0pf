@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot,Xfgpm-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot method for the class <code>"Xfgpm"</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Plot an object with class <code>"Xfgpm"</code> representing
+a collection of functional GP models corresponding to
+different structural parameters.
+</p>
+<p>Two types of graphics can be shown depending on the choice of
+<code>which</code>. The choice <code>which = "diag"</code> is used to display
+diagnostics of the quality of the optimized model. Two types of
+diagnostic plots are shown as sub-plots by default, but each can be
+discarded if wanted. The choice <code>which = "evol"</code> is used to
+assess the quality of the fitted <code>fgpm</code> models on the basis of
+Leave-One-Out cross-validation.
+</p>
+<p>The choice <code>which = "diag"</code> (default) provides two plots for
+assessing the quality of the output delivered by the model selection
+algorithm in the fgpm_factory function. The first
+one is a calibration plot similar to the one offered for
+fgpm objects by plot,fgpm-method.
+This plot allows to validate the absolute quality of the selected
+model. The second one displays the performance statistic of all
+the models successfully evaluated by the model selection
+algorithm. This provides a notion of the relative quality of the
+selected model with respect to the other models that can be made
+using the same data.
+</p>
+<p>The choice <code>which = "evol"</code> displays the evolution of the
+quality of the configurations evaluated along the iterations, by
+the model selection algorithm in the <code>fgpm_factory</code> function. For
+each iteration, the performance statistic of all the evaluated
+models is printed, along with the corresponding median of the
+group. The plot also includes the global maximum, which
+corresponds to the best performance statistic obtained up to the
+current iteration. In this plot, it is typical to have some points
+falling relatively far from the maximum, even after multiple
+iterations. This happens mainly because we have multiple
+categorical features, whose alteration might change the
+performance statistic in a nonsmooth way. On the other hand, the
+points that fall below zero usually correspond to models whose
+hyperparameters were hard to optimize. This occurs sporadically
+during the log-likelihood optimization for Gaussian processes, due
+to the non-linearity of the objective function.  As long as the
+maximum keeps improving and the median remains close to it, none
+of the two aforementioned phenomena is matter for worries.  Both
+of them respond to the mechanism of exploration implemented in the
+algorithm, which makes it able to progressively move towards
+better model configurations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'Xfgpm'
+plot(
+  x,
+  y = NULL,
+  which = c("diag", "evol"),
+  calib = TRUE,
+  fitp = TRUE,
+  horiz = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The <code>Xfgpm</code> object to plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>Character giving the type of plot wanted. Can take the value
+<code>"diag"</code> or <code>"evol"</code>. See <b>Examples</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calib</code></td>
+<td>
+<p>Logical. If <code>TRUE</code> the calibration plot of the
+selected model will be included in the display in its
+"diagnostic" part if <code>which</code> is set to <code>"diag"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitp</code></td>
+<td>
+<p>Logical. If <code>TRUE</code> a scatter plot of the quality
+of all explored models will be included in the display in its
+"diagnostic" part if <code>which</code> is set to <code>"diag"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horiz</code></td>
+<td>
+<p>Logical. Used only when <code>which</code> is <code>"diag"</code>
+and when both <code>calib</code> and <code>fitp</code> are <code>TRUE</code>. If
+<code>horiz</code> is <code>TRUE</code> the two subplots are displayed
+horizontally (on a same row) rather than vertically which is
+the default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other graphical parameters such as <code>main</code> of
+<code>xlab</code>. When <code>which</code> is <code>"diag"</code> and both
+<code>calib</code> and <code>fitp</code> are <code>TRUE</code>, the graphical parameters
+should be enclosed into a list and passed with the formal name
+<code>calib.gpars</code> or <code>fitp.gpars</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><strong>*</strong> fgpm_factory for structural
+optimization of funGp models.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># generating input and output data
+set.seed(100)
+n.tr &lt;- 2^5
+x1 &lt;- x2 &lt;- x3 &lt;- x4 &lt;- x5 &lt;- seq(0, 1, length = n.tr^(1/5))
+sIn &lt;- expand.grid(x1 = x1, x2 = x2, x3 = x3, x4 = x4, x5 = x5)
+fIn &lt;- list(f1 = matrix(runif(n.tr * 10), ncol = 10),
+            f2 = matrix(runif(n.tr * 22), ncol = 22))
+sOut &lt;- fgp_BB7(sIn, fIn, n.tr)
+## Not run: 
+# optimizing the model structure with 'fgpm_factory' (~10 seconds)
+xm &lt;- fgpm_factory(sIn = sIn, fIn = fIn, sOut = sOut)
+# assessing the quality of the model - absolute and w.r.t. the other
+# explored models
+plot(xm, which = "evol")
+# diagnostics (two subplots)
+plot(xm, which = "diag")
+plot(xm, which = "diag", horiz = TRUE)
+# diagnostics (one plot)
+plot(xm, which = "diag", fitp = FALSE)
+plot(xm, which = "diag", calib = FALSE)
+# customizing some graphical parameters
+plot(xm, calib.gpars = list(xlim = c(800,1000), ylim = c(600,1200)),
+     fitp.gpars = list(main = "Relative quality", legends = FALSE))
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

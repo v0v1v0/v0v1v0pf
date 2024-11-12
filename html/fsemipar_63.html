@@ -1,0 +1,376 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sfpl.kNN.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+SFPLM regularised fit using kNN estimation
+</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a sparse semi-functional partial linear model (SFPLM). It employs a penalised least-squares regularisation procedure, integrated with nonparametric kNN estimation using Nadaraya-Watson weights.
+</p>
+<p>The procedure utilises an objective criterion (<code>criterion</code>) to select both the bandwidth (<code>h.opt</code>) and the regularisation parameter (<code>lambda.opt</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sfpl.kNN.fit(x, z, y, semimetric = "deriv", q = NULL, knearest = NULL,
+min.knn = 2, max.knn = NULL, step = NULL, range.grid = NULL, 
+kind.of.kernel = "quad", nknot = NULL, lambda.min = NULL, lambda.min.h = NULL, 
+lambda.min.l = NULL, factor.pn = 1, nlambda = 100, lambda.seq = NULL, 
+vn = ncol(z), nfolds = 10, seed = 123, criterion = "GCV", penalty = "grSCAD", 
+max.iter = 1000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>Matrix containing the observations of the functional covariate (functional nonparametric component), collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+
+<p>Matrix containing the observations of the scalar covariates (linear component), collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>Vector containing the scalar response.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>semimetric</code></td>
+<td>
+
+<p>Semi-metric function.  Only <code>"deriv"</code> and <code>"pca"</code> are implemented.  By default <code>semimetric="deriv"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+
+<p>Order of the derivative (if <code>semimetric="deriv"</code>) or number of principal components (if <code>semimetric="pca"</code>). The default values are 0 and 2, respectively.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knearest</code></td>
+<td>
+
+<p>Vector of positive integers containing the sequence in which the  number of nearest neighbours <code>k.opt</code> is selected. If <code>knearest=NULL</code>, then <code>knearest &lt;- seq(from =min.knn, to = max.knn, by = step)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.knn</code></td>
+<td>
+
+<p>A positive integer that represents the minimum value in the sequence for selecting the number of nearest neighbours <code>k.opt</code>. This value should be less than the sample size. The default is 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.knn</code></td>
+<td>
+
+<p>A positive integer that represents the maximum value in the sequence for selecting number of nearest neighbours <code>k.opt</code>. This value should be less than the sample size. The default is <code>max.knn &lt;- n%/%5</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+
+<p>A positive integer used to construct the sequence of k-nearest neighbours as follows: <code>min.knn, min.knn + step, min.knn + 2*step, min.knn + 3*step,...</code>. The default value for <code>step</code> is <code>step&lt;-ceiling(n/100)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.grid</code></td>
+<td>
+
+<p>Vector of length 2 containing the endpoints of the grid at which the observations of the functional covariate <code>x</code> are evaluated (i.e. the range of the discretisation). If <code>range.grid=NULL</code>, then <code>range.grid=c(1,p)</code> is considered, where <code>p</code> is the discretisation size of <code>x</code> (i.e. <code>ncol(x))</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kind.of.kernel</code></td>
+<td>
+
+<p>The type of kernel function used. Currently, only Epanechnikov kernel (<code>"quad"</code>) is available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot</code></td>
+<td>
+
+<p>Positive integer indicating the number of interior knots for the B-spline expansion of the functional covariate. The default value is <code>(p - order.Bspline - 1)%/%2</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min</code></td>
+<td>
+
+<p>The smallest value for lambda (i.e. the lower endpoint  of the sequence in which <code>lambda.opt</code> is selected), as fraction of <code>lambda.max</code>.
+The defaults is <code>lambda.min.l</code> if the sample size is larger than <code>factor.pn</code> times the number of linear covariates and <code>lambda.min.h</code> otherwise.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.h</code></td>
+<td>
+
+<p>The lower endpoint of the sequence in which <code>lambda.opt</code> is selected if the sample size is smaller than <code>factor.pn</code> times the number of linear covariates. The default is 0.05. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.l</code></td>
+<td>
+
+<p>The lower endpoint of the sequence in which <code>lambda.opt</code> is selected if the sample size is larger than <code>factor.pn</code> times the number of linear covariates. The default is 0.0001.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.pn</code></td>
+<td>
+
+<p>Positive integer used to set <code>lambda.min</code>. The default value is 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+
+<p>Positive integer indicating the number of values in the sequence from which <code>lambda.opt</code> is selected. The default is 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.seq</code></td>
+<td>
+
+<p>Sequence of values in which <code>lambda.opt</code> is selected. If <code>lambda.seq=NULL</code>, then the programme builds the sequence automatically using <code>lambda.min</code> and <code>nlambda</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vn</code></td>
+<td>
+
+<p>Positive integer or vector of positive integers indicating the number of groups of consecutive variables to be penalised together. The default value is <code>vn=ncol(z)</code>, resulting in the individual penalization of each scalar covariate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+
+<p>Number of cross-validation folds (used when <code>criterion="k-fold-CV"</code>). Default is 10.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>You may set the seed for the random number generator to ensure reproducible results (applicable when <code>criterion="k-fold-CV"</code> is used). The default seed value is 123.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+
+<p>The criterion used to select the tuning and regularisation parameter: <code>k.opt</code>  and <code>lambda.opt</code> (also <code>vn.opt</code> if needed). Options include <code>"GCV"</code>, <code>"BIC"</code>, <code>"AIC"</code>, or <code>"k-fold-CV"</code>. The default setting is <code>"GCV"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+
+<p>The penalty function applied in the penalised least-squares procedure. Currently, only "grLasso" and "grSCAD" are implemented. The default is "grSCAD".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+
+<p>Maximum number of iterations allowed across the entire path. The default value is 1000.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The sparse semi-functional partial linear model (SFPLM) is given by the expression:
+</p>
+<p style="text-align: center;"><code class="reqn">
+Y_i = Z_{i1}\beta_{01} + \dots + Z_{ip_n}\beta_{0p_n} + m(X_i) + \varepsilon_i,\ \ \ i = 1, \dots, n,
+</code>
+</p>
+
+<p>where <code class="reqn">Y_i</code> denotes a scalar response, <code class="reqn">Z_{i1}, \dots, Z_{ip_n}</code> are real random covariates, and <code class="reqn">X_i</code> is a functional random covariate valued in a semi-metric space <code class="reqn">\mathcal{H}</code>. In this equation,
+<code class="reqn">\mathbf{\beta}_0 = (\beta_{01}, \dots, \beta_{0p_n})^{\top}</code> and <code class="reqn">m(\cdot)</code> represent a vector of unknown real parameters and an unknown smooth real-valued function, respectively. Additionally, <code class="reqn">\varepsilon_i</code> is the random error.
+</p>
+<p>In this function, the SFPLM is fitted using a penalised least-squares approach. The approach involves transforming the SFPLM into a linear model by extracting from <code class="reqn">Y_i</code> and <code class="reqn">Z_{ij}</code> (<code class="reqn">j = 1, \ldots, p_n</code>) the effect of the functional covariate <code class="reqn">X_i</code> using functional nonparametric regression (for details, see Ferraty and Vieu, 2006). This transformation is achieved using kNN estimation with Nadaraya-Watson weights.
+</p>
+<p>An approximate linear model is then obtained:
+</p>
+<p style="text-align: center;"><code class="reqn">\widetilde{\mathbf{Y}}\approx\widetilde{\mathbf{Z}}\mathbf{\beta}_0+\mathbf{\varepsilon},</code>
+</p>
+
+<p>and the penalised least-squares procedure is applied to this model by minimising
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathcal{Q}\left(\mathbf{\beta}\right)=\frac{1}{2}\left(\widetilde{\mathbf{Y}}-\widetilde{\mathbf{Z}}\mathbf{\beta}\right)^{\top}\left(\widetilde{\mathbf{Y}}-\widetilde{\mathbf{Z}}\mathbf{\beta}\right)+n\sum_{j=1}^{p_n}\mathcal{P}_{\lambda_{j_n}}\left(|\beta_j|\right), \quad (1)
+</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{\beta} = (\beta_1, \ldots, \beta_{p_n})^{\top}, \ \mathcal{P}_{\lambda_{j_n}}(\cdot)</code> is a penalty function (specified in the argument <code>penalty</code>) and <code class="reqn">\lambda_{j_n} &gt; 0</code> is a tuning parameter.
+To reduce the number of tuning parameters, <code class="reqn">\lambda_j</code>, to be selected for each sample, we consider <code class="reqn">\lambda_j = \lambda \widehat{\sigma}_{\beta_{0,j,OLS}}</code>, where <code class="reqn">\beta_{0,j,OLS}</code> denotes the OLS estimate of <code class="reqn">\beta_{0,j}</code> and <code class="reqn">\widehat{\sigma}_{\beta_{0,j,OLS}}</code> is the estimated standard deviation. Both <code class="reqn">\lambda</code> and <code class="reqn">k</code> (in the kNN estimation) are selected using the objective criterion specified in the argument <code>criterion</code>.
+</p>
+<p>Finally, after estimating <code class="reqn">\mathbf{\beta}_0</code> by minimising (1), we address the estimation of the nonlinear function <code class="reqn">m(\cdot)</code>.
+For this, we again employ the kNN procedure with Nadaraya-Watson weights to smooth the partial residuals <code class="reqn">Y_i - \mathbf{Z}_i^{\top}\widehat{\mathbf{\beta}}</code>.
+</p>
+<p>For further details on the estimation procedure of the sparse SFPLM, see Aneiros et al. (2015).
+</p>
+<p><b>Remark</b>: It should be noted that if we set <code>lambda.seq</code> to <code class="reqn">0</code>, we can obtain the non-penalised estimation of the model, i.e. the OLS estimation. Using <code>lambda.seq</code> with a value <code class="reqn">\not= 0</code> is advisable when suspecting the presence of irrelevant variables.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>Estimated scalar response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Differences between <code>y</code> and the <code>fitted.values</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.est</code></td>
+<td>
+<p>Estimate of <code class="reqn">\beta_0</code> when the optimal tuning parameters <code>lambda.opt</code>, <code>k.opt</code> and <code>vn.opt</code> are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indexes.beta.nonnull</code></td>
+<td>
+<p>Indexes of the non-zero <code class="reqn">\hat{\beta_{j}}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k.opt</code></td>
+<td>
+<p>Selected number of nearest neighbours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.opt</code></td>
+<td>
+<p>Selected value of lambda.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IC</code></td>
+<td>
+<p>Value of the criterion function considered to select both <code>lambda.opt</code>, <code>h.opt</code> and <code>vn.opt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vn.opt</code></td>
+<td>
+<p>Selected value of <code>vn</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>German Aneiros Perez <a href="mailto:german.aneiros@udc.es">german.aneiros@udc.es</a> 
+</p>
+<p>Silvia Novo Diaz  <a href="mailto:snovo@est-econ.uc3m.es">snovo@est-econ.uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Aneiros, G., Ferraty, F., Vieu, P. (2015) Variable selection in partial linear regression with functional
+covariate. <em>Statistics</em>, <b>49</b>, 1322–1347, <a href="https://doi.org/10.1080/02331888.2014.998675">doi:10.1080/02331888.2014.998675</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>predict.sfpl.kNN</code> and  <code>plot.sfpl.kNN</code>.
+</p>
+<p>Alternative method <code>sfpl.kernel.fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("Tecator")
+y&lt;-Tecator$fat
+X&lt;-Tecator$absor.spectra
+z1&lt;-Tecator$protein       
+z2&lt;-Tecator$moisture
+
+#Quadratic, cubic and interaction effects of the scalar covariates.
+z.com&lt;-cbind(z1,z2,z1^2,z2^2,z1^3,z2^3,z1*z2)
+train&lt;-1:160
+
+#SFPLM fit. 
+ptm=proc.time()
+fit&lt;-sfpl.kNN.fit(y=y[train],x=X[train,], z=z.com[train,],q=2, max.knn=20,
+  lambda.min.l=0.01, criterion="BIC",
+  range.grid=c(850,1050), nknot=20, max.iter=5000)
+proc.time()-ptm
+
+#Results
+fit
+names(fit)
+</code></pre>
+
+
+</div>

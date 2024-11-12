@@ -1,0 +1,241 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bagged Clustering</h2>
+
+<h3>Description</h3>
+
+<p>Cluster the data in <code>x</code> using the bagged clustering
+algorithm. A partitioning cluster algorithm such as
+<code>cclust</code> is run repeatedly on bootstrap samples from the
+original data. The resulting cluster centers are then combined using
+the hierarchical cluster algorithm <code>hclust</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bclust(x, k = 2, base.iter = 10, base.k = 20, minsize = 0,
+       dist.method = "euclidian", hclust.method = "average",
+       FUN = "cclust", verbose = TRUE, final.cclust = FALSE,
+       resample = TRUE, weights = NULL, maxcluster = base.k, ...)
+## S4 method for signature 'bclust,missing'
+plot(x, y, maxcluster = x@maxcluster, main = "", ...)
+## S4 method for signature 'bclust,missing'
+clusters(object, newdata, k, ...)
+## S4 method for signature 'bclust'
+parameters(object, k)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix of inputs (or object of class <code>"bclust"</code> for plot).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base.iter</code></td>
+<td>
+<p>Number of runs of the base cluster algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base.k</code></td>
+<td>
+<p>Number of centers used in each repetition of the
+base method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minsize</code></td>
+<td>
+<p>Minimum number of points in a base cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.method</code></td>
+<td>
+<p>Distance method used for the hierarchical
+clustering, see <code>dist</code> for available distances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hclust.method</code></td>
+<td>
+<p>Linkage method used for the hierarchical
+clustering, see <code>hclust</code> for available methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>Partitioning cluster method used as base algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Output status messages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>final.cclust</code></td>
+<td>
+<p>If <code>TRUE</code>, a final cclust step is performed
+using the output of the bagged clustering as initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resample</code></td>
+<td>
+<p>Logical, if <code>TRUE</code> the base method is run on
+bootstrap samples of <code>x</code>, else directly on <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Vector of length <code>nrow(x)</code>, weights for the
+resampling. By default all observations have equal weight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxcluster</code></td>
+<td>
+<p>Maximum number of clusters memberships are to be
+computed for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object of class <code>"bclust"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>Main title of the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optional arguments top be passed to the base method
+in <code>bclust</code>, ignored in <code>plot</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>An optional data matrix with the same number of columns
+as the cluster centers. If omitted, the fitted values are used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>First, <code>base.iter</code> bootstrap samples of the original data in
+<code>x</code> are created by drawing with replacement. The base cluster
+method is run on each of these samples with <code>base.k</code>
+centers. The <code>base.method</code> must be the name of a partitioning
+cluster function returning an object with the same slots as the
+return value of <code>cclust</code>.
+</p>
+<p>This results in a collection of <code>iter.base * base.centers</code>
+centers, which are subsequently clustered using the hierarchical
+method <code>hclust</code>. Base centers with less than
+<code>minsize</code> points in there respective partitions are removed
+before the hierarchical clustering.  The resulting dendrogram is
+then cut to produce <code>k</code> clusters.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>bclust</code> returns objects of class
+<code>"bclust"</code> including the slots
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>hclust</code></td>
+<td>
+<p>Return value of the hierarchical clustering of the
+collection of base centers (Object of class <code>"hclust"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>Vector with indices of the clusters the inputs are
+assigned to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centers</code></td>
+<td>
+<p>Matrix of centers of the final clusters. Only useful,
+if the hierarchical clustering method produces convex clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allcenters</code></td>
+<td>
+<p>Matrix of all <code>iter.base * base.centers</code>
+centers found in the base runs.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Friedrich Leisch</p>
+
+
+<h3>References</h3>
+
+<p>Friedrich Leisch. Bagged clustering. Working Paper 51, SFB “Adaptive
+Information Systems and Modeling in Economics and Management
+Science”, August 1999. <a href="https://epub.wu.ac.at/1272/1/document.pdf">https://epub.wu.ac.at/1272/1/document.pdf</a>
+</p>
+<p>Sara Dolnicar and Friedrich Leisch. Winter tourist segments in
+Austria: Identifying stable vacation styles using bagged clustering
+techniques. Journal of Travel Research, 41(3):281-292, 2003.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>hclust</code>, <code>cclust</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(iris)
+bc1 &lt;- bclust(iris[,1:4], 3, base.k=5)
+plot(bc1)
+
+table(clusters(bc1, k=3))
+parameters(bc1, k=3)
+</code></pre>
+
+
+</div>

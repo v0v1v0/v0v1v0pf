@@ -1,0 +1,258 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sunab</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sun and Abraham interactions</h2>
+
+<h3>Description</h3>
+
+<p>User-level method to implement staggered difference-in-difference estimations a la Sun
+and Abraham (Journal of Econometrics, 2021).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sunab(
+  cohort,
+  period,
+  ref.c = NULL,
+  ref.p = -1,
+  bin,
+  bin.rel,
+  bin.c,
+  bin.p,
+  att = FALSE,
+  no_agg = FALSE
+)
+
+sunab_att(cohort, period, ref.c = NULL, ref.p = -1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cohort</code></td>
+<td>
+<p>A vector representing the cohort. It should represent the period at
+which the treatment has been received (and thus be fixed for each unit).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>period</code></td>
+<td>
+<p>A vector representing the period. It can be either a relative time period
+(with negative values representing the before the treatment and positive values
+after the treatment), or a regular time period. In the latter case, the relative
+time period will be created from the cohort information (which represents the time at
+which the treatment has been received).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref.c</code></td>
+<td>
+<p>A vector of references for the cohort. By default the never treated
+cohorts are taken as reference and the always treated are excluded from the estimation.
+You can add more references with this argument, which means that dummies will not be
+created for them (but they will remain in the estimation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref.p</code></td>
+<td>
+<p>A vector of references for the (relative!) period. By default the
+first relative period (RP) before the treatment, i.e. -1, is taken as reference.
+You can instead use your own references (i.e. RPs for which dummies will not be
+created – but these observations remain in the sample). Please note that you will
+need at least two references. You can use the special variables <code>.F</code> and <code>.L</code> to
+access the first and the last relative periods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin</code></td>
+<td>
+<p>A list of values to be grouped, a vector, or the special value <code>"bin::digit"</code>.
+The binning will be applied to both the cohort and the period (to bin them separately,
+see <code>bin.c</code> and <code>bin.p</code>). To create a new value from old values,
+use <code>bin = list("new_value"=old_values)</code> with <code>old_values</code> a vector of
+existing values. It accepts regular expressions, but they must start with an <code>"@"</code>,
+like in <code>bin="@Aug|Dec"</code>. The names of the list are the new names. If the new
+name is missing, the first value matched becomes the new name. Feeding in a vector is
+like using a list without name and only a single element. If the vector is numeric,
+you can use the special value <code>"bin::digit"</code> to group every <code>digit</code> element.
+For example if <code>x</code> represent years, using <code>bin="bin::2"</code> create bins of two years.
+Using <code>"!bin::digit"</code> groups every digit consecutive values starting from the first value.
+Using <code>"!!bin::digit"</code> is the same bu starting from the last value. In both cases,
+<code>x</code> is not required to be numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin.rel</code></td>
+<td>
+<p>A list or a vector defining which values to bin. Only applies to the
+relative periods and <em>not</em> the cohorts. Please refer to the help of the argument
+<code>bin</code> to understand the different ways to do the binning (or look at the help
+of <code>bin</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin.c</code></td>
+<td>
+<p>A list or a vector defining which values to bin. Only applies to the cohort.
+Please refer to the help of the argument <code>bin</code> to understand the different ways to
+do the binning (or look at the help of <code>bin</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin.p</code></td>
+<td>
+<p>A list or a vector defining which values to bin. Only applies to the period.
+Please refer to the help of the argument <code>bin</code> to understand the different ways to
+do the binning (or look at the help of <code>bin</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>att</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If <code>TRUE</code>: then the total average treatment
+effect for the treated is computed (instead of the ATT for each relative period).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no_agg</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If <code>TRUE</code>: then there is no aggregation,
+leading to the estimation of all <code style="white-space: pre;">⁠cohort x time to treatment⁠</code> coefficients.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function creates a matrix of <code style="white-space: pre;">⁠cohort x relative_period⁠</code> interactions, and if used within
+a <code>fixest</code> estimation, the coefficients will automatically be aggregated to obtain the ATT
+for each relative period. In practice, the coefficients are aggregated with the
+<code>aggregate.fixest</code> function whose argument <code>agg</code> is automatically set to the appropriate
+value.
+</p>
+<p>The SA method requires relative periods (negative/positive for before/after the treatment).
+Either the user can compute the RP (relative periods) by his/her own, either the RPs
+are computed on the fly from the periods and the cohorts (which then should represent
+the treatment period).
+</p>
+<p>The never treated, which are the cohorts displaying only negative RPs are used as references
+(i.e. no dummy will be constructed for them). On the other hand, the always treated are
+removed from the estimation, by means of adding NAs for each of their observations.
+</p>
+<p>If the RPs have to be constructed on the fly, any cohort that is not present in the
+period is considered as never treated. This means that if the period ranges from
+1995 to 2005, <code>cohort = 1994</code> will be considered as never treated, although it
+should be considered as always treated: so be careful.
+</p>
+<p>If you construct your own relative periods, the controls cohorts should have only negative RPs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If not used within a <code>fixest</code> estimation, this function will return a matrix of
+interacted coefficients.
+</p>
+
+
+<h3>Binning</h3>
+
+<p>You can bin periods with the arguments <code>bin</code>, <code>bin.c</code>, <code>bin.p</code> and/or <code>bin.rel</code>.
+</p>
+<p>The argument <code>bin</code> applies both to the original periods and cohorts (the cohorts will also
+be binned!). This argument only works when the <code>period</code> represent "calendar" periods
+(not relative ones!).
+</p>
+<p>Alternatively you can bin the periods with <code>bin.p</code> (either "calendar" or relative); or
+the cohorts with <code>bin.c</code>.
+</p>
+<p>The argument <code>bin.rel</code> applies only to the relative periods (hence not to the cohorts) once
+they have been created.
+</p>
+<p>To understand how binning works, please have a look at the help and examples of the
+function <code>bin</code>.
+</p>
+<p>Binning can be done in many different ways: just remember that it is not because it is
+possible that it does makes sense!
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Simple DiD example
+data(base_stagg)
+head(base_stagg)
+
+# Note that the year_treated is set to 1000 for the never treated
+table(base_stagg$year_treated)
+table(base_stagg$time_to_treatment)
+
+# The DiD estimation
+res_sunab = feols(y ~ x1 + sunab(year_treated, year) | id + year, base_stagg)
+etable(res_sunab)
+
+# By default the reference periods are the first year and the year before the treatment
+# i.e. ref.p = c(-1, .F); where .F is a shortcut for the first period.
+# Say you want to set as references the first three periods on top of -1
+
+res_sunab_3ref = feols(y ~ x1 + sunab(year_treated, year, ref.p = c(.F + 0:2, -1)) |
+                         id + year, base_stagg)
+
+# Display the two results
+iplot(list(res_sunab, res_sunab_3ref))
+
+# ... + show all refs
+iplot(list(res_sunab, res_sunab_3ref), ref = "all")
+
+
+#
+# ATT
+#
+
+# To get the total ATT, you can use summary with the agg argument:
+summary(res_sunab, agg = "ATT")
+
+# You can also look at the total effect per cohort
+summary(res_sunab, agg = "cohort")
+
+
+#
+# Binning
+#
+
+# Binning can be done in many different ways
+
+# binning the cohort
+est_bin.c   = feols(y ~ x1 + sunab(year_treated, year, bin.c = 3:2) | id + year, base_stagg)
+
+# binning the period
+est_bin.p   = feols(y ~ x1 + sunab(year_treated, year, bin.p = 3:1) | id + year, base_stagg)
+
+# binning both the cohort and the period
+est_bin     = feols(y ~ x1 + sunab(year_treated, year, bin = 3:1) | id + year, base_stagg)
+
+# binning the relative period, grouping every two years
+est_bin.rel = feols(y ~ x1 + sunab(year_treated, year, bin.rel = "bin::2") | id + year, base_stagg)
+
+etable(est_bin.c, est_bin.p, est_bin, est_bin.rel, keep = "year")
+
+
+</code></pre>
+
+
+</div>

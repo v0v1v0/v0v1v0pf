@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>test_matrix_form</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create spoof matrix form from a data frame</h2>
+
+<h3>Description</h3>
+
+<p>Useful functions for writing tests and examples, and a starting point for
+more sophisticated custom <code>matrix_form</code> methods.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">basic_matrix_form(
+  df,
+  indent_rownames = FALSE,
+  parent_path = NULL,
+  ignore_rownames = FALSE,
+  add_decoration = FALSE,
+  fontspec = font_spec(),
+  split_labels = NULL,
+  data_labels = NULL,
+  num_rep_cols = 0L
+)
+
+basic_listing_mf(
+  df,
+  keycols = names(df)[1],
+  add_decoration = TRUE,
+  fontspec = font_spec()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>(<code>data.frame</code>)<br> a data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indent_rownames</code></td>
+<td>
+<p>(<code>flag</code>)<br> whether row names should be indented. Being this
+used for testing purposes, it defaults to <code>FALSE</code>. If <code>TRUE</code>, it assigns label rows
+on even lines (also format is <code>"-"</code> and value strings are <code>""</code>). Indentation works
+only if split labels are used (see parameters <code>split_labels</code> and <code>data_labels</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent_path</code></td>
+<td>
+<p>(<code>string</code>)<br> parent path that all rows should be "children of".
+Defaults to <code>NULL</code>, as usually this is not needed. It may be necessary to use <code>"root"</code>,
+for some specific scenarios.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_rownames</code></td>
+<td>
+<p>(<code>flag</code>)<br> whether row names should be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_decoration</code></td>
+<td>
+<p>(<code>flag</code>)<br> whether adds title and footer decorations should
+be added to the matrix form.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fontspec</code></td>
+<td>
+<p>(<code>font_spec</code>)<br> a font_spec object specifying the font information to use for
+calculating string widths and heights, as returned by <code>font_spec()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_labels</code></td>
+<td>
+<p>(<code>string</code>)<br> indicates which column to use as split labels. If
+<code>NULL</code>, no split labels are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_labels</code></td>
+<td>
+<p>(<code>string</code>)<br> indicates which column to use as data labels. It is
+ignored if no <code>split_labels</code> is present and is automatically assigned to
+<code>"Analysis method"</code> when <code>split_labels</code> is present, but <code>data_labels</code> is <code>NULL</code>.
+Its direct column name is used as node name in <code>"DataRow"</code> pathing. See <code>mf_rinfo()</code>
+for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_rep_cols</code></td>
+<td>
+<p>(<code>numeric(1)</code>)<br> Number of columns to be treated as repeating columns.
+Defaults to <code>0</code> for <code>basic_matrix_form</code> and <code>length(keycols)</code> for
+<code>basic_listing_mf</code>. Note repeating columns are separate from row labels if present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keycols</code></td>
+<td>
+<p>(<code>character</code>)<br> a vector of <code>df</code> column names that are printed first and for which
+repeated values are assigned <code>""</code>. This format is characteristic of a listing matrix form.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If some of the column has a obj_format assigned, it will be respected for all column
+values except for label rows, if present (see parameter <code>split_labels</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A valid <code>MatrixPrintForm</code> object representing <code>df</code> that is ready for
+ASCII rendering.
+</p>
+<p>A valid <code>MatrixPrintForm</code> object representing <code>df</code> as a listing that is ready for ASCII
+rendering.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>basic_listing_mf()</code>: Create a <code>MatrixPrintForm</code> object from data frame <code>df</code> that
+respects the default formats for a listing object.
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">mform &lt;- basic_matrix_form(mtcars)
+cat(toString(mform))
+
+
+# Advanced test case with label rows
+library(dplyr)
+iris_output &lt;- iris %&gt;%
+  group_by(Species) %&gt;%
+  summarize("all obs" = round(mean(Petal.Length), 2)) %&gt;%
+  mutate("DataRow_label" = "Mean")
+mf &lt;- basic_matrix_form(iris_output,
+  indent_rownames = TRUE,
+  split_labels = "Species", data_labels = "DataRow_label"
+)
+cat(toString(mf))
+
+mform &lt;- basic_listing_mf(mtcars)
+cat(toString(mform))
+
+</code></pre>
+
+
+</div>

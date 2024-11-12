@@ -1,0 +1,87 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.group_metric</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot group metric</h2>
+
+<h3>Description</h3>
+
+<p>Plot chosen metric in group. Notice how models are treating different subgroups.
+Compare models both in fairness metrics and in performance. Parity loss can be enabled when creating <code>group_metric</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'group_metric'
+plot(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class group_metric</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other group_metric objects and other parameters</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>list of <code>ggplot2</code> objects
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+gm &lt;- group_metric(fobject, "TPR", "f1", parity_loss = TRUE)
+plot(gm)
+
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200
+)
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_rf, fobject)
+
+gm &lt;- group_metric(fobject, "TPR", "f1", parity_loss = TRUE)
+
+plot(gm)
+
+
+</code></pre>
+
+
+</div>

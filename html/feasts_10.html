@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>classical_decomposition</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Classical Seasonal Decomposition by Moving Averages</h2>
+
+<h3>Description</h3>
+
+<p>Decompose a time series into seasonal, trend and irregular components
+using moving averages.  Deals with additive or multiplicative
+seasonal component.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">classical_decomposition(formula, type = c("additive", "multiplicative"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Decomposition specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of seasonal component. Can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to <code>stats::decompose()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The additive model used is:
+</p>
+<p style="text-align: center;"><code class="reqn">Y_t = T_t + S_t + e_t</code>
+</p>
+
+<p>The multiplicative model used is:
+</p>
+<p style="text-align: center;"><code class="reqn">Y_t = T_t\,S_t\, e_t</code>
+</p>
+
+<p>The function first determines the trend component using a moving
+average (if <code>filter</code> is <code>NULL</code>, a symmetric window with
+equal weights is used), and removes it from the time series.  Then,
+the seasonal figure is computed by averaging, for each time unit, over
+all periods.  The seasonal figure is then centered.   Finally, the error
+component is determined by removing trend and seasonal figure
+(recycled as needed) from the original time series.
+</p>
+<p>This only works well if <code>x</code> covers an integer number of complete
+periods.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>fabletools::dable()</code> containing the decomposed trend, seasonality
+and remainder from the classical decomposition.
+</p>
+
+
+<h3>Specials</h3>
+
+
+
+<h4>season</h4>
+
+<p>The <code>season</code> special is used to specify seasonal attributes of the decomposition.
+</p>
+<pre>
+season(period = NULL)
+</pre>
+
+<table><tr>
+<td style="text-align: left;">
+<code>period</code>   </td>
+<td style="text-align: left;"> The periodic nature of the seasonality. This can be either a number indicating the number of observations in each seasonal period, or text to indicate the duration of the seasonal window (for example, annual seasonality would be "1 year").
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">as_tsibble(USAccDeaths) %&gt;%
+  model(classical_decomposition(value)) %&gt;%
+  components()
+
+as_tsibble(USAccDeaths) %&gt;%
+  model(classical_decomposition(value ~ season(12), type = "mult")) %&gt;%
+  components()
+
+</code></pre>
+
+
+</div>

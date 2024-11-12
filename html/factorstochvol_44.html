@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>runningcormat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract summary statistics for the posterior correlation matrix
+which have been stored during sampling</h2>
+
+<h3>Description</h3>
+
+<p><code>runningcormat</code> extracts summary statistics from the model-implied
+correlation matrix
+from an <code>fsvdraws</code> object for one point in time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">runningcormat(x, i, statistic = "mean", type = "cor")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>'fsvdraws'</code>, usually resulting from a call
+of <code>fsvsample</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>A single point in time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>Indicates which statistic should be extracted. Defaults
+to <code>'mean'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Indicates whether covariance (<code>cov</code>) or correlation
+(<code>cor</code>) should be extracted.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Matrix containing the requested correlation matrix summary statistic.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other extractors: 
+<code>cormat.fsvdraws()</code>,
+<code>covmat.fsvdraws()</code>,
+<code>runningcovmat()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+sim &lt;- fsvsim(n = 500, series = 3, factors = 1) # simulate
+res &lt;- fsvsample(sim$y, factors = 1, runningstore = 6) # estimate
+
+cor100mean &lt;- runningcormat(res, 100) # extract mean at t = 100
+cor100sd &lt;- runningcormat(res, 100, statistic = "sd") # extract sd
+lower &lt;- cor100mean - 2*cor100sd
+upper &lt;- cor100mean + 2*cor100sd
+
+true &lt;- cormat(sim, 100)[,,1] # true value
+
+# Visualize mean +/- 2sd and data generating values
+par(mfrow = c(3,3), mar = c(2, 2, 2, 2))
+for (i in 1:3) {
+ for (j in 1:3) {
+  plot(cor100mean[i,j], ylim = range(lower, upper), pch = 3,
+  main = paste(i, j, sep = ' vs. '), xlab = '', ylab = '')
+  lines(c(1,1), c(lower[i,j], upper[i,j]))
+  points(true[i,j], col = 3, cex = 2)
+ }
+}
+
+
+</code></pre>
+
+
+</div>

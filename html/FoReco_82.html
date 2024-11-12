@@ -1,0 +1,268 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>terec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal combination temporal reconciliation</h2>
+
+<h3>Description</h3>
+
+<p>This function performs forecast reconciliation for a single time series using temporal
+hierarchies (Athanasopoulos et al., 2017, Nystrup et al., 2020). The reconciled forecasts can be computed
+using either a projection approach (Byron, 1978, 1979) or the equivalent structural
+approach by Hyndman et al. (2011). Non-negative (Di Fonzo and Girolimetto, 2023)
+and immutable reconciled forecasts can be considered.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">terec(base, agg_order, comb = "ols", res = NULL, tew = "sum",
+      approach = "proj", nn = NULL, settings = NULL, bounds = NULL,
+      immutable = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>A (<code class="reqn">h(k^\ast + m) \times 1</code>) numeric vector containing base forecasts
+to be reconciled ordered from the lowest frequency to the highest frequency; <code class="reqn">m</code>
+is the max aggregation order, <code class="reqn">k^\ast</code> is the sum of (a subset of) (<code class="reqn">p-1</code>)
+factors of <code class="reqn">m</code>, excluding <code class="reqn">m</code>, and <code class="reqn">h</code> is the forecast horizon for the
+lowest frequency time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_order</code></td>
+<td>
+<p>Highest available sampling frequency per seasonal cycle (max. order
+of temporal aggregation, <code class="reqn">m</code>), or a vector representing a subset of <code class="reqn">p</code> factors
+of <code class="reqn">m</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comb</code></td>
+<td>
+<p>A string specifying the reconciliation method. For a complete list, see tecov.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>A (<code class="reqn">N(k^\ast+m) \times 1</code>) optional numeric vector containing the
+in-sample residuals at all the temporal frequencies ordered from the lowest frequency
+to the highest frequency. This vector is used to compute come covariance matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tew</code></td>
+<td>
+<p>A string specifying the type of temporal aggregation. Options include:
+"<code>sum</code>" (simple summation, <em>default</em>), "<code>avg</code>" (average),
+"<code>first</code>" (first value of the period), and "<code>last</code>"
+(last value of the period).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approach</code></td>
+<td>
+<p>A string specifying the approach used to compute the reconciled
+forecasts. Options include:
+</p>
+
+<ul>
+<li>
+<p> "<code>proj</code>" (<em>default</em>): Projection approach according to Byron (1978, 1979).
+</p>
+</li>
+<li>
+<p> "<code>strc</code>": Structural approach as proposed by Hyndman et al. (2011).
+</p>
+</li>
+<li>
+<p> "<code>proj_osqp</code>": Numerical solution using <a href="https://osqp.org/"><span class="pkg">osqp</span></a>
+for projection approach.
+</p>
+</li>
+<li>
+<p> "<code>strc_osqp</code>": Numerical solution using <a href="https://osqp.org/"><span class="pkg">osqp</span></a>
+for structural approach.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nn</code></td>
+<td>
+<p>A string specifying the algorithm to compute non-negative reconciled forecasts:
+</p>
+
+<ul>
+<li>
+<p> "<code>osqp</code>": quadratic programming optimization
+(<a href="https://osqp.org/"><span class="pkg">osqp</span></a> solver).
+</p>
+</li>
+<li>
+<p> "<code>sntz</code>": heuristic "set-negative-to-zero" (Di Fonzo and Girolimetto, 2023).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>settings</code></td>
+<td>
+<p>An object of class <code>osqpSettings</code> specifying settings
+for the <a href="https://osqp.org/"><span class="pkg">osqp</span></a> solver. For details, refer to the
+<a href="https://osqp.org/"><span class="pkg">osqp</span> documentation</a> (Stellato et al., 2020).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>A (<code class="reqn">(k^\ast + m) \times 2</code>) numeric matrix specifying the
+temporal bounds. The first column represents the lower bound, and the
+second column represents the upper bound.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>immutable</code></td>
+<td>
+<p>A matrix with two columns (<code class="reqn">k,j</code>), such that
+</p>
+
+<dl>
+<dt>Column 1</dt>
+<dd>
+<p>Denotes the temporal aggregation order (<code class="reqn">k = m,\dots,1</code>).</p>
+</dd>
+<dt>Column 2</dt>
+<dd>
+<p>Indicates the temporal forecast horizon (<code class="reqn">j = 1,\dots,m/k</code>).</p>
+</dd>
+</dl>
+<p>For example, when working with a quarterly time series:
+</p>
+
+<ul>
+<li> <p><code>t(c(4, 1))</code> - Fix the one step ahead annual forecast.
+</p>
+</li>
+<li> <p><code>t(c(1, 2))</code> - Fix the two step ahead quarterly forecast.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>tecov</code>
+</p>
+
+<dl>
+<dt><code>mse</code></dt>
+<dd>
+<p>If <code>TRUE</code> (<em>default</em>) the residuals used to compute the covariance
+matrix are not mean-corrected.</p>
+</dd>
+<dt><code>shrink_fun</code></dt>
+<dd>
+<p>Shrinkage function of the covariance matrix, shrink_estim (<em>default</em>)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (<code class="reqn">h(k^\ast+m) \times 1</code>) numeric vector of temporal reconciled forecasts.
+</p>
+
+
+<h3>References</h3>
+
+<p>Athanasopoulos, G., Hyndman, R.J., Kourentzes, N. and Petropoulos, F. (2017),
+Forecasting with Temporal Hierarchies, <em>European Journal of Operational
+Research</em>, 262, 1, 60-74. <a href="https://doi.org/10.1016/j.ejor.2017.02.046">doi:10.1016/j.ejor.2017.02.046</a>
+</p>
+<p>Byron, R.P. (1978), The estimation of large social account matrices,
+<em>Journal of the Royal Statistical Society, Series A</em>, 141, 3, 359-367.
+<a href="https://doi.org/10.2307/2344807">doi:10.2307/2344807</a>
+</p>
+<p>Byron, R.P. (1979), Corrigenda: The estimation of large social account matrices,
+<em>Journal of the Royal Statistical Society, Series A</em>, 142(3), 405.
+<a href="https://doi.org/10.2307/2982515">doi:10.2307/2982515</a>
+</p>
+<p>Di Fonzo, T. and Girolimetto, D. (2023), Spatio-temporal reconciliation of solar
+forecasts, <em>Solar Energy</em>, 251, 13–29. <a href="https://doi.org/10.1016/j.solener.2023.01.003">doi:10.1016/j.solener.2023.01.003</a>
+</p>
+<p>Hyndman, R.J., Ahmed, R.A., Athanasopoulos, G. and Shang, H.L. (2011),
+Optimal combination forecasts for hierarchical time series,
+<em>Computational Statistics &amp; Data Analysis</em>, 55, 9, 2579-2589.
+<a href="https://doi.org/10.1016/j.csda.2011.03.006">doi:10.1016/j.csda.2011.03.006</a>
+</p>
+<p>Nystrup, P.,  Lindström, E., Pinson, P. and Madsen, H. (2020),
+Temporal hierarchies with autocorrelation for load forecasting,
+<em>European Journal of Operational Research</em>, 280, 1, 876-888.
+<a href="https://doi.org/10.1016/j.ejor.2019.07.061">doi:10.1016/j.ejor.2019.07.061</a>
+</p>
+<p>Stellato, B., Banjac, G., Goulart, P., Bemporad, A. and Boyd, S. (2020), OSQP:
+An Operator Splitting solver for Quadratic Programs,
+<em>Mathematical Programming Computation</em>, 12, 4, 637-672.
+<a href="https://doi.org/10.1007/s12532-020-00179-2">doi:10.1007/s12532-020-00179-2</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Regression-based reconciliation: 
+<code>csrec()</code>,
+<code>ctrec()</code>
+</p>
+<p>Temporal framework: 
+<code>teboot()</code>,
+<code>tebu()</code>,
+<code>tecov()</code>,
+<code>telcc()</code>,
+<code>temo()</code>,
+<code>tetd()</code>,
+<code>tetools()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# (7 x 1) base forecasts vector (simulated), m = 4
+base &lt;- rnorm(7, rep(c(20, 10, 5), c(1, 2, 4)))
+# (70 x 1) in-sample residuals vector (simulated)
+res &lt;- rnorm(70)
+
+m &lt;- 4 # from quarterly to annual temporal aggregation
+reco &lt;- terec(base = base, agg_order = m, comb = "wlsv", res = res)
+
+# Immutable reconciled forecast
+# E.g. fix all the quarterly forecasts
+imm_q &lt;- expand.grid(k = 1, j = 1:4)
+immreco &lt;- terec(base = base, agg_order = m, comb = "wlsv",
+                 res = res, immutable = imm_q)
+
+# Non negative reconciliation
+base[7] &lt;- -base[7] # Making negative one of the quarterly base forecasts
+nnreco &lt;- terec(base = base, agg_order = m, comb = "wlsv",
+                res = res, nn = "osqp")
+recoinfo(nnreco, verbose = FALSE)$info
+
+</code></pre>
+
+
+</div>

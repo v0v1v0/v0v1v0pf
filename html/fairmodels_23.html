@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.ceteris_paribus_cutoff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ceteris paribus cutoff plot</h2>
+
+<h3>Description</h3>
+
+<p>Ceteris paribus cutoff is way to check how will parity loss behave if we changed only cutoff in one subgroup.
+It plots object of class ceteris_paribus_cutoff. It might have two types - default and cumulated. Cumulated sums metrics and plots
+it all in one plot. When default one is used all chosen metrics will be plotted for each model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ceteris_paribus_cutoff'
+plot(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>ceteris_paribus_cutoff object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other plot parameters</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ggplot2</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("compas")
+
+# positive outcome - not being recidivist
+two_yr_recidivism &lt;- factor(compas$Two_yr_Recidivism, levels = c(1, 0))
+y_numeric &lt;- as.numeric(two_yr_recidivism) - 1
+compas$Two_yr_Recidivism &lt;- two_yr_recidivism
+
+
+lm_model &lt;- glm(Two_yr_Recidivism ~ .,
+  data = compas,
+  family = binomial(link = "logit")
+)
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = compas[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = compas$Ethnicity,
+  privileged = "Caucasian"
+)
+
+cpc &lt;- ceteris_paribus_cutoff(fobject, "African_American")
+plot(cpc)
+
+rf_model &lt;- ranger::ranger(Two_yr_Recidivism ~ .,
+  data = compas,
+  probability = TRUE,
+  num.trees = 200
+)
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = compas[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm, explainer_rf,
+  protected = compas$Ethnicity,
+  privileged = "Caucasian"
+)
+
+cpc &lt;- ceteris_paribus_cutoff(fobject, "African_American")
+plot(cpc)
+
+
+</code></pre>
+
+
+</div>

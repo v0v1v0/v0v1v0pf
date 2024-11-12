@@ -1,0 +1,57 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>faasr_start</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>faasr_start</h2>
+
+<h3>Description</h3>
+
+<p>This is the entry-point FaaSr Function that is invoked by a FaaS platform when an Action is instantiated
+Terminology to clarify the various modules involved:
+</p>
+<p>* Action: an instance of a Docker container instantiated by a FaaS platform
+* User Function: a single function written in R; at runtime, it is executed by a single Action
+* FaaSr Function: function implemented by the FaaSr package to implement all the logic necessary to manage
+the execution of a User Function within an Action. A FaaSr function has a prefix faasr_
+* User Workflow: a graph where each vertex represents a single User Functions and each edge represents a trigger
+* Payload: a JSON-formatted text file that conforms to the FaaSr schema. It is delivered by the FaaS platform
+for each Action. It describes the entire User Workflow and may contain credentials for FaaS and S3 services
+</p>
+<p>faasr_start calls other FaaSr Functions to go through the following steps:
+</p>
+<p>* Parse the Payload and ensure that it conforms to the FaaSr JSON schema; otherwise, abort
+* Build the User Workflow graph from Payload and ensure it is cycle-free; otherwise, abort
+* Initialize the logs folder in an S3 bucket, only if this is the entry point to the User Workflow
+* Ensure only a single User Function runs if it has multiple predecessors; otherwise, abort
+* Invoke the User Function, supplying the parsed payload as a list argument
+* Update the logs folder to assert that this User Function has completed
+* Generate triggers to start Actions that will run the next User Functions, if there are any in the User Workflow
+</p>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>faasr_payload</code></td>
+<td>
+<p>JSON Payload provided upon Action invocation by the FaaS platform</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>faasr a list form of JSON payload
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># This function can be run only in the container
+if (interactive()){
+faasr &lt;- faasr_start(faasr_payload)
+}
+</code></pre>
+
+
+</div>

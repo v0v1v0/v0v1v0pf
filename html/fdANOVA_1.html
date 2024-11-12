@@ -1,0 +1,484 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fanova.tests</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Tests for FANOVA Problem
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs the testing procedures for the one-way analysis of variance for (univariate) functional data (FANOVA). See Section 2.1 of the vignette file (<code>vignette("fdANOVA", package = "fdANOVA")</code>), for details of the tests.
+</p>
+<p>We consider the <code class="reqn">l</code> groups of independent random functions <code class="reqn">X_{ij}(t)</code>, <code class="reqn">i=1,\dots,l,</code> <code class="reqn">j=1,\dots,n_i</code> defined over a closed and bounded interval <code class="reqn">I=[a,b]</code>. Let <code class="reqn">n=n_1+\dots+n_l</code>. These groups may differ in mean functions, i.e., we assume that <code class="reqn">X_{ij}(t)</code>, <code class="reqn">j=1,\dots,n_i</code> are stochastic processes with mean function <code class="reqn">\mu_i(t)</code>, <code class="reqn">t\in I</code> and covariance function <code class="reqn">\gamma(s, t)</code>, <code class="reqn">s,t\in I</code>, for <code class="reqn">i=1,\dots,l</code>. Of interest is to test the following null hypothesis
+</p>
+<p style="text-align: center;"><code class="reqn">
+H_0:\mu_1(t)=\dots=\mu_l(t),\ t\in I.
+</code>
+</p>
+
+<p>The alternative is the negation of the null hypothesis. We assume that each functional observation is observed on a common grid of <code class="reqn">\mathcal{T}</code> design time points equally spaced in <code class="reqn">I</code> (see Section 3.1 of the vignette file, <code>vignette("fdANOVA", package = "fdANOVA")</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fanova.tests(x = NULL, group.label, test = "ALL",
+             params = NULL,
+             parallel = FALSE, nslaves = NULL)
+
+# more detailed usage of params:
+# params = list(paramFP = list(int, B.FP = 1000,
+#                              basis = c("Fourier", "b-spline", "own"),
+#                              own.basis, own.cross.prod.mat,
+#                              criterion = c("BIC", "eBIC", "AIC", "AICc", "NO"),
+#                              commonK = c("mode", "min", "max", "mean"),
+#                              minK = NULL, maxK = NULL, norder = 4, gamma.eBIC = 0.5)
+#               paramCH = 10000,
+#               paramCS = 10000,
+#               paramL2b = 10000,
+#               paramFb = 10000,
+#               paramFmaxb = 10000,
+#               paramTRP = list(k = 30, projection = c("GAUSS", "BM"),
+#                               permutation = FALSE, B.TRP = 10000,
+#                               independent.projection.tests = TRUE))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code class="reqn">\mathcal{T}\times n</code> matrix of data, whose each column is a discretized version of a function and rows correspond to design time points. Its default values is <code>NULL</code>, since if the FP test is only used, we can give a basis representation of the data instead of raw observations (see the list <code>paramFP</code> below). For any of the other testing procedures, the raw data are needed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.label</code></td>
+<td>
+<p>a vector containing group labels.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>a kind of indicator which establishes a choice of FANOVA tests to be performed. Its default value means that all testing procedures of Section 2.1 of the vignette file will be used. When we want to use only some tests, the parameter <code>test</code> is an appropriate subvector of the following vector of tests' labels <code>c("FP",</code> <code>"CH",</code> <code>"CS",</code> <code>"L2N",</code> <code>"L2B",</code> <code>"L2b",</code> <code>"FN",</code> <code>"FB",</code> <code>"Fb",</code> <code>"GPF",</code> <code>"Fmaxb",</code> <code>"TRP")</code>, where <code>"FP"</code> - permutation test based on basis function representation (Gorecki and Smaga, 2015); <code>"CH"</code> and <code>"CS"</code> - L2-norm-based parametric bootstrap tests for homoscedastic and heteroscedastic samples, respectively (Cuevas et al., 2004); <code>"L2N"</code> and <code>"L2B"</code> - L2-norm-based test with naive and bias-reduced method of estimation, respectively (Faraway, 1997; Zhang and Chen, 2007; Zhang, 2013); <code>"L2b"</code> - L2-norm-based bootstrap test (Zhang, 2013); <code>"FN"</code> and <code>"FB"</code> - F-type test with naive and bias-reduced method of estimation, respectively (Shen and Faraway, 2004; Zhang, 2011); <code>"Fb"</code> - F-type bootstrap test (Zhang, 2013); <code>"GPF"</code> - globalizing the pointwise F-test (Zhang and Liang, 2014); <code>"Fmaxb"</code> - Fmax bootstrap test (Zhang et al., 2018); <code>"TRP"</code> - tests based on random projections (Cuesta-Albertos and Febrero-Bande, 2010).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a list of additional parameters for the FP, CH, CS, L<code class="reqn">^2</code>b, Fb, Fmaxb tests and the tests based on random projections. It can contain all or a part of the elements <code>paramFP</code>, <code>paramCH</code>, <code>paramCS</code>, <code>paramL2b</code>, <code>paramFb</code>, <code>paramFmaxb</code> and <code>paramTRP</code> for passing the parameters for the FP, CH, CS, L<code class="reqn">^2</code>b, Fb, Fmaxb tests and tests based on random projections, respectively, to the function <code>fanova.tests</code>. They are described below. The default value of <code>params</code> means that these tests are performed with their default values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramFP</code></td>
+<td>
+<p>a list containing the parameters for the FP test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int</code></td>
+<td>
+<p>a vector of two elements representing the interval <code class="reqn">I=[a,b]</code>. When it is not specified, it is determined by a number of design time points.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B.FP</code></td>
+<td>
+<p>a number of permutation replicates for the FP tests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis</code></td>
+<td>
+<p>a choice of basis of functions used in the basis function representation of the data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>own.basis</code></td>
+<td>
+<p>if <code>basis = "own"</code>, a <code class="reqn">K\times n</code> matrix with columns containing the coefficients of the basis function representation of the observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>own.cross.prod.mat</code></td>
+<td>
+<p>if <code>basis = "own"</code>, a <code class="reqn">K\times K</code> cross product matrix corresponding to a basis used to obtain the matrix <code>own.basis</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>a choice of information criterion for selecting the optimum value of <code class="reqn">K</code>.
+</p>
+<p><code>criterion = "NO"</code> means that <code class="reqn">K</code> is equal to the parameter <code>maxK</code> defined below. We have </p>
+<p style="text-align: center;"><code class="reqn">\code{BIC}(X_{ij})=\mathcal{T}\log(\mathbf{e}_{ij}^{\top}\mathbf{e}_{ij}/\mathcal{T})+K\log\mathcal{T},</code>
+</p>
+ <p style="text-align: center;"><code class="reqn">\code{eBIC}(X_{ij})=\mathcal{T}\log(\mathbf{e}_{ij}^{\top}\mathbf{e}_{ij}/\mathcal{T})+K[\log\mathcal{T}+2\gamma\log(K_{\max})],</code>
+</p>
+ <p style="text-align: center;"><code class="reqn">\code{AIC}(X_{ij})=\mathcal{T}\log(\mathbf{e}_{ij}^{\top}\mathbf{e}_{ij}/\mathcal{T})+2K</code>
+</p>
+<p> and </p>
+<p style="text-align: center;"><code class="reqn">\code{AICc}(X_{ij})=\code{AIC}(X_{ij})+2K(K + 1)/(n-K-1),</code>
+</p>
+<p> where </p>
+<p style="text-align: center;"><code class="reqn">\mathbf{e}_{ij}=(e_{ij1},\dots,e_{ij\mathcal{T}})^{\top},</code>
+</p>
+ <p style="text-align: center;"><code class="reqn">e_{ijr}=X_{ij}(t_r)-\sum_{m=1}^K\hat{c}_{ijm}\varphi_m(t_r),</code>
+</p>
+ <p><code class="reqn">t_1,\dots,t_{\mathcal{T}}</code> are the design time points, <code class="reqn">\gamma\in[0,1]</code>, <code class="reqn">K_{\max}</code> is a maximum <code class="reqn">K</code> considered and <code class="reqn">\log</code> denotes the natural logarithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>commonK</code></td>
+<td>
+<p>a choice of method for selecting the common value for all observations from the values of <code class="reqn">K</code> corresponding to all processes.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minK</code></td>
+<td>
+<p>a minimum value of <code class="reqn">K</code>. When <code>basis = "Fourier"</code>, it has to be an odd number. If <code>minK = NULL</code>, we take <code>minK = 3</code>. For <code>basis = "b-spline"</code>, <code>minK</code> has to be greater than or equal to <code>norder</code> defined below. If <code>minK = NULL</code> or <code>minK &lt; norder</code>, then we take <code>minK = norder</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxK</code></td>
+<td>
+<p>a maximum value of <code class="reqn">K</code>. When <code>basis = "Fourier"</code>, it has to be an odd number. If <code>maxK = NULL</code>, we take <code>maxK</code> equal to the largest odd number smaller than the number of design time points. If <code>maxK</code> is greater than or equal to the number of design time points, <code>maxK</code> is taken as above. For <code>basis = "b-spline"</code>, <code>maxK</code> has to be smaller than or equal to the number of design time points. If <code>maxK = NULL</code> or <code>maxK</code> is greater than the number of design time points, then we take <code>maxK</code> equal to the number of design time points.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norder</code></td>
+<td>
+<p>if <code>basis = "b-spline"</code>, an integer specifying the order of b-splines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma.eBIC</code></td>
+<td>
+<p>a <code class="reqn">\gamma\in[0,1]</code> parameter in the eBIC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramCH</code></td>
+<td>
+<p>a number of discretized artificial trajectories for generating Gaussian processes for the CH test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramCS</code></td>
+<td>
+<p>a number of discretized artificial trajectories for generating Gaussian processes for the CS test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramL2b</code></td>
+<td>
+<p>a number of bootstrap samples for the L<code class="reqn">^2</code>b test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramFb</code></td>
+<td>
+<p>a number of bootstrap samples for the Fb test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramFmaxb</code></td>
+<td>
+<p>a number of bootstrap samples for the Fmaxb test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramTRP</code></td>
+<td>
+<p>a list containing the parameters of the tests based on random projections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>a vector of numbers of projections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>projection</code></td>
+<td>
+<p>a method of generating Gaussian processes in step 1 of the tests based on random projections presented in Section 2 of the vignette file. If <code>projection = "GAUSS"</code>, the Gaussian white noise is generated as in the function <code>anova.RPm</code> from the R package <span class="pkg">fda.usc</span>. In the second case, the Brownian motion is generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permutation</code></td>
+<td>
+<p>a logical indicating whether to compute p-values of the tests based on random projections by permutation method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B.TRP</code></td>
+<td>
+<p>a number of permutation replicates for the tests based on random projections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>independent.projection.tests</code></td>
+<td>
+<p>a logical indicating whether to generate the random projections independently or dependently for different elements of vector <code>k</code>. In the first case, the random projections for each element of vector <code>k</code> are generated separately, while in the second one, they are generated as chained subsets, e.g., for <code>k = c(5, 10)</code>, the first 5 projections are a subset of the last 10. The second way of generating random projections is faster than the first one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>a logical indicating whether to use parallelization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nslaves</code></td>
+<td>
+<p>if <code>parallel = TRUE</code>, a number of slaves. Its default value means that it will be equal to a number of logical processes of a computer used.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To perform step 3 of the projection procedure given in Section 2.1 of the vignette file, we use five tests: the standard (<code>paramTRP$permutation = FALSE</code>) and permutation (<code>paramTRP$permutation</code> <code>= TRUE</code>) tests based on ANOVA F-test statistic and ANOVA-type statistic (ATS) proposed by Brunner et al. (1997), as well as the testing procedure based on Wald-type permutation statistic (WTPS) of Pauly et al. (2015).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with class "fanovatests" containing the following components (|<code>k</code>| denotes the length of vector <code>k</code>):
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>FP</code></td>
+<td>
+<p>a list containing value of test statistic <code>statFP</code>, p-value <code>pvalueFP</code> and used parameters for the FP test. The chosen optimal length of basis expansion <code>K</code> is also given there.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CH</code></td>
+<td>
+<p>a list containing value of test statistic <code>statCH</code>, p-value <code>pvalueCH</code> and used parameter <code>paramCH</code> for the CH test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CS</code></td>
+<td>
+<p>a list containing value of test statistic <code>statCS</code>, p-value <code>pvalueCS</code> and used parameter <code>paramCS</code> for the CS test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L2N</code></td>
+<td>
+<p>a list containing value of test statistic <code>statL2</code>, p-value <code>pvalueL2N</code> and values of estimators <code>betaL2N</code> and <code>dL2N</code> used in approximation of null distribution of test statistic for the L<code class="reqn">^2</code>N test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L2B</code></td>
+<td>
+<p>a list containing value of test statistic <code>statL2</code>, p-value <code>pvalueL2B</code> and values of estimators <code>betaL2B</code> and <code>dL2B</code> used in approximation of null distribution of test statistic for the L<code class="reqn">^2</code>B test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L2b</code></td>
+<td>
+<p>a list containing value of test statistic <code>statL2</code>, p-value <code>pvalueL2b</code> and used parameter <code>paramL2b</code> for the L<code class="reqn">^2</code>b test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FN</code></td>
+<td>
+<p>a list containing value of test statistic <code>statF</code>, p-value <code>pvalueFN</code> and values of estimators <code>d1FN</code> and <code>d2FN</code> used in approximation of null distribution of test statistic for the FN test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FB</code></td>
+<td>
+<p>a list containing value of test statistic <code>statF</code>, p-value <code>pvalueFB</code> and values of estimators <code>d1FB</code> and <code>d2FB</code> used in approximation of null distribution of test statistic for the FB test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fb</code></td>
+<td>
+<p>a list containing value of test statistic <code>statF</code>, p-value <code>pvalueFb</code> and used parameter <code>paramFb</code> for the Fb test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GPF</code></td>
+<td>
+<p>a list containing value of test statistic <code>statGPF</code>, p-value <code>pvalueGPF</code> and values of estimators <code>betaGPF</code> and <code>dGPF</code> used in approximation of null distribution of test statistic for the GPF test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fmaxb</code></td>
+<td>
+<p>a list containing value of test statistic <code>statFmax</code>, p-value <code>pvalueFmaxb</code> and used parameter <code>paramFmaxb</code> for the Fmaxb test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TRP</code></td>
+<td>
+<p>a list containing the following elements: vectors <code>pvalues.anova</code>, <code>pvalues.ATS</code>, <code>pvalues.WTPS</code> of length |<code>k</code>| containing p-values for tests based on random projections and for numbers of projections given in <code>k</code>; if <code>independent.projection.tests = TRUE</code>, a list <code>data.projections</code> of length |<code>k</code>|, whose <code class="reqn">i</code>th element is an <code class="reqn">n\times</code> <code>k[i]</code> matrix with columns being projections of the data; when <code>independent.projection.tests = FALSE</code>, an <code class="reqn">n\times \max</code>(<code>k</code>) matrix <code>data.projections</code> with columns being projections of the data; used parameters for the tests based on random projections.
+</p>
+</td>
+</tr>
+</table>
+<p>and the values of other used parameters: <code>data = x</code>, <code>group.label</code>, etc.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tomasz Gorecki, Lukasz Smaga
+</p>
+
+
+<h3>References</h3>
+
+<p>Brunner E, Dette H, Munk A (1997). Box-Type Approximations in Nonparametric Factorial
+Designs. Journal of the American Statistical Association 92, 1494-1502.
+</p>
+<p>Cuesta-Albertos JA, Febrero-Bande M (2010). A Simple Multiway ANOVA for Functional
+Data. Test 19, 537-557.
+</p>
+<p>Cuevas A, Febrero M, Fraiman R (2004). An Anova Test for Functional Data. Computational
+Statistics &amp; Data Analysis 47, 111-122.
+</p>
+<p>Faraway J (1997). Regression Analysis for a Functional Response. Technometrics 39,
+254-261.
+</p>
+<p>Gorecki T, Smaga L (2015). A Comparison of Tests for the One-Way ANOVA Problem for
+Functional Data. Computational Statistics 30, 987-1010.
+</p>
+<p>Gorecki T, Smaga L (2017). Multivariate Analysis of Variance for Functional Data. Journal of Applied Statistics 44, 2172-2189.
+</p>
+<p>Pauly M, Brunner E, Konietschke F (2015). Asymptotic Permutation Tests in General
+Factorial Designs. Journal of the Royal Statistical Society Series B 77, 461-473.
+</p>
+<p>Shen Q, Faraway J (2004). An F Test for Linear Models with Functional Responses. Statistica Sinica 14, 1239-1257.
+</p>
+<p>Zhang JT (2011). Statistical Inferences for Linear Models with Functional Responses. Statistica Sinica 21, 1431-1451.
+</p>
+<p>Zhang JT (2013). Analysis of Variance for Functional Data. Chapman &amp; Hall, London.
+</p>
+<p>Zhang JT, Chen JW (2007). Statistical Inferences for Functional Data. The Annals of
+Statistics 35, 1052-1079.
+</p>
+<p>Zhang JT, Cheng MY, Wu HT, Zhou B (2018). A New Test for Functional One-way
+ANOVA with Applications to Ischemic Heart Screening. Computational Statistics and Data Analysis
+https://doi.org/10.1016/j.csda.2018.05.004
+</p>
+<p>Zhang JT, Liang X (2014). One-Way ANOVA for Functional Data via Globalizing the
+Pointwise F-Test. Scandinavian Journal of Statistics 41, 51-71.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fmanova.ptbfr</code>, <code>fmanova.trp</code>, <code>plotFANOVA</code>, <code>plot.fanovatests</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Some of the examples may run some time.
+
+# gait data (the first feature)
+library(fda)
+gait.data.frame &lt;- as.data.frame(gait)
+x.gait &lt;- as.matrix(gait.data.frame[, 1:39])
+
+# vector of group labels
+group.label.gait &lt;- rep(1:3, each = 13)
+
+# all FANOVA tests with default parameters
+set.seed(123)
+(fanova1 &lt;- fanova.tests(x = x.gait, group.label = group.label.gait))
+summary(fanova1)
+# data projections generated in the test based on random projections
+fanova1$TRP$data.projections
+
+# only three tests with non-default parameters
+set.seed(123)
+fanova2 &lt;- fanova.tests(x.gait, group.label.gait,
+                        test = c("FP", "GPF", "Fmaxb"),
+                        params = list(paramFP = list(int = c(0.025, 0.975),
+                                                     B.FP = 1000, basis = "b-spline",
+                                                     criterion = "eBIC",
+                                                     commonK = "mean",
+                                                     minK = 5, maxK = 20,
+                                                     norder = 4, gamma.eBIC = 0.7),
+                                      paramFmaxb = 1000))
+summary(fanova2)
+
+# the FP test with predefined basis function representation
+library(fda)
+fbasis &lt;- create.bspline.basis(rangeval = c(0.025, 0.975), 19, norder = 4)
+own.basis &lt;- Data2fd(seq(0.025, 0.975, length = 20), x.gait, fbasis)$coefs
+own.cross.prod.mat &lt;- inprod(fbasis, fbasis)
+set.seed(123)
+fanova3 &lt;- fanova.tests(group.label = group.label.gait, test = "FP",
+                        params = list(paramFP = list(B.FP = 1000, basis = "own",
+                                                     own.basis = own.basis,
+                                                     own.cross.prod.mat = own.cross.prod.mat)))
+summary(fanova3)
+
+# the tests based on random projections with the Gaussian white noise generated for projections
+set.seed(123)
+fanova4 &lt;- fanova.tests(x.gait, group.label.gait, test = "TRP",
+                        parallel = TRUE, nslaves = 2,
+                        params = list(paramTRP = list(k = c(10, 20, 30), B.TRP = 1000)))
+summary(fanova4)
+set.seed(123)
+fanova5 &lt;- fanova.tests(x.gait, group.label.gait, test = "TRP",
+                        parallel = TRUE, nslaves = 2,
+                        params = list(paramTRP = list(k = c(10, 20, 30),
+                                                      permutation = TRUE, B.TRP = 1000)))
+summary(fanova5)
+
+# the tests based on random projections with the Brownian motion generated for projections
+set.seed(123)
+fanova6 &lt;- fanova.tests(x.gait, group.label.gait, test = "TRP",
+                        parallel = TRUE, nslaves = 2,
+                        params = list(paramTRP = list(k = c(10, 20, 30), projection = "BM",
+                                                      B.TRP = 1000)))
+summary(fanova6)
+set.seed(123)
+fanova7 &lt;- fanova.tests(x.gait, group.label.gait, test = "TRP",
+                        parallel = TRUE, nslaves = 2,
+                        params = list(paramTRP = list(k = c(10, 20, 30), projection = "BM",
+                                                      permutation = TRUE, B.TRP = 1000)))
+summary(fanova7)
+
+</code></pre>
+
+
+</div>

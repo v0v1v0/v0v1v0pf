@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>directed_factor_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a directed factor model graph</h2>
+
+<h3>Description</h3>
+
+<p>A directed factor model graph is a directed
+generalized Poisson random dot product graph. The edges
+in this graph are assumpted to be independent and Poisson
+distributed. The graph is parameterized by its expected
+adjacency matrix, with is <code style="white-space: pre;">⁠E[A] = X S Y'⁠</code>. We do not recommend
+that causal users use this function, see instead <code>directed_dcsbm()</code>
+and related functions, which will formulate common variants
+of the stochastic blockmodels as undirected factor models
+<em>with lots of helpful input validation</em>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">directed_factor_model(
+  X,
+  S,
+  Y,
+  ...,
+  expected_in_degree = NULL,
+  expected_out_degree = NULL,
+  expected_density = NULL,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A <code>matrix()</code> or Matrix() representing real-valued
+latent node positions encoding community structure of
+incoming edges. Entries must be positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>A <code>matrix()</code> or Matrix() mixing matrix. Entries
+must be positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A <code>matrix()</code> or Matrix() representing real-valued
+latent node positions encoding community structure of
+outgoing edges. Entries must be positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored. For internal developer use only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected_in_degree</code></td>
+<td>
+<p>If specified, the desired expected in degree
+of the graph. Specifying <code>expected_in_degree</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Specify only one of
+<code>expected_in_degree</code>, <code>expected_out_degree</code>, and <code>expected_density</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected_out_degree</code></td>
+<td>
+<p>If specified, the desired expected out degree
+of the graph. Specifying <code>expected_out_degree</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Specify only one of
+<code>expected_in_degree</code>, <code>expected_out_degree</code>, and <code>expected_density</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected_density</code></td>
+<td>
+<p>If specified, the desired expected density
+of the graph. Specifying <code>expected_density</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Specify only one of
+<code>expected_in_degree</code>, <code>expected_out_degree</code>, and <code>expected_density</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poisson_edges</code></td>
+<td>
+<p>Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when <code>FALSE</code>, we assume that <code>S</code> specifies a desired between-factor
+connection probability, and back-transform this <code>S</code> to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_self_loops</code></td>
+<td>
+<p>Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds allowing
+self-loops, and these are then removed after the fact.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>directed_factor_model</code> S3 class based on a list
+with the following elements:
+</p>
+
+<ul>
+<li> <p><code>X</code>: The incoming latent positions as a <code>Matrix()</code> object.
+</p>
+</li>
+<li> <p><code>S</code>: The mixing matrix as a <code>Matrix()</code> object.
+</p>
+</li>
+<li> <p><code>Y</code>: The outgoing latent positions as a <code>Matrix()</code> object.
+</p>
+</li>
+<li> <p><code>n</code>: The number of nodes with incoming edges in the network.
+</p>
+</li>
+<li> <p><code>k1</code>: The dimension of the latent node position vectors
+encoding incoming latent communities (i.e. in <code>X</code>).
+</p>
+</li>
+<li> <p><code>d</code>: The number of nodes with outgoing edges in the network.
+Does not need to match <code>n</code> – rectangular adjacency matrices
+are supported.
+</p>
+</li>
+<li> <p><code>k2</code>: The dimension of the latent node position vectors
+encoding outgoing latent communities (i.e. in <code>Y</code>).
+</p>
+</li>
+<li> <p><code>poisson_edges</code>: Whether or not the graph is taken to be have
+Poisson or Bernoulli edges, as indicated by a logical vector
+of length 1.
+</p>
+</li>
+<li> <p><code>allow_self_loops</code>: Whether or not self loops are allowed.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+n &lt;- 10000
+
+k1 &lt;- 5
+k2 &lt;- 3
+
+d &lt;- 5000
+
+X &lt;- matrix(rpois(n = n * k1, 1), nrow = n)
+S &lt;- matrix(runif(n = k1 * k2, 0, .1), nrow = k1, ncol = k2)
+Y &lt;- matrix(rexp(n = k2 * d, 1), nrow = d)
+
+fm &lt;- directed_factor_model(X, S, Y)
+fm
+
+fm2 &lt;- directed_factor_model(X, S, Y, expected_in_degree = 50)
+fm2
+
+</code></pre>
+
+
+</div>

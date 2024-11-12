@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>stabsel.FDboost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Stability Selection</h2>
+
+<h3>Description</h3>
+
+<p>Function for stability selection with functional response. Per default the sampling is done
+on the level of curves and if the model contains a smooth functional intercept, this intercept 
+is refittedn in each sampling fold.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FDboost'
+stabsel(
+  x,
+  refitSmoothOffset = TRUE,
+  cutoff,
+  q,
+  PFER,
+  folds = cvLong(x$id, weights = rep(1, l = length(x$id)), type = "subsampling", B = B),
+  B = ifelse(sampling.type == "MB", 100, 50),
+  assumption = c("unimodal", "r-concave", "none"),
+  sampling.type = c("SS", "MB"),
+  papply = mclapply,
+  verbose = TRUE,
+  eval = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>fitted FDboost-object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refitSmoothOffset</code></td>
+<td>
+<p>logical, should the offset be refitted in each learning sample? 
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>cutoff between 0.5 and 1. Preferably a value between 0.6 and 0.9 should be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>number of (unique) selected variables (or groups of variables depending on the model) 
+that are selected on each subsample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PFER</code></td>
+<td>
+<p>upper bound for the per-family error rate. This specifies the amount of falsely 
+selected base-learners, which is tolerated. See details of <code>stabsel</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>a weight matrix with number of rows equal to the number of observations, 
+see <code>{cvLong}</code>. Usually one should not change the default here as subsampling 
+with a fraction of 1/2 is needed for the error bounds to hold. One usage scenario where 
+specifying the folds by hand might be the case when one has dependent data (e.g. clusters) and 
+thus wants to draw clusters (i.e., multiple rows together) not individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of subsampling replicates. Per default, we use 50 complementary pairs for the error 
+bounds of Shah &amp; Samworth (2013) and 100 for the error bound derived in Meinshausen &amp; Buehlmann (2010). 
+As we use <code>B</code> complementary pairs in the former case this leads to <code>2B</code> subsamples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>assumption</code></td>
+<td>
+<p>Defines the type of assumptions on the distributions of the selection probabilities 
+and simultaneous selection probabilities. Only applicable for <code>sampling.type = "SS"</code>. 
+For <code>sampling.type = "MB"</code> we always use <code>"none"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampling.type</code></td>
+<td>
+<p>use sampling scheme of of Shah &amp; Samworth (2013), i.e., with complementary pairs 
+(<code>sampling.type = "SS"</code>), or the original sampling scheme of Meinshausen &amp; Buehlmann (2010).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>papply</code></td>
+<td>
+<p>(parallel) apply function, defaults to mclapply. Alternatively, parLapply can be used. 
+In the latter case, usually more setup is needed (see example of cvrisk for some details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical (default: TRUE) that determines wether warnings should be issued.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval</code></td>
+<td>
+<p>logical. Determines whether stability selection is evaluated (<code>eval = TRUE</code>; default) 
+or if only the parameter combination is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to <code>cvrisk</code> or <code>validateFDboost</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The number of boosting iterations is an important hyper-parameter of the boosting algorithms 
+and can be chosen using the functions <code>cvrisk.FDboost</code> and <code>validateFDboost</code> as they compute
+honest, i.e. out-of-bag, estimates of the empirical risk for different numbers of boosting iterations. 
+The weights (zero weights correspond to test cases) are defined via the folds matrix, 
+see <code>cvrisk</code> in package mboost. 
+See Hofner et al. (2015) for the combination of stability selection and component-wise boosting.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>stabsel</code> with a special print method. 
+For the elements of the object, see <code>stabsel</code>
+</p>
+
+
+<h3>References</h3>
+
+<p>B. Hofner, L. Boccuto and M. Goeker (2015), Controlling false discoveries in 
+high-dimensional situations: boosting with stability selection. 
+BMC Bioinformatics, 16, 1-17.
+</p>
+<p>N. Meinshausen and P. Buehlmann (2010), Stability selection. 
+Journal of the Royal Statistical Society, Series B, 72, 417-473.
+</p>
+<p>R.D. Shah and R.J. Samworth (2013), Variable selection with error control: 
+another look at stability selection. Journal of the Royal Statistical Society, Series B, 75, 55-80.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>stabsel</code> to perform stability selection for a mboost-object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">######## Example for function-on-scalar-regression
+data("viscosity", package = "FDboost")
+## set time-interval that should be modeled
+interval &lt;- "101"
+
+## model time until "interval" and take log() of viscosity
+end &lt;- which(viscosity$timeAll == as.numeric(interval))
+viscosity$vis &lt;- log(viscosity$visAll[,1:end])
+viscosity$time &lt;- viscosity$timeAll[1:end]
+# with(viscosity, funplot(time, vis, pch = 16, cex = 0.2))
+
+## fit a model cotaining all main effects 
+modAll &lt;- FDboost(vis ~ 1 
+          + bolsc(T_C, df=1) %A0% bbs(time, df=5) 
+          + bolsc(T_A, df=1) %A0% bbs(time, df=5)
+          + bolsc(T_B, df=1) %A0% bbs(time, df=5)
+          + bolsc(rspeed, df=1) %A0% bbs(time, df=5)
+          + bolsc(mflow, df=1) %A0% bbs(time, df=5), 
+       timeformula = ~bbs(time, df=5), 
+       numInt = "Riemann", family = QuantReg(), 
+       offset = NULL, offset_control = o_control(k_min = 10),
+       data = viscosity, 
+       control = boost_control(mstop = 100, nu = 0.2))
+
+
+## create folds for stability selection  
+## only 5 folds for a fast example, usually use 50 folds 
+set.seed(1911)
+folds &lt;- cvLong(modAll$id, weights = rep(1, l = length(modAll$id)), 
+                type = "subsampling", B = 5) 
+    
+        
+## stability selection with refit of the smooth intercept 
+stabsel_parameters(q = 3, PFER = 1, p = 6, sampling.type = "SS")
+sel1 &lt;- stabsel(modAll, q = 3, PFER = 1, folds = folds, grid = 1:200, sampling.type = "SS")
+sel1
+
+## stability selection without refit of the smooth intercept 
+sel2 &lt;- stabsel(modAll, refitSmoothOffset = FALSE, q = 3, PFER = 1, 
+                folds = folds, grid = 1:200, sampling.type = "SS")
+sel2
+
+
+</code></pre>
+
+
+</div>

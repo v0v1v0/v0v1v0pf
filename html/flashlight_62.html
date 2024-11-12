@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>light_importance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variable Importance</h2>
+
+<h3>Description</h3>
+
+<p>Two algorithms to calculate variable importance are available:
+</p>
+
+<ol>
+<li>
+<p> Permutation importance, and
+</p>
+</li>
+<li>
+<p> SHAP importance
+</p>
+</li>
+</ol>
+<p>Algorithm 1 measures importance of variable v as the drop in performance
+by permuting the values of v, see Fisher et al. 2018 (reference below).
+Algorithm 2 measures variable importance by averaging absolute SHAP values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">light_importance(x, ...)
+
+## Default S3 method:
+light_importance(x, ...)
+
+## S3 method for class 'flashlight'
+light_importance(
+  x,
+  data = x$data,
+  by = x$by,
+  type = c("permutation", "shap"),
+  v = NULL,
+  n_max = Inf,
+  seed = NULL,
+  m_repetitions = 1L,
+  metric = x$metrics[1L],
+  lower_is_better = TRUE,
+  use_linkinv = FALSE,
+  ...
+)
+
+## S3 method for class 'multiflashlight'
+light_importance(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "flashlight" or "multiflashlight".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>light_performance()</code>.
+Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional <code>data.frame</code>. Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>An optional vector of column names used to additionally group the results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of importance: "permutation" (default) or "shap".
+"shap" is only available if a "shap" object is contained in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Vector of variable names to assess importance for.
+Defaults to all variables in <code>data</code> except "by" and "y".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>Maximum number of rows to consider. Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer random seed used to select and shuffle rows.
+Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m_repetitions</code></td>
+<td>
+<p>Number of permutations. Defaults to 1.
+A value above 1 provides more stable estimates of variable importance and
+allows the calculation of standard errors measuring the uncertainty from permuting.
+Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>An optional named list of length one with a metric as element.
+Defaults to the first metric in the flashlight. The metric needs to be a function
+with at least four arguments: actual, predicted, case weights w and <code>...</code>.
+Irrelevant for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_is_better</code></td>
+<td>
+<p>Logical flag indicating if lower values in the metric
+are better or not. If set to <code>FALSE</code>, the increase in metric is multiplied by -1.
+Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_linkinv</code></td>
+<td>
+<p>Should retransformation function be applied?
+Default is <code>FALSE</code>. Not uses for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For Algorithm 1, the minimum required elements in the
+(multi-)flashlight are "y", "predict_function", "model", "data" and "metrics".
+For Algorithm 2, the only required element is "shap". Call <code>add_shap()</code> once to
+add such object.
+</p>
+<p>Note: The values of the permutation Algorithm 1. are on the scale
+of the selected metric. For SHAP Algorithm 2, the values are on the scale
+of absolute values of the predictions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "light_importance" with the following elements:
+</p>
+
+<ul>
+<li> <p><code>data</code> A tibble with results. Can be used to build fully customized visualizations.
+Column names can be controlled by <code>options(flashlight.column_name)</code>.
+</p>
+</li>
+<li> <p><code>by</code> Same as input <code>by</code>.
+</p>
+</li>
+<li> <p><code>type</code> Same as input <code>type</code>. For information only.
+</p>
+</li>
+</ul>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>light_importance(default)</code>: Default method not implemented yet.
+</p>
+</li>
+<li> <p><code>light_importance(flashlight)</code>: Variable importance for a flashlight.
+</p>
+</li>
+<li> <p><code>light_importance(multiflashlight)</code>: Variable importance for a multiflashlight.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Fisher A., Rudin C., Dominici F. (2018). All Models are Wrong but many are Useful:
+Variable Importance for Black-Box, Proprietary, or Misspecified Prediction
+Models, using Model Class Reliance. Arxiv.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>most_important()</code>, <code>plot.light_importance()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">fit &lt;- lm(Sepal.Length ~ Petal.Length, data = iris)
+fl &lt;- flashlight(model = fit, label = "full", data = iris, y = "Sepal.Length")
+light_importance(fl)
+</code></pre>
+
+
+</div>

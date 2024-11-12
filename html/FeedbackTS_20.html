@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>krige.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Test of spatial variation in feedback and change-in-feedback
+</h2>
+
+<h3>Description</h3>
+
+<p>Randomization test to investigate spatial variation in a kriged index.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">krige.test(krige.output, subregion, alternative, nb.rand, subregion.coverage=0.8)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>krige.output</code></td>
+<td>
+
+<p>a list of items corresponding to the output of the krige function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subregion</code></td>
+<td>
+
+<p>a list of two vectors containing the lat/long coordinates of the vertices of a polygon. The polygon defines a subregion where one supposes variation in the predicted index <code>krige.output$krige$predict</code>.
+</p>
+
+<dl>
+<dt>
+<code>x</code>:</dt>
+<dd>
+<p>longitudes.</p>
+</dd>
+<dt>
+<code>y</code>:</dt>
+<dd>
+<p>latitudes.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+
+<p>a character string specifying the alternative hypothesis, must be one of "greater" or "less". 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.rand</code></td>
+<td>
+
+<p>a positive integer specifying the number of randomizations (here, a randomization is a random translation on a torus).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subregion.coverage</code></td>
+<td>
+
+<p>a numeric value between zero and one specifying a criterion to accept a random translation (see Details).  Default value is 0.8.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The criterion to accept a random translation is a minimum coverage of <code>subregion</code> by the translated grid: the ratio between the number of nodes of the translated grid that are contained in <code>subregion</code> and the number of nodes of the original grid that are contained in <code>subregion</code> must be equal to or greater than <code>subregion.coverage</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object from the KT.output class
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Samuel Soubeyrand <a href="mailto:Samuel.Soubeyrand@avignon.inra.fr">Samuel.Soubeyrand@avignon.inra.fr</a>, Cindy E. Morris, E. Keith Bigg.
+</p>
+
+
+<h3>References</h3>
+
+<p>Soubeyrand, S., Morris, C. E. and Bigg, E. K. (2014). Analysis of fragmented time directionality in time series to elucidate feedbacks in climate data. Environmental Modelling and Software 61: 78-86.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>krige, KT.output-class, rain.feedback.stats
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### load data of feedback and change-in-feedback indices in 88 sites across Australia
+data(rain.feedback.stats)
+
+#### spatial coordinates of the 88 sites
+coord=rain.feedback.stats[,3:4]
+
+#### map of feedback index computed from the whole data series
+stat1=rain.feedback.stats[["Feedback.whole.period"]]
+
+#### variogram analysis and kriging of feedback index
+## computer intensive stage
+## Not run: 
+par(mfrow=c(2,2), mar=c(5.1,4.1,4.1,2.1))
+kr1=krige(coordinates=coord, statistic=stat1,
+   grid=list(x=seq(110,155,0.25),y=seq(-45,-11,0.25),border="Australia", 
+      proj="+proj=lcc +lat_1=-18 +lat_2=-36 +lat0=-25 +lon_0=140",degrees=TRUE),
+   plots=TRUE)
+
+## End(Not run)
+#### test spatial variation in feedback index and plot test output
+## computer intensive stage
+## Not run: 
+kt1=krige.test(krige.output=kr1,subregion=list(x=c(138,152,152,138),y=-c(40,40,33,33)),
+   alternative="greater", nb.rand=2000)
+par(mfrow=c(1,2), mar=c(5.1,4.1,4.1,2.1))	
+plot(kt1,digits=list(predict=3,pvalue=3),breaks=12)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

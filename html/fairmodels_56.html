@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>stack_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Stack metrics</h2>
+
+<h3>Description</h3>
+
+<p>Stack metrics sums parity loss metrics for all models. Higher value of stacked metrics means the model is less fair (has higher bias)
+for subgroups from protected vector.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">stack_metrics(x, fairness_metrics = c("ACC", "TPR", "PPV", "FPR", "STP"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class <code>fairness_object</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fairness_metrics</code></td>
+<td>
+<p>character, vector of fairness parity_loss metric names to include in plot. Full names are provided in <code>fairess_check</code> documentation.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>stacked_metrics</code> object. It contains <code>data.frame</code> with information about score for each metric and model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+sm &lt;- stack_metrics(fobject)
+plot(sm)
+
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200
+)
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_rf, fobject)
+
+sm &lt;- stack_metrics(fobject)
+plot(sm)
+
+
+</code></pre>
+
+
+</div>

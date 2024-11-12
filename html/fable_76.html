@@ -1,0 +1,241 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ETS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Exponential smoothing state space model</h2>
+
+<h3>Description</h3>
+
+<p>Returns ETS model specified by the formula.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ETS(
+  formula,
+  opt_crit = c("lik", "amse", "mse", "sigma", "mae"),
+  nmse = 3,
+  bounds = c("both", "usual", "admissible"),
+  ic = c("aicc", "aic", "bic"),
+  restrict = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt_crit</code></td>
+<td>
+<p>The optimization criterion. Defaults to the log-likelihood
+<code>"lik"</code>, but can also be set to <code>"mse"</code> (Mean Square Error), <code>"amse"</code>
+(Average MSE over first <code>nmse</code> forecast horizons), <code>"sigma"</code> (Standard
+deviation of residuals), or <code>"mae"</code> (Mean Absolute Error).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmse</code></td>
+<td>
+<p>If <code>opt_crit == "amse"</code>, <code>nmse</code> provides the number of steps for
+average multistep MSE (<code style="white-space: pre;">⁠1&lt;=nmse&lt;=30⁠</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>Type of parameter space to impose: <code>"usual"</code> indicates
+all parameters must lie between specified lower and upper bounds;
+<code>"admissible"</code> indicates parameters must lie in the admissible space;
+<code>"both"</code> (default) takes the intersection of these regions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>The information criterion used in selecting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restrict</code></td>
+<td>
+<p>If TRUE (default), the models with infinite variance will not
+be allowed. These restricted model components are AMM, AAM, AMA, and MMA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Based on the classification of methods as described in Hyndman et al (2008).
+</p>
+<p>The methodology is fully automatic. The model is chosen automatically if not
+specified. This methodology performed extremely well on the M3-competition
+data. (See Hyndman, et al, 2002, below.)
+</p>
+
+
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+
+
+<h3>Specials</h3>
+
+<p>The <em>specials</em> define the methods and parameters for the components (error, trend, and seasonality) of an ETS model. If more than one method is specified, <code>ETS</code> will consider all combinations of the specified models and select the model which best fits the data (minimising <code>ic</code>). The method argument for each specials have reasonable defaults, so if a component is not specified an appropriate method will be chosen automatically.
+</p>
+<p>There are a couple of limitations to note about ETS models:
+</p>
+
+<ul>
+<li>
+<p> It does not support exogenous regressors.
+</p>
+</li>
+<li>
+<p> It does not support missing values. You can complete missing values in the data with imputed values (e.g. with <code>tidyr::fill()</code>, or by fitting a different model type and then calling <code>fabletools::interpolate()</code>) before fitting the model.
+</p>
+</li>
+</ul>
+<h4>error</h4>
+
+<p>The <code>error</code> special is used to specify the form of the error term.
+</p>
+<pre>
+error(method = c("A", "M"))
+</pre>
+
+<table><tr>
+<td style="text-align: left;">
+<code>method</code>     </td>
+<td style="text-align: left;"> The form of the error term: either additive ("A") or multiplicative ("M"). If the error is multiplicative, the data must be non-negative. All specified methods are tested on the data, and the one that gives the best fit (lowest <code>ic</code>) will be kept.
+</td>
+</tr></table>
+<h4>trend</h4>
+
+<p>The <code>trend</code> special is used to specify the form of the trend term and associated parameters.
+</p>
+<pre>
+trend(method = c("N", "A", "Ad"),
+      alpha = NULL, alpha_range = c(1e-04, 0.9999),
+      beta = NULL, beta_range = c(1e-04, 0.9999),
+      phi = NULL, phi_range = c(0.8, 0.98))
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>method</code>     </td>
+<td style="text-align: left;"> The form of the trend term: either none ("N"), additive ("A"), multiplicative ("M") or damped variants ("Ad", "Md"). All specified methods are tested on the data, and the one that gives the best fit (lowest <code>ic</code>) will be kept.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>alpha</code>      </td>
+<td style="text-align: left;"> The value of the smoothing parameter for the level. If <code>alpha = 0</code>, the level will not change over time. Conversely, if <code>alpha = 1</code> the level will update similarly to a random walk process. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>alpha_range</code> </td>
+<td style="text-align: left;"> If <code>alpha=NULL</code>, <code>alpha_range</code> provides bounds for the optimised value of <code>alpha</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>beta</code>       </td>
+<td style="text-align: left;"> The value of the smoothing parameter for the slope. If <code>beta = 0</code>, the slope will not change over time. Conversely, if <code>beta = 1</code> the slope will have no memory of past slopes. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>beta_range</code>  </td>
+<td style="text-align: left;"> If <code>beta=NULL</code>, <code>beta_range</code> provides bounds for the optimised value of <code>beta</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>phi</code>        </td>
+<td style="text-align: left;"> The value of the dampening parameter for the slope. If <code>phi = 0</code>, the slope will be dampened immediately (no slope). Conversely, if <code>phi = 1</code> the slope will not be dampened. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>phi_range</code>   </td>
+<td style="text-align: left;"> If <code>phi=NULL</code>, <code>phi_range</code> provides bounds for the optimised value of <code>phi</code>.
+</td>
+</tr>
+</table>
+<h4>season</h4>
+
+<p>The <code>season</code> special is used to specify the form of the seasonal term and associated parameters. To specify a nonseasonal model you would include <code>season(method = "N")</code>.
+</p>
+<pre>
+season(method = c("N", "A", "M"), period = NULL,
+       gamma = NULL, gamma_range = c(1e-04, 0.9999))
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>method</code>     </td>
+<td style="text-align: left;"> The form of the seasonal term: either none ("N"), additive ("A") or multiplicative ("M"). All specified methods are tested on the data, and the one that gives the best fit (lowest <code>ic</code>) will be kept.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>period</code>     </td>
+<td style="text-align: left;"> The periodic nature of the seasonality. This can be either a number indicating the number of observations in each seasonal period, or text to indicate the duration of the seasonal window (for example, annual seasonality would be "1 year").  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>gamma</code>      </td>
+<td style="text-align: left;"> The value of the smoothing parameter for the seasonal pattern. If <code>gamma = 0</code>, the seasonal pattern will not change over time. Conversely, if <code>gamma = 1</code> the seasonality will have no memory of past seasonal periods. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>gamma_range</code> </td>
+<td style="text-align: left;"> If <code>gamma=NULL</code>, <code>gamma_range</code> provides bounds for the optimised value of <code>gamma</code>.
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Hyndman, R.J., Koehler, A.B., Snyder, R.D., and Grose, S. (2002)
+"A state space framework for automatic forecasting using exponential
+smoothing methods", <em>International J. Forecasting</em>, <b>18</b>(3),
+439–454.
+</p>
+<p>Hyndman, R.J., Akram, Md., and Archibald, B. (2008) "The admissible
+parameter space for exponential smoothing models". <em>Annals of
+Statistical Mathematics</em>, <b>60</b>(2), 407–426.
+</p>
+<p>Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D. (2008)
+<em>Forecasting with exponential smoothing: the state space approach</em>,
+Springer-Verlag. <a href="http://www.exponentialsmoothing.net">http://www.exponentialsmoothing.net</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><a href="https://otexts.com/fpp3/expsmooth.html">Forecasting: Principles and Practices, Exponential smoothing (chapter 8)</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">as_tsibble(USAccDeaths) %&gt;%
+  model(ETS(log(value) ~ season("A")))
+</code></pre>
+
+
+</div>

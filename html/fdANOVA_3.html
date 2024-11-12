@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmanova.trp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Tests Based on Random Projections for FMANOVA Problem
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs the testing procedures based on random projections for multivariate analysis of variance for functional data, i.e., the Wp, LHp, Pp and Rp tests. For details of the tests, see Section 2.2 of the vignette file (<code>vignette("fdANOVA", package = "fdANOVA")</code>).
+</p>
+<p>We consider independent vectors of random functions </p>
+<p style="text-align: center;"><code class="reqn">\mathbf{X}_{ij}(t)=(X_{ij1}(t),\dots,X_{ijp}(t))^{\top}\in SP_p(\boldsymbol{\mu}_i,\mathbf{\Gamma}),</code>
+</p>
+ <p><code class="reqn">i=1,\dots,l,</code> <code class="reqn">j=1,\dots,n_{i}</code> defined over the interval <code class="reqn">I=[a,b]</code>, where <code class="reqn">SP_{p}(\boldsymbol{\mu},\boldsymbol{\Gamma})</code> is a set of <code class="reqn">p</code>-dimensional stochastic processes with mean vector <code class="reqn">\boldsymbol{\mu}(t)</code>, <code class="reqn">t\in I</code> and covariance function <code class="reqn">\boldsymbol{\Gamma}(s, t)</code>, <code class="reqn">s,t\in I</code>. Let <code class="reqn">n=n_1+\dots+n_l</code>. In the multivariate analysis of variance problem for functional data (FMANOVA), we have to test the null hypothesis as follows:
+</p>
+<p style="text-align: center;"><code class="reqn">
+H_0:\boldsymbol{\mu}_1(t)=\dots=\boldsymbol{\mu}_l(t),\ t\in I.
+</code>
+</p>
+
+<p>The alternative is the negation of the null hypothesis. We assume that each functional observation is observed on a common grid of <code class="reqn">\mathcal{T}</code> design time points equally spaced in <code class="reqn">I</code> (see Section 3.1 of the vignette file, <code>vignette("fdANOVA", package = "fdANOVA")</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmanova.trp(x, group.label, k = 30, projection = c("GAUSS", "BM"),
+            permutation = FALSE, B = 1000,
+            independent.projection.tests = TRUE,
+            parallel = FALSE, nslaves = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a list of <code class="reqn">\mathcal{T}\times n</code> matrices of data, whose each column is a discretized version of a function  and rows correspond to design time points. The <code class="reqn">m</code>th element of this list contains the data of <code class="reqn">m</code>th feature, <code class="reqn">m=1,\dots,p</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.label</code></td>
+<td>
+<p>a vector containing group labels.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>a vector of numbers of projections.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>projection</code></td>
+<td>
+<p>a method of generating Gaussian processes in step 1 of the test based on random projections presented in Section 2 of the vignette file. If <code>projection = "GAUSS"</code>, the Gaussian white noise is generated as in the function <code>anova.RPm</code> from the R package <span class="pkg">fda.usc</span>. In the second case, the Brownian motion is generated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permutation</code></td>
+<td>
+<p>a logical indicating whether to compute p-values by permutation method.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>a number of permutation replicates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>independent.projection.tests</code></td>
+<td>
+<p>a logical indicating whether to generate the random projections independently or dependently for different elements of vector <code>k</code>. In the first case, the random projections for each element of vector <code>k</code> are generated separately, while in the second one, they are generated as chained subsets, e.g., for <code>k = c(5, 10)</code>, the first 5 projections are a subset of the last 10. The second way of generating random projections is faster than the first one.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>a logical indicating whether to use parallelization.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nslaves</code></td>
+<td>
+<p>if <code>parallel = TRUE</code>, a number of slaves. Its default value means that it will be equal to a number of logical processes of a computer used.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with class "fmanovatrp" containing the following components (|<code>k</code>| denotes the length of vector <code>k</code>):
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pvalues</code></td>
+<td>
+<p>a <code class="reqn">4\times</code> |<code>k</code>| matrix of p-values of the tests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.projections</code></td>
+<td>
+<p>if <code>independent.projection.tests = TRUE</code>, a list of length |<code>k</code>|, whose elements are lists of <code class="reqn">n\times p</code> matrices of projections of the observations, while when <code>independent.projection.tests = FALSE</code>, a list of length <code class="reqn">\max</code>(<code>k</code>), whose elements are <code class="reqn">n\times p</code> matrices of projections of the observations,</p>
+</td>
+</tr>
+</table>
+<p>and the values of used parameters.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tomasz Gorecki, Lukasz Smaga
+</p>
+
+
+<h3>References</h3>
+
+<p>Cuesta-Albertos JA, Febrero-Bande M (2010). A Simple Multiway ANOVA for Functional
+Data. Test 19, 537-557.
+</p>
+<p>Gorecki T, Smaga L (2017). Multivariate Analysis of Variance for Functional Data. Journal of Applied Statistics 44, 2172-2189.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fanova.tests</code>, <code>fmanova.ptbfr</code>, <code>plotFANOVA</code>, <code>plot.fmanovatrp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Some of the examples may run some time.
+
+# gait data (both features)
+library(fda)
+gait.data.frame &lt;- as.data.frame(gait)
+x.gait &lt;- vector("list", 2)
+x.gait[[1]] &lt;- as.matrix(gait.data.frame[, 1:39])
+x.gait[[2]] &lt;- as.matrix(gait.data.frame[, 40:78])
+
+# vector of group labels
+group.label.gait &lt;- rep(1:3, each = 13)
+
+# the tests based on random projections with the Gaussian white noise generated for projections
+set.seed(123)
+fmanova1 &lt;- fmanova.trp(x.gait, group.label.gait, k = c(1, 5, 10, 15, 20))
+summary(fmanova1)
+fmanova2 &lt;- fmanova.trp(x.gait, group.label.gait, k = c(1, 5, 10, 15, 20),
+                        permutation = TRUE, B = 1000,
+                        parallel = TRUE, nslaves = 2)
+summary(fmanova2)
+
+# the tests based on random projections with the Brownian motion generated for projections
+set.seed(123)
+fmanova3 &lt;- fmanova.trp(x.gait, group.label.gait, k = c(1, 5, 10, 15, 20), projection = "BM")
+summary(fmanova3)
+fmanova4 &lt;- fmanova.trp(x.gait, group.label.gait, k = c(1, 5, 10, 15, 20), projection = "BM",
+                        permutation = TRUE, B = 1000,
+                        parallel = TRUE, nslaves = 2)
+summary(fmanova4)
+
+</code></pre>
+
+
+</div>

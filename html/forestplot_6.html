@@ -1,0 +1,654 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>forestplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Draws a forest plot</h2>
+
+<h3>Description</h3>
+
+<p>This function generates a forest plot with extended capabilities compared to
+the default <code>forestplot()</code> function in the <code>rmeta</code> package. It overcomes some limitations
+of the original function, including the addition of expressions, use of multiple confidence
+bands per label, autosizing to viewport, and uses modern tidyverse syntax. Refer to <code>vignette("forestplot")</code>
+for comprehensive details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">forestplot(...)
+
+## S3 method for class 'data.frame'
+forestplot(x, mean, lower, upper, labeltext, is.summary, boxsize, ...)
+
+## Default S3 method:
+forestplot(
+  labeltext,
+  mean,
+  lower,
+  upper,
+  align = NULL,
+  is.summary = FALSE,
+  graph.pos = "right",
+  hrzl_lines = NULL,
+  clip = c(-Inf, Inf),
+  xlab = NULL,
+  zero = ifelse(xlog, 1, 0),
+  graphwidth = "auto",
+  colgap = NULL,
+  lineheight = "auto",
+  line.margin = NULL,
+  col = fpColors(),
+  txt_gp = fpTxtGp(),
+  xlog = FALSE,
+  xticks = NULL,
+  xticks.digits = 2,
+  grid = FALSE,
+  lwd.xaxis = NULL,
+  lwd.zero = 1,
+  lwd.ci = NULL,
+  lty.ci = 1,
+  ci.vertices = NULL,
+  ci.vertices.height = 0.1,
+  boxsize = NULL,
+  mar = unit(rep(5, times = 4), "mm"),
+  title = NULL,
+  legend = NULL,
+  legend_args = fpLegend(),
+  new_page = getOption("forestplot_new_page", TRUE),
+  fn.ci_norm = fpDrawNormalCI,
+  fn.ci_sum = fpDrawSummaryCI,
+  fn.legend = NULL,
+  shapes_gp = fpShapesGp(),
+  ...
+)
+
+## S3 method for class 'gforge_forestplot'
+print(x, ...)
+
+## S3 method for class 'gforge_forestplot'
+plot(x, y, ..., new_page = FALSE)
+
+## S3 method for class 'grouped_df'
+forestplot(x, labeltext, mean, lower, upper, legend, is.summary, boxsize, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed on to the <code>fn.ci_norm</code> and
+<code>fn.ci_sum</code> arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The <code>gforge_forestplot</code> object to be printed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>The name of the column if using the <em>dplyr</em> select syntax - defaults to "mean",
+else it should be a vector or a matrix with the averages. You can also provide a 2D/3D
+matrix that is automatically converted to the lower/upper parameters. The values
+should be in exponentiated form if they follow this interpretation, e.g. use
+exp(mean) if you have the output from a logistic regression</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>The lower bound of the confidence interval for the forestplot, needs
+to be the same format as the mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>The upper bound of the confidence interval for the forestplot, needs
+to be the same format as the mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labeltext</code></td>
+<td>
+<p>A list, matrix, vector or expression with the names of each
+row or the name of the column if using the <em>dplyr</em> select syntax - defaults to "labeltext".
+Note that when using <code>group_by</code> a separate labeltext is not allowed.
+The list should be wrapped in m x n number to resemble a matrix:
+<code>list(list("rowname 1 col 1", "rowname 2 col 1"), list("r1c2", expression(beta))</code>.
+You can also provide a matrix although this cannot have expressions by design:
+<code>matrix(c("rowname 1 col 1", "rowname 2 col 1", "r1c2", "beta"), ncol = 2)</code>.
+Use <code>NA</code>:s for blank spaces and if you provide a full column with <code>NA</code> then
+that column is a empty column that adds some space. <em>Note:</em> If you do not
+provide the mean/lower/upper arguments the function expects the label text
+to be a matrix containing the labeltext in the rownames and then columns for
+mean, lower, and upper.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is.summary</code></td>
+<td>
+<p>A vector indicating by <code>TRUE</code>/<code>FALSE</code> if
+the value is a summary value which means that it will have a different
+font-style</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boxsize</code></td>
+<td>
+<p>Override the default box size based on precision</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>align</code></td>
+<td>
+<p>Vector giving alignment (l,r,c) for the table columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph.pos</code></td>
+<td>
+<p>The position of the graph element within the table of text. The
+position can be <code>1-(ncol(labeltext) + 1)</code>. You can also choose set the position
+to <code>"left"</code> or <code>"right"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrzl_lines</code></td>
+<td>
+<p>Add horizontal lines to graph. Can either be <code>TRUE</code> or a <code>list</code>
+of <code>gpar</code>. See line section below for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clip</code></td>
+<td>
+<p>Lower and upper limits for clipping confidence intervals to arrows</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab</code></td>
+<td>
+<p>x-axis label</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zero</code></td>
+<td>
+<p>x-axis coordinate for zero line. If you provide a vector of length 2 it
+will print a rectangle instead of just a line. If you provide NA the line is suppressed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graphwidth</code></td>
+<td>
+<p>Width of confidence interval graph, see <code>unit</code> for
+details on how to utilize mm etc. The default is <code>auto</code>, that is it uses up whatever
+space that is left after adjusting for text size and legend</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colgap</code></td>
+<td>
+<p>Sets the gap between columns, defaults to 6 mm but for relative widths.
+Note that the value should be in <code>unit(,"npc")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lineheight</code></td>
+<td>
+<p>Height of the graph. By default this is <code>auto</code> and adjusts to the
+space that is left after adjusting for x-axis size and legend. Sometimes
+it might be desirable to set the line height to a certain height, for
+instance if you have several forestplots you may want to standardize their
+line height, then you set this variable to a certain height, note this should
+be provided as a <code>unit</code> object. A good option
+is to set the line height to <code>unit(2, "cm")</code>. A third option
+is to set line height to "lines" and then you get 50% more than what the
+text height is as your line height</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>line.margin</code></td>
+<td>
+<p>Set the margin between rows, provided in numeric or <code>unit</code> form.
+When having multiple confidence lines per row setting the correct
+margin in order to visually separate rows</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>Set the colors for all the elements. See <code>fpColors</code> for
+details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>txt_gp</code></td>
+<td>
+<p>Set the fonts etc for all text elements. See <code>fpTxtGp</code>
+for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlog</code></td>
+<td>
+<p>If TRUE, x-axis tick marks are to follow a logarithmic scale, e.g. for
+logistic regression (OR), survival estimates (HR), Poisson regression etc.
+<em>Note:</em> This is an intentional break with the original <code>forestplot</code>
+function as I've found that exponentiated ticks/clips/zero effect are more
+difficult to for non-statisticians and there are sometimes issues with rounding
+the tick marks properly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xticks</code></td>
+<td>
+<p>Optional user-specified x-axis tick marks. Specify NULL to use
+the defaults, numeric(0) to omit the x-axis. By adding a labels-attribute,
+<code>attr(my_ticks, "labels") &lt;- ...</code> you can dictate the outputted text
+at each tick. If you specify a boolean vector then ticks indicated with
+FALSE wont be printed. Note that the labels have to be the same length
+as the main variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xticks.digits</code></td>
+<td>
+<p>The number of digits to allow in the x-axis if this
+is created by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>If you want a discrete gray dashed grid at the level of the
+ticks you can set this parameter to <code>TRUE</code>. If you set the parameter
+to a vector of values lines will be drawn at the corresponding positions.
+If you want to specify the <code>gpar</code> of the lines then either
+directly pass a <code>gpar</code> object or set the gp attribute e.g.
+<code>attr(line_vector, "gp") &lt;- gpar(lty = 2, col = "red")</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd.xaxis</code></td>
+<td>
+<p>lwd for the xaxis, see <code>gpar</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd.zero</code></td>
+<td>
+<p>lwd for the vertical line that gives the no-effect line, see <code>gpar</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd.ci</code></td>
+<td>
+<p>lwd for the confidence bands, see <code>gpar</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lty.ci</code></td>
+<td>
+<p>lty for the confidence bands, see <code>gpar</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci.vertices</code></td>
+<td>
+<p>Set this to TRUE if you want the ends of the confidence
+intervals to be shaped as a T. This is set default to TRUE if you have
+any other line type than 1 since there is a risk of a dash occurring
+at the very end, i.e. showing incorrectly narrow confidence interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci.vertices.height</code></td>
+<td>
+<p>The height hoft the vertices. Defaults to npc units
+corresponding to 10% of the row height.
+<em>Note that the arrows correspond to the vertices heights.</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mar</code></td>
+<td>
+<p>A numerical vector of the form <code>c(bottom, left, top, right)</code> of
+the type <code>unit</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+<p>The title of the plot if any</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend</code></td>
+<td>
+<p>Legend corresponding to the number of bars</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_args</code></td>
+<td>
+<p>The legend arguments as returned by the <code>fpLegend</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_page</code></td>
+<td>
+<p>If you want the plot to appear on a new blank page then set this to <code>TRUE</code>, by
+default it is <code>TRUE</code>. If you want to change this behavior for all plots then
+set the <code>options(forestplot_new_page = FALSE)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn.ci_norm</code></td>
+<td>
+<p>You can specify exactly how the line with the box is
+drawn for the normal (i.e. non-summary) confidence interval by changing this
+parameter to your own function or some of the alternatives provided in the package.
+It defaults to the box function <code>fpDrawNormalCI</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn.ci_sum</code></td>
+<td>
+<p>Same as previous argument but for the summary outputs
+and it defaults to <code>fpDrawSummaryCI</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn.legend</code></td>
+<td>
+<p>What type of function should be used for drawing the
+legends, this can be a list if you want different functions. It defaults to
+a box if you have anything else than a single function or the number of columns
+in the <code>mean</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shapes_gp</code></td>
+<td>
+<p>Sets graphical parameters (squares and lines widths, styles, etc.)
+of all shapes drawn (squares, lines, diamonds, etc.). This overrides <code>col</code>,
+<code>lwd.xaxis</code>, <code>lwd.zero</code>, <code>lwd.ci</code> and <code>lty.ci</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Ignored</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This version of <code>forestplot()</code> enhances the standard function in the following ways:
+</p>
+
+<ul>
+<li> <p><strong>Adding Expressions:</strong> Allows the use of expressions, such as <code>expression(beta)</code>.
+</p>
+</li>
+<li> <p><strong>Multiple Bands:</strong> Enables multiple confidence bands for the same label.
+</p>
+</li>
+<li> <p><strong>Autosize:</strong> Adapts to the viewport (graph) size.
+</p>
+</li>
+<li> <p><strong>Tidyverse syntax:</strong> Utilizes convenient dplyr/tidyverse syntax for more flexible data manipulation.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>gforge_forestplot</code> object
+</p>
+
+
+<h3>Multiple bands</h3>
+
+<p>Multiple bands (or lines) per variable can be useful for comparing different outcomes.
+For instance, you may want to compare heart disease-specific survival to overall survival
+rates for smokers. It can be insightful to overlay two bands for this purpose. Another application
+could be displaying crude and adjusted estimates as separate bands.
+</p>
+
+
+<h3>Horizontal lines</h3>
+
+<p>The <code>hrzl_lines</code> argument can be set as <code>TRUE</code> or a <code>list</code> with <code>grid::gpar</code> elements.
+</p>
+
+<ul>
+<li> <p><code>TRUE</code>: A line will be added based upon the <code>is.summary</code> rows. If the first line is a summary it
+</p>
+</li>
+<li> <p><code>grid::gpar</code>: The same as above but the lines will be formatted according to the <code>grid::gpar</code> element
+</p>
+</li>
+<li> <p><code>list</code>: The list must either be numbered, i.e. <code>list("2" = gpar(lty = 1))</code>, or have the same length
+as the <code>NROW(mean) + 1</code>. If the list is numbered the numbers should not exceed the <code>NROW(mean) + 1</code>.
+The no. <em>1 row designates the top</em>, i.e. the line above the first row, all other correspond  to
+<em>the row below</em>. Each element in the list needs to be <code>TRUE</code>, <code>NULL</code>, or
+<code>gpar</code> element. The <code>TRUE</code> defaults to a standard line, the <code>NULL</code>
+skips a line, while <code>gpar</code> corresponds to the fully customized line. Apart from
+allowing standard <code>gpar</code> line descriptions, <code>lty</code>, <code>lwd</code>, <code>col</code>, and more
+you can also specify <code>gpar(columns = c(1:3, 5))</code> if you for instance want the line to skip a column.
+</p>
+</li>
+</ul>
+<h3>Known Issues</h3>
+
+
+<ul>
+<li>
+<p> The x-axis does not completely adhere to the margin.
+</p>
+</li>
+<li>
+<p> Autosizing boxes may not always yield the best visual result; manual adjustment is recommended where possible.
+</p>
+</li>
+</ul>
+<h3>API Changes from <code>rmeta</code> package's <code>forestplot</code>
+</h3>
+
+
+<ul>
+<li> <p><strong>xlog:</strong> Outputs the axis in log() format, but the input data should be in antilog/exp format.
+</p>
+</li>
+<li> <p><strong>col:</strong> The corresponding function in this package is <code>fpColors</code>.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Max Gordon, Thomas Lumley
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("forestplot")</code>
+</p>
+<p>Other forestplot functions: 
+<code>fpColors()</code>,
+<code>fpDrawNormalCI()</code>,
+<code>fpLegend()</code>,
+<code>fpShapesGp()</code>,
+<code>fp_add_lines()</code>,
+<code>fp_decorate_graph()</code>,
+<code>fp_insert_row()</code>,
+<code>fp_set_style()</code>,
+<code>fp_set_zebra_style()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#############################################
+# Simple examples of how to do a forestplot #
+#############################################
+
+ask &lt;- par(ask = TRUE)
+
+# A basic example, create some fake data
+row_names &lt;- list(list("test = 1", expression(test &gt;= 2)))
+test_data &lt;- data.frame(
+  coef = c(1.59, 1.24),
+  low = c(1.4, 0.78),
+  high = c(1.8, 1.55)
+)
+test_data |&gt;
+  forestplot(labeltext = row_names,
+             mean = coef,
+             lower = low,
+             upper = high,
+             zero = 1,
+             cex  = 2,
+             lineheight = "auto",
+             xlab = "Lab axis txt") |&gt;
+  fp_add_header("Group") |&gt;
+  fp_set_style(lines = gpar(col = "darkblue"))
+
+# Print two plots side by side using the grid
+# package's layout option for viewports
+fp1 &lt;- test_data |&gt;
+  forestplot(labeltext = row_names,
+             mean = coef,
+             lower = low,
+             upper = high,
+             zero = 1,
+             cex  = 2,
+             lineheight = "auto",
+             title = "Plot 1",
+             xlab = "Lab axis txt")
+fp2 &lt;- test_data |&gt;
+  forestplot(labeltext = row_names,
+             mean = coef,
+             lower = low,
+             upper = high,
+             zero = 1,
+             cex  = 2,
+             lineheight = "auto",
+             xlab = "Lab axis txt",
+             title = "Plot 2",
+             new_page = FALSE)
+
+grid.newpage()
+pushViewport(viewport(layout = grid.layout(1, 2)))
+pushViewport(viewport(layout.pos.col = 1))
+plot(fp1)
+popViewport()
+pushViewport(viewport(layout.pos.col = 2))
+plot(fp2)
+popViewport(2)
+
+# An advanced example
+library(dplyr)
+library(tidyr)
+test_data &lt;- data.frame(id = 1:4,
+                        coef1 = c(1, 1.59, 1.3, 1.24),
+                        coef2 = c(1, 1.7, 1.4, 1.04),
+                        low1 = c(1, 1.3, 1.1, 0.99),
+                        low2 = c(1, 1.6, 1.2, 0.7),
+                        high1 = c(1, 1.94, 1.6, 1.55),
+                        high2 = c(1, 1.8, 1.55, 1.33))
+
+# Convert into dplyr formatted data
+out_data &lt;- test_data |&gt;
+  pivot_longer(cols = everything() &amp; -id) |&gt;
+  mutate(group = gsub("(.+)([12])$", "\\2", name),
+         name = gsub("(.+)([12])$", "\\1", name)) |&gt;
+  pivot_wider() |&gt;
+  group_by(id) |&gt;
+  mutate(col1 = lapply(id, \(x) ifelse(x &lt; 4,
+                                       paste("Category", id),
+                                       expression(Category &gt;= 4))),
+         col2 = lapply(1:n(), \(i) substitute(expression(bar(x) == val),
+                                              list(val = mean(coef) |&gt; round(2)))),
+         col2 = if_else(id == 1,
+                        rep("ref", n()) |&gt; as.list(),
+                        col2)) |&gt;
+  group_by(group)
+
+out_data |&gt;
+  forestplot(mean = coef,
+             lower = low,
+             upper = high,
+             labeltext = c(col1, col2),
+             title = "Cool study",
+             zero = c(0.98, 1.02),
+             grid = structure(c(2^-.5, 2^.5),
+                              gp = gpar(col = "steelblue", lty = 2)
+             ),
+             boxsize = 0.25,
+             xlab = "The estimates",
+             new_page = TRUE,
+             legend = c("Treatment", "Placebo"),
+             legend_args = fpLegend(
+               pos = list("topright"),
+               title = "Group",
+               r = unit(.1, "snpc"),
+               gp = gpar(col = "#CCCCCC", lwd = 1.5)
+             )) |&gt;
+  fp_set_style(box = c("royalblue", "gold"),
+               line = c("darkblue", "orange"),
+               summary = c("darkblue", "red"))
+
+# An example of how the exponential works
+data.frame(coef = c(2.45, 0.43),
+           low = c(1.5, 0.25),
+           high = c(4, 0.75),
+           boxsize = c(0.25, 0.25),
+           variables = c("Variable A", "Variable B")) |&gt;
+  forestplot(labeltext = c(variables, coef),
+             mean = coef,
+             lower = low,
+             upper = high,
+             boxsize = boxsize,
+             zero = 1,
+             xlog = TRUE) |&gt;
+  fp_set_style(lines = "red", box = "darkred") |&gt;
+  fp_add_header(coef = "HR" |&gt; fp_txt_plain() |&gt; fp_align_center(),
+                variables = "Measurements")
+
+# An example using style
+forestplot(labeltext = cbind(Author = c("Smith et al", "Smooth et al", "Al et al")),
+           mean = cbind(1:3, 1.5:3.5),
+           lower = cbind(0:2, 0.5:2.5),
+           upper = cbind(4:6, 5.5:7.5),
+           is.summary = c(FALSE, FALSE, TRUE),
+           vertices = TRUE) |&gt;
+  fp_set_style(default = gpar(lineend = "square", linejoin = "mitre", lwd = 3, col = "pink"),
+               box = gpar(fill = "black", col = "red"), # only one parameter
+               lines = list( # as many parameters as CI
+                 gpar(lwd = 10), gpar(lwd = 5),
+                 gpar(), gpar(),
+                 gpar(lwd = 2), gpar(lwd = 1)
+               ),
+               summary = list( # as many parameters as band per label
+                 gpar(fill = "violet", col = "gray", lwd = 10),
+                 gpar(fill = "orange", col = "gray", lwd = 10)
+               ))
+
+par(ask = ask)
+# See vignette for a more detailed description
+# vignette("forestplot",  package="forestplot")
+</code></pre>
+
+
+</div>

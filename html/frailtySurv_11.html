@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simcoxph</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate survival data and fit models
+</h2>
+
+<h3>Description</h3>
+
+<p>Generates simulated clustered survival data by repeatedly generating data, using a shared frailty model, and fitting the models. Respective arguments are passed to genfrail and coxph, and the resulting parameter estimates are aggregated and summarized.
+</p>
+<p>This function is similar to <code>simfrail</code>, except models are fitted using the <code>coxph</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simcoxph(reps, genfrail.args, coxph.args, Lambda.times, cores = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>reps</code></td>
+<td>
+<p>number of times to repeat the simulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genfrail.args</code></td>
+<td>
+<p>list of arguments to pass to <code>genfrail</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coxph.args</code></td>
+<td>
+<p>list of arguments to pass to <code>coxph</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lambda.times</code></td>
+<td>
+<p>vector of time points to obtain baseline hazard estimates at</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>integer; if &gt; 0, the number of cores to use; if &lt; 0, the number of cores not to use; if 0, use all available cores</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>simcoxph</code> object that is essentially a <code>data.frame</code> of the resulting parameter estimates. Each row is a single run, and columns are as follows.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>the seed used for the run</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runtime</code></td>
+<td>
+<p>the time it took to fit the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>number of clusters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.K</code></td>
+<td>
+<p>average cluster size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cens</code></td>
+<td>
+<p>empirical censorship</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>true regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hat.beta</code></td>
+<td>
+<p>estimated regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.beta</code></td>
+<td>
+<p>standard error of each regression coefficient</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>true frailty distribution parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hat.theta</code></td>
+<td>
+<p>estimated frailty distribution parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.theta</code></td>
+<td>
+<p>standard error of each frailty distribution parameter (NA since coxph does not currently provide this.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lambda</code></td>
+<td>
+<p>true cumulative baseline hazard at each Lambda.times point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hat.Lambda</code></td>
+<td>
+<p>estimated cumulative baseline hazard at each Lambda.times point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.Lambda</code></td>
+<td>
+<p>standard error at each Lambda.times point (NA since coxph does not currently provide this)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>John. V Monaco, Malka Gorfine, Li Hsu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>coxph</code>, <code>genfrail</code>, <code>simfrail</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+sim &lt;- simcoxph(reps=100,
+                genfrail.args=alist(
+                  N=50, K=2,
+                  beta=c(log(2),log(3)), 
+                  frailty="gamma", theta=2,
+                  Lambda_0 = function(t, tau=4.6, C=0.01) (C*t)^tau), 
+                coxph.args=alist(
+                  formula=Surv(time, status) ~ Z1 + Z2 + cluster(family), 
+                  frailty="gamma"),
+                Lambda.times=1:120, cores = 0)
+
+# Summarize the results
+summary(sim)
+
+# Plot the residuals
+plot(sim, "residuals")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

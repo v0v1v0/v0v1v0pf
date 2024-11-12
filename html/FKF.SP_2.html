@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fks.SP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast Kalman Smoother through Sequential Processing</h2>
+
+<h3>Description</h3>
+
+<script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script><p>The Kalman smoother is a backwards algorithm that is run after the Kalman filter
+that allows the user to refine estimates of previous states to produce "smoothed" estimates of state variables.
+This function performs the "Kalman smoother" algorithm using sequential processing, an approach that can substantially improve
+processing time over the traditional Kalman filtering/smoothing algorithms. The primary application of Kalman smoothing is in
+conjunction with expectation-maximization to estimate the parameters of a state space model. This function is called after running <code>fkf.SP</code>.
+<code>fks.SP</code> wraps the C-function <code>fks_SP</code> which relies upon the linear algebra subroutines of BLAS (Basic Linear Algebra Subprograms).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fks.SP(FKF.SP_obj)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>FKF.SP_obj</code></td>
+<td>
+<p>An S3-object of class "fkf.SP", returned by <code>fkf.SP</code> when using the argument <code>verbose = TRUE</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p><code>fks.SP</code> is typically called after the <code>fkf.SP</code> function to calculate "smoothed" estimates of state variables and their corresponding variances. Smoothed estimates are used
+when utilizing expectation-maximization (EM) to efficiently estimate the parameters of a state space model.
+</p>
+<p><b>Sequential Processing Kalman smoother solution</b>:
+</p>
+<p>The <code>fks.SP</code> function uses the solution to the Kalman smoother through sequential processing provided in the textbook of Durbin and Koopman (2001).
+</p>
+<p>Given a state space model has been filtered through the sequential processing Kalman filter algorithm described in <code>fkf.SP</code>, the smoother can be reformulated for the univariate series:
+</p>
+\[y_t'=(y_{(1,1)},y_{(1,2)},\cdots,y_{(1,p_{1})},y_{(2,1)},\cdots,y_{(t,p_{t})})\]
+<p>The sequential processing Kalman smoother approach iterates backwards through both observations and time, i.e.: \(i=p_{t}, \cdots, 1\) and \(t=n,\cdots,1\),
+where \(p_{t}\) is the number of observations at time \(t\) and \(n\) is the total number of observations.
+</p>
+<p>The initialisations are:
+</p>
+\[r_{(n,p_{n})} = 0\]
+\[N_{(n,p_{n})}=0\]
+<p>Then, \(r\) and \(N\) are recursively calculated through:
+</p>
+\[L_{t,i} = I_{m} - K_{t,i} Z_{t,i}\]
+\[r_{(t,i-1)} = Z_{t,i}' F_{t,i}^{-1} v_{t,i} + L_{t,i}' r_{t,i}\]
+\[N_{t,i-1} = Z_{t,i}' F_{t,i}^{-1} Z_{t,i} + L_{t,i}' N_{t,i} L_{t,i}\]
+\[r_{t-1,p_{t}} = T_{t-1}' r_{t,0}\]
+\[N_{t-1,p_{t}} = T_{t-1}' N_{t,0} T_{t-1}\]
+<p>for \(i=p_{t},\cdots,1\) and \(t=n,\cdots,1\)
+</p>
+<p>The equations for \(r_{t-1},p_{t}\) and \(N_{t-1,p_{t}}\) do not apply for \(t=1\)
+</p>
+<p>Under this formulation, the values for \(r_{t,0}\) and \(N_{t,0}\) are the same as the values for the smoothing quantities of \(r_{t-1}\) and
+\(N_{t-1}\) of the standard smoothing equations, respectively.
+</p>
+<p>The standard smoothing equations for \(\hat{a_{t}}\) and \(V_t\) are used:
+</p>
+\[\hat{a_{t}} = a_{t} + P_{t} r_{t-1}\]
+\[V_t = P_t - P_t N_{t-1} P_t\]
+<p>Where:
+</p>
+\[a_{t}=a_{t,1}\]
+\[P_{t} = P_{t,1}\]
+<p>In the equations above, \(r_{t,i}\) is an \(m \times 1\) vector, \(I_{m}\) is an \(m \times m\) identity matrix,
+\(K_{t,i}\) is an \(m \times 1\) column vector, \(Z_{t,i}\) is a \(1 \times m\) row vector, and both \(F_{t,i}^{-1}\) and
+\(v_{t,i}\) are scalars. The reduced dimensionality of many of the variables in this formulation compared to traditional Kalman smoothing can result in increased computational efficiency.
+</p>
+<p>Finally, in the formulation described above, \(a_{t}\) and \(P_{t}\) correspond to the values of <code>att</code> and <code>ptt</code> returned from the <code>fkf.SP</code> function, respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An S3-object of class <code>fks.SP</code>, which is a list with the following elements:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+<code>ahatt</code> </td>
+<td style="text-align: left;">  A <i>m * n</i>-matrix containing the
+smoothed state variables, i.e. <code>ahatt[,t]</code> = \(a_{t|n}\)</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<code>Vt</code> </td>
+<td style="text-align: left;">  A <i>m * m * n</i>-array
+containing the variances of <code>ahatt</code>, i.e. <code>Vt[,,t]</code> = \(P_{t|n}\)
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Aspinall, T. W., Harris, G., Gepp, A., Kelly, S., Southam, C., and Vanstone, B. (2022). <em>The Estimation of Commodity Pricing Models with Applications in Capital Investments</em>. <a href="https://research.bond.edu.au/en/studentTheses/the-estimation-of-commodity-pricing-models-with-applications-in-c">Available Online</a>.
+</p>
+<p>Durbin, James, and Siem Jan Koopman (2001). <em>Time series analysis by state space methods.</em> Oxford university press.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Perform Kalman Filtering and Smoothing through sequential processing:
+#Nile's annual flow:
+yt &lt;- Nile
+
+# Incomplete Nile Data - two NA's are present:
+yt[c(3, 10)] &lt;- NA
+
+dt &lt;- ct &lt;- matrix(0)
+Zt &lt;- Tt &lt;- matrix(1)
+a0 &lt;- yt[1]   # Estimation of the first year flow
+P0 &lt;- matrix(100)       # Variance of 'a0'
+
+# Parameter estimation - maximum likelihood estimation:
+# Unknown parameters initial estimates:
+GGt &lt;- HHt &lt;- var(yt, na.rm = TRUE) * .5
+HHt = matrix(HHt)
+GGt = matrix(GGt)
+yt = rbind(yt)
+# Filter through the Kalman filter - sequential processing:
+Nile_filtered &lt;- fkf.SP(HHt = matrix(HHt), GGt = matrix(GGt), a0 = a0, P0 = P0, dt = dt, ct = ct,
+                  Zt = Zt, Tt = Tt, yt = rbind(yt), verbose = TRUE)
+# Smooth filtered values through the Kalman smoother - sequential processing:
+Smoothed_Estimates &lt;- fks.SP(Nile_filtered)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a AR model</h2>
+
+<h3>Description</h3>
+
+<p>Searches through the vector of lag orders to find the best AR model which
+has lowest AIC, AICc or BIC value. It is implemented using OLS, and behaves
+comparably to <code>stats::ar.ols()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AR(formula, ic = c("aicc", "aic", "bic"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>The information criterion used in selecting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments for arima</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Exogenous regressors and <code>common_xregs</code> can be specified in the model
+formula.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+
+
+<h3>Specials</h3>
+
+
+
+<h4>pdq</h4>
+
+<p>The <code>order</code> special is used to specify the lag order for the auto-regression.
+</p>
+<pre>
+order(p = 0:15, fixed = list())
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>p</code>        </td>
+<td style="text-align: left;"> The order of the auto-regressive (AR) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>fixed</code>    </td>
+<td style="text-align: left;"> A named list of fixed parameters for coefficients. The names identify the coefficient, beginning with <code>ar</code>, and then followed by the lag order. For example, <code>fixed = list(ar1 = 0.3, ar3 = 0)</code>.
+</td>
+</tr>
+</table>
+<h4>xreg</h4>
+
+<p>Exogenous regressors can be included in an AR model without explicitly using the <code>xreg()</code> special. Common exogenous regressor specials as specified in <code>common_xregs</code> can also be used. These regressors are handled using <code>stats::model.frame()</code>, and so interactions and other functionality behaves similarly to <code>stats::lm()</code>.
+</p>
+<p>The inclusion of a constant in the model follows the similar rules to <code>stats::lm()</code>, where including <code>1</code> will add a constant and <code>0</code> or <code>-1</code> will remove the constant. If left out, the inclusion of a constant will be determined by minimising <code>ic</code>.
+</p>
+<pre>
+xreg(..., fixed = list())
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>...</code>      </td>
+<td style="text-align: left;"> Bare expressions for the exogenous regressors (such as <code>log(x)</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>fixed</code>    </td>
+<td style="text-align: left;"> A named list of fixed parameters for coefficients. The names identify the coefficient, and should match the name of the regressor. For example, <code>fixed = list(constant = 20)</code>.
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><a href="https://otexts.com/fpp3/AR.html">Forecasting: Principles and Practices, Vector autoregressions (section 11.2)</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">luteinizing_hormones &lt;- as_tsibble(lh)
+fit &lt;- luteinizing_hormones %&gt;%
+  model(AR(value ~ order(3)))
+
+report(fit)
+
+fit %&gt;%
+  forecast() %&gt;%
+  autoplot(luteinizing_hormones)
+</code></pre>
+
+
+</div>

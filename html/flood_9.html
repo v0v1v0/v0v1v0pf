@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RegioGEV</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Regional (or local) parameter and quantile estimation</h2>
+
+<h3>Description</h3>
+
+<p>Calculates regional (or local) parameters of a generalized extreme value (GEV) distribution
+using (trimmed) L-moments
+(see TLMoments and parameters) from a vector or matrix of observation.
+Based on these parameters, a p-quantile of the GEV will be calculated for the jth station.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RegioGEV(x, p, j = 1, leftrim = 0, rightrim = 0, na.rm = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector or matrix of observations (rows: observations, d columns: stations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>a probability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>quantile and parameter estimation for the jth
+station (jth column of <code>x</code>). Irrelevant if is <code>x</code> is a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leftrim</code></td>
+<td>
+<p>integer indicating lower trimming parameter (<code class="reqn">\ge 0</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rightrim</code></td>
+<td>
+<p>integer indicating upper trimming parameter (<code class="reqn">\ge 0</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Should missing values be removed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments, see TLMoments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The optimal weights will be calculated as described in "Kinsvater, Fried and Lilienthal (2015):
+Regional extreme value index estimation and a test of tail homogeneity,
+Environmetrics, DOI: 10.1002/env.2376, Section 3.2". If it's not possible to calculate
+optimal weights (negative eigenvaules of an estimated covarinace matrix), simple weights
+will be calculated: <code class="reqn">w_j=\frac{n_j}{sum_{j=1}^d n_j}</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>List of </p>
+
+<ul>
+<li> <p><code>quant</code> quantile calculation from an estimated GEV with a regional shape-parameter.
+</p>
+</li>
+<li> <p><code>param</code> estimated parameter vector from a GEV (using L-moments or trimmed L-moments).
+</p>
+</li>
+<li> <p><code>w</code> optimal or simple weighting (just returned if <code>x</code> is a matrix).</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library("evd")
+# sample observations of 75 years at one station:
+x &lt;- rgev(75) # x is a vector
+RegioGEV(x=x, p=0.95)
+
+x2 &lt;- c(NA, NA, x[1:60], NA, x[61:75]) # vector of observations with missing values
+RegioGEV(x=x2, p=0.95) # NAs will be removed
+
+# sample observations of 100 years at 4 stations:
+set.seed(1053)
+x &lt;- matrix(rgev(400, 2, 1, 0.3), ncol=4)
+RegioGEV(x=x, p=0.9, j=3, leftrim=0, rightrim=0) # optimal weighting
+RegioGEV(x=x, p=0.9, j=3, leftrim=0, rightrim=1) # optimal weighting
+
+# With missing values:
+x2 &lt;- x
+x2[c(54, 89, 300)] &lt;- NA
+RegioGEV(x=x2, p=0.9, j=3, leftrim=0, rightrim=0)
+
+# sample again observations of 100 years at 4 stations:
+set.seed(958)
+x &lt;- matrix(rgev(400, 2, 1, 0.3), ncol=4)
+RegioGEV(x=x, p=0.9, j=3, leftrim=0, rightrim=0) # simple weighting
+</code></pre>
+
+
+</div>

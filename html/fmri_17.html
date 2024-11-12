@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmri.stimulus</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Linear Model for FMRI Data </h2>
+
+<h3>Description</h3>
+
+<p>Create the expected BOLD response for a given task indicator function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  fmri.stimulus(scans = 1, onsets = c(1), durations = c(1), TR = 2,
+                times = FALSE, sliceorder = NULL,
+                type = c("canonical", "gamma", "boxcar", "user"),
+                par = NULL, scale = 10, hrf = NULL, verbose = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>scans</code></td>
+<td>
+<p> number of scans </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>onsets</code></td>
+<td>
+<p> vector of onset times (in scans) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>durations</code></td>
+<td>
+<p> vector of duration of ON stimulus in scans 
+(if <code>times==FALSE)</code>) or
+seconds (if <code>times==TRUE)</code>)  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TR</code></td>
+<td>
+<p> time between scans in seconds (TR) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p> logical. If TRUE onsets and durations are given in units of time not number of scans. Defaults to FALSE. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sliceorder</code></td>
+<td>
+<p> order of slice acquisition. If provided separate
+expected bold responses are calculated for the slices taking slice
+acquisition times into account. Default: no slice timing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>One of <code>"canonical"</code>, <code>"gamma"</code>, <code>"boxcar"</code>,
+<code>"user"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p> Possible parameters to the HRF. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p> Temporal undersampling factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrf</code></td>
+<td>
+<p> If <code>type</code> is <code>"user"</code> this should be a function evaluating the hemodynamic response function </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p> Report more if <code>TRUE</code> </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The functions calculates the expected BOLD response for the task
+indicator function given by the argument as a convolution with the
+hemodynamic response function.
+</p>
+<p>If <code>sliceorder</code> provides an ordering of slice acquisitions a matrix of
+expected Bold responses with columns corresponding to the slice number is
+computed.
+</p>
+<p>For <code>type</code> is <code>"canonical"</code> the latter is modelled by the difference
+between two gamma functions as given in the reference (with the defaults
+for a1, a2, b1, b2, cc given therein):
+</p>
+<p style="text-align: center;"><code class="reqn">\left(\frac{t}{d_1}\right)^{a_1} \exp \left(-\frac{t-d_1}{b_1}\right)
+- c \left(\frac{t}{d_2}\right)^{a_2} \exp
+\left(-\frac{t-d_2}{b_2}\right) </code>
+</p>
+
+<p>The parameters <code>a1</code>, <code>a2</code>, <code>b1</code>, <code>b2</code>, <code>cc</code> of this function
+can be changed through the argument <code>par</code> in this order.
+</p>
+<p>Other choices are a simple gamma function
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{1}{k\tau_h (k-1)!} \left( \frac{t}{\tau_h} \right)^k
+        \exp \left( - \frac{t}{\tau_h} \right)</code>
+</p>
+
+<p>or the <code>"boxcar"</code> stimulus, or a user defined function <code>hrf</code>.
+</p>
+<p>The dimension  of the function value is set to <code>c(scans, 1)</code>.
+</p>
+<p>If <code>!is.null(times)</code> durations are specified in seconds.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Vector with dimension <code>c(scans, 1)</code> or a matrix with dimension
+<code>c(scans, number of slices)</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Karsten Tabelow <a href="mailto:tabelow@wias-berlin.de">tabelow@wias-berlin.de</a>,
+Joerg Polzehl <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a> </p>
+
+
+<h3>References</h3>
+
+<p> Worsley, K.J., Liao, C., Aston, J., Petre, V., Duncan,
+G.H., Morales, F., Evans, A.C. (2002). A general statistical analysis
+for fMRI data. NeuroImage, 15:1-15.
+</p>
+<p>Polzehl, J. and Tabelow, K. (2007)
+<em>fmri: A Package for Analyzing fmri Data</em>,
+R News, 7:13-17 .
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>fmri.design</code>, <code>fmri.lm</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Example 1
+  hrf &lt;- fmri.stimulus(107, c(18, 48, 78), 15, 2)
+  z &lt;- fmri.design(hrf, 2)
+  par(mfrow=c(2, 2))
+  for (i in 1:4) plot(z[, i], type="l")
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mcusum_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Change Point Test for Regression</h2>
+
+<h3>Description</h3>
+
+<p>Apply change point test by Horvath et al. (2017)
+for detecting at-most-<code class="reqn">m</code> changes in regression coefficients, where
+test statistic is a modified cumulative sum (CUSUM), and
+critical values are obtained with sieve bootstrap (Lyubchich et al. 2020).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mcusum_test(
+  e,
+  k,
+  m = length(k),
+  B = 1000,
+  shortboot = FALSE,
+  ksm = FALSE,
+  ksm.arg = list(kernel = "gaussian", bw = "sj"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>e</code></td>
+<td>
+<p>vector of regression residuals (a stationary time series).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>an integer vector or scalar with hypothesized change point location(s) to
+test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>an integer specifying the maximum number of change
+points being confirmed as statistically significant (from those
+specified in <code>k</code>) would be <code class="reqn">\le m</code>. Thus, <code>m</code> must
+be in 1,...,<code>k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap simulations to obtain empirical critical values.
+Default is 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shortboot</code></td>
+<td>
+<p>if <code>TRUE</code>, then a heuristic
+is used to perform the test with a reduced number of bootstrap replicates.
+Specifically, <code>B/4</code> replicates are used, which may reduce computing time by
+up to 75% when the number of retained null hypotheses is large.
+A <code class="reqn">p</code>-value of 999 is reported whenever a null hypothesis
+is retained as a result of this mechanism.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ksm</code></td>
+<td>
+<p>logical value indicating whether a kernel smoothing to innovations in sieve
+bootstrap shall be applied (default is <code>FALSE</code>, that is, the original estimated
+innovations are bootstrapped, without the smoothing).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ksm.arg</code></td>
+<td>
+<p>used only if <code>ksm = TRUE</code>. A list of arguments for kernel smoothing
+to be passed to <code>density</code> function. Default settings specify the
+use of the Gaussian kernel and the <code>"sj"</code> rule to choose the bandwidth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>ARest</code>
+(for example, <code>ar.method</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The sieve bootstrap is applied by approximating regression residuals <code>e</code>
+with an AR(<code class="reqn">p</code>) model using function <code>ARest</code>,
+where the autoregressive coefficients are estimated with <code>ar.method</code>,
+and order <code class="reqn">p</code> is selected based on <code>ar.order</code> and <code>BIC</code> settings
+(see <code>ARest</code>). At the next step, <code>B</code> autoregressive processes
+are simulated under the null hypothesis of no change points.
+The distribution of test statistics <code class="reqn">M_T</code> computed on each of those
+bootstrapped series is used to obtain bootstrap-based <code class="reqn">p</code>-values for the test
+(Lyubchich et al. 2020).
+</p>
+<p>In the current implementation, the bootstrapped <code class="reqn">p</code>-value is calculated using equation 4.10 of
+Davison and Hinkley (1997): <code>p.value</code> = (1 + <code class="reqn">n</code>) / (<code>B</code> + 1),
+where <code class="reqn">n</code> is number of bootstrapped statistics greater or equal to the observed statistic.
+</p>
+<p>The test statistic corresponds to the maximal value of the modified CUSUM over
+up to <code>m</code> combinations of hypothesized change points specified in <code>k</code>. The change
+points that correspond to that maximum are reported in <code>estimate$khat</code>,
+and their number is reported as the <code>parameter</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>"htest"</code> containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>name of the method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>name of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>obseved value of the test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p><code>mhat</code> is the final number of change points,
+from those specified in the input <code>k</code>,
+for which the test statistic is reported.
+See the corresponding locations, <code>khat</code>, in the <code>estimate</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>bootstrapped <code class="reqn">p</code>-value of the test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>list with elements: <code>AR_order</code> and
+<code>AR_coefficients</code> (the autoregressive order and estimated autoregressive
+coefficients used in sieve bootstrap procedure), <code>khat</code> (final change points,
+from those specified in the input <code>k</code> for which the test statistic is reported),
+and <code>B</code> (the number of bootstrap replications).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Vyacheslav Lyubchich
+</p>
+
+
+<h3>References</h3>
+
+<p>Davison AC, Hinkley DV (1997).
+<em>Bootstrap Methods and Their Application</em>.
+Cambridge University Press, Cambridge.<br><br> Horvath L, Pouliot W, Wang S (2017).
+“Detecting at-most-<code class="reqn">m</code> changes in linear regression models.”
+<em>Journal of Time Series Analysis</em>, <b>38</b>, 552–590.
+<a href="https://doi.org/10.1111/jtsa.12228">doi:10.1111/jtsa.12228</a>.<br><br> Lyubchich V, Lebedeva TV, Testa JM (2020).
+“A data-driven approach to detecting change points in linear regression models.”
+<em>Environmetrics</em>, <b>31</b>(1), e2591.
+<a href="https://doi.org/10.1002/env.2591">doi:10.1002/env.2591</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##### Model 1 with normal errors, by Horvath et al. (2017)
+T &lt;- 100 #length of time series
+X &lt;- rnorm(T, mean = 1, sd = 1)
+E &lt;- rnorm(T, mean = 0, sd = 1)
+SizeOfChange &lt;- 1
+TimeOfChange &lt;- 50
+Y &lt;- c(1 * X[1:TimeOfChange] + E[1:TimeOfChange],
+      (1 + SizeOfChange)*X[(TimeOfChange + 1):T] + E[(TimeOfChange + 1):T])
+ehat &lt;- lm(Y ~ X)$resid
+mcusum_test(ehat, k = c(30, 50, 70))
+
+#Same, but with bootstrapped innovations obtained from a kernel smoothed distribution:
+mcusum_test(ehat, k = c(30, 50, 70), ksm = TRUE)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,223 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frair_boot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bootstrap a predator-prey functional response.</h2>
+
+<h3>Description</h3>
+
+<p>Bootstraps a previously fitted predator-prey functional response and returns data in a consistent, predictable way, exposing some useful methods.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">frair_boot(frfit, start=NULL, strata=NULL, nboot=999, 
+            para=TRUE, ncores=NaN, WARN.ONLY=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>frfit </code></td>
+<td>
+<p>An object returned by <code>frair_fit</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>An optional named list. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata </code></td>
+<td>
+<p>A character string. Specifies a column in the original data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot </code></td>
+<td>
+<p>An integer. How many bootstraps to perform?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para </code></td>
+<td>
+<p>A logical. Should the bootstrapping be performed in parallel?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores </code></td>
+<td>
+<p>An integer. The number of cores to use for parallelisation. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WARN.ONLY</code></td>
+<td>
+<p>A logical. If true some errors are suppressed. See Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function provides a simple, consistent way to generate bootstrapped estimates from a functional response fit. 
+</p>
+<p>If <code>start</code> is not provided, starting values for the bootstrapping are drawn from the original fit.  This interface is provided so that a single set of starting parameters (e.g. a 'global' estimate) can be used when bootstrapping different functional response fits (e.g. different treatments).
+</p>
+<p>Non-parametric bootstrapping and parallelisation is handled by <code>boot</code> from the boot package.  Currently, if you request bootstrapped fits and <code>para=TRUE</code> (the default), then the function will attempt to use all except one available core. Note this may affect performance of other tasks while the bootstrap is underway!
+</p>
+<p>If more than 10% of the bootstrapped fits fail, a warning is generated, and if more than 50% of the fits fail, an error is thrown and nothing is returned.  These are sensible defaults, but if you are very sure that you know what you are doing, you can suppress this with <code>WARN.ONLY=TRUE</code> (a warning is thrown instead).  
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns a named list of class <code>frboot</code> with the following named items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call </code></td>
+<td>
+<p>The original call to <code>frair_fit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x </code></td>
+<td>
+<p>The original x data supplied to <code>frair_fit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y </code></td>
+<td>
+<p>The original y data supplied to <code>frair_fit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response </code></td>
+<td>
+<p>A string. The fitted response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xvar </code></td>
+<td>
+<p>A string. The right hand side of <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yvar </code></td>
+<td>
+<p>A string. The left hand side of <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimvars </code></td>
+<td>
+<p>A character vector. The optimised values (passed to <code>start</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedvars </code></td>
+<td>
+<p>A character vector. The fixed values (passed to <code>fixed</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefficients </code></td>
+<td>
+<p>A named numeric. All coefficients needed to draw the optimised curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample </code></td>
+<td>
+<p>A nboot-by-n numeric matrix. Where each row represents one bootstrap sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit </code></td>
+<td>
+<p>The raw object returned by the fitting procedure (response specific).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootcoefs </code></td>
+<td>
+<p>A named numeric matrix. The bootstrapped coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_failed </code></td>
+<td>
+<p>The number of failed fits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_duplicated </code></td>
+<td>
+<p>The number of fits that were duplicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_boot </code></td>
+<td>
+<p>The number of (requested) bootstrapped fits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratified </code></td>
+<td>
+<p>Was a stratified bootstrap performed?</p>
+</td>
+</tr>
+</table>
+<p>Objects of class <code>frboot</code> have print, confint, plot, lines and drawpoly methods defined. See the help for those methods for more information.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_boot_methods</code>, <code>frair_fit</code>, <code>fr_rogersII</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(gammarus)
+frair_responses() # See what is available
+# A typeII fit
+outII &lt;- frair_fit(eaten~density, data=gammarus, response='rogersII', 
+        start=list(a = 1.2, h = 0.015), fixed=list(T=40/24))
+        
+## Not run: 
+outIIb &lt;- frair_boot(outII) # Slow
+confint(outIIb)
+
+# Illustrate bootlines
+plot(outIIb, xlim=c(0,30), type='n', main='All bootstrapped lines')
+lines(outIIb, all_lines=TRUE)
+points(outIIb, pch=20, col=rgb(0,0,0,0.2))
+
+# Illustrate bootpolys
+plot(outIIb, xlim=c(0,30), type='n', main='Empirical 95 percent CI')
+drawpoly(outIIb, col=rgb(0,0.5,0))
+points(outIIb, pch=20, col=rgb(0,0,0,0.2))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

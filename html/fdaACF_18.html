@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reconstruct_fd_from_PCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Obtain the reconstructed curves after PCA</h2>
+
+<h3>Description</h3>
+
+<p>This function reconstructs the
+functional curves from a score vector
+using the basis obtained after applying
+functional PCA. This allows the user to
+draw estimations from the joint density of
+the FPCA scores and reconstruct the curves
+for those new scores.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reconstruct_fd_from_PCA(pca_struct, scores, centerfns = T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pca_struct</code></td>
+<td>
+<p>List obtained after calling
+function <code>pca.fd</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>Numerical vector that contains the
+scores of the fPCA decomposition for one
+functional observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centerfns</code></td>
+<td>
+<p>Logical value specifying
+wheter the FPCA performed used <code>centerfns = T</code>
+or <code>centerfns = F</code>. By default
+<code>centerfns = T</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a object of type <code>fd</code>
+that contains the reconstructed curve.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1
+
+# Simulate fd
+nobs &lt;- 200
+dv &lt;- 10
+basis&lt;-fda::create.bspline.basis(rangeval=c(0,1),nbasis=10)
+set.seed(5)
+C &lt;- matrix(rnorm(nobs*dv), ncol =  dv, nrow = nobs)
+fd_sim &lt;- fda::fd(coef=t(C),basis)
+
+# Perform FPCA
+pca_struct &lt;- fda::pca.fd(fd_sim,nharm = 6)
+
+# Reconstruct first curve
+fd_rec &lt;- reconstruct_fd_from_PCA(pca_struct = pca_struct, scores = pca_struct$scores[1,])
+plot(fd_sim[1])
+plot(fd_rec, add = TRUE, col = "red")
+legend("topright",
+       legend = c("Real Curve", "PCA Reconstructed"),
+       col = c("black","red"),
+       lty = 1)
+
+# Example 2 (Perfect reconstruction)
+
+# Simulate fd
+nobs &lt;- 200
+dv &lt;- 7
+basis&lt;-fda::create.bspline.basis(rangeval=c(0,1),nbasis=dv)
+set.seed(5)
+C &lt;- matrix(rnorm(nobs*dv), ncol =  dv, nrow = nobs)
+fd_sim &lt;- fda::fd(coef=t(C),basis)
+
+# Perform FPCA
+pca_struct &lt;- fda::pca.fd(fd_sim,nharm = dv)
+
+# Reconstruct first curve
+fd_rec &lt;- reconstruct_fd_from_PCA(pca_struct = pca_struct, scores = pca_struct$scores[1,])
+plot(fd_sim[1])
+plot(fd_rec, add = TRUE, col = "red")
+legend("topright",
+       legend = c("Real Curve", "PCA Reconstructed"),
+       col = c("black","red"),
+       lty = 1)
+</code></pre>
+
+
+</div>

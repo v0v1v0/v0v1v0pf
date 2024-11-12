@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lm_table</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit linear regressions by group, and get different output options.</h2>
+
+<h3>Description</h3>
+
+<p>With this function it's possible to fit linear regressions by a grouping variable, and get a data frame
+with each column as a coefficient and quality of fit variables, and other output options. Works with dplyr grouping functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lm_table(
+  df,
+  model,
+  .groups = NA,
+  output = "table",
+  est.name = "est",
+  keep_model = FALSE,
+  rmoutliers = FALSE,
+  fct_to_filter = NA,
+  rmlevels = NA,
+  boolean_filter = NA,
+  onlyfiteddata = FALSE,
+  del_boolean = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A linear regression model, with or without quotes. The variables mentioned in the model must exist in the provided data frame. X and Y sides of the model must be separated by "~".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.groups</code></td>
+<td>
+<p>Optional argument. Quoted name(s) of grouping variables used to fit multiple regressions, one for each level of the provided variable(s). Default: <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Selects different output options. Can be either <code>"table"</code>, <code>"merge"</code>, <code>"merge_est"</code> and <code>"nest"</code>. See details for explanations for each option. Default: <code>"table"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est.name</code></td>
+<td>
+<p>Name of the estimated y value. Used only if <code>est.name = TRUE</code>. Default: <code>"est"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_model</code></td>
+<td>
+<p>If <code>TRUE</code>, a column containing lm object(s) is kept in the output. Useful if the user desires to get more information on the regression. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmoutliers</code></td>
+<td>
+<p>If <code>TRUE</code>, outliers are filtered out using the IQR method. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fct_to_filter</code></td>
+<td>
+<p>Name of a factor or character column to be used as a filter to remove levels. Default: <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmlevels</code></td>
+<td>
+<p>Levels of the fct_to_filter variable to be removed from the fit Default: <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boolean_filter</code></td>
+<td>
+<p>Name of a Boolean column to be used as a filter to remove data. Default: <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>onlyfiteddata</code></td>
+<td>
+<p>If <code>TRUE</code>, the output data will be the same as the fitted (and possibly filtered) data. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>del_boolean</code></td>
+<td>
+<p>If <code>TRUE</code>, the Boolean column supplied will be deleted after use. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>With this function there's no more need to use the <code>do</code> function when fitting a linear regression in a pipe line.
+It's also possible to easily make fit multiple regressions, specifying a grouping variable.
+In addition to that, the default output sets each coefficient as a column, making it easy to call coefficients by name or position
+when estimating values. 
+</p>
+<p>It's possible to use the <code>output</code> argument to get a merged table if <code>output="merge"</code>, that binds
+the original data frame and the fitted coefficients. 
+If <code>output="merge_est"</code> we get a merged table as well, but with y estimated using the coefficients. If the fit is made using groups, this is taken into account, i.e. the estimation is made by group.
+</p>
+<p>If <code>output="nest"</code>, a data frame with nested columns is provided. This can be used if the user desires to get a customized output.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame. Different data frame options are available using the output argument.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sollano Rabelo Braga <a href="mailto:sollanorb@gmail.com">sollanorb@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(forestmangr)
+library(dplyr)
+
+data("exfm19")
+head(exfm19)
+
+# Fit Schumacher and Hall model for volume estimation, and get
+# coefficient, R2 and error values:
+
+lm_table(exfm19, log(VWB) ~  log(DBH) + log(TH))   
+
+# Fit SH model by group:
+lm_table(exfm19, log(VWB) ~  log(DBH) + log(TH), "STRATA")
+
+# This can also be done using dplyr::group_by:
+exfm19 %&gt;% 
+  group_by(STRATA) %&gt;% 
+  lm_table(log(VWB) ~  log(DBH) + log(TH) )
+  
+# It's possible to merge the original data with the table containg the coefficients
+# using the output parameter:
+fit &lt;- lm_table(exfm19, log(VWB) ~  log(DBH) + log(TH), "STRATA", output = "merge")
+head(fit)
+
+# It's possible to merge the original data with the table,
+# and get the estimated values for this model:
+fit &lt;- lm_table(exfm19, log(VWB) ~  log(DBH) + log(TH),"STRATA",
+ output = "merge_est", est.name = "VWB_EST") 
+head(fit)
+       
+# It's possible to further customize the output,
+# unnesting the nested variables provided when output is defined as "nest":
+lm_table(exfm19, log(VWB) ~  log(DBH) + log(TH),"STRATA", output = "nest")
+
+</code></pre>
+
+
+</div>

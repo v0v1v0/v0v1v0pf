@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>banded.sample.cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Selects bandwidth for sample covariance matrix by cross validation</h2>
+
+<h3>Description</h3>
+
+<p>Selects bandwidth for sample covariance matrix by k-fold cross validation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">banded.sample.cv(X, bandwidth, folds = 3, est.eval = TRUE, Frob = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A data matrix with <code class="reqn">n</code> rows and <code class="reqn">p</code> columns. Rows are assumed to be independent realizations from a <code class="reqn">p</code>-variate distribution with covariance <code class="reqn">\Sigma</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidth</code></td>
+<td>
+<p>A vector of candidate bandwidths. Candidate bandwidths can only positive integers such that the maximum is less than <code class="reqn">p-1</code></p>
+</td>
+</tr>
+</table>
+<p>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>The number of folds used for cross validation. Default is <code>folds =3</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est.eval</code></td>
+<td>
+<p>Logical: <code>est.eval = TRUE</code> returns a list with both the selected bandwidth and the estimated covariance matrix. <code>est.eval=FALSE</code> returns a list with only the selected bandwidth. The default is <code>est.eval = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Frob</code></td>
+<td>
+<p>Logical: <code>Frob = TRUE</code> uses squared Frobenius norm loss for cross-validation. <code>Frob = FALSE</code> uses operator norm loss. Default is <code>Frob = TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>bandwidth.min</code></td>
+<td>
+<p>the bandwidth minimizing cv error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>the sample covariance matrix at bandwidth.min</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## set sample size and dimension
+n=20
+p=100
+
+## create covariance with AR1 structure
+Sigma = matrix(0, nrow=p, ncol=p)
+for(l in 1:p){
+  for(m in 1:p){
+    Sigma[l,m] = .5^(abs(l-m))
+  }
+}
+
+## simulation Normal data
+eo1 = eigen(Sigma)
+Sigma.sqrt = eo1$vec%*%diag(eo1$val^.5)%*%t(eo1$vec)
+X = t(Sigma.sqrt%*%matrix(rnorm(n*p), nrow=p, ncol=n))
+
+## perform cross validation
+k = 4:7
+out2.cv = banded.sample.cv(X, bandwidth=k, folds=5)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FMAT_run</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run the fill-mask pipeline on multiple models (CPU / GPU).</h2>
+
+<h3>Description</h3>
+
+<p>Run the fill-mask pipeline on multiple models with CPU or GPU
+(faster but requiring an NVIDIA GPU device).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FMAT_run(
+  models,
+  data,
+  gpu,
+  add.tokens = FALSE,
+  add.method = c("sum", "mean"),
+  file = NULL,
+  progress = TRUE,
+  warning = TRUE,
+  na.out = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>Options:
+</p>
+
+<ul>
+<li>
+<p> A character vector of model names at
+<a href="https://huggingface.co/models?pipeline_tag=fill-mask&amp;library=transformers">HuggingFace</a>.
+</p>
+
+<ul><li>
+<p> Can be used for both CPU and GPU.
+</p>
+</li></ul>
+</li>
+<li>
+<p> A returned object from <code>FMAT_load</code>.
+</p>
+
+<ul>
+<li>
+<p> Can ONLY be used for CPU.
+</p>
+</li>
+<li>
+<p> If you <em>restart</em> the R session,
+you will need to <em>rerun</em> <code>FMAT_load</code>.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.table returned from <code>FMAT_query</code> or <code>FMAT_query_bind</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpu</code></td>
+<td>
+<p>Use GPU (3x faster than CPU) to run the fill-mask pipeline?
+Defaults to missing value that will <em>automatically</em> use available GPU
+(if not available, then use CPU).
+An NVIDIA GPU device (e.g., GeForce RTX Series) is required to use GPU.
+See <a href="https://psychbruce.github.io/FMAT/#guidance-for-gpu-acceleration">Guidance for GPU Acceleration</a>.
+</p>
+<p>Options passing to the <code>device</code> parameter in Python:
+</p>
+
+<ul>
+<li> <p><code>FALSE</code>: CPU (<code>device = -1</code>).
+</p>
+</li>
+<li> <p><code>TRUE</code>: GPU (<code>device = 0</code>).
+</p>
+</li>
+<li>
+<p> Any other value: passing to
+<a href="https://huggingface.co/docs/transformers/main_classes/pipelines#transformers.pipeline.device">transformers.pipeline(device=...)</a>
+which defines the device (e.g.,
+<code>"cpu"</code>, <code>"cuda:0"</code>, or a GPU device id like <code>1</code>)
+on which the pipeline will be allocated.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.tokens</code></td>
+<td>
+<p>Add new tokens (for out-of-vocabulary words or even phrases) to model vocabulary?
+Defaults to <code>FALSE</code>. It only temporarily adds tokens for tasks but does not change the raw model file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.method</code></td>
+<td>
+<p>Method used to produce the token embeddings of new added tokens.
+Can be <code>"sum"</code> (default) or <code>"mean"</code> of subword token embeddings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>File name of <code>.RData</code> to save the returned data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>Show a progress bar? Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warning</code></td>
+<td>
+<p>Alert warning of out-of-vocabulary word(s)? Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.out</code></td>
+<td>
+<p>Replace probabilities of out-of-vocabulary word(s) with <code>NA</code>? Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function automatically adjusts for
+the compatibility of tokens used in certain models:
+(1) for uncased models (e.g., ALBERT), it turns tokens to lowercase;
+(2) for models that use <code style="white-space: pre;">⁠&lt;mask&gt;⁠</code> rather than <code style="white-space: pre;">⁠[MASK]⁠</code>,
+it automatically uses the corrected mask token;
+(3) for models that require a prefix to estimate whole words than subwords
+(e.g., ALBERT, RoBERTa), it adds a certain prefix (usually a white space;
+\u2581 for ALBERT and XLM-RoBERTa, \u0120 for RoBERTa and DistilRoBERTa).
+</p>
+<p>Note that these changes only affect the <code>token</code> variable
+in the returned data, but will not affect the <code>M_word</code> variable.
+Thus, users may analyze data based on the unchanged <code>M_word</code>
+rather than the <code>token</code>.
+</p>
+<p>Note also that there may be extremely trivial differences
+(after 5~6 significant digits) in the
+raw probability estimates between using CPU and GPU,
+but these differences would have little impact on main results.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.table (of new class <code>fmat</code>) appending <code>data</code> with these new variables:
+</p>
+
+<ul>
+<li> <p><code>model</code>: model name.
+</p>
+</li>
+<li> <p><code>output</code>: complete sentence output with unmasked token.
+</p>
+</li>
+<li> <p><code>token</code>: actual token to be filled in the blank mask
+(a note "out-of-vocabulary" will be added
+if the original word is not found in the model vocabulary).
+</p>
+</li>
+<li> <p><code>prob</code>: (raw) conditional probability of the unmasked token
+given the provided context, estimated by the masked language model.
+</p>
+
+<ul><li>
+<p> It is NOT SUGGESTED to directly interpret the raw probabilities
+because the <em>contrast</em> between a pair of probabilities
+is more interpretable. See <code>summary.fmat</code>.
+</p>
+</li></ul>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>BERT_download</code>
+</p>
+<p><code>BERT_vocab</code>
+</p>
+<p><code>FMAT_load</code> (deprecated)
+</p>
+<p><code>FMAT_query</code>
+</p>
+<p><code>FMAT_query_bind</code>
+</p>
+<p><code>summary.fmat</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Running the examples requires the models downloaded
+
+## Not run: 
+models = c("bert-base-uncased", "bert-base-cased")
+
+query1 = FMAT_query(
+  c("[MASK] is {TARGET}.", "[MASK] works as {TARGET}."),
+  MASK = .(Male="He", Female="She"),
+  TARGET = .(Occupation=c("a doctor", "a nurse", "an artist"))
+)
+data1 = FMAT_run(models, query1)
+summary(data1, target.pair=FALSE)
+
+query2 = FMAT_query(
+  "The [MASK] {ATTRIB}.",
+  MASK = .(Male=c("man", "boy"),
+           Female=c("woman", "girl")),
+  ATTRIB = .(Masc=c("is masculine", "has a masculine personality"),
+             Femi=c("is feminine", "has a feminine personality"))
+)
+data2 = FMAT_run(models, query2)
+summary(data2, mask.pair=FALSE)
+summary(data2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

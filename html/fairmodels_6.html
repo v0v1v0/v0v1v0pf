@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>choose_metric</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Choose metric</h2>
+
+<h3>Description</h3>
+
+<p>Extracts metrics from <code>metric_data</code> from fairness object.
+It allows to visualize and compare parity loss of chosen metric values across all models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">choose_metric(x, fairness_metric = "FPR")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class <code>fairness_object</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fairness_metric</code></td>
+<td>
+<p><code>char</code>, single name of metric, one of metrics:
+</p>
+
+<ul>
+<li>
+<p> TPR - parity loss of True Positive Rate (Sensitivity, Recall, Equal Odds)
+</p>
+</li>
+<li>
+<p> TNR - parity loss of True Negative Rate (Specificity)
+</p>
+</li>
+<li>
+<p> PPV - parity loss of Positive Predictive Value (Precision)
+</p>
+</li>
+<li>
+<p> NPV - parity loss of Negative Predictive Value
+</p>
+</li>
+<li>
+<p> FNR - parity loss of False Negative Rate
+</p>
+</li>
+<li>
+<p> FPR - parity loss of False Positive Rate
+</p>
+</li>
+<li>
+<p> FDR - parity loss of False Discovery Rate
+</p>
+</li>
+<li>
+<p> FOR - parity loss of False Omission Rate
+</p>
+</li>
+<li>
+<p> TS  - parity loss of Threat Score
+</p>
+</li>
+<li>
+<p> ACC - parity loss of Accuracy
+</p>
+</li>
+<li>
+<p> STP - parity loss of Statistical Parity
+</p>
+</li>
+<li>
+<p> F1  - parity loss of F1 Score
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>chosen_metric</code> object
+It is a list with following fields:
+</p>
+
+<ul>
+<li>
+<p>parity_loss_metric_data <code>data.frame</code> with columns: parity_loss_metric and label
+</p>
+</li>
+<li>
+<p>metric chosen metric
+</p>
+</li>
+<li>
+<p>label character, vector of model labels
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+
+cm &lt;- choose_metric(fobject, "TPR")
+plot(cm)
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200
+)
+
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_rf, fobject)
+
+cm &lt;- choose_metric(fobject, "TPR")
+plot(cm)
+
+
+</code></pre>
+
+
+</div>

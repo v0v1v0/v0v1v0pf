@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generateBlockDiagonalMatrices</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate block diagonal matrices to allow for fused L2 optimization with glmnet.</h2>
+
+<h3>Description</h3>
+
+<p>Generate block diagonal matrices to allow for fused L2 optimization with glmnet.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">generateBlockDiagonalMatrices(X, Y, groups, G, intercept = FALSE,
+  penalty.factors = rep(1, dim(X)[2]), scaling = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>covariates matrix (n by p).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>response vector (length n).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>vector of group indicators (ideally factors, length n)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>matrix representing the fusion strengths between pairs of
+groups (K by K). Zero entries are assumed to be independent pairs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>whether to include an (per-group) intercept in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty.factors</code></td>
+<td>
+<p>vector of weights for the penalization of
+each covariate (length p)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaling</code></td>
+<td>
+<p>Whether to scale each subgroup by its size. See Details for an explanation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We use the <code>glmnet</code> package to perform fused subgroup regression.
+In order to achieve this, we need to reformulate the problem as Y' = X'beta',
+where Y' is a concatenation of the responses Y and a vector of zeros, X' is a
+a matrix consisting of the block-diagonal matrix n by pK matrix X, where each
+block contains the covariates for one subgroups, and the choose(K,2)*p by pK
+matrix encoding the fusion penalties between pairs of groups. The vector of
+parameters beta' of length pK can be rearranged as a p by K matrix giving the
+parameters for each subgroup. The lasso penalty on the parameters is handled
+by glmnet.
+</p>
+<p>One weakness of the approach described above is that larger subgroups will
+have a larger influence on the global parameters lambda and gamma.
+In order to mitigate this, we introduce the <code>scaling</code> parameter. If
+<code>scaling=TRUE</code>, then we scale the responses and covariates for each
+subgroup by the number of samples in that group.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components X, Y, X.fused and penalty, where
+X is a n by pK block-diagonal bigmatrix, Y is a
+re-arranged bigvector of length n, and X.fused is a
+choose(K,2)*p by pK bigmatrix encoding the fusion penalties.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+
+# Generate simple heterogeneous dataset
+k = 4 # number of groups
+p = 100 # number of covariates
+n.group = 15 # number of samples per group
+sigma = 0.05 # observation noise sd
+groups = rep(1:k, each=n.group) # group indicators
+# sparse linear coefficients
+beta = matrix(0, p, k)
+nonzero.ind = rbinom(p*k, 1, 0.025/k) # Independent coefficients
+nonzero.shared = rbinom(p, 1, 0.025) # shared coefficients
+beta[which(nonzero.ind==1)] = rnorm(sum(nonzero.ind), 1, 0.25)
+beta[which(nonzero.shared==1),] = rnorm(sum(nonzero.shared), -1, 0.25)
+
+X = lapply(1:k,
+           function(k.i) matrix(rnorm(n.group*p),
+                                n.group, p)) # covariates
+y = sapply(1:k,
+           function(k.i) X[[k.i]] %*% beta[,k.i] +
+                           rnorm(n.group, 0, sigma)) # response
+X = do.call('rbind', X)
+
+# Pairwise Fusion strength hyperparameters (tau(k,k'))
+# Same for all pairs in this example
+G = matrix(1, k, k)
+
+# Generate block diagonal matrices
+transformed.data = generateBlockDiagonalMatrices(X, y, groups, G)
+</code></pre>
+
+
+</div>

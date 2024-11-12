@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>return_error</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute forecast error</h2>
+
+<h3>Description</h3>
+
+<p>Compute forecast error metrics on the validation datasets or a new test dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">return_error(
+  data_results,
+  data_test = NULL,
+  test_indices = NULL,
+  aggregate = stats::median,
+  metrics = c("mae", "mape", "mdape", "smape", "rmse", "rmsse"),
+  models = NULL,
+  horizons = NULL,
+  windows = NULL,
+  group_filter = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_results</code></td>
+<td>
+<p>An object of class 'training_results' or 'forecast_results' from running (a)
+<code>predict</code> on a trained model or (b) <code>combine_forecasts()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_test</code></td>
+<td>
+<p>Required for forecast results only. If <code>data_results</code> is an object of class 'forecast_results', a data.frame used to
+assess the accuracy of a 'forecast_results' object. <code>data_test</code> should have the outcome/target columns
+and any grouping columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_indices</code></td>
+<td>
+<p>Required if <code>data_test</code> is given or 'rmsse' 
+row indices or dates (class 'Date' or 'POSIXt') with length <code>nrow(data_test)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregate</code></td>
+<td>
+<p>Default <code>median</code>. A function–without parentheses–that aggregates historical prediction or forecast error across time series.
+All error metrics are first calculated at the level of the individual time series. <code>aggregate</code> is then used to combine error metrics across
+validation windows and horizons. Aggregations are returned at the group level if <code>data_results</code> contains groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>A character vector of common forecast error metrics. The default behavior is to return all metrics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>Optional. A character vector of user-defined model names supplied to <code>train_model()</code> to filter results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horizons</code></td>
+<td>
+<p>Optional. A numeric vector to filter results by horizon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows</code></td>
+<td>
+<p>Optional. A numeric vector to filter results by validation window number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_filter</code></td>
+<td>
+<p>Optional. A string for filtering plot results for grouped time series
+(e.g., <code>"group_col_1 == 'A'"</code>). <code>group_filter</code> is passed to <code>dplyr::filter()</code> internally.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 object of class 'validation_error', 'forecast_error', or 'forecastML_error': A list of data.frames
+of error metrics for the validation or forecast dataset depending on the class of <code>data_results</code>: 'training_results',
+'forecast_results', or 'forecastML' from <code>combine_forecasts()</code>.
+</p>
+<p>A list containing: <br></p>
+
+<ul>
+<li>
+<p> Error metrics by model, horizon, and validation window
+</p>
+</li>
+<li>
+<p> Error metrics by model and horizon, collapsed across validation windows
+</p>
+</li>
+<li>
+<p> Global error metrics by model collapsed across horizons and validation windows
+</p>
+</li>
+</ul>
+<h3>Error Metrics</h3>
+
+
+<ul>
+<li> <p><code>mae</code>: Mean absolute error (works with factor outcomes)
+</p>
+</li>
+<li> <p><code>mape</code>: Mean absolute percentage error
+</p>
+</li>
+<li> <p><code>mdape</code>: Median absolute percentage error
+</p>
+</li>
+<li> <p><code>smape</code>: Symmetrical mean absolute percentage error
+</p>
+</li>
+<li> <p><code>rmse</code>: Root mean squared error
+</p>
+</li>
+<li> <p><code>rmsse</code>: Root mean squared scaled error from the M5 competition
+</p>
+</li>
+</ul>
+<h3>Methods and related functions</h3>
+
+<p>The output of <code>return_error()</code> has the following generic S3 methods
+</p>
+
+<ul>
+<li> <p><code>plot</code> from <code>return_error()</code>
+</p>
+</li>
+<li> <p><code>plot</code> from <code>return_error()</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Sampled Seatbelts data from the R package datasets.
+data("data_seatbelts", package = "forecastML")
+
+# Example - Training data for 2 horizon-specific models w/ common lags per predictor.
+horizons &lt;- c(1, 12)
+lookback &lt;- 1:15
+
+data_train &lt;- create_lagged_df(data_seatbelts, type = "train", outcome_col = 1,
+                               lookback = lookback, horizon = horizons)
+
+# One custom validation window at the end of the dataset.
+windows &lt;- create_windows(data_train, window_start = 181, window_stop = 192)
+
+# User-define model - LASSO
+# A user-defined wrapper function for model training that takes the following
+# arguments: (1) a horizon-specific data.frame made with create_lagged_df(..., type = "train")
+# (e.g., my_lagged_df$horizon_h) and, optionally, (2) any number of additional named arguments
+# which are passed as '...' in train_model().
+library(glmnet)
+model_function &lt;- function(data, my_outcome_col) {
+
+  x &lt;- data[, -(my_outcome_col), drop = FALSE]
+  y &lt;- data[, my_outcome_col, drop = FALSE]
+  x &lt;- as.matrix(x, ncol = ncol(x))
+  y &lt;- as.matrix(y, ncol = ncol(y))
+
+  model &lt;- glmnet::cv.glmnet(x, y, nfolds = 3)
+  return(model)
+}
+
+# my_outcome_col = 1 is passed in ... but could have been defined in model_function().
+model_results &lt;- train_model(data_train, windows, model_name = "LASSO", model_function,
+                             my_outcome_col = 1)
+
+# User-defined prediction function - LASSO
+# The predict() wrapper takes two positional arguments. First,
+# the returned model from the user-defined modeling function (model_function() above).
+# Second, a data.frame of predictors--identical to the datasets returned from
+# create_lagged_df(..., type = "train"). The function can return a 1- or 3-column data.frame
+# with either (a) point forecasts or (b) point forecasts plus lower and upper forecast
+# bounds (column order and column names do not matter).
+prediction_function &lt;- function(model, data_features) {
+
+  x &lt;- as.matrix(data_features, ncol = ncol(data_features))
+
+  data_pred &lt;- data.frame("y_pred" = predict(model, x, s = "lambda.min"))
+  return(data_pred)
+}
+
+# Predict on the validation datasets.
+data_valid &lt;- predict(model_results, prediction_function = list(prediction_function),
+                      data = data_train)
+
+# Forecast error metrics for validation datasets.
+data_error &lt;- return_error(data_valid)
+</code></pre>
+
+
+</div>

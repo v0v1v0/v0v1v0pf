@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>r0_conversions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Converts between epidemiological parameters related to <code class="reqn">R_0</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Converts between <code class="reqn">R_0</code> and the transmission rate
+<code class="reqn">\lambda</code>, or calculates
+the effective reproduction number <code class="reqn">R_\text{eff}</code> for a population,
+while accounting for population characteristics including demographic
+heterogeneity in social contacts, heterogeneity in the demographic
+distribution, and heterogeneity in susceptibility to infection.
+</p>
+<p>Uses the R0 (<code class="reqn">R_0</code>), contact matrix (<code class="reqn">C</code>),
+population (<code class="reqn">N</code>), and infectious period (<code class="reqn">\gamma</code>)
+to calculate the transmission rate using the following equation.
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda = R_0 / ({Max}(EV(C)) \gamma)</code>
+</p>
+
+<p>where <code class="reqn">EV(C)</code> denotes the eigenvalues of the matrix <code class="reqn">C</code> which is
+calculated from the social contacts matrix scaled by the number of
+individuals in each demographic and susceptibility group in the population.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lambda_to_r0(
+  lambda,
+  contact_matrix,
+  demography_vector,
+  susceptibility,
+  p_susceptibility,
+  infectious_period = 1.8
+)
+
+r0_to_lambda(
+  r0,
+  contact_matrix,
+  demography_vector,
+  susceptibility,
+  p_susceptibility,
+  infectious_period = 1.8
+)
+
+r_eff(r0, contact_matrix, demography_vector, susceptibility, p_susceptibility)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The transmission rate of the disease, also called the 'force of
+infection' (<code class="reqn">\lambda</code>). This is different from the effective
+transmission rate (<code class="reqn">\beta</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contact_matrix</code></td>
+<td>
+<p>Social contact matrix. Entry <code class="reqn">m_{ij}</code> gives average
+number of contacts in group <code class="reqn">i</code> reported by participants in group <code class="reqn">j</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>demography_vector</code></td>
+<td>
+<p>Demography vector. Entry <code class="reqn">v_{i}</code> gives
+proportion of total population in group <code class="reqn">i</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>susceptibility</code></td>
+<td>
+<p>A matrix giving the susceptibility of individuals in
+demographic group <code class="reqn">i</code> and risk group <code class="reqn">k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_susceptibility</code></td>
+<td>
+<p>A matrix giving the probability that an individual
+in demography group <code class="reqn">i</code> is in risk (or susceptibility) group <code class="reqn">k</code>.
+Each row represents the overall distribution of individuals in demographic
+group <code class="reqn">i</code> across risk groups, and each row <em>must sum to 1.0</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>infectious_period</code></td>
+<td>
+<p>Duration of the infectious period in days.
+Default value is 1.8 days.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r0</code></td>
+<td>
+<p>The basic reproductive number <code class="reqn">R_0</code> of the infection.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given the transmission rate (<code class="reqn">\lambda</code>),
+social contacts matrix (<code class="reqn">c</code>), demography (<code class="reqn">N</code>), the
+distribution <code class="reqn">P</code> of each demographic group <code class="reqn">i</code> into
+susceptibility groups <code class="reqn">S</code>, and the infectious period (<code class="reqn">\gamma</code>)
+</p>
+
+<ul>
+<li> <p><code>r_eff()</code> calculates the effective reproductive number;
+</p>
+</li>
+<li> <p><code>lamda_to_r0()</code> calculates the <code class="reqn">R_0</code> from the transmission rate as
+</p>
+<p style="text-align: center;"><code class="reqn">R_0 = {Max}(EV(C)) \times \lambda \gamma</code>
+</p>
+
+</li>
+<li> <p><code>r0_to_lambda()</code> calculates the transmission rate as
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda = R_0 / ({Max}(EV(C)) \gamma)</code>
+</p>
+
+<p>Note that this is also called the 'force of infection' and is different from
+the effective transmission rate often denoted <code class="reqn">\beta</code>.
+</p>
+</li>
+</ul>
+<p>Here, <code class="reqn">EV(C)</code> denotes the eigenvalues of the matrix <code class="reqn">C</code> which is
+calculated from the social contacts matrix scaled by the number of
+individuals in each demographic and susceptibility group in the population.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a single number for the calculated value.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### Prepare data ####
+# Get example dataset and prepare contact matrix and demography
+data(polymod_uk)
+contact_matrix &lt;- polymod_uk$contact_matrix
+demography_vector &lt;- polymod_uk$demography_vector
+
+# define lambda
+lambda &lt;- 0.3
+
+# define infectious period of 5 days
+infectious_period &lt;- 5
+# define the number of age and susceptibility groups
+n_demo_grps &lt;- length(demography_vector)
+n_risk_grps &lt;- 3
+
+# In this example, risk varies across groups
+susceptibility &lt;- matrix(
+  data = c(0.5, 0.7, 1.0), nrow = n_demo_grps, ncol = n_risk_grps
+)
+
+# risk does not vary within groups
+p_susceptibility &lt;- matrix(
+  data = 1, nrow = n_demo_grps, ncol = n_risk_grps
+)
+# p_susceptibility rows must sum to 1.0
+p_susceptibility &lt;- p_susceptibility / rowSums(p_susceptibility)
+
+#### Effective R ####
+r0 &lt;- 2.0
+r_eff(
+  r0 = r0,
+  contact_matrix = contact_matrix,
+  demography_vector = demography_vector,
+  susceptibility = susceptibility,
+  p_susceptibility = p_susceptibility
+)
+
+#### Transmission rate to R0 ####
+lambda_to_r0(
+  lambda, contact_matrix, demography_vector,
+  susceptibility, p_susceptibility,
+  infectious_period
+)
+
+#### R0 to Transmission rate ####
+r0 &lt;- 1.5
+r0_to_lambda(
+  r0, contact_matrix, demography_vector,
+  susceptibility, p_susceptibility,
+  infectious_period
+)
+</code></pre>
+
+
+</div>

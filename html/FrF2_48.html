@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fold.design</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Function to create a foldover for 2-level fractional factorials
+</h2>
+
+<h3>Description</h3>
+
+<p>This function creates a foldover design for a 2-level fractional 
+factorial. The purpose is to dealias (some) effects. 
+Per default, all factors are folded upon, which makes the resulting 
+design at least resolution IV. Different foldover versions can be requested.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fold.design(design, columns = "full", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+
+<p>a data frame of class design that contains a 2-level fractional factorial; 
+currently, <code>design</code> must neither be blocked nor a long version parameter design
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>columns</code></td>
+<td>
+
+<p>indicates which columns to fold on; the default “full” folds on all columns, 
+i.e. swaps levels for all columns. <br>  
+A specific fold on certain columns can be requested giving a character vector 
+of factor names or a numeric vector of factor positions.<br>
+See the details section for some statistical comments.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>currently not used</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Foldover is a method to dealias effects in relatively small 
+2-level fractional factorial designs. The folded design has twice the number 
+of runs from the original design, and an additional column “fold” that 
+distinguishes the original runs from the mirror runs. This column should be used 
+in analyses, since it captures a block effect on time (often the mirror runs 
+are conducted substantially later than the original experiment).
+</p>
+<p>Like most other software, this function conducts a full foldover per default, 
+i.e. the mirror portion reverses the levels of all factors. In terms of the 
+convenient -1/1 notation for factor levels, this can be written as 
+a multiplication with “-1” for the mirror portion of all factors. 
+Thus, all confounding relations involving 
+an odd number of factors (e.g. A=BC) are resolved, because the odd side of the 
+equation involves a minus for the mirror runs, and the even side does not 
+(since the minuses cancel each other). (These 
+confounding relations are replaced by even ones 
+for which the odd side of the equation is multiplied with minus the new mirror factor <code>fold</code>.) 
+</p>
+<p>There are many situations, for which the default full foldover is 
+not the best possible foldover fraction, cf. e.g. Li and Mee (2002). 
+It is therefore possible to choose an arbitrary foldover fraction. For example, 
+folding on one particular factor alone dealiases all confounding relations 
+for that factor, folding on two particular factors dealiases all confounding relations 
+of these two with others but not of these two together with others and so on.
+</p>
+<p>Folding Plackett-Burman designs also removes the (partial) aliasing with 2-factor 
+interactions for all main effects that are mirrored.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame of class design with twice as many rows as <code>design</code> and 
+the additional factor <code>fold</code> (added as the last factor for folded <code>pb</code> 
+designs, as the first factor for splitplot designs, 
+and as the last <em>base</em> factor for other folded regular fractional 
+factorial designs).
+</p>
+<p>Existing response values are of course preserved, and response values for the 
+new mirror runs are NA.
+</p>
+<p>The type in attribute <code>design.info</code> is suffixed with “.folded”, and 
+<code>nruns</code> (and, if applicable, <code>nWPs</code>) is doubled, 
+<code>nfactors</code> (and, if applicable, <code>nfac.WP</code>) 
+is increased by one (for the factor fold, which 
+is a block factor and can also be treated as such, but will currently be treated as a fixed 
+(whole plot) factor by any automated analysis routine). The creator element receives a list entry for the fold columns.<br>
+For regular fractional factorials (design type starting with <code>FrF2</code>), the generator element is adjusted 
+(the generators for all generated fold factors now involve the folding factor), and an existing 
+catlg.entry element is replaced by a new generators element. The <code>aliased</code> element is 
+adapted to the new alias structure. Note that the fold factor enters as a new base factor and therefore 
+is added to the factor matrix after the first log2(nruns) factors. This implies that all factor 
+letters previously used for the generated factors are changed - for avoiding confusion it is always recommended to 
+work with factor names that are meaningful in a subject-matter sense.
+</p>
+<p>Furthermore, for the regular fractional factorial designs, 
+the column run.no.in.std.order in attribute <code>run.order</code> for the mirror portion of the design is 
+populated such that the base factors remain in the conventional order when ordered by 
+run.no.in.std.order (regardless whether or not they are included in the fold; 
+it is always possible to reorder runs such that the original base factors 
+together with the folding factor form the new base in standard order).
+</p>
+
+
+<h3>Note</h3>
+
+<p>This function is still somewhat experimental.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ulrike Groemping
+</p>
+
+
+<h3>References</h3>
+
+<p>Li, H. and Mee, R. (2002). Better foldover fractions for resolution III 2^(k-p) designs. 
+<em>Technometrics</em> <b>44</b>, 278–283. 
+New York: Springer.
+</p>
+<p>Mee, R. (2009). <em>A Comprehensive Guide to Factorial Two-Level Experimentation</em>. 
+New York: Springer.
+</p>
+<p>Montgomery, D.C. (2001). <em>Design and Analysis of Experiments (5th ed.)</em>. Wiley, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also as <code>pb</code>, <code>FrF2</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## create resolution III design
+  plan &lt;- FrF2(8,5, factor.names=c("one","two","three","four","five"))
+  ## add some resonse data
+  y &lt;- c(2+desnum(plan)%*%c(2,3,0,0,0) +
+     1.5*apply(desnum(plan)[,c(1,2)],1,"prod") + rnorm(8))
+     ## the "c()" makes y into a vector rather than a 1-column matrix
+  plan &lt;- add.response(plan, y)
+  DanielPlot(lm(y~(.)^2,plan), alpha=0.2, half=TRUE)
+  ## alias information
+  design.info(plan)
+  ## full foldover for dealiasing all main effects
+  plan &lt;- fold.design(plan)
+  design.info(plan)
+  ## further data, shifted by -2
+  y &lt;- c(y, desnum(plan)[9:16,1:5]%*%c(2,3,0,0,0) +
+     1.5*apply(desnum(plan)[9:16,c(1,2)],1,"prod") + rnorm(8))
+  plan &lt;- add.response(plan, y, replace=TRUE)
+  linmod &lt;- lm(y~(.)^2,plan)
+  DanielPlot(linmod, alpha=0.2, half=TRUE)
+  MEPlot(linmod)
+  IAPlot(linmod)
+  
+  ## fold on factor a only (also removes main effect aliasing here)
+  plan &lt;- FrF2(8,5, factor.names=c("one","two","three","four","five"))
+  aliasprint(plan)
+  plan &lt;- fold.design(plan, columns=1)
+  aliasprint(plan)
+  
+  ## fold a Plackett-Burman design with 11 factors
+  plan &lt;- pb(12)
+  fold.design(plan)
+   </code></pre>
+
+
+</div>

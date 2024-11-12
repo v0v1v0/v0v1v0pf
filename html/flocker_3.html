@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flock</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit an occupancy model</h2>
+
+<h3>Description</h3>
+
+<p>Fit an occupancy model
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flock(
+  f_occ = NULL,
+  f_det,
+  flocker_data,
+  data2 = NULL,
+  multiseason = NULL,
+  f_col = NULL,
+  f_ex = NULL,
+  multi_init = NULL,
+  f_auto = NULL,
+  augmented = FALSE,
+  threads = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f_occ</code></td>
+<td>
+<p>A brms-type model formula for occupancy. If provided, must begin 
+with "~".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f_det</code></td>
+<td>
+<p>A brms-type model formula for detection. Must begin with "~". 
+OR, a <code>brmsformula</code> object including formulas for all of the relevant
+distributional parameters in the desired model (det and at least one of occ, 
+colo, ex, autologistic, and Omega). The <code>$formula</code> element of the 
+<code>brmsformula</code> must be the detection formula, beginning with <code>det ~</code>.
+This latter option unadvisable except when necessary (e.g. when a nonlinear 
+formula is desired), as input checking is less thorough.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flocker_data</code></td>
+<td>
+<p>data, generally the output of <code>make_flocker_data()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data2</code></td>
+<td>
+<p>additional data (e.g. a covariance matrix for a phylogenetic 
+effect)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multiseason</code></td>
+<td>
+<p>Must be NULL (the default) or one of "colex" or 
+"autologistic". If NULL, data must be formatted for a single-season model.
+Otherwise, the data must be formatted for a multiseason model. If "colex", a 
+colonization-extinction model will be fit, and 'f_col' and 'f_ex' must be 
+specified. If "autologistic", an autologistic model will be fit, and 'f_col'
+and 'f_ex' must both be NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f_col</code></td>
+<td>
+<p>A brms-type model formula for colonization in 
+colonization-extinction dynamic models. If provided, must begin with "~".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f_ex</code></td>
+<td>
+<p>A brms-type model formula for extinction probabilities in 
+colonization-extinction dynamic models. If provided, must begin with "~".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multi_init</code></td>
+<td>
+<p>Must be NULL unless the model is a dynamic (multiseason)
+model, in which case must be either "explicit" or "equilibrium". 
+If "explicit", then 'f_occ' must be provided to model occupancy
+probabilities in the first timestep. If "equilibrium", then 'f_occ' must be
+'NULL' and the initial occupancy probabilities are assumed to be the 
+(possibly site-specific) equilibrium probabilities from the colonization-
+extinction dynamics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f_auto</code></td>
+<td>
+<p>Relevant only for autologistic models. A brms-type model 
+formula for the autologistic offset parameter (theta). If provided, must 
+begin with "~".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>augmented</code></td>
+<td>
+<p>Logical. Must be TRUE if data are formatted for a 
+data-augmented multi-species model, and FALSE otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threads</code></td>
+<td>
+<p>NULL or positive integer. If integer, the number of threads
+to use per chain in within chain parallelization. Currently available only
+with single-season rep-constant models, and must be set to NULL otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>brms::brm()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a <code>brmsfit</code> containing the fitted occupancy model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+sfd &lt;- simulate_flocker_data()
+fd &lt;- make_flocker_data(
+ sfd$obs, 
+ sfd$unit_covs,
+ sfd$event_covs
+)
+flock(
+  f_occ = ~ s(uc1) + (1|species),
+  f_det = ~ uc1 + ec1 + (1|species),
+  flocker_data = fd,
+  refresh = 50, chains = 1, warmup = 5, iter = 200,
+  control = list(adapt_engaged = FALSE, stepsize = .05, max_treedepth = 5),
+  seed = 123
+  )
+
+</code></pre>
+
+
+</div>

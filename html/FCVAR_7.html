@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FCVARlagSelect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Select Lag Order</h2>
+
+<h3>Description</h3>
+
+<p><code>FCVARlagSelect</code> takes a matrix of variables and performs lag
+selection on it by using the likelihood ratio test. Output and test
+results are printed to the screen.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FCVARlagSelect(x, kmax, r, order, opt)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A matrix of variables to be included in the system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmax</code></td>
+<td>
+<p>The maximum number of lags in the system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>The cointegrating rank.This is often set equal to <code>p</code>,
+the number of variables in the system, since it is better to overspecify
+than underspecify the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>The order of serial correlation for white noise tests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt</code></td>
+<td>
+<p>An S3 object of class <code>FCVAR_opt</code> that stores the chosen estimation options,
+generated from <code>FCVARoptions()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 object of type <code>FCVAR_lags</code> containing the results
+from repeated estimation of the FCVAR model with different orders
+of the autoregressive lag length.
+Note that row <code>j</code> of each of the vectors in the <code>FCVAR_lags</code> object
+contains the associated results for lag length <code>j+1</code>.
+The <code>FCVAR_lags</code> object includes the following parameters:
+</p>
+
+<dl>
+<dt><code>D</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 2 vector of estimates of d and b.</p>
+</dd>
+<dt><code>loglik</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 1 vector of log-likelihood values.</p>
+</dd>
+<dt><code>LRtest</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 1 vector of likelihood ratio test statistics for tests of significance of <code class="reqn">\Gamma_{j+1}</code>.</p>
+</dd>
+<dt><code>pvLRtest</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 1 vector of P-values for the likelihood ratio tests of significance of <code class="reqn">\Gamma_{j+1}</code>.</p>
+</dd>
+<dt><code>i_aic</code></dt>
+<dd>
+<p>The lag corresponding to the minimum value of the Akaike information criteria.</p>
+</dd>
+<dt><code>aic</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 1 vector of values of the Akaike information criterion.</p>
+</dd>
+<dt><code>i_bic</code></dt>
+<dd>
+<p>The lag corresponding to the minimum value of the Bayesian information criteria.</p>
+</dd>
+<dt><code>bic</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 1 vector of values of the Bayesian information criterion.</p>
+</dd>
+<dt><code>pvMVq</code></dt>
+<dd>
+<p>A scalar P-value for the Q-test for multivariate residual white noise.</p>
+</dd>
+<dt><code>pvWNQ</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 1 vector of P-values for the Q-tests for univariate residual white noise.</p>
+</dd>
+<dt><code>pvWNLM</code></dt>
+<dd>
+<p>A (<code>kmax</code> + 1) x 1 vector of P-values for the LM-tests for univariate residual white noise.</p>
+</dd>
+<dt><code>kmax</code></dt>
+<dd>
+<p>The maximum number of lags in the system.</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p>The cointegrating rank. This is often set equal to <code>p</code>,
+the number of variables in the system, since it is better to overspecify
+than underspecify the model.</p>
+</dd>
+<dt><code>p</code></dt>
+<dd>
+<p>The number of variables in the system.</p>
+</dd>
+<dt><code>cap_T</code></dt>
+<dd>
+<p>The sample size.</p>
+</dd>
+<dt><code>order</code></dt>
+<dd>
+<p>The order of serial correlation for white noise tests.</p>
+</dd>
+<dt><code>opt</code></dt>
+<dd>
+<p>An S3 object of class <code>FCVAR_opt</code> that stores the chosen estimation options,
+generated from <code>FCVARoptions()</code>.</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p><code>FCVARoptions</code> to set default estimation options.
+<code>FCVARestn</code> is called repeatedly within this function
+for each candidate lag order.
+<code>summary.FCVAR_lags</code> prints a summary of the output of <code>FCVARlagSelect</code> to screen.
+</p>
+<p>Other FCVAR specification functions: 
+<code>FCVARbootRank()</code>,
+<code>FCVARrankTests()</code>,
+<code>summary.FCVAR_lags()</code>,
+<code>summary.FCVAR_ranks()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+opt &lt;- FCVARoptions()
+opt$gridSearch   &lt;- 0 # Disable grid search in optimization.
+opt$dbMin        &lt;- c(0.01, 0.01) # Set lower bound for d,b.
+opt$dbMax        &lt;- c(2.00, 2.00) # Set upper bound for d,b.
+opt$constrained  &lt;- 0 # Impose restriction dbMax &gt;= d &gt;= b &gt;= dbMin ? 1 &lt;- yes, 0 &lt;- no.
+x &lt;- votingJNP2014[, c("lib", "ir_can", "un_can")]
+FCVARlagSelectStats &lt;- FCVARlagSelect(x, kmax = 3, r = 3, order = 12, opt)
+
+</code></pre>
+
+
+</div>

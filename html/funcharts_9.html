@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>control_charts_sof_pc_real_time</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Real-time scalar-on-function regression control charts</h2>
+
+<h3>Description</h3>
+
+<p>This function is deprecated. Use <code>regr_cc_sof_real_time</code>.
+This function produces a list of data frames,
+each of them is produced by <code>control_charts_sof_pc</code>
+and is needed to plot control charts for monitoring in real time
+a scalar quality characteristic adjusted for
+by the effect of multivariate functional covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">control_charts_sof_pc_real_time(
+  mod_list,
+  y_test,
+  mfdobj_x_test,
+  mfdobj_x_tuning = NULL,
+  alpha = list(T2 = 0.0125, spe = 0.0125, y = 0.025),
+  limits = "standard",
+  seed,
+  nfold = NULL,
+  ncores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod_list</code></td>
+<td>
+<p>A list of lists produced by <code>sof_pc_real_time</code>,
+containing a list of scalar-on-function linear regression models estimated
+on functional data each evolving up to an intermediate domain point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_test</code></td>
+<td>
+<p>A numeric vector containing the observations of
+the scalar response variable in the phase II monitoring data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_test</code></td>
+<td>
+<p>A list created using
+<code>get_mfd_df_real_time</code> or
+<code>get_mfd_list_real_time</code>, denoting a list of functional data objects
+in the phase II monitoring data set,
+each evolving up to an intermediate domain point,
+with observations of the multivariate functional covariates.
+The length of this list and <code>mod_list</code> must be equal,
+and their elements in the same position in the list
+must correspond to the same intermediate domain point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_tuning</code></td>
+<td>
+<p>A list created using
+<code>get_mfd_df_real_time</code> or
+<code>get_mfd_list_real_time</code>, denoting a list of functional data objects
+in the tuning data set (used to estimate control chart limits),
+each evolving up to an intermediate domain point,
+with observations of the multivariate functional covariates.
+The length of this list and <code>mod_list</code> must be equal,
+and their elements in the same position in the list
+must correspond to the same intermediate domain point.
+If NULL, the training data, i.e. the functional covariates
+in <code>mod_list</code>,
+are also used as the tuning data set.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>See <code>control_charts_sof_pc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limits</code></td>
+<td>
+<p>See <code>control_charts_sof_pc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Deprecated: see <code>control_charts_sof_pc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfold</code></td>
+<td>
+<p>See <code>control_charts_sof_pc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>If you want parallelization, give the number of cores/threads
+to be used when creating objects separately for different instants.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of <code>data.frame</code>s each
+produced by <code>control_charts_sof_pc</code>,
+corresponding to a given instant.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sof_pc_real_time</code>, <code>control_charts_sof_pc</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(funcharts)
+data("air")
+air1 &lt;- lapply(air, function(x) x[1:8, , drop = FALSE])
+air2 &lt;- lapply(air, function(x) x[9:10, , drop = FALSE])
+mfdobj_x1_list &lt;- get_mfd_list_real_time(air1[c("CO", "temperature")],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+mfdobj_x2_list &lt;- get_mfd_list_real_time(air2[c("CO", "temperature")],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+y1 &lt;- rowMeans(air1$NO2)
+y2 &lt;- rowMeans(air2$NO2)
+mod_list &lt;- sof_pc_real_time(y1, mfdobj_x1_list)
+cclist &lt;- control_charts_sof_pc_real_time(
+  mod_list = mod_list,
+  y_test = y2,
+  mfdobj_x_test = mfdobj_x2_list)
+plot_control_charts_real_time(cclist, 1)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

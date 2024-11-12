@@ -1,0 +1,301 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readFITS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read a single data set from a FITS file</h2>
+
+<h3>Description</h3>
+
+<p>Read a single image (multi-dimensional array) or binary table
+from a FITS file.  The source code <code>readFITS.r</code> is a model for
+creating code to read more complex FITS files.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readFITS(file = "R.fits", hdu = 1, maxLines = 5000,
+fixHdr = c('none', 'remove', 'substitute'), phdu = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>Existing FITS file name, or remote file; see examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hdu</code></td>
+<td>
+<p>Position of Header and Data Unit (HDU) in FITS file: 1 for
+the first HDU, 2 for the second HDU, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxLines</code></td>
+<td>
+<p>Integer: maximum number of header lines to read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixHdr</code></td>
+<td>
+<p>Deal with (illegal) nonprinting characters in the
+header.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phdu</code></td>
+<td>
+<p>Rarely needed; see Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>readFITS</code> is a simple but complete FITS file reader,
+automatically detecting image and binary table data extensions
+(random groups are
+not supported in this
+release).  It reads a single Header and Data Unit
+(HDU) pair from a file and returns a list with data, header, and axis
+information.   Files with more complicated structures or
+isolated header units can be read with an appropriate combination of
+<code>readFITSheader</code>, <code>readFITSarray</code>, and
+<code>readFITSbintable</code>.  See the Example section for
+<code>readFITSimage</code> for a step-by-step
+example that includes file opening and closing.
+</p>
+<p><var>phdu</var> = 0 forces a read of a secondary HDU in a
+fairly pathological case (specifically: indicating
+a read of a secondary HDU by setting NAXISn = 0 for n &gt; 1, but NAXIS != 0
+and NAXIS1 != 0.)  This does not seem to be forbidden by the FITS
+standard but would be unlikely coding.
+</p>
+<p><var>...</var> passes additional values for file reading.  The only use at
+present is to pass values to <var>fixHdr</var> in <code>readFITSheader</code>.
+<var>fixHdr</var> attempts to fix headers with non-printing characters,
+either by removing them with <code>fixHdr = 'remove'</code>, reading further
+into the file until 2880 valid characters are present, or by
+substituting spaces for non-printing characters with <code>fixHdr =
+  'substitute'</code>.  This option should be used with caution, as non-printing
+characters should not be in the header in the first place, so this
+option may or may not corrupt the following data.  The default is
+<code>fixHdr = 'none'</code>.  Partial matching is allowed.
+</p>
+<p>Binary table complex, and array
+descriptor data types are not implemented in this release due to a lack
+of examples for testing. 8, 16, 24, and 32-bit bit arrays return as integers.  Other lengths
+are not supported.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return values from <code>readFITS</code> are in a list. Depending on the
+data type, list entries are:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>header</code></td>
+<td>
+<p>Vector with input file header up to END statement.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hdr</code></td>
+<td>
+<p>Vector with <code>keyword = value</code> pairs parsed from header.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imDat</code></td>
+<td>
+<p>Data array (image).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axDat</code></td>
+<td>
+<p>Data frame with axis scaling and labels (image).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>Data frame containing a table (table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>Data from each column (bintable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colNames</code></td>
+<td>
+<p>Vector of column names, TTYPEn FITS variable
+(bintable, table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colUnits</code></td>
+<td>
+<p>Vector of column units, TUNITn FITS variable
+(bintable, table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TNULLn</code></td>
+<td>
+<p>Vector of undefined value definitions, FITS variable
+(bintable, table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TSCALn</code></td>
+<td>
+<p>Vector of multipliers for scaling, FITS variable
+(bintable, table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TZEROn</code></td>
+<td>
+<p>Vector of zeros for scaling, FITS variable (bintable, table).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TDISPn</code></td>
+<td>
+<p>Vector of format information, FITS variable (bintable).</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Graphical FITS viewers such as <em>fv</em>
+(<a href="https://heasarc.gsfc.nasa.gov/ftools/fv/">https://heasarc.gsfc.nasa.gov/ftools/fv/</a>) and <em>SAOImage DS9</em>
+(<a href="http://ds9.si.edu/">http://ds9.si.edu/</a>)
+have excellent facilities for displaying FITS data, headers, and file
+structure.  Having one or more graphical viewers available will
+prove extremely
+useful
+for working with FITS
+files, even when the data are read into <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> for further processing.
+<em>fv</em> and <em>SAOImage DS9</em> are in active development
+with support for
+unix, Windows, and Mac OS-X operating systems, and are available at no cost.
+</p>
+<p>See <code>readFrameFromFITS</code> to read a binary table
+directly into an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> data frame.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew Harris</p>
+
+
+<h3>References</h3>
+
+<p>Hanisch et al., <em>Astron.\ Astrophys.</em> 376, 359-380 (2001)
+</p>
+<p><a href="https://fits.gsfc.nasa.gov/">https://fits.gsfc.nasa.gov/</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>readFITSarray</code>,
+<code>readFITSbintable</code>,
+<code>readFITSheader</code>,
+<code>readFrameFromFITS</code>,
+<code>modifyHeader</code>,
+<code>image</code>, <code>par</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(FITSio)
+
+### Image example
+## Make test image with axis information, write to disk
+Z &lt;- matrix(1:15, ncol = 3)
+filename &lt;- paste(tempdir(), "test.fits", sep="")
+writeFITSim(Z, file = filename, c1 = "Test FITS file",
+            crpix = c(1,1), crvaln = c(10, 100), cdeltn = c(8, 2),
+            ctypen = c("Distance", "Time"),
+            cunitn = c("Furlongs", "Fortnights"))
+## Read back in and display
+X &lt;-  readFITS(filename)
+ax1 &lt;- axVec(1, X$axDat)          # Make axis vector for image
+ax2 &lt;- axVec(2, X$axDat)
+xlab &lt;- X$axDat$ctype[1]
+ylab &lt;- paste(X$axDat$ctype[2], " [", X$axDat$cunit[2], "]", sep = "")
+image(ax1, ax2, X$imDat, xlab = xlab, ylab = ylab)
+str(X)
+X$axDat                           # Display data frame with axis data
+X$hdr[1:10]                       # Header sample
+X$hdr[which(X$hdr=="BITPIX")+1]   # BITPIX value from header
+## No axis scale markings
+image(X$imDat, xlab = xlab, ylab = ylab, xaxt = "n", yaxt = "n")
+## Clean up to avoid clutter
+unlink(filename)
+
+### Binary table examples
+## Bintable with one row and differently multi-dimensional columns
+## Either download example file from
+## &lt;https://fits.gsfc.nasa.gov/fits_samples.html&gt;
+## and use
+## Not run: filename &lt;- "IUElwp25637mxlo.fits"
+## or, for local example use
+filename &lt;- system.file("fitsExamples", "IUElwp25637mxlo.fits",
+                        package = "FITSio")
+
+Y &lt;- readFITS(filename)
+## Look at contents
+str(Y)
+Y$colNames
+str(Y$col)
+Y$hdr[which(Y$hdr=="BITPIX")+1]   # BITPIX value from header
+plot(Y$col[[5]], ylab = "Value", main = Y$colNames[5], type = "l")
+
+### Simple flat file example
+filename &lt;- system.file("fitsExamples", "2008_03_11_203150.fits",
+                        package = "FITSio")
+Z &lt;- readFITS(filename)
+str(Z)
+Z$colNames
+str(Z$col)
+attach(Z)
+xc &lt;- which(colNames == "DMJD")
+yc &lt;- which(colNames == "TiltX")
+xlab &lt;- paste(colNames[xc], " [", colUnits[xc], "]", sep = "")
+ylab &lt;- paste(colNames[yc], " [", colUnits[yc], "]", sep = "")
+plot(col[[xc]], col[[yc]], xlab = xlab, ylab = ylab, type = "l")
+detach(Z)
+
+### Read FITS file directly from URL (thanks to Bi Cheng Wu)
+## Not run: 
+  require(httr)      # provides RETRY() and content()
+  require(magrittr)  # provides %&gt;% pipe operator, (part of tidyverse)
+#
+  fits &lt;- RETRY(verb="GET", url=fits_url) %&gt;% 
+    content(type="raw") %&gt;% 
+    rawConnection %&gt;% 
+    readFITS
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

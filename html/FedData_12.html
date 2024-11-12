@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_daymet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Download and crop the 1-km DAYMET v4 daily weather dataset.</h2>
+
+<h3>Description</h3>
+
+<p><code>get_daymet</code> returns a <code>SpatRaster</code> of weather data cropped to a given
+template study area.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_daymet(
+  template,
+  label,
+  elements = c("dayl", "prcp", "srad", "swe", "tmax", "tmin", "vp"),
+  years = 1980:(lubridate::year(Sys.time()) - 1),
+  region = "na",
+  tempo = "day",
+  extraction.dir = file.path(tempdir(), "FedData", "extractions", "daymet", label),
+  raster.options = c("COMPRESS=DEFLATE", "ZLEVEL=9", "INTERLEAVE=BAND"),
+  force.redo = FALSE,
+  progress = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>template</code></td>
+<td>
+<p>An <code>Simple Feature</code>
+or <code>SpatRaster</code> object to serve as a template for cropping.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>A character string naming the study area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elements</code></td>
+<td>
+<p>A character vector of elements to extract.<br>
+The available elements are:<br>
+dayl = Duration of the daylight period in seconds per day. This calculation is based on the period of the day during which the sun is above a hypothetical flat horizon.<br>
+prcp = Daily total precipitation in millimeters per day, sum of all forms converted to water-equivalent. Precipitation occurrence on any given day may be ascertained.<br>
+srad = Incident shortwave radiation flux density in watts per square meter, taken as an average over the daylight period of the day. NOTE: Daily total radiation (MJ/m2/day) can be calculated as follows: ((srad (W/m2) * dayl (s/day)) / l,000,000)<br>
+swe = Snow water equivalent in kilograms per square meter. The amount of water contained within the snowpack.<br>
+tmax = Daily maximum 2-meter air temperature in degrees Celsius.<br>
+tmin = Daily minimum 2-meter air temperature in degrees Celsius.<br>
+vp = Water vapor pressure in pascals. Daily average partial pressure of water vapor.<br></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>years</code></td>
+<td>
+<p>A numeric vector of years to extract.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>region</code></td>
+<td>
+<p>The name of a region. The available regions are:<br>
+na = North America<br>
+hi = Hawaii<br>
+pr = Puerto Rico<br></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tempo</code></td>
+<td>
+<p>The frequency of the data. The available tempos are:<br>
+day = Daily data<br>
+mon = Monthly summary data<br>
+ann = Annual summary data<br></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extraction.dir</code></td>
+<td>
+<p>A character string indicating where the extracted and cropped DEM should be put.
+Defaults to a temporary directory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raster.options</code></td>
+<td>
+<p>a vector of GDAL options passed to terra::writeRaster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force.redo</code></td>
+<td>
+<p>If an extraction for this template and label already exists in extraction.dir,
+should a new one be created?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>Draw a progress bar when downloading?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named list of <code>SpatRaster</code>s of weather data cropped to the extent of the template.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# Get the DAYMET (North America only)
+# Returns a list of raster bricks
+DAYMET &lt;- get_daymet(
+  template = FedData::meve,
+  label = "meve",
+  elements = c("prcp", "tmin", "tmax"),
+  years = 1980:1985
+)
+
+# Plot with terra::plot
+plot(DAYMET$tmin$X1985.10.23)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

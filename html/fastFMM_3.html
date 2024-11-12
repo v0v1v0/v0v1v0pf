@@ -1,0 +1,317 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fui</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast Univariate Inference for Longitudinal Functional Models</h2>
+
+<h3>Description</h3>
+
+<p>Fit a function-on-scalar regression model for longitudinal
+functional outcomes and scalar predictors using the Fast Univariate
+Inference (FUI) approach (Cui et al. 2022).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fui(
+  formula,
+  data,
+  family = "gaussian",
+  var = TRUE,
+  analytic = TRUE,
+  parallel = FALSE,
+  silent = FALSE,
+  argvals = NULL,
+  nknots_min = NULL,
+  nknots_min_cov = 35,
+  smooth_method = "GCV.Cp",
+  splines = "tp",
+  design_mat = FALSE,
+  residuals = FALSE,
+  num_boots = 500,
+  boot_type = NULL,
+  seed = 1,
+  subj_ID = NULL,
+  num_cores = 1,
+  caic = FALSE,
+  REs = FALSE,
+  non_neg = 0,
+  MoM = 1,
+  impute_outcome = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Two-sided formula object in lme4 formula syntax.
+The difference is that the response need to be specified as a matrix
+instead of a vector. Each column of the matrix represents one location
+of the longitudinal functional observations on the domain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing all variables in formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>GLM family of the response. Defaults to <code>gaussian</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>Logical, indicating whether to calculate and return variance
+of the coefficient estimates. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analytic</code></td>
+<td>
+<p>Logical, indicating whether to use the analytic inferenc
+approach or bootstrap. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical, indicating whether to do parallel computing.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>Logical, indicating whether to show descriptions of each step.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+<p>A vector containing locations of observations on the
+functional domain. If not specified, a regular grid across the range of
+the domain is assumed. Currently only supported for bootstrap
+(<code>analytic=FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknots_min</code></td>
+<td>
+<p>Minimal number of knots in the penalized smoothing for the
+regression coefficients.
+Defaults to <code>NULL</code>, which then uses L/2 where L is the dimension of the
+functional domain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknots_min_cov</code></td>
+<td>
+<p>Minimal number of knots in the penalized smoothing for
+the covariance matrices.
+Defaults to <code>35</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth_method</code></td>
+<td>
+<p>How to select smoothing parameter in step 2. Defaults to
+<code>"GCV.Cp"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splines</code></td>
+<td>
+<p>Spline type used for penalized splines smoothing. We use the
+same syntax as the mgcv package. Defaults to <code>"tp"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design_mat</code></td>
+<td>
+<p>Logical, indicating whether to return the design matrix.
+Defaults to <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Logical, indicating whether to save residuals from
+unsmoothed LME. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_boots</code></td>
+<td>
+<p>Number of samples when using bootstrap inference. Defaults
+to 500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_type</code></td>
+<td>
+<p>Bootstrap type (character): "cluster", "case", "wild",
+"reb", "residual", "parametric", "semiparametric". <code>NULL</code> defaults to
+"cluster" for non-gaussian responses and "wild" for gaussian responses. For
+small cluster (n&lt;=10) gaussian responses, defaults to "reb".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Numeric value used to make sure bootstrap replicate (draws) are
+correlated across functional domains for certain bootstrap approach</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subj_ID</code></td>
+<td>
+<p>Name of the variable that contains subject ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_cores</code></td>
+<td>
+<p>Number of cores for parallelization. Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caic</code></td>
+<td>
+<p>Logical, indicating whether to calculate cAIC. Defaults to
+<code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>REs</code></td>
+<td>
+<p>Logical, indicating whether to return random effect estimates.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>non_neg</code></td>
+<td>
+<p>0 - no non-negativity constrains, 1 - non-negativity
+constraints on every coefficient for variance, 2 - non-negativity on
+average of coefficents for 1 variance term. Defaults to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MoM</code></td>
+<td>
+<p>Method of moments estimator. Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>impute_outcome</code></td>
+<td>
+<p>Logical, indicating whether to impute missing outcome
+values with FPCA. This has not been tested thoroughly so use with caution.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The FUI approach comprises of three steps:
+</p>
+
+<ol>
+<li>
+<p> Fit a univariate mixed model at each location of the functional domain,
+and obtain raw estimates from massive models;
+</p>
+</li>
+<li>
+<p> Smooth the raw estimates along the functional domain;
+</p>
+</li>
+<li>
+<p> Obtain the pointwise and joint confidence bands using an analytic
+approach for Gaussian data or Bootstrap for general distributions.
+</p>
+</li>
+</ol>
+<p>For more information on each step, please refer to the FUI paper
+by Cui et al. (2022).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>betaHat</code></td>
+<td>
+<p>Estimated functional fixed effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+<p>Location of the observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betaHat.var</code></td>
+<td>
+<p>Variance estimates of the functional fixed effects (if specified)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qn</code></td>
+<td>
+<p>critical values used to construct joint CI</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>...</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Erjia Cui <a href="mailto:ecui@umn.edu">ecui@umn.edu</a>, Gabriel Loewinger
+<a href="mailto:gloewinger@gmail.com">gloewinger@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Cui, E., Leroux, A., Smirnova, E., Crainiceanu, C. (2022). Fast
+Univariate Inference for Longitudinal Functional Models. <em>Journal of
+Computational and Graphical Statistics</em>, 31(1), 219-230.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(refund)
+
+## random intercept only
+set.seed(1)
+DTI_use &lt;- DTI[DTI$ID %in% sample(DTI$ID, 10),]
+fit_dti &lt;- fui(
+  cca ~ case + visit + sex + (1 | ID),
+  data = DTI_use
+)
+</code></pre>
+
+
+</div>

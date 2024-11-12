@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>THETA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Theta method</h2>
+
+<h3>Description</h3>
+
+<p>The theta method of Assimakopoulos and Nikolopoulos (2000) is equivalent to
+simple exponential smoothing with drift. This is demonstrated in Hyndman and
+Billah (2003).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">THETA(formula, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The series is tested for seasonality using the test outlined in A&amp;N. If
+deemed seasonal, the series is seasonally adjusted using a classical
+multiplicative decomposition before applying the theta method. The resulting
+forecasts are then reseasonalized.
+</p>
+<p>More general theta methods are available in the forecTheta package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+
+
+<h3>Specials</h3>
+
+
+
+<h4>season</h4>
+
+<p>The <code>season</code> special is used to specify the parameters of the seasonal adjustment via classical decomposition.
+</p>
+<pre>
+season(period = NULL, method = c("multiplicative", "additive"))
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>period</code> </td>
+<td style="text-align: left;"> The periodic nature of the seasonality. This can be either a number indicating the number of observations in each seasonal period, or text to indicate the duration of the seasonal window (for example, annual seasonality would be "1 year").  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>method</code> </td>
+<td style="text-align: left;"> The type of classical decomposition to apply. The original Theta method always used multiplicative seasonal decomposition, and so this is the default.
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Rob J Hyndman, Mitchell O'Hara-Wild
+</p>
+
+
+<h3>References</h3>
+
+<p>Assimakopoulos, V. and Nikolopoulos, K. (2000). The theta model:
+a decomposition approach to forecasting. <em>International Journal of
+Forecasting</em> <b>16</b>, 521-530.
+</p>
+<p>Hyndman, R.J., and Billah, B. (2003) Unmasking the Theta method.
+<em>International J. Forecasting</em>, <b>19</b>, 287-290.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Theta method with transform
+deaths &lt;- as_tsibble(USAccDeaths)
+deaths %&gt;%
+  model(theta = THETA(log(value))) %&gt;%
+  forecast(h = "4 years") %&gt;%
+  autoplot(deaths)
+
+# Compare seasonal specifications
+library(tsibbledata)
+library(dplyr)
+aus_retail %&gt;%
+  filter(Industry == "Clothing retailing") %&gt;%
+  model(theta_multiplicative = THETA(Turnover ~ season(method = "multiplicative")),
+        theta_additive = THETA(Turnover ~ season(method = "additive"))) %&gt;%
+  accuracy()
+</code></pre>
+
+
+</div>

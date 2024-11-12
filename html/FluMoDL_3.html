@@ -1,0 +1,218 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>attrMort</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Influenza- and temperature-attributable mortality for a FluMoDL object</h2>
+
+<h3>Description</h3>
+
+<p>This function uses an object of class <code>FluMoDL</code> to calculate mortality
+attributed to influenza and/or temperature.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">attrMort(m, par = c("H1", "H3", "B", "temp", "RSV"), sel = "week",
+  from = NULL, to = NULL, temprange = "cold", ci = TRUE,
+  nsim = 5000, mcsamples = FALSE, progress = TRUE, blup = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>An object of class <code>FluMoDL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>A character vector indicating which exposures to calculate the
+attributable mortality for. Defaults to <code>c("H1","H3","B","temp","RSV")</code>, which
+indicates all three influenza proxies, temperature and RSV (if it exists in the model).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sel</code></td>
+<td>
+<p>For which time period(s) to calculate attributable mortality. This can be
+one of several choices. For <code>sel="week"</code> (the default) and <code>sel="season"</code> attributable
+mortality is calculated for each week or each season respectively. One can also
+provide to <code>sel</code> a list of index vectors (integer or logical) corresponding to
+particular rows of <code>m$data</code>, or a matrix of logical index vectors, or a single
+index vector. Note that the index vectors should point to <em>consecutive rows</em>
+of <code>m$data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+<p>Week (integer, in YYYYWW format) or season to start from, in case
+<code>sel="week"</code> or <code>sel="season"</code> respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+<p>Week (integer, in YYYYWW format) or season to end with, in case
+<code>sel="week"</code> or <code>sel="season"</code> respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>temprange</code></td>
+<td>
+<p>In case temperature-attributable mortality is calculated (argument
+<code>par</code> includes "temp"), this argument specifies the temperature range or interest.
+This can be one of several choices.
+</p>
+<p>If <code>temprange="cold"</code> (the default) mortality
+attributable to cold temperatures is calculated, i.e. temperatures below the MMP
+(minimum mortality point). If <code>temprange="heat"</code> mortality attributable to hot
+temperatures is calculated, i.e. those above the MMP. If <code>temperature="all"</code> the
+entire range of temperatures is used, i.e. any temperature other than the MMP.
+</p>
+<p>Alternatively one can provide a numeric vector of length two, indicating a specific
+temperature range; this can also be provided as a <em>character</em> vector of length two,
+where one of the elements can be the word "MMP", which will be replaced with the MMP
+temperature.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>If <code>TRUE</code>, empirical (Monte Carlo) 95
+for all attributable mortality estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Number of Monte Carlo simulations to run per attributable mortality estimate.
+Defaults to 5000. Increase if higher precision is required (and you don't mind the wait).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcsamples</code></td>
+<td>
+<p>If <code>TRUE</code>, return all Monte Carlo simulation samples in the output.
+See below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>If <code>TRUE</code>, a progress bar appears if Monte Carlo simulations are
+run and if there are more than three time periods selected in argument <code>sel</code>. Set to
+<code>FALSE</code> to suppress the progress bar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blup</code></td>
+<td>
+<p>If <code>FALSE</code> (the default), the model coefficients stored in <code>m$model</code>
+are used for the calculation of attributable mortality. If <code>TRUE</code>, the coefficients
+stored in the FluMoDL object are used; if <code>blup=TRUE</code> but
+<code>blup(m)</code> is <code>NULL</code>, a warning is generated. Alternatively, <code>blup</code> can
+be another object of class <code>summary.FluMoDL</code>, whose coefficients are used for the
+calculation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All attributable mortalities are calculated using the "backward" perspective, meaning
+the mortality at any given day that is attributable to exposures up to 30 days previously
+(=the maximum lag).
+</p>
+<p>Confidence intervals (when <code>ci=TRUE</code>) are obtained empirically through Monte Carlo
+simulations; this can take quite some time if lots of CIs need to be calculated (for example
+if <code>sel=TRUE</code>). For this reason, a progress bar is shown by default in this case
+(which can be suppressed by <code>progress=FALSE</code>).
+</p>
+<p>Temperature-attributable mortalities are by default calculated for cold temperatures, i.e.
+temperatures lower than the minimum mortality point (MMP). Note, however, that the adjustment
+in the FluMoDL is made for the entire range of daily mean temperatures, not just for cold.
+Therefore mortality attributable to any range of temperatures can be calculated, e.g. for
+heat, extreme cold, extreme heat, etc. See argument <code>temprange</code> above for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>mcsamples=FALSE</code> (the default), a data.frame is returned with columns named
+'FluH1', 'FluH3', 'FluB' and 'Temp' (and/or 'RSV'), depending on the argument <code>par</code>,
+and also 'FluH1.lo', 'FluH1.hi', 'FluH3.lo', ..., if <code>ci=TRUE</code>. Each row in the output
+corresponds to a selection
+made in argument <code>sel</code>, for example if <code>sel="week"</code> (the default) rows correspond to
+each week available in the data. If all influenza types/subtypes are selected in <code>par</code>, a
+column named 'AllFlu' is also calculated automatically, with the mortality (and 95
+attributable to all influenza types/subtypes.
+</p>
+<p>If <code>mcsamples=TRUE</code>, a list is returned with elements 'result' and 'mcsamples'. The
+first contains the data.frame with point estimates of influenza- and/or temperature-attributable
+mortality, as before (no 95
+element contains a list of the Monte Carlo simulation samples for each parameter in <code>par</code>.
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Lytras T, Pantavou K, Mouratidou E, Tsiodras S. Mortality attributable to seasonal influenza
+in Greece, 2013 to 2017: variation by type/subtype and age, and a possible harvesting effect.
+<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2019.24.14.1800118">Euro Surveill.</a>
+2019;24(14):pii=1800118 (<a href="https://www.ncbi.nlm.nih.gov/pubmed/30968823">PubMed</a>)
+</p>
+</li>
+<li>
+<p> Gasparrini A, Leone M. Attributable risk from distributed lag models.
+<a href="https://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-55">BMC Med Res Methodol</a> 2014;14:55.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(greece) # Use example surveillance data from Greece
+m &lt;- with(greece, fitFluMoDL(deaths = daily$deaths,
+    temp = daily$temp, dates = daily$date,
+    proxyH1 = weekly$ILI * weekly$ppH1,
+    proxyH3 = weekly$ILI * weekly$ppH3,
+    proxyB = weekly$ILI * weekly$ppB,
+    yearweek = weekly$yearweek))
+
+
+# Calculate influenza-attributable estimates by season, until 2016-17:
+attr1 &lt;- attrMort(m, par=c("H1","H3","B"), sel="season", to=2016)
+attr1
+
+# Calculate influenza-attributable estimates by week, only point
+#    estimates, for the 2014-15 season:
+attr2 &lt;- attrMort(m, par=c("H1","H3","B"), sel="week",
+    from=201440, to=201520, ci=FALSE)
+attr2
+
+
+# Calculate mortality attributable to temperatures below 5 celsius, for
+#    the period of January 2017:
+attr3 &lt;- attrMort(m, par="temp",
+    sel=with(m$data, which(dates&gt;="2017-1-1" &amp; dates&lt;="2017-1-31")),
+    temprange=c(5,-20))
+
+
+# Calculate attributable mortalities for the entire 2017-18 season, and
+#    return the Monte Carlo simulation samples in the output
+attr4 &lt;- attrMort(m, sel="season", from=2017, to=2017, mcsamples=TRUE)
+
+
+</code></pre>
+
+
+</div>

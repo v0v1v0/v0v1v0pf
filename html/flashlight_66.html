@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>light_interaction</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Interaction Strength</h2>
+
+<h3>Description</h3>
+
+<p>This function provides Friedman's H statistic for overall interaction strength per
+covariable as well as its version for pairwise interactions, see the reference below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">light_interaction(x, ...)
+
+## Default S3 method:
+light_interaction(x, ...)
+
+## S3 method for class 'flashlight'
+light_interaction(
+  x,
+  data = x$data,
+  by = x$by,
+  v = NULL,
+  pairwise = FALSE,
+  type = c("H", "ice"),
+  normalize = TRUE,
+  take_sqrt = TRUE,
+  grid_size = 200L,
+  n_max = 1000L,
+  seed = NULL,
+  use_linkinv = FALSE,
+  ...
+)
+
+## S3 method for class 'multiflashlight'
+light_interaction(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "flashlight" or "multiflashlight".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>An optional vector of column names used to additionally group the results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Vector of variable names to be assessed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pairwise</code></td>
+<td>
+<p>Should overall interaction strength per variable be shown or
+pairwise interactions? Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Are measures based on Friedman's H statistic ("H") or on "ice" curves?
+Option "ice" is available only if <code>pairwise = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>Should the variances explained be normalized?
+Default is <code>TRUE</code> in order to reproduce Friedman's H statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>take_sqrt</code></td>
+<td>
+<p>In order to reproduce Friedman's H statistic,
+resulting values are root transformed. Set to <code>FALSE</code> if squared values
+should be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_size</code></td>
+<td>
+<p>Grid size used to form the outer product. Will be randomly
+picked from data (after limiting to <code>n_max</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>Maximum number of data rows to consider. Will be randomly picked
+from <code>data</code> if necessary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer random seed used for subsampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_linkinv</code></td>
+<td>
+<p>Should retransformation function be applied? Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As a fast alternative to assess overall interaction strength, with <code>type = "ice"</code>,
+the function offers a method based on centered ICE curves:
+The corresponding H* statistic measures how much of the variability of a c-ICE curve
+is unexplained by the main effect. As for Friedman's H statistic, it can be useful
+to consider unnormalized or squared values (see Details below).
+</p>
+<p>Friedman's H statistic relates the interaction strength of a variable (pair)
+to the total effect strength of that variable (pair) based on partial dependence
+curves. Due to this normalization step, even variables with low importance can
+have high values for H. The function <code>light_interaction()</code> offers the option
+to skip normalization in order to have a more direct comparison of the interaction
+effects across variable (pairs). The values of such unnormalized H statistics are
+on the scale of the response variable. Use <code>take_sqrt = FALSE</code> to return
+squared values of H. Note that in general, for each variable (pair), predictions
+are done on a data set with <code>grid_size * n_max</code>, so be cautious with
+increasing the defaults too much. Still, even with larger <code>grid_size</code>
+and <code>n_max</code>, there might be considerable variation across different runs,
+thus, setting a seed is recommended.
+</p>
+<p>The minimum required elements in the (multi-) flashlight are a "predict_function",
+"model", and "data".
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "light_importance" with the following elements:
+</p>
+
+<ul>
+<li> <p><code>data</code> A tibble containing the results. Can be used to build fully customized
+visualizations. Column names can be controlled by
+<code>options(flashlight.column_name)</code>.
+</p>
+</li>
+<li> <p><code>by</code> Same as input <code>by</code>.
+</p>
+</li>
+<li> <p><code>type</code> Same as input <code>type</code>. For information only.
+</p>
+</li>
+</ul>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>light_interaction(default)</code>: Default method not implemented yet.
+</p>
+</li>
+<li> <p><code>light_interaction(flashlight)</code>: Interaction strengths for a flashlight object.
+</p>
+</li>
+<li> <p><code>light_interaction(multiflashlight)</code>: for a multiflashlight object.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Friedman, J. H. and Popescu, B. E. (2008). "Predictive learning via rule
+ensembles." The Annals of Applied Statistics. JSTOR, 916–54.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>light_ice()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">v &lt;- c("Petal.Length", "Petal.Width")
+fit_add &lt;- stats::lm(Sepal.Length ~ Petal.Length + Petal.Width, data = iris)
+fit_nonadd &lt;- stats::lm(Sepal.Length ~ Petal.Length * Petal.Width, data = iris)
+fl_add &lt;- flashlight(model = fit_add, label = "additive")
+fl_nonadd &lt;- flashlight(model = fit_nonadd, label = "nonadditive")
+fls &lt;- multiflashlight(list(fl_add, fl_nonadd), data = iris)
+plot(st &lt;- light_interaction(fls, v = v), fill = "darkgreen")
+plot(light_interaction(fls, v = v, pairwise = TRUE), fill = "darkgreen")
+plot(st &lt;- light_interaction(fls, v = v, by = "Species"), fill = "darkgreen")
+</code></pre>
+
+
+</div>

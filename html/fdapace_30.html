@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FPCAder</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Obtain the derivatives of eigenfunctions/ eigenfunctions of derivatives
+(note: these two are not the same)</h2>
+
+<h3>Description</h3>
+
+<p>Obtain the derivatives of eigenfunctions/ eigenfunctions of derivatives
+(note: these two are not the same)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FPCAder(fpcaObj, derOptns = list(p = 1))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fpcaObj</code></td>
+<td>
+<p>A object of class FPCA returned by the function FPCA().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>derOptns</code></td>
+<td>
+<p>A list of options to control the derivation parameters specified by <code>list(name=value)</code>. See ‘Details’. (default = NULL)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available derivative options are 
+</p>
+
+<dl>
+<dt>method</dt>
+<dd>
+<p>The method used for obtaining the derivatives – default is  'FPC', which is the derivatives of eigenfunctions; 'DPC': eigenfunctions of derivatives, 
+with G^(1,1) estimated by an initial kernel local smoothing step for  G^(1,0),  then applying a 1D smoother in the second direction; 
+'FPC': functional principal component, based on smoothing the eigenfunctions; 'FPC1': functional principal component, based on smoothing G^(1,0). 
+The latter may produce better estimates than 'FPC' but is slower.</p>
+</dd>
+<dt>p</dt>
+<dd>
+<p>The order of the derivatives returned (default: 1, max: 2). </p>
+</dd>
+<dt>bw</dt>
+<dd>
+<p>Bandwidth for the 1D and the 2D smoothers (default: p * 0.1 * S, where S is the length of the domain).</p>
+</dd>
+<dt>kernelType</dt>
+<dd>
+<p>Smoothing kernel choice; same available types are FPCA(). default('epan')</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p><cite>Dai, X., Tao, W., Müller, H.G. (2018). Derivative principal components for representing the time dynamics of longitudinal and functional data.
+Statistica Sinica 28, 1583–1609. (DPC)</cite>
+<cite>Liu, Bitao, and Hans-Georg Müller. "Estimating derivatives for samples of sparsely observed functions, 
+with application to online auction dynamics." Journal of the American Statistical Association 104, no. 486 (2009): 704-717. (FPC)</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+bw &lt;- 0.2
+kern &lt;- 'epan'
+set.seed(1)
+n &lt;- 50 
+M &lt;- 30
+pts &lt;- seq(0, 1, length.out=M)
+lambdaTrue &lt;- c(1, 0.8, 0.1)^2
+sigma2 &lt;- 0.1
+
+samp2 &lt;- MakeGPFunctionalData(n, M, pts, K=length(lambdaTrue), 
+                              lambda=lambdaTrue, sigma=sqrt(sigma2), basisType='legendre01')
+samp2 &lt;- c(samp2, MakeFPCAInputs(tVec=pts, yVec=samp2$Yn))
+fpcaObj &lt;- FPCA(samp2$Ly, samp2$Lt, list(methodMuCovEst='smooth',
+                userBwCov=bw, userBwMu=bw, kernel=kern, error=TRUE)) 
+CreatePathPlot(fpcaObj, showObs=FALSE)
+
+FPCoptn &lt;- list(bw=bw, kernelType=kern, method='FPC')
+DPCoptn &lt;- list(bw=bw, kernelType=kern, method='DPC')
+FPC &lt;- FPCAder(fpcaObj, FPCoptn)
+DPC &lt;- FPCAder(fpcaObj, DPCoptn)
+
+CreatePathPlot(FPC, ylim=c(-5, 10))
+CreatePathPlot(DPC, ylim=c(-5, 10))
+
+# Get the true derivatives
+phi &lt;-  CreateBasis(K=3, type='legendre01', pts=pts)
+basisDerMat &lt;- apply(phi, 2, function(x) 
+                       ConvertSupport(seq(0, 1, length.out=M - 1), pts, diff(x) * (M - 1)))
+trueDer &lt;- matrix(1, n, M, byrow=TRUE) + tcrossprod(samp2$xi, basisDerMat)
+matplot(t(trueDer), type='l', ylim=c(-5, 10))
+
+# DPC is slightly better in terms of RMSE
+mean((fitted(FPC) - trueDer)^2)
+mean((fitted(DPC) - trueDer)^2)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>check_recode</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Check accurate recoding of variables</h2>
+
+<h3>Description</h3>
+
+<p>This was written a few days after the retraction of a paper in JAMA due to an
+error in recoding the treatment variable
+(<a href="https://jamanetwork.com/journals/jama/fullarticle/2752474">https://jamanetwork.com/journals/jama/fullarticle/2752474</a>). This
+takes a data frame or tibble, fuzzy matches variable names, and produces
+crosstables of all matched variables. A visual inspection should reveal any
+miscoding.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">check_recode(
+  .data,
+  dependent = NULL,
+  explanatory = NULL,
+  include_numerics = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>Data frame or tibble.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent</code></td>
+<td>
+<p>Optional character vector: name(s) of depdendent
+variable(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explanatory</code></td>
+<td>
+<p>Optional character vector: name(s) of explanatory
+variable(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_numerics</code></td>
+<td>
+<p>Logical. Include numeric variables in function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Pass other arguments to <code>agrep</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of length two. The first is an index of variable combiations.
+The second is a nested list of crosstables as tibbles.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr)
+data(colon_s)
+colon_s_small = colon_s %&gt;%
+  select(-id, -rx, -rx.factor) %&gt;%
+  mutate(
+    age.factor2 = forcats::fct_collapse(age.factor,
+      "&lt;60 years" = c("&lt;40 years", "40-59 years")),
+    sex.factor2 = forcats::fct_recode(sex.factor,
+    # Intentional miscode
+      "F" = "Male",
+      "M" = "Female")
+  )
+
+# Check
+colon_s_small %&gt;%
+  check_recode(include_numerics = FALSE)
+
+out = colon_s_small %&gt;%
+  select(-extent, -extent.factor,-time, -time.years) %&gt;%
+  check_recode()
+out
+
+# Select a tibble and expand
+out$counts[[9]]
+# Note this variable (node4) appears miscoded in original dataset survival::colon.
+
+# Choose to only include variables that you actually use. 
+# This uses standard Finalfit grammar. 
+dependent = "mort_5yr"
+explanatory = c("age.factor2", "sex.factor2")
+colon_s_small %&gt;% 
+  check_recode(dependent, explanatory)
+</code></pre>
+
+
+</div>

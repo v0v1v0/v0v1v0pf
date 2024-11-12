@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sync_cluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Time Series Clustering based on Trend Synchronism</h2>
+
+<h3>Description</h3>
+
+<p>Cluster time series with a common parametric trend using the
+<code>sync_test</code> function
+(Lyubchich and Gel 2016; Ghahari et al. 2017).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sync_cluster(formula, rate = 1, alpha = 0.05, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class "<code>formula</code>",
+specifying the type of common trend
+for clustering the time series in a <code class="reqn">T</code> by <code class="reqn">N</code> matrix of time series
+(time series in columns) which is passed to <code>sync_test</code>.
+Variable <code class="reqn">t</code> should be used to specify the form
+of the trend, where <code class="reqn">t</code> is specified within the function automatically as a
+regular sequence of length <code class="reqn">T</code> on the interval (0,1]. See <code>Examples</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rate</code></td>
+<td>
+<p>rate of removal of time series. Default is 1 (i.e., if the hypothesis
+of synchronism is rejected one time series is removed at a time to re-test the
+remaining time series). Integer values above 1 are treated as the number of time
+series to be removed. Values from 0 to 1 are treated as a fraction of the
+time series to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>significance level for testing the hypothesis of a common trend
+(using <code>sync_test</code>) of the parametric form specified in the <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments to be passed to <code>sync_test</code>, for example,
+number of bootstrap replications (<code>B</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>sync_cluster</code> function recursively clusters time series having
+a pre-specified common parametric trend until there is no time series left.
+Starting with the given <code class="reqn">N</code> time series, the <code>sync_test</code> function
+is used to test for a common trend. If the null hypothesis of common trend is not
+rejected by <code>sync_test</code>, the time series are grouped
+(i.e., assigned to a cluster). Otherwise, the time series with the largest
+contribution to the test statistics are temporarily removed (the number of time
+series to remove depends on the <code>rate</code> of removal), and <code>sync_test</code>
+is applied again. The contribution to the test statistic is assessed by the
+WAVK test statistic calculated for each time series.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>an integer vector indicating the cluster to which each time series is
+allocated. A label <code>'0'</code> is assigned to time series which do not have a common trend
+with other time series (that is, all time series labeled with <code>'0'</code> are separate
+one-element clusters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elements</code></td>
+<td>
+<p>a list with names of the time series in each cluster.</p>
+</td>
+</tr>
+</table>
+<p>The further elements combine results of <code>sync_test</code> for each cluster with
+at least two elements (that is, single-element clusters labeled with
+<code>'0'</code> are excluded):
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>a list with common parametric trend estimates obtained by
+<code>sync_test</code> for each cluster.
+The length of this list is <code>max(cluster)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval</code></td>
+<td>
+<p>a list of <code class="reqn">p</code>-values of <code>sync_test</code> for each cluster.
+The length of this list is <code>max(cluster)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>a list with values of <code>sync_test</code> test statistic for
+each cluster. The length of this list is <code>max(cluster)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ar_order</code></td>
+<td>
+<p>a list of AR filter orders used in <code>sync_test</code> for each
+time series. The results are grouped by cluster in the list of length <code>max(cluster)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window_used</code></td>
+<td>
+<p>a list of local windows used in <code>sync_test</code> for each
+time series. The results are grouped by cluster in the list of length <code>max(cluster)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all_considered_windows</code></td>
+<td>
+<p>a list of all windows considered in
+<code>sync_test</code> and corresponding test results, for each cluster.
+The length of this list is <code>max(cluster)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WAVK_obs</code></td>
+<td>
+<p>a list of WAVK test statistics obtained in <code>sync_test</code>
+for each time series.
+The results are grouped by cluster in the list of length <code>max(cluster)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Srishti Vishwakarma, Vyacheslav Lyubchich
+</p>
+
+
+<h3>References</h3>
+
+<p>Ghahari A, Gel YR, Lyubchich V, Chun Y, Uribe D (2017).
+“On employing multi-resolution weather data in crop insurance.”
+In <em>Proceedings of the SIAM International Conference on Data Mining (SDM17) Workshop on Mining Big Data in Climate and Environment (MBDCE 2017)</em>.<br><br> Lyubchich V, Gel YR (2016).
+“A local factor nonparametric test for trend synchronism in multiple time series.”
+<em>Journal of Multivariate Analysis</em>, <b>150</b>, 91–104.
+<a href="https://doi.org/10.1016/j.jmva.2016.05.004">doi:10.1016/j.jmva.2016.05.004</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>BICC</code>, <code>DR</code>, <code>sync_test</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## Simulate 4 autoregressive time series, 
+## 3 having a linear trend and 1 without a trend:
+set.seed(123)
+T = 100 #length of time series
+N = 4 #number of time series
+X = sapply(1:N, function(x) arima.sim(n = T, 
+           list(order = c(1, 0, 0), ar = c(0.6))))
+X[,1] &lt;- 5 * (1:T)/T + X[,1]
+plot.ts(X)
+
+# Finding clusters with common linear trends:
+LinTrend &lt;- sync_cluster(X ~ t) 
+  
+## Sample Output:
+##[1] "Cluster labels:"
+##[1] 0 1 1 1
+##[1] "Number of single-element clusters (labeled with '0'): 1"
+
+## plotting the time series of the cluster obtained
+for(i in 1:max(LinTrend$cluster)) {
+    plot.ts(X[, LinTrend$cluster == i], 
+            main = paste("Cluster", i))
+}
+
+
+## Simulating 7 autoregressive time series, 
+## where first 4 time series have a linear trend added 
+set.seed(234)
+T = 100 #length of time series
+a &lt;- sapply(1:4, function(x) -10 + 0.1 * (1:T) + 
+            arima.sim(n = T, list(order = c(1, 0, 0), ar = c(0.6))))
+b &lt;- sapply(1:3, function(x) arima.sim(n = T, 
+            list(order = c(1, 0, 0), ar = c(0.6))))
+Y &lt;- cbind(a, b)
+plot.ts(Y)
+
+## Clustering based on linear trend with rate of removal = 2 
+# and confidence level for the synchronism test 90%
+LinTrend7 &lt;- sync_cluster(Y ~ t, rate = 2, alpha = 0.1, B = 99)
+   
+## Sample output:
+##[1] "Cluster labels:"
+##[1] 1 1 1 0 2 0 2
+##[1] "Number of single-element clusters (labeled with '0'): 2"
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

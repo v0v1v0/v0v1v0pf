@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ffm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate fine fuel moisture</h2>
+
+<h3>Description</h3>
+
+<p>Methods to estimate fine fuel moisture based on meteorological data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ffm(method, rh, temp, month, hour, asp, slp, bla, shade)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character vector of specifying the method
+<code>("pech"</code>, <code>"simard"</code>, <code>"wagner"</code>, <code>"anderson"</code>, <code>"mcarthur"</code>, <code>"fbo"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rh</code></td>
+<td>
+<p>a numeric vector of relative humidities (%)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>temp</code></td>
+<td>
+<p>a numeric vector of dry bulb temperatures (deg. C)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>month</code></td>
+<td>
+<p>a numeric vector of Gregorian month numbers (1-12)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hour</code></td>
+<td>
+<p>a numeric vector of hours (1-24)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asp</code></td>
+<td>
+<p>a character vector of aspects specified as cardinal directions, either <code>"N"</code>, <code>"S"</code>, <code>"E"</code>, or <code>"W"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slp</code></td>
+<td>
+<p>a numeric vector of topographic slopes (%)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bla</code></td>
+<td>
+<p>a character vector specifying the difference in elevation between the fine fuel's location and that of the meteorological data;
+either within 305 m ('l', the default), or the meteorological data are &gt; 305m below (<code>"b"</code>), or above (<code>"a"</code>) the fine fuel's location</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shade</code></td>
+<td>
+<p>a character vector specifying whether fine fuels are shaded, <code>"y"</code> or <code>"n"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function has six methods to estimate fine fuel moisture. If <code>method = "fbo"</code>, all arguments must be specified,
+otherwise, only <code>method</code>, <code>rh</code> and <code>temp</code> are required.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data frame of litter, 1-hr, 10-hr, and 100-hr fuel moistures
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Justin P Ziegler, <a href="mailto:justin.ziegler@colostate.edu">justin.ziegler@colostate.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Viney, N.R. 1991. A review of fine fuel moisture modelling. <em>International Journal of Wildland Fire</em>. <strong>1</strong>(4):215–234.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Example using RAWS meteorological station data
+data(rrRAWS)
+wx = rrRAWS[2000:3000,]
+ff = rbind(
+data.frame(ffm = ffm('simard',wx$rh, wx$temp_c)$fm1hr,method='simard'),
+data.frame(ffm = ffm('wagner',wx$rh, wx$temp_c)$fm1hr,method='wagner'),
+data.frame(ffm = ffm('anderson',wx$rh, wx$temp_c)$fm1hr,method='anderson')
+)
+ff$dateTime = rep(wx$dateTime,3)
+par(mfrow=c(3,1))
+hist(ff$ffm[ff$method=="simard"])
+hist(ff$ffm[ff$method=="wagner"])
+hist(ff$ffm[ff$method=="anderson"])
+
+#The FBO method requires more inputs
+rh = wx$rh
+temp =wx$temp_c
+month = as.numeric(format(strptime(wx$dateTime,"%m/%d/%Y %H:%M"),'%m'))
+hour = as.numeric(format(strptime(wx$dateTime,"%m/%d/%Y %H:%M"),'%H'))
+ffm(method = 'fbo', rh, temp, month, hour, asp = 'N', slp = 10, bla = 'l', shade = 'n')
+</code></pre>
+
+
+</div>

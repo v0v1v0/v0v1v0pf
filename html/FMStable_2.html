@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>optionValues</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Values of Options over Finite Moment Log Stable Distributions</h2>
+
+<h3>Description</h3>
+
+<p>Computes values of European-style call and put options over
+assets whose future price is expected to follow a finite moment log
+stable distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">putFMstable(strike, paramObj, rel.tol=1.e-10)
+callFMstable(strike, paramObj, rel.tol=1.e-10)
+optionsFMstable(strike, paramObj, rel.tol=1.e-10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>strike</code></td>
+<td>
+<p>The strike price for an option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramObj</code></td>
+<td>
+<p>An object of class <code>stableParameters</code> which
+describes a maximally skew stable distribution.  This is the
+distribution which describes possible prices for the underlying security
+at the time of expiry.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rel.tol</code></td>
+<td>
+<p>The relative tolerance used for numerical integration
+for finding option values.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>optionsFMstable</code> returns a list containing the values of put
+options and the values of call options.
+</p>
+
+
+<h3>Note</h3>
+
+<p>When comparing option values based on finite moment log stable
+distributions with ones based on log normal distributions, remember that
+the interest rate and holding cost have been ignored here.
+</p>
+<p>Rather than using functions <code>putFMstable</code> and <code>callFMstable</code>
+for options that are extremely in-the-money (i.e. the options are almost
+certain to be exercised), the values of such options can be computed
+more accurately by first computing the value of the out-of-the-money
+option and then using the relationship <code>spot</code> + <code>put</code> =
+<code>call</code> + <code>strike</code>.  This is done by function
+<code>optionsFMstable</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>An example of how an object of class <code>stableParameters</code>
+may be created is by <code>setParam</code>.  Procedures for dealing with
+the log normal model for options pricing include <code>BSOptionValue</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">paramObj &lt;- setMomentsFMstable(mean=10, sd=1.5, alpha=1.8)
+putFMstable(c(10,7), paramObj)
+callFMstable(c(10,7), paramObj)
+optionsFMstable(8:12, paramObj)
+# Note that call - put = mean - strike
+
+# Values of some extreme put options
+paramObj &lt;- setMomentsFMstable(mean=1, sd=1.5, alpha=0.02)
+putFMstable(1.e-200, paramObj)
+putFMstable(1.e-100, paramObj)
+pFMstable(1.e-100, paramObj)
+putFMstable(1.e-50, paramObj)
+
+# Asymptotic behaviour
+logmlogx &lt;- seq(from=2, to=6, length=30)
+logx &lt;- -exp(logmlogx)
+x &lt;- exp(logx)
+plot(logmlogx , putFMstable(x, paramObj)/(x*pFMstable(x, paramObj)), type="l")
+
+# Work out the values of some options using FMstable model
+spot &lt;- 20
+strikes &lt;- c(15,18:20, 20:24, 18:20, 20:23)
+isCall &lt;- rep(c(FALSE,TRUE,FALSE,TRUE), c(4,5,3,4))
+expiry &lt;- rep(c(.2, .5), c(9,7))
+# Distributions for 0.2 and 0.5 of a year given distribution describing
+#   multiplicative change in price over a year:
+annual &lt;- fitGivenQuantile(mean=1, sd=.2, prob=2.e-4, value=.01)
+timep2 &lt;- iidcombine(.2, annual)
+timep5 &lt;- iidcombine(.5, annual)
+imp.vols &lt;- prices &lt;- rep(NA, length(strikes))
+use &lt;- isCall &amp; expiry==.2
+prices[use] &lt;- callFMstable(strikes[use]/spot, timep2) * spot
+use &lt;- !isCall &amp; expiry==.2
+prices[use] &lt;- putFMstable(strikes[use]/spot, timep2) * spot
+use &lt;- isCall &amp; expiry==.5
+prices[use] &lt;- callFMstable(strikes[use]/spot, timep5) * spot
+use &lt;- !isCall &amp; expiry==.5
+prices[use] &lt;- putFMstable(strikes[use]/spot, timep5) * spot
+# Compute implied volatilities.
+imp.vols[isCall] &lt;- ImpliedVol(spot=spot, strike=strikes[isCall],
+  expiry=expiry[isCall], price=prices[isCall], Call=TRUE)
+imp.vols[!isCall] &lt;- ImpliedVol(spot=spot, strike=strikes[!isCall],
+  expiry=expiry[!isCall], price=prices[!isCall], Call=FALSE)
+
+# List values of options
+cbind(strikes, expiry, isCall, prices, imp.vols)
+
+# Can the distribution be recovered from the values of the options?
+discrepancy &lt;- function(alpha, cv){
+  annual.fit &lt;- setMomentsFMstable(mean=1, sd=cv, alpha=alpha)
+  timep2.fit &lt;- iidcombine(.2, annual.fit)
+  timep5.fit &lt;- iidcombine(.5, annual.fit)
+  prices.fit &lt;- rep(NA, length(strikes))
+  use &lt;- isCall &amp; expiry==.2
+  prices.fit[use] &lt;- callFMstable(strikes[use]/spot, timep2.fit) * spot
+  use &lt;- !isCall &amp; expiry==.2
+  prices.fit[use] &lt;- putFMstable(strikes[use]/spot, timep2.fit) * spot
+  use &lt;- isCall &amp; expiry==.5
+  prices.fit[use] &lt;- callFMstable(strikes[use]/spot, timep5.fit) * spot
+  use &lt;- !isCall &amp; expiry==.5
+  prices.fit[use] &lt;- putFMstable(strikes[use]/spot, timep5.fit) * spot
+  return(sum((prices.fit - prices)^2))
+}
+# Search on scales of log(2-alpha) and log(cv)
+d &lt;- function(param) discrepancy(2-exp(param[1]), exp(param[2]))
+system.time(result &lt;- nlm(d, p=c(-2,-1.5)))
+# Estimated alpha
+2-exp(result$estimate[1])
+# Estimated cv
+exp(result$estimate[2])
+
+# Searching just for best alpha
+d &lt;- function(param) discrepancy(param, .2)
+system.time(result &lt;- optimize(d, lower=1.6, upper=1.98))
+# Estimated alpha
+result$minimum
+</code></pre>
+
+
+</div>

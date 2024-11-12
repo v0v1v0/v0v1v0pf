@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CompCor_HCP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Anatomical CompCor for HCP NIFTI and CIFTI data</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper to <code>CompCor</code> for HCP-format data. Can be used to clean
+the surface-based CIFTI data with aCompCor using the noise PCs and ROIs
+calculated from the NIFTI fMRI data and NIFTI mask. Can also be used to just
+obtain the noise PCs and ROIs without performing aCompCor, if the CIFTI
+data is not provided.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CompCor_HCP(
+  nii,
+  nii_labels,
+  ROI_noise = c("wm_cort", "csf"),
+  noise_nPC = 5,
+  noise_erosion = NULL,
+  idx = NULL,
+  cii = NULL,
+  brainstructures = c("left", "right"),
+  center = TRUE,
+  scale = TRUE,
+  DCT = 0,
+  nuisance_too = NULL,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nii</code></td>
+<td>
+<p><code class="reqn">I</code> by <code class="reqn">J</code> by <code class="reqn">K</code> by <code class="reqn">T</code>
+NIFTI object or array (or file path to the NIFTI) which contains
+whole-brain data, including the noise ROIs. In the HCP, the corresponding
+file is e.g. "../Results/rfMRI_REST1_LR/rfMRI_REST1_LR.nii.gz"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nii_labels</code></td>
+<td>
+<p><code class="reqn">I</code> by <code class="reqn">J</code> by <code class="reqn">K</code>
+NIFTI object or array (or file path to the NIFTI) which
+contains the corresponding labels to each voxel in <code>nii</code>. Values should
+be according to this table:
+https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/AnatomicalROI/FreeSurferColorLUT .
+In the HCP, the corresponding file is "ROIs/Atlas_wmparc.2.nii.gz".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROI_noise</code></td>
+<td>
+<p>A list of numeric vectors. Each entry should represent labels
+in <code>nii_labels</code> belonging to a single noise ROI, named by that entry's
+name. Or, this can be a character vector of at least one of the following:
+<code>"wm_cort"</code> (cortical white matter), <code>"wm_cblm"</code> (cerebellar white
+matter), <code>"csf"</code> (cerebrospinal fluid). In the latter case, these labels
+will be used:
+</p>
+
+<dl>
+<dt><code>"wm_cort"</code></dt>
+<dd>
+<p><code>c(3000:4035, 5001, 5002)</code></p>
+</dd>
+<dt><code>"wm_cblm"</code></dt>
+<dd>
+<p><code>c(7, 46)</code></p>
+</dd>
+<dt><code>"csf"</code></dt>
+<dd>
+<p><code>c(4, 5, 14, 15, 24, 31, 43, 44, 63, 250, 251, 252, 253, 254, 255))</code></p>
+</dd>
+</dl>
+<p>These default ROIs are based on this forum post:
+https://www.mail-archive.com/hcp-users@humanconnectome.org/msg00931.html
+</p>
+<p>Default: <code>c("wm_cort", "csf")</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise_nPC</code></td>
+<td>
+<p>The number of principal components to compute for each noise
+ROI. Alternatively, values between 0 and 1, in which case they will
+represent the minimum proportion of variance explained by the PCs used for
+each noise ROI. The smallest number of PCs will be used to achieve this
+proportion of variance explained.
+</p>
+<p>Should be a list or numeric vector with the same length as <code>ROI_noise</code>.
+It will be matched to each ROI based on the name of each entry, or if the
+names are missing, the order of entries. If it is an unnamed vector, its
+elements will be recycled. Default: <code>5</code> (compute the top 5 PCs for
+each noise ROI).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise_erosion</code></td>
+<td>
+<p>The number of voxel layers to erode the noise ROIs by.
+Should be a list or numeric vector with the same length as <code>ROI_noise</code>.
+It will be matched to each ROI based on the name of each entry, or if the
+names are missing, the order of entries. If it is an unnamed vector, its
+elements will be recycled. Default: <code>NULL</code>, which will use a value of
+0 (do not erode the noise ROIs).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idx</code></td>
+<td>
+<p>A numeric vector indicating the timepoints to use, or
+<code>NULL</code> (default) to use all idx. (Indexing begins with 1, so the
+first timepoint has index 1 and the last has the same index as the length of
+the scan.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cii</code></td>
+<td>
+<p><code>"xifti"</code> (or file path to the CIFTI) from which the noise
+ROI components will be regressed. In the HCP, the corresponding file is e.g.
+"../Results/rfMRI_REST1_LR/rfMRI_REST1_LR_Atlas_MSMAll.dtseries.nii". If not
+provided, only the noise components will be returned (no data will be cleaned).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brainstructures</code></td>
+<td>
+<p>Choose among "left", "right", and "subcortical".
+Default: <code>c("left", "right")</code> (cortical data only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center, scale</code></td>
+<td>
+<p>Center the columns of the data by median, and scale the
+columns of the data by MAD? Default: <code>TRUE</code> for both. Affects both
+<code>X</code> and the noise data. <code>center</code> also applies to <code>nuisance_too</code>
+so if it is <code>FALSE</code>, <code>nuisance_too</code> must already be centered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DCT</code></td>
+<td>
+<p>Add DCT bases to the nuisance regression? Use an integer to
+indicate the number of cosine bases. Use <code>0</code> (default) to forgo detrending.
+</p>
+<p>The data must be centered, either before input or with <code>center</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nuisance_too</code></td>
+<td>
+<p>A matrix of nuisance signals to add to the nuisance
+regression. Should have <code class="reqn">T</code> rows. <code>NULL</code> to not add additional
+nuisance regressors (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Should occasional updates be printed? Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The noise components, and if <code>cii</code> is provided, the cleaned
+surface-based data as a <code>"xifti"</code> object.
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>Behzadi, Y., Restom, K., Liau, J. &amp; Liu, T. T. A component based noise correction method (CompCor) for BOLD and perfusion based fMRI. NeuroImage 37, 90-101 (2007).
+</p>
+</li>
+<li>
+<p>Muschelli, J. et al. Reduction of motion-related artifacts in resting state fMRI using aCompCor. NeuroImage 96, 22-35 (2014).
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>CompCor
+</p>
+
+
+</div>

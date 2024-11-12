@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spReprojectVector</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spatial - Reprojects an sf spatial object.</h2>
+
+<h3>Description</h3>
+
+<p>Reprojects an sf spatial object to a new coordinate reference system.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spReprojectVector(
+  layer,
+  dsn = NULL,
+  crs.new,
+  exportsp = FALSE,
+  savedata_opts = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>layer</code></td>
+<td>
+<p>sf class R object or String. The spatial layer must have a
+defined projection (test using sf::st_crs(layer)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dsn</code></td>
+<td>
+<p>String. Data source name (dsn; i.e., folder or database name) of
+splayer. The dsn varies by driver. See gdal OGR vector formats
+(https://www.gdal.org/ogr_formats.html). Optional if layer is an R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crs.new</code></td>
+<td>
+<p>EPSG Integer or PROJ.4 String. New EPSG Geodetic Parameter
+Dataset definition or gdal PROJ.4 string identifying the new coordinate
+system (e.g., "+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80
++towgs84=0,0,0").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exportsp</code></td>
+<td>
+<p>Logical. If TRUE, the spatial reprojected object is exported
+to outfolder (see spExportSpatial for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options for saving data. If out_layer = NULL, default = 'layerprj'.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>layerprj</code></td>
+<td>
+<p> sf object. Reprojected spatial layer. </p>
+</td>
+</tr></table>
+<p>If exportsp = TRUE, a spatial layer is written to outfolder (See note).
+</p>
+
+
+<h3>Note</h3>
+
+<p>Coordinate Reference Systems (CRS)<br> An ellipse is an estimated model
+describing the basic shape of the Earth and is the basis for all coordinate
+systems. There are many ellipsoids designed for local (e.g., NAD27) or
+global (e.g., WGS84, GRS80) use. The datum defines the reference position of
+the coordinate axes associated with a specific ellipsoid. Specifying the
+datum also defines the ellipsoid, whereas specifying the ellipsoid does not
+provide information of the datum.
+</p>
+<p>WGS84 vs NAD83 WGS84 and NAD83 datums are often used interchangeably, and
+use very similar ellipsoids (WGS84 and GRS80, respectively), but have
+different reference points. Slight tectonic shifts through time have caused
+increased divergence between the two, with NAD83 datum intended to track
+movements more consistently.
+</p>
+<p>Common Datums and associated spheroid (ellipsoid):<br> NAD27 - North American
+Datum of 1927 (Clarke 1866 spheroid)<br> NAD83 - North American Datum of 1983
+(GRS 1980 spheroid)<br> WGS84 - World Geodetic System of 1984 (WGS 1984
+spheroid)<br></p>
+<p>From R, use projInfo for list of different projections and datums.<br> &gt;
+projInfo(type="proj")<br> &gt; projInfo(type="datum")<br></p>
+<p>Common EPSG Geodetic codes in U.S.<br> EPSG:4326 - Longitude/Latitude (WGS84)
+- Common for global displays (used by Google Earth)<br> EPSG:4269 -
+Longitude/Latitude (NAD83) - Common by U.S. Federal Agencies<br></p>
+<p>The sf::st_transform (GDAL) method is used for map projection conversion and
+datum transformation using PROJ.4 arguments. Datum transformation only
+occurs if the +datum tag is present in the both the from and to PROJ.4
+strings. The +towgs84 tag is used when no datum transformation is needed.
+PROJ.4 transformations assume NAD83 and WGS84 are identical unless other
+transformation parameters are specified. Be aware, providing inaccurate or
+incomplete CRS information may lead to erroneous data shifts when
+reprojecting. See spTransform help documentation for more details.
+</p>
+<p>ESRI Shapefile Driver<br> If exportsp=TRUE:<br> The st_write (sf) function
+is called. If out_fmt="shp", the ESRI Shapefile driver truncates variable
+names to 10 characters or less. Variable names are changed before export
+using an internal function (trunc10shp). If sf object has more than 1
+record, it will be returned but not exported.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Set up `SpatialPoints` object
+WYspplt &lt;- spMakeSpatialPoints(xyplt = WYplt, 
+                               xy.uniqueid = "CN", 
+                               xvar = "LON_PUBLIC", 
+                               yvar = "LAT_PUBLIC", 
+                               xy.crs = 4326)
+# Check CRS
+sf::st_crs(WYspplt)
+
+# Set up projection
+prj &lt;- "+proj=utm +zone=12 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+
+# Use `spReprojectVector` to reproject the vector
+WYspplt.utm12 &lt;- spReprojectVector(layer = WYspplt, 
+                                   crs.new = prj)
+# Check results
+sf::st_crs(WYspplt.utm12)
+
+</code></pre>
+
+
+</div>

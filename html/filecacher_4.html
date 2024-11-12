@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>file_cache</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gets or creates a <code>cachem</code> object for use with other functions.</h2>
+
+<h3>Description</h3>
+
+<p>Gets or creates a <code>cachem</code> object for use with other functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">file_cache(cache = NULL, type = NULL, ext_prefix = "cache_")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cache</code></td>
+<td>
+<p>The path to an existing directory to use for caching.
+</p>
+<p>If <code>NULL</code> (default) uses a folder called "cache" in the current
+path, using <code>here::here()</code>. The folder is created if it does not
+already exist.
+</p>
+<p><strong>Advanced:</strong> if an existing <code>cachem</code> object is provided, all other
+parameters are ignored and the object is passed on as is. This
+functionality is primarily used internally or for testing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A string describing the type of cache.
+Must be <code>NULL</code> or one of 'rds', 'parquet', or 'csv'.
+If <code>NULL</code> (default), uses 'rds'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ext_prefix</code></td>
+<td>
+<p>The prefix to use with the file extension,
+e.g. "cache_csv", instead of "csv".</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>cachem::cache_disk()</code> object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cachem::cache_disk()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create a temporary directory for the cache.
+tf &lt;- tempfile()
+dir.create(tf)
+
+# A dummy function that logs when it's called.
+get_df &lt;- function() {
+  message("Getting df ...")
+  return(mtcars)
+}
+
+# Use the resulting object in `with_cache()`.
+# 1) The first time, the message is printed.
+# 2) The second time, the object is pulled from the cache, with no message.
+all.equal(with_cache(get_df(), "df", cache = tf), mtcars)
+all.equal(with_cache(get_df(), "df", cache = tf), mtcars)
+
+# `with_cache` is designed to be compatible with piping.
+get_df() |&gt;
+  with_cache("df", cache = tf) |&gt;
+  all.equal(mtcars)
+
+
+# Advanced: If desired, the `cachem` object methods can be used directly.
+cache &lt;- file_cache(tf)
+cache$get("df") |&gt; # Get objects previously cached using `with_cache`.
+  all.equal(mtcars)
+cache$set("df2", mtcars) # Set objects using `$set`.
+cache$get("df2") |&gt;
+  all.equal(mtcars)
+
+unlink(tf, recursive = TRUE)
+</code></pre>
+
+
+</div>

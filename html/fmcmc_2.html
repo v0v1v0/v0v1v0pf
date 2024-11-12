@@ -1,0 +1,75 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>append_chains</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Append MCMC chains (objects of class coda::mcmc)</h2>
+
+<h3>Description</h3>
+
+<p>Combines two or more MCMC runs into a single run. If runs have
+multiple chains, it will check that all have the same number of chains, and
+it will join chains using the rbind function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">append_chains(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>A list of <code>mcmc</code> or <code>mcmc.list</code> class objects.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>If <code>mcmc.list</code>, an object of class <code>mcmc.list</code>, otherwise,
+an object of class <code>mcmc</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Appending two chains
+data("lifeexpect")
+logpost &lt;- function(p) {
+  sum(with(lifeexpect, dnorm(
+    age - p[1] - smoke * p[2] - female * p[3],
+    sd = p[4], log = TRUE)
+  ))
+}
+
+# Using the RAM kernel
+kern &lt;- kernel_ram(lb = c(-100, -100, -100, .00001))
+
+init &lt;- c(
+  avg_age = 70,
+  smoke   = 0,
+  female  = 0,
+  sd      = 1
+)
+
+ans0 &lt;- MCMC(initial = init, fun = logpost, nsteps = 1000, seed = 22, kernel = kern)
+ans1 &lt;- MCMC(initial = ans0, fun = logpost, nsteps = 2000, seed = 55, kernel = kern)
+ans2 &lt;- MCMC(initial = ans1, fun = logpost, nsteps = 2000, seed = 1155, kernel = kern)
+ans_tot &lt;- append_chains(ans0, ans1, ans2)
+
+# Looking at the posterior distributions (see ?lifeexpect for info about
+# the model). Only the trace
+op &lt;- par(mfrow = c(2,2))
+for (i in 1:4)
+  coda::traceplot(ans_tot[, i, drop=FALSE])
+par(op)
+
+
+</code></pre>
+
+
+</div>

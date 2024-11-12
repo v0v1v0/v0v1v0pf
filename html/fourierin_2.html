@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fourierin_1d</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Univariate Fourier integrals</h2>
+
+<h3>Description</h3>
+
+<p>It computes Fourier integrals of functions of one and two
+variables on a regular grid.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fourierin_1d(
+  f,
+  lower_int,
+  upper_int,
+  lower_eval = NULL,
+  upper_eval = NULL,
+  const_adj,
+  freq_adj,
+  resolution = NULL,
+  eval_grid = NULL,
+  use_fft = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>function or a vector of size m. If a function is
+provided, it must be able to be evaluated at vectors. If a
+vector of values is provided, such evaluations must have been
+obtained on a regular grid and the Fourier integral is faster
+is m is a power of 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_int</code></td>
+<td>
+<p>Lower integration limit(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper_int</code></td>
+<td>
+<p>Upper integration limit(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_eval</code></td>
+<td>
+<p>Lower evaluation limit(s). It can be NULL if an
+evaluation grid is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper_eval</code></td>
+<td>
+<p>Upper evaluation limit(s). It can be NULL if an
+evaluation grid is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>const_adj</code></td>
+<td>
+<p>Factor related to adjust definition of Fourier
+transform. It is usually equal to 0, -1 or 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq_adj</code></td>
+<td>
+<p>Constant to adjust the exponent on the definition
+of the Fourier transform. It is usually equal to 1, -1, 2pi or
+-2pi.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resolution</code></td>
+<td>
+<p>A vector of integers (faster if powers of two)
+determining the resolution of the evaluation grid. Not
+required if f is a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_grid</code></td>
+<td>
+<p>Optional matrix with d columns with the points
+where the Fourier integral will be evaluated. If it is
+provided, the FFT will not be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_fft</code></td>
+<td>
+<p>Logical value specifying whether the FFT will be
+used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See vignette for more detailed examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If w is given, only the values of the Fourier integral are
+returned, otherwise, a list with the elements </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>A vector
+of size m where the integral was computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>A
+complex vector of size m with the values of the integral</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">##--- Example 1 ---------------------------------------------------
+##--- Recovering std. normal from its characteristic function -----
+library(fourierin)
+
+#' Function to to be used in integrand
+myfun &lt;- function(t) exp(-t^2/2)
+
+                                        # Compute Foueien integral
+out &lt;- fourierin_1d(f = myfun,
+                    lower_int = -5, upper_int = 5,
+                    lower_eval = -3, upper_eval = 3,
+                    const_adj = -1, freq_adj = -1,
+                    resolution = 64)
+
+## Extract grid and values
+grid &lt;- out$w
+values &lt;- Re(out$values)
+
+plot(grid, values, type = "l", col = 3)
+lines(grid, dnorm(grid), col = 4)
+
+##--- Example 2 -----------------------------------------------
+##--- Computing characteristic function of a gamma r. v. ------
+
+library(fourierin)
+
+## Function to to be used in integrand
+myfun &lt;- function(t) dgamma(t, shape, rate)
+
+## Compute integral
+shape &lt;- 5
+rate &lt;- 3
+out &lt;- fourierin_1d(f = myfun, lower_int = 0, upper_int = 6,
+                    lower_eval = -4, upper_eval = 4,
+                    const_adj = 1, freq_adj = 1, resolution = 64)
+
+grid &lt;- out$w                           # Extract grid
+re_values &lt;- Re(out$values)             # Real values
+im_values &lt;- Im(out$values)             # Imag values
+
+                                     # Now compute the real and
+                                     # imaginary true values of the
+                                        # characteric function.
+true_cf &lt;- function(t, shape, rate) (1 - 1i*t/rate)^-shape
+true_re &lt;- Re(true_cf(grid, shape, rate))
+true_im &lt;- Im(true_cf(grid, shape, rate))
+
+                                     # Compare them. We can see a
+                                     # slight discrepancy on the
+                                     # tails, but that is fixed
+                                     # when resulution is
+                                     # increased.
+plot(grid, re_values, type = "l", col = 3)
+lines(grid, true_re, col = 4)
+
+                                        # Same here
+plot(grid, im_values, type = "l", col = 3)
+lines(grid, true_im, col = 4)
+</code></pre>
+
+
+</div>

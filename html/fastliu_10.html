@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>liureg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a Liu Regression Coefficients Path</h2>
+
+<h3>Description</h3>
+
+<p><code>liureg</code> fits coefficients paths for Liu regression models
+over a grid of values for the regularization (biasing)
+parameter <code>lambda</code>. The returned object is of class <code>liureg</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">liureg(X, y, lambda = 1, scale = c("ulength", "unormal", "none"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The design matrix of features. <code>fastliu</code>
+standardizes the data and includes an intercept term by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>The response vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>User-specified values of <code>lambda</code>. The default
+value is 1, which corresponds to the least squares estimator.
+A <code>lambda</code> sequence can be entered to generate multiple models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>Scaling type of the design matrix. <code>"ulength"</code> corresponds
+to unit-length scaling. In this scaling the scaled design matrix is
+in the form of a correlation matrix. <code>"unormal"</code> scales the features
+to have unit variance (using <code class="reqn">1/n</code> rather than <code class="reqn">1/(n-1)</code> formula). <code>"none"</code>
+does not make scaling and computations are done on centered features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used in this implementation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The sequence of Liu regression models indexed by the tuning parameter.
+<code class="reqn">\lambda</code> are obtained by
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{\boldsymbol{\beta}}^{liu}\left(\lambda\right)=
+\left(\mathbf{X}^{T}\mathbf{X}+\mathbf{I}_{p}\right)^{-1}
+\left(\mathbf{X}^{T}\mathbf{y}+\lambda\hat{\boldsymbol{\beta}}^{ls}\right),</code>
+</p>
+
+<p>where <code class="reqn">\hat{\boldsymbol{\beta}}^{ls}</code> is the ordinary least squares
+estimator.To obtain the models, the singular value decomposition (SVD)
+of the matrix <code class="reqn">\mathbf{X}</code> is used. This SVD is done once and
+is used to generate all models.
+</p>
+<p>Explanatory variables in the design matrix are always centered
+before fitting a model in the <code>fastliu</code> package.
+For scaling, two options are possible:
+unit-length and unit-normal scaling. In unit-length scaling,
+the matrix of explanatory variables has correlation form.
+In unit-normal scaling, the explanatory variables have zero
+mean and unit variance.
+Both Coefficient estimates based on the scaled data and
+in original scale are presented.
+The intercept of the model is not penalized and computed by
+<code class="reqn">\bar{y}-\bar{X}\boldsymbol{\hat{\beta}}_1</code>, where <code class="reqn">\bar{X}</code>
+is the row vector of the explanatory variables and <code class="reqn">\boldsymbol{\hat{\beta}}_1</code>
+is computed based on centered design matrix.
+</p>
+<p>The returned <code>liureg</code> object
+is used for statistical testing of Liu coefficients,
+plotting method and computing the Liu regression related statistics.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Fitted Liu regression object with the class of <code>liureg</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Murat Genç and Ömer Özbilen
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>coef()</code>, <code>predict()</code>, <code>summary()</code>, <code>pressliu()</code>, <code>residuals()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("Hitters")
+Hitters &lt;- na.omit(Hitters)
+X &lt;- model.matrix(Salary ~ ., Hitters)[, -1]
+y &lt;- Hitters$Salary
+lam &lt;- seq(0, 1, 0.05)
+liu.mod &lt;- liureg(X, y, lam)
+</code></pre>
+
+
+</div>

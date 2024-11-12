@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BKA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bankier-Kalton-Anderson estimator</h2>
+
+<h3>Description</h3>
+
+<p>Produces estimates for population total and mean using the Bankier-Kalton-Anderson estimator from survey data obtained
+from a dual frame sampling design. Confidence intervals are also computed, if required.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BKA(ysA, ysB, pi_A, pi_B, pik_ab_B, pik_ba_A, domains_A, domains_B, 
+conf_level = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ysA</code></td>
+<td>
+<p>A numeric vector of length <code class="reqn">n_A</code> or a numeric matrix or data frame of dimensions <code class="reqn">n_A</code> x <code class="reqn">c</code> containing information about variable(s) of interest from <code class="reqn">s_A</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ysB</code></td>
+<td>
+<p>A numeric vector of length <code class="reqn">n_B</code> or a numeric matrix or data frame of dimensions <code class="reqn">n_B</code> x <code class="reqn">c</code> containing information about variable(s) of interest from <code class="reqn">s_B</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi_A</code></td>
+<td>
+<p>A numeric vector of length <code class="reqn">n_A</code> or a square numeric matrix of dimension <code class="reqn">n_A</code> containing first order or first and second order inclusion probabilities for units included in <code class="reqn">s_A</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi_B</code></td>
+<td>
+<p>A numeric vector of length <code class="reqn">n_B</code> or a square numeric matrix of dimension <code class="reqn">n_B</code> containing first order or first and second order inclusion probabilities for units included in <code class="reqn">s_B</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pik_ab_B</code></td>
+<td>
+<p>A numeric vector of size <code class="reqn">n_A</code> containing first order inclusion probabilities according to sampling design in frame B for units belonging 
+to overlap domain that have been selected in <code class="reqn">s_A</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pik_ba_A</code></td>
+<td>
+<p>A numeric vector of size <code class="reqn">n_B</code> containing first order inclusion probabilities according to sampling design in frame A for units belonging 
+to overlap domain that have been selected in <code class="reqn">s_B</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domains_A</code></td>
+<td>
+<p>A character vector of size <code class="reqn">n_A</code> indicating the domain each unit from <code class="reqn">s_A</code> belongs to. Possible values are "a" and "ab".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domains_B</code></td>
+<td>
+<p>A character vector of size <code class="reqn">n_B</code> indicating the domain each unit from <code class="reqn">s_B</code> belongs to. Possible values are "b" and "ba".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_level</code></td>
+<td>
+<p>(Optional) A numeric value indicating the confidence level for the confidence intervals, if desired.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>BKA estimator of population total is given by
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{Y}_{BKA} = \sum_{i \in s_A}\tilde{d}_i^Ay_i + \sum_{i \in s_B}\tilde{d}_i^By_i</code>
+</p>
+
+<p>where
+<code class="reqn">\tilde{d}_i^A =\left\{\begin{array}{lcc}
+ d_i^A &amp; \textrm{if } i \in a\\
+ (1/d_i^A + 1/d_i^B)^{-1} &amp; \textrm{if } i \in ab
+ \end{array}
+ \right.</code>
+and
+<code class="reqn">\tilde{d}_i^B =\left\{\begin{array}{lcc}
+ d_i^B &amp; \textrm{if } i \in b\\
+ (1/d_i^A + 1/d_i^B)^{-1} &amp; \textrm{if } i \in ba
+ \end{array}
+ \right.</code>
+being <code class="reqn">d_i^A</code> and <code class="reqn">d_i^B</code> the design weights, obtained as the inverse of the first order inclusion probabilities, that is, <code class="reqn">d_i^A = 1/\pi_i^A</code> and <code class="reqn">d_i^B = 1/\pi_i^B</code>.
+</p>
+<p>To estimate variance of this estimator, one uses following approach proposed by Rao and Skinner (1996)
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{V}(\hat{Y}_{BKA}) = \hat{V}(\sum_{i \in s_A}\tilde{z}_i^A) + \hat{V}(\sum_{i \in s_B}\tilde{z}_i^B)</code>
+</p>
+
+<p>with <code class="reqn">\tilde{z}_i^A = \delta_i(a)y_i + (1 - \delta_i(a))y_i\pi_i^A/(\pi_i^A + \pi_i^B)</code> and <code class="reqn">\tilde{z}_i^B = \delta_i(b)y_i + (1 - \delta_i(b))y_i\pi_i^B/(\pi_i^A + \pi_i^B)</code>,
+being <code class="reqn">\delta_i(a)</code> and <code class="reqn">\delta_i(b)</code> the indicator variables for domain <code class="reqn">a</code> and domain <code class="reqn">b</code>, respectively.
+If both first and second order probabilities are known, variances and covariances involved in calculation of <code class="reqn">\hat{\beta}</code> and <code class="reqn">\hat{V}(\hat{Y}_{FB})</code> are estimated using functions <code>VarHT</code> and <code>CovHT</code>, respectively. If
+only first order probabilities are known, variances are estimated using Deville's method and covariances are estimated using following expression
+</p>
+<p style="text-align: center;"><code class="reqn">\widehat{Cov}(\hat{X}, \hat{Y}) = \frac{\hat{V}(X + Y) - \hat{V}(X) - \hat{V}(Y)}{2}</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p><code>BKA</code> returns an object of class "EstimatorDF" which is a list with, at least, the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Est</code></td>
+<td>
+<p>total and mean estimation for main variable(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VarEst</code></td>
+<td>
+<p>variance estimation for main variable(s).</p>
+</td>
+</tr>
+</table>
+<p>If parameter <code>conf_level</code> is different from <code>NULL</code>, object includes component
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>ConfInt</code></td>
+<td>
+<p>total and mean estimation and confidence intervals for main variables(s).</p>
+</td>
+</tr></table>
+<p>In addition, components <code>TotDomEst</code> and <code>MeanDomEst</code> are available when estimator is based on estimators of the domains. Component <code>Param</code> shows value of parameters involded in calculation of the estimator (if any).
+By default, only <code>Est</code> component (or <code>ConfInt</code> component, if parameter <code>conf_level</code> is different from <code>NULL</code>) is shown. It is possible to access to all the components of the objects by using function <code>summary</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Bankier, M. D. (1986)
+<em>Estimators Based on Several Stratified Samples With Applications to Multiple Frame Surveys</em>. 
+Journal of the American Statistical Association, Vol. 81, 1074 - 1079.
+</p>
+<p>Kalton, G. and Anderson, D. W. (1986) 
+<em>Sampling Rare Populations</em>. 
+Journal of the Royal Statistical Society, Ser. A, Vol. 149, 65 - 82.
+</p>
+<p>Rao, J. N. K. and Skinner, C. J. (1996)
+<em>Estimation in Dual Frame Surveys with Complex Designs</em>.
+Proceedings of the Survey Method Section, Statistical Society of Canada, 63 - 68.
+</p>
+<p>Skinner, C. J. and Rao, J. N. K. (1996) 
+<em>Estimation in Dual Frame Surveys with Complex Designs</em>.
+Journal of the American Statistical Association, Vol. 91, 433, 349 - 356.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>JackBKA</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(DatA)
+data(DatB)
+data(PiklA)
+data(PiklB)
+
+#Let calculate BKA estimator for population total for variable Leisure
+BKA(DatA$Lei, DatB$Lei, PiklA, PiklB, DatA$ProbB, DatB$ProbA, 
+DatA$Domain, DatB$Domain)
+
+#Now, let calculate BKA estimator and a 90% confidence interval for population 
+#total for variable Feeding considering only first order inclusion probabilities
+BKA(DatA$Feed, DatB$Feed, DatA$ProbA, DatB$ProbB, DatA$ProbB, 
+DatB$ProbA, DatA$Domain, DatB$Domain, 0.90)
+</code></pre>
+
+
+</div>

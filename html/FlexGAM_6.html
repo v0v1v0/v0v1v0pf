@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flexgam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimation of generalized additive model with flexible response function
+</h2>
+
+<h3>Description</h3>
+
+<p>Main function to estimate generalized additive models with flexible response function. Currently the response must be binomial, Poisson, Gaussian or Gamma distributed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flexgam(formula, data, type = c("FlexGAM1","FlexGAM2","FlexGAM1n",
+        "FlexGAM2n"), family, control = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>Formula of the covariate effects. The formula must be in the design of the <code>mgcv</code> package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Data to fit the model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Should the response function be estimated completely flexible (<code>"FlexGAM2"</code>) or with a surrounding canonical link (<code>"FlexGAM1"</code>)? <code>"FlexGAM1n"</code> and <code>"FlexGAM2n"</code> are similar to <code>"FlexGAM1"</code> and <code>"FlexGAM2"</code>, but without monotonicity constraint. Therefore we do not recommend to use <code>"FlexGAM1n"</code> and <code>"FlexGAM2n"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>Family of the data. Currently only <code>binomial(link="logit")</code>,  <code>poisson(link="log")</code>, <code>gaussian(link="identity")</code> and <code>Gamma(link="log")</code> are possible.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>Control parameters to fit the model. The default values are described in <br><code>match_flexgam_control</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To reduce the bias of miss-specified response functions the function estimates the response function jointly with the covariate effects. The covariate effects are build similar to the standard mgcv::gam, while the response function is either estimated as a strictly  monotone P-spline or a combination of the canonical  link and a transformation of the "linear"-predictor. In the outer loop the response function is estimated, while in the inner loop a modified version of the Fisher-Scoring algorithm is applied to get the covariate effects. In the algorithm step-halving is applied. Identifiability is achieved due to at least two smooth effects and scaling of the predictors.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of class <code>flexgam</code>. The list includes the 
+</p>
+
+<ul>
+<li> <p><code>f_k</code>: The estimated response function.
+</p>
+</li>
+<li> <p><code>gam_temp</code>: The final step of the Fisher-Scoring algorithm, so the weighted linear model based on the mgcv-package.
+</p>
+</li>
+<li> <p><code>sm_par_vec</code>: The estimated smoothing parameters.
+</p>
+</li>
+<li> <p><code>coefficients</code>: The coefficients of the predictor as well as of the response function.
+</p>
+</li>
+<li> <p><code>se</code>: The standard deviation of the coefficients.
+</p>
+</li>
+<li> <p><code>mean_eta_k</code>, <code>sd_eta_k</code>: Some information about the scaling of the predictor.
+
+</p>
+</li>
+<li> <p><code>control</code>: The applied control parameters.
+</p>
+</li>
+<li> <p><code>control_input</code>: The control parameters in the input
+</p>
+</li>
+<li> <p><code>details</code>: Information about the occurrence  of modifications due to extreme values and the convergence. As well as information of the steps done in the algorithm (if saved).
+</p>
+</li>
+<li>
+<p> As well as other stuff for internal usage
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Elmar Spiegel
+</p>
+
+
+<h3>References</h3>
+
+<p>Spiegel, Elmar, Thomas Kneib and Fabian Otto-Sobotka. Generalized additive models with flexible response functions. Statistics and Computing (2017). https://doi.org/10.1007/s11222-017-9799-6
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict.flexgam</code>, <code>plot.flexgam</code>, <code>deviance.flexgam</code>, <code>match_flexgam_control</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 1000
+x1 &lt;- runif(n)
+x2 &lt;- runif(n)
+x3 &lt;- runif(n)
+eta_orig &lt;- -1 + 2*sin(6*x1) + exp(x2) + x3
+pi_orig &lt;- pgamma(eta_orig, shape=2, rate=sqrt(2))
+y &lt;- rbinom(n,size=1,prob=pi_orig)
+
+Data &lt;- data.frame(y,x1,x2,x3)
+formula &lt;- y ~ s(x1,k=20,bs="ps") + s(x2,k=20,bs="ps") + x3
+
+# Fix smoothing parameters to save computational time.
+control2 &lt;- list("fix_smooth" = TRUE, "quietly" = TRUE, "sm_par_vec" = 
+                     c("lambda" = 100, "s(x1)" = 2000, "s(x2)" = 9000))
+
+set.seed(2)
+model_2 &lt;- flexgam(formula=formula, data=Data, type="FlexGAM2", 
+                   family=binomial(link=logit), control = control2)
+
+print(model_2)
+summary(model_2)
+
+plot(model_2, type = "response")
+plot(model_2, type = "covariate")
+
+</code></pre>
+
+
+</div>

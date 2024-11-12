@@ -1,0 +1,294 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>penmodel_cmp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a penetrance model for competing risks data</h2>
+
+<h3>Description</h3>
+
+<p>Fits a competing risks model for family data with ascertainment correction and provides model parameter estimates. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">penmodel_cmp(formula1, formula2, cluster = "famID", gvar = "mgene", 
+parms, cuts = NULL, data,  design = "pop", base.dist = "Weibull", 
+frailty.dist = "none", agemin = NULL, robust = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula1</code></td>
+<td>
+<p>A formula expression for event 1 as for other regression models. The response should be a survival object as returned by the <code>Surv</code> function. See the documentation for <code>Surv</code>, <code>lm</code> and <code>formula</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula2</code></td>
+<td>
+<p>A formula expression for event 2 as for other regression models. The response should be a survival object as returned by the <code>Surv</code> function. See the documentation for <code>Surv</code>, <code>lm</code> and <code>formula</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+
+<p>Name of cluster variable. Default is <code>"famID"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gvar</code></td>
+<td>
+<p>Name of genetic variable. Default is <code>"mgene"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parms</code></td>
+<td>
+
+<p>list of Vectors of initial values for the parameters in each model including baseline parameters and regression coefficients and frailty parameters. 
+</p>
+<p><code>parms = list(c(baseparm1, coef1), c(baseparms2, coef2), c(k1, k2)</code>, where <code>baseparm1</code> and <code>baseparm2</code> include the initial values for baseline parameters used for each <code>base.dist</code>; <code>coef1</code> and <code>coef2</code> include the initial values for regression coefficients for the variables specified in <code>formula1</code> and <code>formula2</code>, respectively, and <code>c(k1, k2)</code> are the initial values for frailty parameters used for the specified frailty.distribution.
+See Details for more details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cuts</code></td>
+<td>
+ 
+<p>Vector of cut points that define the intervals when <code>base.dist="piecewise"</code> is specified and must be strictly positive and finite and greater than <code>agemin</code>. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Data frame generated from <code>simfam</code> or data frame containing variables named in the <code>formula</code> and specific variables: <code>famID</code>, <code>indID</code>, <code>gender</code>, <code>currentage</code>, <code>mgene</code>, <code>time</code>, <code>status</code> and <code>weight</code> with <code>attr(data,"agemin")</code> specified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+
+<p>Study design of the family data.  Possible choices are: <code>"pop"</code> and <code>"pop+"</code>, where <code>"pop"</code> is for the population-based design with affected probands whose mutation status can be either carrier or non-carrier, <code>"pop+"</code> is similar to <code>"pop"</code> but with mutation carrier probands. Default is <code>"pop"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base.dist</code></td>
+<td>
+
+<p>Vector of two baseline hazard distributions to be fitted for competing events. Possible choices for each event are: <code>"Weibull"</code>, <code>"loglogistic"</code>, <code>"Gompertz"</code>, <code>"lognormal"</code>, <code>"gamma"</code>, <code>"logBurr"</code>, or <code>"piecewise"</code>. If only one distribution is specified, the same distribution will be assumed for both events. A vector of two distributions should be specified if different baseline distributions are assumed for different events.
+Default is <code>c("Weibull", "Weibull")</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frailty.dist</code></td>
+<td>
+
+<p>Choice of frailty distribution to fit a shared frailty model for competing events. Possible choices are: <code>"gamma"</code> for independent gamma, <code>"lognormal"</code> for independent log-normal, <code>"cgamma"</code> for correlated gamma, <code>"clognormal"</code> for correlated log-normal distributions, or <code>"none"</code> can be chosen to ignoring frailties in the model assuming no residual familial correlation given covariates. 
+Default is <code>"gamma")</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agemin</code></td>
+<td>
+
+<p>Minimum age of disease onset or minimum age. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+
+<p>Logical; if <code>TRUE</code>, the robust ‘sandwich’ standard errors and variance-covariance matrix are provided, otherwise the conventional standard errors and variance-covariance matrix are provided.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The shared frailty comepting risks model is fitted to family data with specified baseline hazard distributions and frailty distribution
+</p>
+<p>Event 1:
+</p>
+
+<p style="text-align:center"> h<sub>1</sub>(t|X,Z) = h<sub>01</sub>(t - t<sub>0</sub>) Z<sub>1</sub> exp(β<sub>s1</sub> * x<sub>s</sub> + β<sub>g1</sub> * x<sub>g</sub>), </p>
+<p>Event 2:
+</p>
+
+<p style="text-align:center"> h<sub>2</sub>(t|X,Z) = h<sub>02</sub>(t - t<sub>0</sub>) Z<sub>2</sub> exp(β<sub>s2</sub> * x<sub>s</sub> + β<sub>g2</sub> * x<sub>g</sub>), </p>
+<p>where h<sub>01</sub>(t) and h<sub>02</sub>(t) are the baseline hazard functions for event 1 and event 2, respectively, which can be specified by <code>base.dist</code>. t<sub>0</sub> is a minimum age of disease onset, Z<sub>1</sub> and Z<sub>2</sub> are frailties shared within families for each event and follow either a gamma, log-normal, correlateg gamma, or correlated log-normal distributions, which can be specified by <code>frailty.dist</code>. x<sub>x</sub> and x<sub>g</sub> indicate male (1) or female (0) and carrier (1) or non-carrier (0) of a main gene of interest, respectively. Additional covariates can be added to <code>formula1</code> for event 1 and <code>formula2</code> for event 2 in the model. 
+</p>
+<p><em>Choice of frailty distributions for competing risk models</em>
+</p>
+<p><code>frailty.dist = "gamma"</code> shares the frailties within families generated from a gamma distribution independently for each competing event, where
+Z<sub>j</sub> follows Gamma(k<sub>j</sub>, 1/k<sub>j</sub>). 
+</p>
+<p><code>frailty.dist = "lognormal"</code> shares the frailties within families generated from a log-normal distribution independently for each competing event, where 
+Z<sub>j</sub> follows log-normal distribution with mean 0 and variance 1/k<sub>j</sub>.
+</p>
+<p><code>frailty.dist = "cgamma"</code> shares the frailties within families generated from a correlated gamma distribution to allow the frailties between two events to be correlated, where the correlated gamma frailties (Z<sub>1</sub>, Z<sub>2</sub>) are generated with three independent gamma frailties (Y<sub>0</sub>, Y<sub>1</sub>, Y<sub>2</sub>) as follows:
+</p>
+Z<sub>1</sub> = k<sub>0</sub>/(k<sub>0</sub> + k<sub>1</sub>) Y<sub>0</sub> + Y<sub>1</sub><p>;
+</p>
+Z<sub>2</sub> = k<sub>0</sub>/(k<sub>0</sub> + k<sub>2</sub>) Y<sub>0</sub> + Y<sub>2</sub><p>,
+</p>
+<p>where Y<sub>0</sub> from Gamma(k<sub>0</sub>, 1/k<sub>0</sub>),
+Y<sub>1</sub> from Gamma(k<sub>1</sub>, 1/(k<sub>0</sub> + k<sub>1</sub>)),
+Y<sub>2</sub> from Gamma(k<sub>2</sub>, 1/(k<sub>0</sub> + k<sub>2</sub>)).
+</p>
+<p><code>frailty.dist = "clognormal"</code> shares the frailties within families generated from a correlated log-normal distribution where 
+log(Z<sub>j</sub>) follows  a normal distribution with mean 0, variance 1/k<sub>j</sub> and correlation between two events k<sub>0</sub>.
+</p>
+<p><code>depend</code> should specify the values of related frailty parameters: <code>c(k1, k2)</code> with <code>frailty.dist = "gamma"</code> or <code>frailty.dist = "lognormal"</code>; <code>c(k1, k2, k0)</code> for <code>frailty.dist = "cgamma"</code> or <code>frailty.dist = "clognormal"</code>. 
+</p>
+<p>More details about the competing risks model for family data arising from population-based study designs (<code>design="pop", "pop+"</code> and their inference procedure based on the ascertainment-corrected likelihood approach can be found in Choi et al., 2021.
+</p>
+<p>Note that the baseline parameters include <code>lambda</code> and <code>rho</code>, which represent the scale and shape parameters, respectively, and <code>eta</code>, additional parameter to specify for <code>"logBurr"</code> distribution. For the <code>"lognormal"</code> baseline distribution, <code>lambda</code> and <code>rho</code> represent the location and scale parameters for the normally distributed logarithm, where <code>lambda</code> can take any real values and <code>rho</code> &gt; 0. For the other baselinse distributions, <code>lambda</code> &gt; 0, <code>rho</code> &gt; 0, and <code>eta</code> &gt; 0. When a piecewise constant distribution is specified for the baseline hazards, <code>base.dist="piecewise"</code>, <code>baseparm</code> should specify the initial interval-constant values, one more than the cut points specified by<code>cuts</code>.
+</p>
+<p>Transformed baseline parameters are used for estimation; log transformation is applied to both scale and shape parameters (<code class="reqn">\lambda, \rho</code>) for <code>"Weibull"</code>, <code>"loglogistic"</code>, <code>"Gompertz"</code> and <code>"gamma"</code> baselines, to (<code class="reqn">\lambda, \rho, \eta</code>) for <code>"logBurr"</code> and to the piecewise constant parameters for a <code>piecewise</code> baseline hazard. For <code>"lognormal"</code> baseline distribution, the log transformation is applied only to <code class="reqn">\rho</code>, not to <code class="reqn">\lambda</code>, which represents the location parameter for the normally distributed logarithm.
+</p>
+<p>Calculations of penetrance estimates and their standard errors and 95% confidence intervals at given ages can be obtained by <code>penetrance</code> function via Monte-Carlo simulations of the estimated penetrance model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>'penmodel_cmp'</code>, including the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>estimates</code></td>
+<td>
+
+<p>Parameter estimates of transformed baseline parameters and regression coefficients.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcov</code></td>
+<td>
+
+<p>Variance-covariance matrix of parameter estimates obtained from the inverse of Hessian matrix. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcov.robust</code></td>
+<td>
+
+<p>Robust ‘sandwich’ variance-covariance matrix of parameter estimates when <code>robust=TRUE</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+
+<p>Standard errors of parameter estimates obtained from the inverse of Hessian matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.robust</code></td>
+<td>
+
+<p>Robust ‘sandwich’ standard errors of parameter estimates when <code>robust=TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik</code></td>
+<td>
+<p>Loglikelihood value for the fitted penetrance model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC</code></td>
+<td>
+<p>Akaike information criterion (AIC) value of the model; AIC = 2*k - 2*logLik, where k is the number of parameters used in the model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yun-Hee Choi
+</p>
+
+
+<h3>References</h3>
+
+<p>Choi, Y.-H., Jung, H., Buys, S., Daly, M., John, E.M., Hopper, J., Andrulis, I., Terry, M.B., Briollais, L. (2021) A Competing Risks Model with Binary Time Varying Covariates for Estimation of Breast Cancer Risks in BRCA1 Families, Statistical Methods in Medical Research 30 (9), 2165-2183. https://doi.org/10.1177/09622802211008945.
+</p>
+<p>Choi, Y.-H., Briollais, L., He, W. and Kopciuk, K. (2021) FamEvent: An R Package for Generating and Modeling Time-to-Event Data in Family Designs, Journal of Statistical Software 97 (7), 1-30. doi:10.18637/jss.v097.i07
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>simfam_cmp</code>, <code>penplot_cmp</code>, <code>print.penmodel_cmp</code>,
+<code>summary.penmodel_cmp</code>, <code>print.summary.penmodel_cmp</code>, <code>plot.penmodel_cmp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Competing risk family data simulated from population-based design 
+# using Weibull baseline hazards with gamma frailty distribution.
+## Not run: 
+set.seed(4321)
+fam1 &lt;- simfam_cmp(N.fam = 200, design = "pop+", variation = "frailty", 
+              base.dist = "Weibull", frailty.dist = "cgamma", depend=c(0.5, 1, 0.5), 
+              allelefreq = 0.02, base.parms = list(c(0.01, 3), c(0.01, 3)), 
+              vbeta = list(c(-1.13, 2.35), c(-1, 2)))
+
+# Fitting shared gamma frailty Penetrance model for simulated competing risk data
+
+fit1 &lt;- penmodel_cmp(
+        formula1 = Surv(time, status==1) ~ gender + mgene, 
+        formula2 = Surv(time, status==2) ~ gender + mgene,
+        cluster = "famID", gvar = "mgene", design = "pop+",  
+        parms = list(c(0.01, 3, -1, 2), c(0.01, 3, -1, 2), c(0.5, 1)),
+        base.dist = "Weibull", frailty.dist = "gamma", data = fam1, robust = TRUE)
+
+# Fitting shared correlated gamma frailty Penetrance model for simulated competing risk data
+
+fit2 &lt;- penmodel_cmp(
+        formula1 = Surv(time, status==1) ~ gender + mgene, 
+        formula2 = Surv(time, status==2) ~ gender + mgene,
+        cluster = "famID", gvar = "mgene", design = "pop+",  
+        parms = list(c(0.01, 3, -1, 2), c(0.01, 3, -1, 2), c(0.5, 1, 0.5)),
+        base.dist = "Weibull", frailty.dist = "cgamma", data = fam1, robust = TRUE)
+
+# Summary of the model parameter estimates from the model fit
+
+summary(fit1)
+
+# Plot the lifetime penetrance curves with 95
+# gender and mutation status groups along with their nonparametric penetrance curves  
+# based on data excluding probands. 
+
+plot(fit1, add.CIF = TRUE, conf.int = TRUE, MC = 100)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frscored_cna</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>frscored_cna</h2>
+
+<h3>Description</h3>
+
+<p>Perform a reanalysis series on a data set and calculate the
+fit-robustness scores of the resulting solutions/models
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">frscored_cna(
+  x,
+  fit.range = c(1, 0.7),
+  granularity = 0.1,
+  output = c("csf", "asf", "msc"),
+  scoretype = c("full", "supermodel", "submodel"),
+  normalize = c("truemax", "idealmax", "none"),
+  verbose = FALSE,
+  maxsols = 50,
+  test.model = NULL,
+  print.all = FALSE,
+  comp.method = c("causal_submodel", "is.submodel"),
+  n.init = 1000,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>data.frame</code> or <code>configTable</code> to be analyzed with
+<code>cna()</code>. In case of multi-value or fuzzy-set data, the data type must be indicated by <code>type = "mv"</code> and <code>type = "fs"</code>, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.range</code></td>
+<td>
+<p>Numeric vector of length 2; determines the maximum and
+minimum values of the interval of consistency and coverage thresholds used in the
+reanalysis series. Defaults to <code>c(1, 0.7)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>granularity</code></td>
+<td>
+<p>Numeric scalar; consistency and coverage are varied by
+this value in the reanalysis series. Defaults to <code>0.1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>String that determines whether csfs, asfs, or mscs are
+returned; <code>"csf"</code> (default) returns csfs, <code>"asf"</code> asfs,
+and <code>"msc"</code> mscs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scoretype</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> String specifying the scoring method: <code>"full"</code>
+(default; scoring is based on counting sub- and supermodel relations), <code>"supermodel"</code>
+(count supermodels only), <code>"submodel"</code> (count
+submodels only). Allowed for backward compatibility only, due to be dropped
+in next version.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>String that determines the method used in
+normalizing the scores. <code>"truemax"</code> (default) normalizes by the highest score among the elements of <code>sols</code>,
+such that the highest scoring solution types get score 1. <code>"idealmax"</code>
+normalizes by a theoretical maximum score (see Details). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical; if <code>TRUE</code>, additional
+information about causal compatibility relations among the unique solution types found
+in <code>sols</code> is printed. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxsols</code></td>
+<td>
+<p>Integer determining the maximum number of unique solution
+types found in the reanalysis series to be included in the scoring (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.model</code></td>
+<td>
+<p>String that specifies a single candidate
+<code>cna()</code> solution/model whose fit-robustness score is calculated against
+the results of the reanalysis series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.all</code></td>
+<td>
+<p>Logical that controls the number of entries printed when
+printing the results. If <code>TRUE</code>, results are printed as when using the defaults of
+<code>print.data.frame</code>. If <code>FALSE</code>, 20 highest scoring
+solutions/models are printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.method</code></td>
+<td>
+<p>String that determines how the models in <code>sols</code> are compared
+to determine their fr-score. <code>"causal_submodel"</code> (the default) checks for
+causal submodel relations using <code>causal_submodel()</code>,
+<code>"is.submodel"</code> checks for syntactic submodel relations with <code>is.submodel()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.init</code></td>
+<td>
+<p>Integer that determines the maximum number of csfs built in
+the analyses, see <code>cna::csf()</code>. Only applied when <code>output = "csf"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any arguments to be passed to <code>cna()</code> except <code>con</code>, <code>cov</code> or
+<code>con.msc</code>. The effect of argument <code>what</code> is overriden
+by <code>output</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>frscored_cna()</code> is a wrapper function that sequentially executes <code>rean_cna()</code> and <code>frscore()</code>, meaning it performs both computational phases of fit-robustness scoring as introduced in Parkkinen and Baumgartner (2021). In the first phase, the function conducts a reanalysis series on the input data <code>x</code> at all combinatorially possible combinations of fit thresholds that can be generated from the interval given by <code>fit.range</code> at increments given by <code>granularity</code> and collects all solutions/models in a set <strong>M</strong>. In the second phase, it calculates the fit-robustness scores of the atomic (asf) and/or complex (csf) solution formulas in <strong>M</strong>.
+The argument <code>output</code> allows for controlling whether csf or only asf are built, the latter normally being  faster but less complete.
+</p>
+<p>The argument <code>scoretype</code> is deprecated as of <code>frscore</code> 0.3.1, and will be dropped
+from future versions of the package.
+Giving it a non-default value
+is allowed so that older code can be run without errors, but doing this is otherwise discouraged.
+The permissible values of <code>scoretype</code> have the following effects.
+When set to its default value <code>"full"</code>, the score of each solution/model <strong>m</strong> in <strong>M</strong> is calculated by counting
+the number of the (either causal or syntactic) sub- and supermodel relations <strong>m</strong> has to the other elements of <strong>M</strong>. Whether causal or syntactic submodel relations
+are counted depends on the value of <code>comp.method</code>: <code>"causal_submodel"</code> (default)
+counts causal submodel relations using <code>causal_submodel()</code>,
+<code>"is.submodel"</code> counts syntactic submodel relations using <code>cna::is.submodel()</code>.
+Setting <code>scoretype</code> to <code>"supermodel"</code> or <code>"submodel"</code> forces the scoring to be based on, respectively, supermodel and submodel relations only. In future versions of <code>frscore</code>, fit-robustness
+scores will always be calculated as with <code>scoretype = "full"</code>, and
+changing this will not be possible. If additional information about the numbers of
+sub- vs. supermodel relations a particular model has to other models is needed, this
+can be acquired by inspecting the <code>"verbout"</code> element of the output of <code>frscored_cna()</code>.
+</p>
+<p>The fit-robustness scores can be normalized in two ways. In the default setting <code>normalize = "truemax"</code>, the score of each <code>sols[i]</code> is divided by the maximum score obtained by an element of <code>sols</code>. In case of <code>normalize = "idealmax"</code>, the score is normalized not by an actually obtained
+maximum but by an idealized maximum, which is calculated by assuming that all solutions of equal
+complexity in <code>sols</code> are identical and that for every <code>sols[i]</code> of a given complexity, all less complex
+elements of <code>sols</code> are its submodels and all more complex elements of <code>sols</code> are its supermodels.
+When normalization is applied, the normalized score is shown in its own column <code>norm.score</code> in
+the results. The raw scores are shown in the column <code>score</code>.
+</p>
+<p>If the argument <code>verbose</code> is set to <code>TRUE</code>, <code>frscored_cna()</code> also
+prints a list indicating for each solution/model how many raw score points it receives from which elements of <strong>M</strong>. The verbose list is ordered with decreasing fit robustness scores.
+</p>
+<p>If the size of the consistency and coverage range scanned in the reanalysis series generating <strong>M</strong> is large or there are many model ambiguities, <strong>M</strong> may contain so many different types of solutions that robustness cannot be calculated for all of them in reasonable time. In that case, the argument <code>maxsols</code> allows for capping the number of solution types to be included in the scoring (defaults to 50). <code>frscored_cna()</code> then selects the most frequent solutions in <strong>M</strong> of each complexity level until <code>maxsols</code> is reached and only scores the thus selected elements of <strong>M</strong>.
+</p>
+<p>If the user is interested in the robustness of one specific candidate model, that model can be given to <code>frscored_cna()</code> by the argument <code>test.model</code>. The result for that model will then be printed separately, provided the model is found in the
+reanalysis series, if not, the function stops.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list whose first element is a data frame that contains the model types
+returned from a reanalysis series of the input data, their details
+such as consistency and coverage, together with the unadjusted fit-robustness score
+of each model type shown in column 'score', and a normalized score in column
+'norm.score' in case <code>normalize = "truemax"</code> or <code>normalize = "idealmax"</code>. The other elements
+contain additional information about the submodel relations among
+the unique solution types and about how
+the function was called.
+</p>
+
+
+<h3>References</h3>
+
+<p>P. Emmenegger (2011) “Job Security Regulations in Western Democracies:
+A Fuzzy Set Analysis.” <em>European Journal of Political Research</em> 50(3):336-64.
+</p>
+<p>C. Hartmann and J. Kemmerzell (2010) “Understanding Variations
+in Party Bans in Africa.” <em>Democratization</em> 17(4):642-65.
+doi:10.1080/13510347.2010.491189.
+</p>
+<p>V.P. Parkkinen and M. Baumgartner (2021), “Robustness and Model Selection in Configurational Causal Modeling,” <em>Sociological Methods and Research</em>, doi:10.1177/0049124120986200.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frscore()</code>, <code>rean_cna()</code>,
+<code>causal_submodel()</code>, <code>cna::is.submodel()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Robustness analysis from sect. 4 of Parkkinen and Baumgartner (2021)
+frscored_cna(d.error, fit.range = c(1, 0.75), granularity = 0.05,
+             ordering = list("E"), strict = TRUE)
+
+# Multi-value data from Hartmann and Kemmerzell (2010)
+frscored_cna(d.pban, type = "mv", fit.range = c(0.9, 0.7), granularity = 0.1,
+                  normalize = "none", ordering = list("T", "PB"), strict = TRUE)
+
+# Fuzzy-set data from Emmenegger (2011)
+frscored_cna(d.jobsecurity, type = "fs", fit.range = c(0.9, 0.6), granularity = 0.05,
+                  scoretype = "submodel", ordering = list("JSR"), strict = TRUE)
+
+# Artificial data
+dat &lt;- data.frame(
+  A = c(1,1,0,0,0,0,1,1),
+  B = c(0,1,0,0,0,0,1,1),
+  C = c(1,0,1,0,1,0,1,0),
+  D = c(1,1,0,0,1,1,0,0),
+  E = c(1,1,1,1,0,0,0,0))
+frscored_cna(dat)
+frscored_cna(dat, output = "asf")
+frscored_cna(dat, maxsols = 10)
+frscored_cna(dat, test.model = "(b*e+A*E&lt;-&gt;D)*(B&lt;-&gt;A)")
+
+</code></pre>
+
+
+</div>

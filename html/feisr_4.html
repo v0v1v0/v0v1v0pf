@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>detrend</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Detrend data by individual slopes</h2>
+
+<h3>Description</h3>
+
+<p>Detrends the input data by the predicted values based on the slope parameters within each group
+specified by id. The result is equal to the transformed data used for estimation in
+<code>feis</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">detrend(
+  data,
+  slopes,
+  id = NULL,
+  intercept = TRUE,
+  na.action = c("na.exlude", "na.omit"),
+  tol = .Machine$double.eps,
+  predicted = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>data.frame</code>, <code>matrix</code>, or <code>vector</code> of data to be detrended. If <code>id</code>
+and / or <code>slopes</code> are given as character (see below), must contain <code>id</code> and / or
+<code>slopes</code> as variable(s). Otherwise must be excluded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slopes</code></td>
+<td>
+<p>a <code>data.frame</code>, <code>matrix</code>, or <code>vector</code> of slopes to be used for detrending,
+not containing an intercept. Optionally, a <code>character</code> vector of the names of slope variables
+in <code>data</code>. For pure de-meaning use <code>"slopes = 1"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>a <code>vector</code> of a unique group / person identifier. Optionally, a <code>character</code>
+of the name of the unique group / person identifier in <code>data</code>. For overall detrending,
+use <code>"id = 1"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>logical. If <code>TRUE</code> the slopes will contain an individual
+intercept (default is <code>TRUE</code>). For <code>"id = 1"</code>, this is an overall intercept.
+Ignored if "slopes = 1".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>character, either <code>na.exclude</code> (default) or <code>na.omit</code> indicates the use
+of <code>NA</code>s. <code>na.exclude</code> passes <code>NA</code>s through to the output (same length as input).
+<code>na.omit</code> drops <code>NA</code> rows (list-wise).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>the tolerance for detecting linear dependencies in the residual maker transformation
+(see <code>solve</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predicted</code></td>
+<td>
+<p>logical. If <code>TRUE</code> returns the predicted values instead of the
+detrended data (default is <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>detrend</code> performs within-group "residual maker" transformation on the origin data.
+Within each group, the predicted values of the columns in data are computed based on the
+slope columns plus an individual intercept if <code>intercept = TRUE</code> (the default).
+Subsequently the predicted values are subtracted from the origin data. The transformed
+data can, for instance, be used to obtain coefficients of a fixed effects individual slopes
+estimator via <code>lm</code>
+(Bruederl and Ludwig 2015; Ruettenauer and Ludwig 2020; Wooldridge 2010).
+</p>
+<p>Estimation requires at least <code>q+1</code> observations per unit, where <code>q</code> is the number of slope
+parameters (including a constant).
+<code>detrend</code> automatically selects only those groups from the current data set which have
+at least <code>q+1</code> observations, and returns NA for all groups with <code>n_i</code> &lt; <code>q+1</code>.
+</p>
+<p><code>NA</code> values in the input data are handled by list-wise deletion based on the data to be
+detrended and the slopes.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "<code>data.frame</code>" or "<code>numeric</code> (if only one data column),
+containing the detrended data with <code>row.names</code> equal
+to the <code>row.names</code> of the origin data. If input is an unnamed vector, names are 1:length.
+</p>
+
+
+<h3>References</h3>
+
+<p>Bruederl J, Ludwig V (2015).
+“Fixed-Effects Panel Regression.”
+In Best H, Wolf C (eds.), <em>The Sage Handbook of Regression Analysis and Causal Inference</em>, 327–357.
+Sage, Los Angeles.
+ISBN 1446252442.<br><br> Ruettenauer T, Ludwig V (2020).
+“Fixed Effects Individual Slopes: Accounting and Testing for Heterogeneous Effects in Panel Data or Other Multilevel Models.”
+<em>Sociological Methods and Research</em>, <b>OnlineFirst</b>.
+ISSN 0049-1241, doi: <a href="https://doi.org/10.1177/0049124120926211">10.1177/0049124120926211</a>.<br><br> Wooldridge JM (2010).
+<em>Econometric Analysis of Cross Section and Panel Data</em>.
+MIT Press, Cambridge, Mass.
+ISBN 0262294354.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>feis</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("mwp", package = "feisr")
+
+# Detrend entire data.frame
+mwp_det &lt;- detrend(data = mwp, slopes = c("exp", "expq"), id = "id")
+
+# Detrend single variable
+lnw_det &lt;- detrend(data = mwp$lnw, slopes = mwp[, c("exp", "expq")], id = mwp$id)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Surv2fitdistcens</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Handling of data formated as in the survival package for use in fitdistcens()</h2>
+
+<h3>Description</h3>
+
+<p>Provide a function to prepare a data frame needed by fitdistcens() from 
+data classically coded when using the Surv() function of the survival
+package
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Surv2fitdistcens(time, time2, event,
+                      type = c('right', 'left', 'interval', 'interval2'))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>for right censored data, this is the follow up time. 
+For interval data, the first argument is the starting time for the interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>The status indicator, normally <code>0</code>=alive, <code>1</code>=dead. Other choices 
+are <code>TRUE/FALSE</code> (<code>TRUE</code> = death) or <code>1/2</code> (<code>2</code>=death). 
+For interval censored data, the status indicator is <code>0</code>=right censored, 
+<code>1</code>=event at time, <code>2</code>=left censored, <code>3</code>=interval censored. 
+For factor data, assume that it has only two levels with the second level
+coding death.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time2</code></td>
+<td>
+<p>ending time of the interval for interval censored. 
+Intervals are assumed to be open on the left and closed 
+on the right, (start, end].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character string specifying the type of censoring. Possible 
+values are <code>"right"</code>, <code>"left"</code>, <code>"interval"</code>, <code>"interval2"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>Surv2fitdistcens</code> makes a <code>data.frame</code> with two columns
+respectively named <code>left</code> and <code>right</code>, describing each observed 
+value as an interval as required in fitdistcens(): 
+the <code>left</code> column contains either <code>NA</code> 
+for left-censored observations, the left bound of the interval for 
+interval-censored observations, or the observed value for non-censored observations.
+The right column contains either <code>NA</code> for right-censored observations, 
+the right bound of the interval for interval censored observations, 
+or the observed value for non-censored observations.
+</p>
+
+
+<h3>Value</h3>
+
+ 
+<p><code>Surv2fitdistcens</code> returns a data.frame with two columns 
+respectively named <code>left</code> and <code>right</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+ 
+<p>Christophe Dutang and Marie-Laure Delignette-Muller.
+</p>
+
+
+<h3>References</h3>
+
+ 
+<p>Delignette-Muller ML and Dutang C (2015), <em>fitdistrplus: An R Package for Fitting Distributions</em>.
+Journal of Statistical Software, 64(4), 1-34, <a href="https://doi.org/10.18637/jss.v064.i04">doi:10.18637/jss.v064.i04</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+ 
+<p>See <code>fitdistrplus</code> for an overview of the package.
+See <code>fitdistcens</code> for fitting of univariate distributions to censored data
+and <code>fremale</code> for the full dataset used in examples below.
+See <code>Surv</code> for survival objects which use the same arguments.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># (1) randomized fictive survival data - right-censored
+#
+origdata &lt;- data.frame(rbind(
+c(   43.01, 55.00,     0),
+c(   36.37, 47.17,     0),
+c(   33.10, 34.51,     0),
+c(   71.00, 81.15,     1),
+c(   80.89, 81.91,     1),
+c(   67.81, 78.48,     1),
+c(   73.98, 76.92,     1),
+c(   53.19, 54.80,     1)))
+colnames(origdata) &lt;- c("AgeIn", "AgeOut", "Death")
+
+# add of follow-up time (for type = "right" in Surv())
+origdata$followuptime &lt;- origdata$AgeOut - origdata$AgeIn
+origdata
+
+### use of default survival type "right"
+# in Surv()
+survival::Surv(time = origdata$followuptime, event = origdata$Death, type = "right")
+# for fitdistcens()
+Surv2fitdistcens(origdata$followuptime, event = origdata$Death, type = "right")
+
+# use of survival type "interval" 
+# in Surv()
+survival::Surv(time = origdata$followuptime, time2 = origdata$followuptime, 
+          event = origdata$Death, type = "interval")
+# for fitdistcens()
+Surv2fitdistcens(time = origdata$followuptime, time2 = origdata$followuptime, 
+          event = origdata$Death, type = "interval") 
+
+# use of survival type "interval2" 
+origdata$survivalt1 &lt;- origdata$followuptime
+origdata$survivalt2 &lt;- origdata$survivalt1
+origdata$survivalt2[1:3] &lt;- Inf
+origdata
+survival::Surv(time = origdata$survivalt1, time2 = origdata$survivalt2, 
+type = "interval2")
+Surv2fitdistcens(origdata$survivalt1, time2 = origdata$survivalt2, 
+                type = "interval2")
+
+
+# (2) Other examples with various left, right and interval censored values
+#
+# with left censored data
+(d1 &lt;- data.frame(time = c(2, 5, 3, 7), ind = c(0, 1, 1, 1)))
+survival::Surv(time = d1$time, event = d1$ind, type = "left")
+Surv2fitdistcens(time = d1$time, event = d1$ind, type = "left")
+
+(d1bis &lt;- data.frame(t1 = c(2, 5, 3, 7), t2 = c(2, 5, 3, 7), 
+  censtype = c(2, 1, 1, 1)))
+survival::Surv(time = d1bis$t1, time2 = d1bis$t2, 
+  event = d1bis$censtype, type = "interval")
+Surv2fitdistcens(time = d1bis$t1, time2 = d1bis$t2, 
+  event = d1bis$censtype, type = "interval")
+
+# with interval, left and right censored data
+(d2 &lt;- data.frame(t1 = c(-Inf, 2, 3, 4, 3, 7), t2 = c(2, 5, 3, 7, 8, Inf)))
+survival::Surv(time = d2$t1, time2 = d2$t2, type = "interval2")
+Surv2fitdistcens(time = d2$t1, time2 = d2$t2, type = "interval2")
+
+(d2bis &lt;- data.frame(t1 = c(2, 2, 3, 4, 3, 7), t2 = c(2, 5, 3, 7, 8, 7), 
+  censtype = c(2,3,1,3,3,0)))
+survival::Surv(time = d2bis$t1, time2 = d2bis$t2, 
+  event = d2bis$censtype, type = "interval")
+Surv2fitdistcens(time = d2bis$t1, time2 = d2bis$t2, 
+  event = d2bis$censtype, type = "interval")
+</code></pre>
+
+
+</div>

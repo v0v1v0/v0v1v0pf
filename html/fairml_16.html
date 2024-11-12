@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frrm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fair Ridge Regression Model</h2>
+
+<h3>Description</h3>
+
+<p>A regression model enforcing fairness with a ridge penalty.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"># a fair ridge regression model.
+frrm(response, predictors, sensitive, unfairness,
+  definition = "sp-komiyama", lambda = 0, save.auxiliary = FALSE)
+# a fair generalized ridge regression model.
+fgrrm(response, predictors, sensitive, unfairness,
+  definition = "sp-komiyama", family = "binomial", lambda = 0,
+  save.auxiliary = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>a numeric vector, the response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictors</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sensitive</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the sensitive attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unfairness</code></td>
+<td>
+<p>a positive number in [0, 1], how unfair is the model allowed
+to be. A value of <code>0</code> means the model is completely fair, while a value
+of <code>1</code> means the model is not constrained to be fair at all.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>definition</code></td>
+<td>
+<p>a character string, the label of the definition of fairness
+used in fitting the model. Currently either <code>"sp-komiyama"</code>,
+<code>"eo-komiyama"</code> or <code>"if-berk"</code>. It may also be a function: see
+below for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>a character string, either <code>"gaussian"</code> to fit a linear
+regression, <code>"binomial"</code> to fit a logistic regression, <code>"poisson"</code>
+to fit a log-linear regression, <code>"cox"</code> to fit a Cox proportional
+hazards regression of <code>"multinomial"</code> to fit a multinomial logistic
+regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>a non-negative number, a ridge-regression penalty coefficient.
+It defaults to zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save.auxiliary</code></td>
+<td>
+<p>a logical value, whether to save the fitted values and
+the residuals of the auxiliary model that constructs the decorrelated
+predictors. The default value is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>frrm()</code> and <code>fgrrm()</code> can accommodate different definitions of
+fairness, which can be selected via the <code>definition</code> argument. The labels
+for the built-in definitions are:
+</p>
+
+<ul>
+<li> <p><code>"sp-komiyama"</code> for the same definition of fairness as
+<code>nclm()</code>: the model bounds the proportion of the variance that is
+explained by the sensitive attributes over the total explained variance.
+This falls within the definition of statistical parity.
+</p>
+</li>
+<li> <p><code>"eo-komiyama"</code> enforces equality of opportunity in a similar
+way: it regresses the fitted values against the sensitive attributes and
+the response, and it bounds the proportion of the variance explained by
+the sensitive attributes over the total explained variance in that model.
+</p>
+</li>
+<li> <p><code>"if-berk"</code> enforces individual fairness by penalizing the model
+for each pair of observations with different values of the sensitive
+attributes and different responses.
+</p>
+</li>
+</ul>
+<p>Users may also pass a function via the <code>definition</code> argument to plug
+custom fairness definitions. This function should have signature
+<code>function(model, y, S, U, family)</code> and return an array with an element
+called <code>"value"</code> (optionally along with others). The arguments will
+contain the model fitted for the current level of fairness (<code>model</code>),
+the sanitized response variable (<code>y</code>), the design matrix for the
+sanitized sensitive attributes (<code>S</code>), the design matrix for the
+sanitized decorrelated predictors (<code>U</code>) and the character string
+identifying the family the model belongs to (<code>family</code>).
+</p>
+<p>The algorithm works like this:
+</p>
+
+<ol>
+<li>
+<p> regresses the predictors against the sensitive attributes;
+</p>
+</li>
+<li>
+<p> constructs a new set of predictors that are decorrelated from the
+sensitive attributes using the residuals of this regression;
+</p>
+</li>
+<li>
+<p> regresses the response against the decorrelated predictors and the
+sensitive attributes; while
+</p>
+</li>
+<li>
+<p> using a ridge penalty to control the proportion of variance the
+sensitive attributes can explain with respect to the overall explained
+variance of the model.
+</p>
+</li>
+</ol>
+<p>Both <code>sensitive</code> and <code>predictors</code> are standardized internally before
+estimating the regression coefficients, which are then rescaled back to match
+the original scales of the variables.
+</p>
+<p><code>fgrrm()</code> is the extension of <code>frrm()</code> to generalized linear models,
+currently implementing linear (<code>family = "gaussian"</code>) and logistic
+(<code>family = "binomial"</code>) regressions. <code>fgrrm()</code> is equivalent to
+<code>frrm()</code> with <code>family = "gaussian"</code>. The definition of fairness are
+identical between <code>frrm()</code> and <code>fgrrm()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>frrm()</code> returns an object of class <code>c("frrm", "fair.model")</code>.
+<code>fgrrm()</code> returns an object of class <code>c("fgrrm", "fair.model")</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marco Scutari</p>
+
+
+<h3>References</h3>
+
+<p>Scutari M, Panero F, Proissl M (2022). "Achieving Fairness with a Simple Ridge
+Penalty". Statistics and Computing, <strong>32</strong>, 77. <br><code>https://link.springer.com/content/pdf/10.1007/s11222-022-10143-w.pdf</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>nclm, zlm, zlrm</p>
+
+
+</div>

@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fme</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes FMEs.</h2>
+
+<h3>Description</h3>
+
+<p>This is a wrapper function for <code>FME$new(...)$compute()</code>.
+It computes forward marginal effects (FMEs) for a specified change in feature values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fme(
+  model,
+  data,
+  features,
+  ep.method = "none",
+  compute.nlm = FALSE,
+  nlm.intervals = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The (trained) model, with the ability to predict on new data. This must be a <code>train.formula</code> (<code>tidymodels</code>), <code>Learner</code> (<code>mlr3</code>), <code>train</code> (<code>caret</code>), <code>lm</code> or <code>glm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The data used for computing FMEs, must be data.frame or data.table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>features</code></td>
+<td>
+<p>A named list with the feature name(s) and step size(s). The list names should correspond to the names of the feature variables affected by the step.
+The list must exclusively contain either numeric or categorical features, but not a combination of both.
+Numeric features must have a number as step size, categorical features the name of the reference category.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ep.method</code></td>
+<td>
+<p>String specifying the method used for extrapolation detection. One of <code>"none"</code> or <code>"envelope"</code>. Defaults to <code>"none"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compute.nlm</code></td>
+<td>
+<p>Compute NLMs for FMEs for numerical steps. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlm.intervals</code></td>
+<td>
+<p>Number of intervals for computing NLMs. Results in longer computing time but more accurate approximation of NLMs. Defaults to <code>1</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If one or more numeric features are passed to the <code>features</code> argument, FMEs are computed as </p>
+<p style="text-align: center;"><code class="reqn">FME_{x, h_{S}} = f(x + h_{S}, x_{-S}) - f(x)</code>
+</p>
+<p> where <code class="reqn">h_{S}</code> is the step size vector and <code class="reqn">x_{-S}</code> the other features.
+If one or more categorical features are passed to <code>features</code>, </p>
+<p style="text-align: center;"><code class="reqn">FME_{x, c_{J}} = f(c_{J}, x_{-J}) - f(x)</code>
+</p>
+<p> where <code class="reqn">c_{J}</code> is the set of selected reference categories in <code>features</code> and <code class="reqn">x_{-J}</code> the other features.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>ForwardsMarginalEffect</code> object with the following fields:
+</p>
+
+<ul>
+<li> <p><code>ame</code> average marginal effect (AME).
+</p>
+</li>
+<li> <p><code>anlm</code> average non-linearity measure (NLM).
+</p>
+</li>
+<li> <p><code>extrapolation.ids</code> observations that have been identified as extrapolation points and not included in the analysis.
+</p>
+</li>
+<li> <p><code>data.step</code>, a <code>data.table</code> of the feature matrix after the step has been applied.
+</p>
+</li>
+<li> <p><code>results</code>, a <code>data.table</code> of the individual FMEs (and NLMs, if applicable) for all observations that are not extrapolation points.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Scholbeck, C.A., Casalicchio, G., Molnar, C. et al. Marginal effects for non-linear prediction functions. Data Min Knowl Disc (2024). https://doi.org/10.1007/s10618-023-00993-x
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Train a model:
+
+library(mlr3verse)
+library(ranger)
+data(bikes, package = "fmeffects")
+forest = lrn("regr.ranger")$train(as_task_regr(x = bikes, target = "count"))
+
+# Compute FMEs for a numerical feature:
+effects = fme(model = forest, data = bikes, features = list("temp" = 1), ep.method = "envelope")
+
+# Analyze results:
+summary(effects)
+plot(effects)
+
+# Extract results:
+effects$results
+
+# Compute the AME for a categorial feature:
+fme(model = forest, data = bikes, features = list("weather" = "rain"))$ame
+</code></pre>
+
+
+</div>

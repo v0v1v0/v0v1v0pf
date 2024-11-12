@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CROSTON</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Croston's method</h2>
+
+<h3>Description</h3>
+
+<p>Based on Croston's (1972) method for intermittent demand forecasting, also described in Shenstone and Hyndman (2005). Croston's method involves using simple exponential smoothing (SES) on the non-zero elements of the time series and a separate application of SES to the times between non-zero elements of the time series.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CROSTON(
+  formula,
+  opt_crit = c("mse", "mae"),
+  type = c("croston", "sba", "sbj"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt_crit</code></td>
+<td>
+<p>The optimisation criterion used to optimise the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Which variant of Croston's method to use. Defaults to <code>"croston"</code> for
+Croston's method, but can also be set to <code>"sba"</code> for the Syntetos-Boylan
+approximation, and <code>"sbj"</code> for the Shale-Boylan-Johnston method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that forecast distributions are not computed as Croston's method has no
+underlying stochastic model. In a later update, we plan to support distributions via
+the equivalent stochastic models that underly Croston's method (Shenstone and
+Hyndman, 2005)
+</p>
+<p>There are two variant methods available which apply multiplicative correction factors
+to the forecasts that result from the original Croston's method. For the
+Syntetos-Boylan approximation (<code>type = "sba"</code>), this factor is <code class="reqn">1 - \alpha / 2</code>,
+and for the Shale-Boylan-Johnston method (<code>type = "sbj"</code>), this factor is
+<code class="reqn">1 - \alpha / (2 - \alpha)</code>, where <code class="reqn">\alpha</code> is the smoothing parameter for
+the interval SES application.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+
+
+<h3>Specials</h3>
+
+
+
+<h4>demand</h4>
+
+<p>The <code>demand</code> special specifies parameters for the demand SES application.
+</p>
+<pre>
+demand(initial = NULL, param = NULL, param_range = c(0, 1))
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>initial</code>  </td>
+<td style="text-align: left;"> The initial value for the demand application of SES. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>param</code>    </td>
+<td style="text-align: left;"> The smoothing parameter for the demand application of SES. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>param_range</code> </td>
+<td style="text-align: left;"> If <code>param = NULL</code>, the range of values over which to search for the smoothing parameter.
+</td>
+</tr>
+</table>
+<h4>interval</h4>
+
+<p>The <code>interval</code> special specifies parameters for the interval SES application.
+</p>
+<pre>
+interval(initial = NULL, param = NULL, param_range = c(0, 1))
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>initial</code>  </td>
+<td style="text-align: left;"> The initial value for the interval application of SES. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>param</code>    </td>
+<td style="text-align: left;"> The smoothing parameter for the interval application of SES. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>param_range</code> </td>
+<td style="text-align: left;"> If <code>param = NULL</code>, the range of values over which to search for the smoothing parameter.
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Croston, J. (1972) "Forecasting and stock control for
+intermittent demands", <em>Operational Research Quarterly</em>, <b>23</b>(3),
+289-303.
+</p>
+<p>Shenstone, L., and Hyndman, R.J. (2005) "Stochastic models underlying
+Croston's method for intermittent demand forecasting". <em>Journal of
+Forecasting</em>, <b>24</b>, 389-402.
+</p>
+<p>Kourentzes, N. (2014) "On intermittent demand model optimisation and
+selection". <em>International Journal of Production Economics</em>, <b>156</b>,
+180-190. <a href="https://doi.org/10.1016/j.ijpe.2014.06.007">doi:10.1016/j.ijpe.2014.06.007</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tsibble)
+sim_poisson &lt;- tsibble(
+  time = yearmonth("2012 Dec") + seq_len(24),
+  count = rpois(24, lambda = 0.3),
+  index = time
+)
+
+sim_poisson %&gt;%
+  autoplot(count)
+
+sim_poisson %&gt;%
+  model(CROSTON(count)) %&gt;%
+  forecast(h = "2 years") %&gt;%
+  autoplot(sim_poisson)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,352 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pn.mod.compare</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compare All Possible Positive-Negative Richards <code class="reqn">nlslist</code> Models</h2>
+
+<h3>Description</h3>
+
+<p>This function performs model selection for <code>nlsList</code> models fitted using
+</p>
+<p><code>SSposnegRichards</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+
+pn.mod.compare(x,
+
+
+y,
+
+
+grp,
+
+
+pn.options,
+
+
+forcemod = 0,
+
+
+existing = FALSE,
+
+
+penaliz = "1/sqrt(n)",
+
+
+taper.ends = 0.45,
+
+
+mod.subset = c(NA),
+
+
+Envir = .GlobalEnv,
+
+
+...)
+
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector of the primary predictor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of the response variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grp</code></td>
+<td>
+<p>a factor of same length as x and y that distinguishes groups within
+</p>
+<p>the dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pn.options</code></td>
+<td>
+<p>required character string specifying name of 
+</p>
+<p><code>list</code> object populated with starting 
+</p>
+<p>parameter estimates, fitting options and bounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forcemod</code></td>
+<td>
+<p>optional numeric value to constrain model selection (see Details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>existing</code></td>
+<td>
+<p>optional logical value specifying whether some of the relevant models
+</p>
+<p>have already been fitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penaliz</code></td>
+<td>
+<p>optional character value to determine how models are ranked (see Details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taper.ends</code></td>
+<td>
+<p>numeric representing the proportion of the range of the x variable for which data are extended at 
+</p>
+<p>the two ends of the data set. This is used in initial estimation (prior to optim and nls optimizations) and can 
+</p>
+<p>speed up subsequent optimizations by imposing a more pronounced S-shape to both first and second curves. Defaults to 0.45.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod.subset</code></td>
+<td>
+<p>optional vector containing modno of models that the user desires to be estimated. If not NA, only 
+</p>
+<p><code>nlsList</code> models in mod.subset will be fitted and ranked</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Envir</code></td>
+<td>
+<p>a valid R environment to find pn.options in and export any output to, by default this is the global
+</p>
+<p>environment</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional optional arguments to be passed to nlsList</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>First, whether parameter M should be fixed
+</p>
+<p>(see <code>SSposnegRichards</code>) is determined by fitting models 12 and 20 and comparing
+</p>
+<p>their perfomance using <code>extraF</code>. Note that model 20 is identical to model 32.
+</p>
+<p>If model 12 provides superior performance (variable values of  M) then 16 models that estimate M
+</p>
+<p>are run
+</p>
+<p>(models 1 through 16), otherwise the models with fixed M are fitted (models 21 through 36).
+</p>
+<p>Fitting these <code>nlsList</code> models can be time-consuming (2-4 hours using the dataset
+</p>
+<p><code>posneg.data</code> that encompasses 100 individuals) and if several of the relevant
+</p>
+<p>models are already fitted the option existing=TRUE can be used to avoid refitting models that
+</p>
+<p>already exist globally (note that a model object in which no grouping levels were successfully
+</p>
+<p>parameterized will be refitted, as will objects that are not of class nlsList).
+</p>
+<p>Specifying forcemod=3 will force model selection to only consider fixed M models and setting
+</p>
+<p>forcemod=4 will force model selection to consider models with varying values of M only.
+</p>
+<p>If fitting both models
+</p>
+<p>12 and 20 fails, fixed M models will be used by default.
+</p>
+<p>taper.ends can be used to speed up optimization as it extends the dataset at maximum and minimum extremes 
+</p>
+<p>of x by repeatedly pasting the y values at these extremes for a specified proportion of the range of x. 
+</p>
+<p>taper.ends is a numeric value representing the proportion of the range of x values are extended for and 
+</p>
+<p>defaults to 0.45 (45
+</p>
+<p>tend towards a zero slope this is a suitable values. If tapered ends are not desirable then choose taper.ends = 0.
+</p>
+<p>Models are ranked by modified pooled residual square error. By default residual standard error
+</p>
+<p>is divided by the square root of sample size. This exponentially penalizes models for which very few
+</p>
+<p>grouping levels (individuals) are successfully parameterized (the few individuals that are
+</p>
+<p>parameterized in these models are fit unsuprisingly well) using a function based on the relationship
+</p>
+<p>between standard error and sample size. However, different users may have different preferences
+</p>
+<p>and these can be specified in the argument penaliz (which residual
+</p>
+<p>standard error is multiplied by). This argument must be a character value
+</p>
+<p>that contains the character n (sample size) and must be a valid right hand side (RHS) of a formula:
+</p>
+<p>e.g. 1*(n), (n)^2. It cannot contain more than one n but could be a custom function, e.g. FUN(n).</p>
+
+
+<h3>Value</h3>
+
+<p>A list object with two components: $'Model rank table' contains the
+</p>
+<p>statistics from <code>extraF</code> ranked by the  modified residual standard error,
+</p>
+<p>and $'P values from pairwise extraF comparison' is a matrix of P values from
+</p>
+<p><code>extraF</code> for legitimate comparisons (nested and successfully fitted models).
+</p>
+<p>The naming convention for models is a concatenation of 'richardsR', the modno and '.lis'
+</p>
+<p>which is shortened in the matrix output, where the number of parameters has been
+</p>
+<p>pasted in parentheses to allow users to easily distinguish the more general model from
+</p>
+<p>the more reduced model
+</p>
+<p>(see <code>extraF</code> and <code>SSposnegRichards</code>).
+</p>
+<p>For extra flexibility, mod.subset can specify a vector of modno values (a number of different models) that 
+</p>
+<p>can be fitted in <code>nlsList</code> and then evaluated by model selection. This prevents fitting of unwanted models or
+</p>
+<p>attempts to fit models that are known to fail. If the <code>nlsList</code> model already exists it will not be refitted 
+</p>
+<p>and thus existing models can be included in the ranking table without adding noticeably to processing time.
+</p>
+
+
+<h3>Note</h3>
+
+<p>If appropriate bounds (or starting parameters) are not available in the list specified by the variable supplied 
+</p>
+<p>to <code>pn.options</code>, <code>modpar</code> will be called automatically prior to model selection. 
+</p>
+<p>During selection, text is output to the screen to inform the user of the progress of model selection
+</p>
+<p>(which model is being fitted, which were fit successfully)
+</p>
+<p>Version 1.5 saves many variables, and internal variables in the package environment:
+</p>
+<p>FlexParamCurve:::FPCEnv. By default, the pn.options file is copied to the environment
+</p>
+<p>specified by the functions (global environment by default). Model selection routines
+</p>
+<p>also copy from FPCenv to the global environment all nlsList models fitted during 
+</p>
+<p>model selection to provide backcompatibility with code for earlier versions. The user
+</p>
+<p>can redirect the directory to copy to by altering the Envir argument when calling the 
+</p>
+<p>function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Oswald &lt;steve.oswald@psu.edu&gt;</p>
+
+
+<h3>See Also</h3>
+
+<p><code>extraF</code>
+</p>
+<p><code>SSposnegRichards</code>
+</p>
+<p><code>nlsList</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+
+
+#these examples will take a long while to run as they have to complete the 32 model comparison
+
+
+#run model selection for posneg.data object (only first 3 group levels for example's sake)
+
+
+   try(rm(myoptions),silent = TRUE)
+
+
+   subdata &lt;- subset(posneg.data, as.numeric(row.names (posneg.data) ) &lt; 40)
+
+
+   modseltable &lt;- pn.mod.compare(subdata$age, subdata$mass,
+
+
+      subdata$id, existing = FALSE, pn.options = "myoptions")
+
+
+   modseltable
+
+
+   
+
+
+#fit nlsList model initially and then run model selection
+
+
+#for posneg.data object when at least one model is already fit
+
+
+#(only first 3 group levels for example's sake)
+
+
+    richardsR22.lis &lt;- nlsList(mass ~ SSposnegRichards(age, Asym = Asym, K = K,
+
+
+      Infl = Infl, RAsym = RAsym, Rk = Rk, Ri = Ri , modno = 22, pn.options = "myoptions")
+
+
+                        ,data = subdata)
+
+
+   modseltable &lt;- pn.mod.compare(subdata$age, subdata$mass,
+
+
+      subdata$id, forcemod = 3, existing = TRUE, pn.options = "myoptions")
+
+
+   modseltable
+
+
+
+
+
+#run model selection ranked by residual standard error*(1/sample size)
+
+
+    modseltable &lt;- pn.mod.compare(subdata$age, subdata$mass,
+
+
+      subdata$id, penaliz='1*(1/n)', existing = TRUE, pn.options = "myoptions")
+
+
+    modseltable
+
+
+    
+
+
+</code></pre>
+
+
+</div>

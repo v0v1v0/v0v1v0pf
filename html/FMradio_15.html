@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculate the KMO measure of feature-sampling adequacy
+</h2>
+
+<h3>Description</h3>
+
+<p><code>SA</code> is a function that calculates the Kaiser-Meyer-Olkin (KMO) measure of sampling adequacy.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SA(R)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>(Regularized) covariance or correlation <code>matrix</code>.
+</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The <code>SA</code> function calculates the Kaiser-Meyer-Olkin (KMO) measure of feature-sampling adequacy (Kaiser &amp; Rice, 1974).
+It provides a practical option for the assessment of factorability.
+Factorability refers to the assessment of the ability to identify coherent common latent factors from a given correlation matrix.
+In common factor analysis the observed features are assumed to be independent <em>given</em> the common latent features.
+Under this crucial model assumption, the inverse of the population correlation matrix is diagonal.
+Hence, to assess factorability one could assess if the inverse of the sample correlation matrix is near-diagonal.
+The KMO index provides for such an assessment by "comparing the sizes of the off-diagonal entries of the regularized correlation matrix to the sizes of the off-diagonal entries of its scaled inverse" (Peeters <em>et al.</em>, 2019). 
+It takes values in <code class="reqn">[0,1]</code> and larger values are preferred.
+A KMO index between .9 and 1 would be considered to be indicative of great factorability.
+For rules of thumb regarding interpretation of KMO index value, see Kaiser (1970).
+The <code>SA</code> function calculates an overall KMO index as well as the KMO index per observed feature.
+</p>
+<p>The intended usage of the <code>SA</code> function is to assess if performing a factor analysis on a given (regularized) correlation matrix can be considered appropriate. As such, it succeeds usage of the <code>regcor</code> function (for high-dimensional and/or strongly collinear settings) and precedes 
+usage of the <code>dimGB</code> and <code>mlFA</code> functions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>list</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$KMO</code></td>
+<td>
+<p>A <code>numeric</code> scalar representing the overall KMO index.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$KMOfeature</code></td>
+<td>
+<p>A <code>numeric</code> vector giving the KMO index per feature.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The input <code>matrix</code> <code>R</code> should be nonsingular for the KMO to be computed.
+When <code>R</code> is singular one may regularize it using the <code>regcor</code> function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carel F.W. Peeters &lt;cf.peeters@vumc.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Kaiser, H.F. (1970). A second-generation little jiffy. Psychometrika, 35:401–415.
+</p>
+<p>Kaiser, H.F., &amp; Rice., J. (1974). Little jiffy, mark IV. Educational and Pscyhological Measurement,
+34:111–117.
+</p>
+<p>Peeters, C.F.W. <em>et al.</em> (2019). Stable prediction with radiomics data.
+<a href="https://arxiv.org/abs/1903.11696">arXiv:1903.11696 [stat.ML]</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>regcor</code>, <code>dimGB</code>, <code>mlFA</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate some (high-dimensional) data
+p = 25
+n = 10
+set.seed(333)
+X = matrix(rnorm(n*p), nrow = n, ncol = p)
+colnames(X)[1:25] = letters[1:25]
+
+## Obtain regularized correlation matrix
+RegR &lt;- regcor(X, fold = 5, verbose = TRUE)
+
+## Assess factorability through the KMO index
+factorable &lt;- SA(RegR$optCor)
+factorable$KMO
+factorable$KMOfeature
+</code></pre>
+
+
+</div>

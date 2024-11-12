@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>genotype.fsa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calls alleles for a SNP genotyping experiment
+</h2>
+
+<h3>Description</h3>
+
+<p>Calls alleles in experiments where fragments of different sizes are expected according to the allele.
+</p>
+<p><code>genotype.closest.fsa</code> selects for each allele the closest expected normalized peak height among the 0, 1 and 2 copy values provided in the design.
+</p>
+<p><code>genotype.ratio.fsa</code> calls an allele as absent, heterozygous or homozygous using fixed thresholds on the proportion of signal from a locus.
+</p>
+<p><code>genotype.N1.fsa</code> calls an allele as present if it exceeds a given proportion of the expected signal for 1 copy, as provided in the design. When a single allele is called present for a locus, it is considered homozygous.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  genotype.closest.fsa(x)
+  genotype.ratio.fsa(x, homo = 0.85, hetero = c(0.3, 0.7))
+  genotype.N1.fsa(x, threshold = 0.1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>The <code>fsa</code> object to use, which must have a <code>peaks</code> attribute (see <code>peaks.fsa</code>). Peaks are expected to be named according to the <code>LOCUS_ALLELE</code> pattern. <code>genotype.closest.fsa()</code> expected optional N0, N1 and N2 columns with expected normalized heights for 0, 1 and 2 copies of the allele.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homo</code></td>
+<td>
+
+<p>Single numeric value, the ratio of the considered allele signal over all signal from this locus to call a homozygous allele. Similarly alleles below <code>1 - homo</code> will be called "absent".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hetero</code></td>
+<td>
+
+<p>Numeric vector of length two, minimum and maximum ratios of the considered allele signal over all signal from this locus to call a heterozygous allele.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>Single numeric value, the ratio of the considered allele signal over the expected value for 1n to call an allele.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns <code>x</code>, with a new or updated <code>genotypes</code> attribute, a <code>data.frame</code> with a row for each locus :
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The concatenation of the two called alleles, possibly with <code>?</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alleles</code></td>
+<td>
+<p>The comma-separated list of ratios observed for all alleles (<code>genotype.ratio.fsa()</code> only).</p>
+</td>
+</tr>
+</table>
+<p>A <code>calls</code> vector attribute is also set, corresponding to the <code>call</code> column only.
+</p>
+
+
+<h3>Note</h3>
+
+<p>All three functions assume peaks to be named according to the following convention : "ALLELE - LOCUS".
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sylvain Mareschal
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>generic.process</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Using a design file
+  design &lt;- designFile(system.file("extdata/design_SNP.conf", package="FSAtools"))
+  
+  # Example FSA file provided
+  fsa &lt;- read.fsa(system.file("extdata/fsa_SNP/A7840.fsa", package="FSAtools"))
+  fsa &lt;- align.fsa(
+    fsa,
+    channel = design$align.fsa$channel,
+    outThreshold = design$align.fsa$outThreshold,
+    useLadder = design$align.fsa$useLadder
+  )
+  fsa &lt;- peaks.fsa(fsa, peaks=design$GLOBALS$PEAKS)
+  
+  # Genotype
+  fsa &lt;- genotype.ratio.fsa(fsa)
+  print(attr(fsa, "genotypes"))
+  print(attr(fsa, "calls"))
+</code></pre>
+
+
+</div>

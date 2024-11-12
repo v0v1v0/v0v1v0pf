@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abundance_byyr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create tables of abundance and basal area by year.</h2>
+
+<h3>Description</h3>
+
+
+<ul>
+<li> <p><code>abundance_byyr()</code> first picks the main stem of each tree (see
+?<code>fgeo.tool::pick_main_stem()</code>). Then, for each species and each
+round-mean-year of measurement, it counts the number of trees. The result
+includes <strong>main stems</strong> within a given dbh range.
+</p>
+</li>
+<li> <p><code>basal_area_byyr()</code> first sums the basal basal area of all stems of each
+tree. Then, for each species and each round-mean-year of measurement,
+it sums the basal area of all trees. The result includes all stems within a
+given dbh range (notice the difference with <code>abundance_byyr()</code>).
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">abundance_byyr(vft, ...)
+
+basal_area_byyr(vft, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vft</code></td>
+<td>
+<p>A ForestGEO-like dataframe; particularly a ViewFullTable. As such,
+it should contain columns <code>PlotName</code>, <code>CensusID</code>, <code>TreeID</code>, <code>StemID</code>,
+<code>Status</code>, <code>DBH</code>, <code>Genus</code>, <code>SpeciesName</code>, <code>ExactDate</code>, <code>PlotCensusNumber</code>,
+<code>Family</code>, <code>Tag</code>, and <code>HOM</code>. <code>ExactDate</code> should contain dates from
+1980-01-01 to the present day in the format yyyy-mm-dd.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Expressions to pick main stems of a specific <code>dbh</code> range (e.g.
+<code>DBH &gt;= 10</code> or <code style="white-space: pre;">⁠DBH &gt;= 10, DBH &lt; 20⁠</code>, or <code>DBH &gt;= 10 &amp; DBH &lt; 20</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>You don't need to pick stems by status before feeding data to these
+functions. Doing so may make your code more readable but it should not affect
+the result. This is because the expressions passed to <code>...</code> pick data by
+<code>dbh</code> and exclude the missing <code>dbh</code> values associated to non-alive stems,
+including dead, missing, and gone stems.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fgeo.tool::pick_main_stem()</code>.
+</p>
+<p>Other functions for abundance and basal area: 
+<code>abundance()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(fgeo.tool)
+
+# Example data
+vft &lt;- tibble(
+  PlotName = c("luq", "luq", "luq", "luq", "luq", "luq", "luq", "luq"),
+  CensusID = c(1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
+  TreeID = c(1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L),
+  StemID = c(1.1, 1.2, 2.1, 2.2, 1.1, 1.2, 2.1, 2.2),
+  Status = c(
+    "alive", "dead", "alive", "alive", "alive", "gone",
+    "dead", "dead"
+  ),
+  DBH = c(10L, NA, 20L, 30L, 20L, NA, NA, NA),
+  Genus = c("Gn", "Gn", "Gn", "Gn", "Gn", "Gn", "Gn", "Gn"),
+  SpeciesName = c("spp", "spp", "spp", "spp", "spp", "spp", "spp", "spp"),
+  ExactDate = c(
+    "2001-01-01", "2001-01-01", "2001-01-01", "2001-01-01",
+    "2002-01-01", "2002-01-01", "2002-01-01",
+    "2002-01-01"
+  ),
+  PlotCensusNumber = c(1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
+  Family = c("f", "f", "f", "f", "f", "f", "f", "f"),
+  Tag = c(1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L),
+  HOM = c(130L, 130L, 130L, 130L, 130L, 130L, 130L, 130L)
+)
+
+vft
+
+abundance_byyr(vft, DBH &gt;= 10, DBH &lt; 20)
+
+abundance_byyr(vft, DBH &gt;= 10)
+
+basal &lt;- basal_area_byyr(vft, DBH &gt;= 10)
+basal
+
+# Skip R CMD check for speed
+
+measurements_is_installed &lt;- requireNamespace("measurements", quietly = TRUE)
+if (measurements_is_installed) {
+  # Convert units
+  years &lt;- c("yr_2001", "yr_2002")
+  basal_he &lt;- basal %&gt;%
+    purrr::modify_at(
+      years,
+      ~ measurements::conv_unit(.x, from = "mm2", to = "hectare")
+    )
+  basal_he
+
+  # Standardize
+  number_of_hectares &lt;- 50
+  basal_he %&gt;%
+    purrr::map_at(years, ~ .x / number_of_hectares)
+}
+
+</code></pre>
+
+
+</div>

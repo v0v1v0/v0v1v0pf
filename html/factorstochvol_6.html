@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cormat.fsvdraws</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract posterior draws of the model-implied correlation matrix</h2>
+
+<h3>Description</h3>
+
+<p><code>cormat</code> extracts draws from the model-implied correlation matrix
+from an <code>fsvdraws</code> object for all points in time which have been
+stored.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fsvdraws'
+cormat(x, timepoints = "all", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>'fsvdraws'</code>, usually resulting from a call
+of <code>fsvsample</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timepoints</code></td>
+<td>
+<p>Vector indicating at which point(s) in time (of those that
+have been stored during sampling) the correlation matrices should be extracted.
+Can also be "all" or "last".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Array of dimension <code>m</code> times <code>m</code> times <code>draws</code>
+times <code>timepoints</code> containing the posterior draws for the
+model-implied covariance matrix.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Currently crudely implemented as a double loop in pure R,
+may be slow.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other extractors: 
+<code>covmat.fsvdraws()</code>,
+<code>runningcormat()</code>,
+<code>runningcovmat()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+sim &lt;- fsvsim(n = 500, series = 3, factors = 1) # simulate
+res &lt;- fsvsample(sim$y, factors = 1, keeptime = "all") # estimate
+cors &lt;- cormat(res, "last") # extract
+
+# Trace plot of determinant of posterior correlation matrix
+# at time t = n = 500:
+detdraws &lt;- apply(cors[,,,1], 3, det)
+ts.plot(detdraws)
+abline(h = mean(detdraws), col = 2)          # posterior mean
+abline(h = median(detdraws), col = 4)        # posterior median
+abline(h = det(cormat(sim, "last")[,,1]), col = 3) # implied by DGP
+
+# Trace plot of draws from posterior correlation of Sim1 and Sim2 at
+# time t = n = 500:
+ts.plot(cors[1,2,,1])
+abline(h = cormat(sim, "last")[1,2,1], col = 3) # "true" value
+
+# Smoothed kernel density estimate:
+plot(density(cors[1,2,,1], adjust = 2))
+
+# Summary statistics:
+summary(cors[1,2,,1])
+
+
+</code></pre>
+
+
+</div>

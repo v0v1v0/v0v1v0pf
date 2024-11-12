@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_chunk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mini plots chunk wrapper</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to insert mini plots into
+flextable with functions:
+</p>
+
+<ul>
+<li> <p><code>compose()</code> and <code>as_paragraph()</code>,
+</p>
+</li>
+<li> <p><code>append_chunks()</code>,
+</p>
+</li>
+<li> <p><code>prepend_chunks()</code>.
+</p>
+</li>
+</ul>
+<p>Available plots are 'box', 'line', 'points', 'density'.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_chunk(
+  value,
+  width = 1,
+  height = 0.2,
+  type = "box",
+  free_scale = FALSE,
+  unit = "in",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>a numeric vector, stored in a list column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width, height</code></td>
+<td>
+<p>size of the resulting png file in inches</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of the plot: 'box', 'line', 'points' or 'density'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>free_scale</code></td>
+<td>
+<p>Should scales be free (TRUE or FALSE, the default value).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit</code></td>
+<td>
+<p>unit for width and height, one of "in", "cm", "mm".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments sent to plot functions (see <code>par()</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>This chunk option requires package officedown in a R Markdown
+context with Word output format.
+</p>
+<p>PowerPoint cannot mix images and text in a paragraph, images
+are removed when outputing to PowerPoint format.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other chunk elements for paragraph: 
+<code>as_b()</code>,
+<code>as_bracket()</code>,
+<code>as_chunk()</code>,
+<code>as_equation()</code>,
+<code>as_highlight()</code>,
+<code>as_i()</code>,
+<code>as_image()</code>,
+<code>as_sub()</code>,
+<code>as_sup()</code>,
+<code>as_word_field()</code>,
+<code>colorize()</code>,
+<code>gg_chunk()</code>,
+<code>grid_chunk()</code>,
+<code>hyperlink_text()</code>,
+<code>linerange()</code>,
+<code>lollipop()</code>,
+<code>minibar()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(data.table)
+library(flextable)
+
+z &lt;- as.data.table(iris)
+z &lt;- z[, list(
+  Sepal.Length = mean(Sepal.Length, na.rm = TRUE),
+  z = list(.SD$Sepal.Length)
+), by = "Species"]
+
+ft &lt;- flextable(z,
+  col_keys = c("Species", "Sepal.Length", "box", "density")
+)
+ft &lt;- mk_par(ft, j = "box", value = as_paragraph(
+  plot_chunk(
+    value = z, type = "box",
+    border = "red", col = "transparent"
+  )
+))
+ft &lt;- mk_par(ft, j = "density", value = as_paragraph(
+  plot_chunk(value = z, type = "dens", col = "red")
+))
+ft &lt;- set_table_properties(ft, layout = "autofit", width = .6)
+ft &lt;- set_header_labels(ft, box = "boxplot", density = "density")
+theme_vanilla(ft)
+</code></pre>
+
+
+</div>

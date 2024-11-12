@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>viscosity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Viscosity of resin over time</h2>
+
+<h3>Description</h3>
+
+<p>In an experimental setting the viscosity of resin was measured over time
+to asses the curing process depending on 5 binary factors (low-high).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("viscosity")</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data list with 64 observations on the following 7 variables.
+</p>
+
+<dl>
+<dt><code>visAll</code></dt>
+<dd>
+<p>viscosity measures over all available time points</p>
+</dd>
+<dt><code>timeAll</code></dt>
+<dd>
+<p>time points of viscosity measures</p>
+</dd>
+<dt><code>T_C</code></dt>
+<dd>
+<p> temperature of tools</p>
+</dd>
+<dt><code>T_A</code></dt>
+<dd>
+<p>temperature of resin</p>
+</dd>
+<dt><code>T_B</code></dt>
+<dd>
+<p>temperature of curing agent</p>
+</dd>
+<dt><code>rspeed</code></dt>
+<dd>
+<p>rotational speed</p>
+</dd>
+<dt><code>mflow</code></dt>
+<dd>
+<p>mass flow</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>The aim is to determine factors that affect the curing process in the mold.
+The desired viscosity-curve has low values in the beginning followed
+by a sharp increase.
+Due to technical reasons the measuring method of the rheometer has to be
+changed in a certain range of viscosity. The first observations are measured
+by rotation of a blade giving observations every two seconds,
+the later observations are measured through oscillation of a blade giving
+observations every ten seconds. In the later observations the resin is quite
+hard so the measurements should be interpreted as a qualitative measure of hardening.
+</p>
+
+
+<h3>Source</h3>
+
+<p>Wolfgang Raffelt, Technical University of Munich, Institute for Carbon Composites
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ data("viscosity", package = "FDboost")
+ ## set time-interval that should be modeled
+ interval &lt;- "101"
+
+ ## model time until "interval" and take log() of viscosity
+ end &lt;- which(viscosity$timeAll==as.numeric(interval))
+ viscosity$vis &lt;- log(viscosity$visAll[,1:end])
+ viscosity$time &lt;- viscosity$timeAll[1:end]
+ 
+ ## fit median regression model with 100 boosting iterations,
+ ## step-length 0.4 and smooth time-specific offset
+ ## the factors are in effect coding -1, 1 for the levels
+ mod &lt;- FDboost(vis ~ 1 + bols(T_C, contrasts.arg = "contr.sum", intercept=FALSE)
+                + bols(T_A, contrasts.arg = "contr.sum", intercept=FALSE),
+                timeformula=~bbs(time, lambda=100),
+                numInt="equal", family=QuantReg(),
+                offset=NULL, offset_control = o_control(k_min = 9),
+                data=viscosity, control=boost_control(mstop = 100, nu = 0.4))
+ summary(mod)
+
+</code></pre>
+
+
+</div>

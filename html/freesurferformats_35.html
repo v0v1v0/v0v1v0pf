@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gifti_xml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get GIFTI XML representation of data.</h2>
+
+<h3>Description</h3>
+
+<p>Creates a GIFTI XML tree from your datasets (vectors and matrices). The tree can be further modified to add additional data, or written to a file as is to produce a valid GIFTI file (see <code>gifti_xml_write</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gifti_xml(
+  data_array,
+  intent = "NIFTI_INTENT_SHAPE",
+  datatype = "NIFTI_TYPE_FLOAT32",
+  encoding = "GZipBase64Binary",
+  endian = "LittleEndian",
+  transform_matrix = NULL,
+  force = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_array</code></td>
+<td>
+<p>list of data vectors and/or data matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intent</code></td>
+<td>
+<p>vector of NIFTI intent strings for the data vectors in 'data_array' parameter, see <code>convert_intent</code>. Example: 'NIFTI_INTENT_SHAPE'. See https://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/group__NIFTI1__INTENT__CODES.html.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datatype</code></td>
+<td>
+<p>vector of NIFTI datatype strings. Example: 'NIFTI_TYPE_FLOAT32'. Should be suitable for your data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>encoding</code></td>
+<td>
+<p>vector of encoding definition strings. One of 'ASCII', 'Base64Binary', 'GZipBase64Binary'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>endian</code></td>
+<td>
+<p>vector of endian definition strings. One of 'LittleEndian' or 'BigEndian'. See <code>convert_endian</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform_matrix</code></td>
+<td>
+<p>optional, a list of transformation matrices, one for each data_array. If one of the data arrays has none, pass ‘NA'. Each transformation matrix in the outer list has to be a 4x4 matrix or given as a named list with entries ’transform_matrix', 'data_space', and 'transformed_space'. Here is an example: <code>list('transform_matrix'=diag(4), 'data_space'='NIFTI_XFORM_UNKNOWN', 'transformed_space'='NIFTI_XFORM_UNKNOWN')</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force</code></td>
+<td>
+<p>logical, whether to force writing the data, even if issues like a mismatch of datatype and data values are detected.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>xml tree, see xml2 package. One could modify this tree as needed using xml2 functions, e.g., add metadata.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Unless you want to modify the returned tree manually, you should not need to call this function. Use <code>gifti_writer</code> instead.
+</p>
+
+
+<h3>References</h3>
+
+<p>See https://www.nitrc.org/frs/download.php/2871/GIFTI_Surface_Format.pdf
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The example for <code>gifti_xml_write</code> shows how to modify the tree.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  my_data_sets = list(rep(3.1, 3L), matrix(seq(6)+0.1, nrow=2L));
+  transforms = list(NA, list('transform_matrix'=diag(4), 'data_space'='NIFTI_XFORM_UNKNOWN',
+   'transformed_space'='NIFTI_XFORM_UNKNOWN'));
+  xmltree = gifti_xml(my_data_sets, datatype='NIFTI_TYPE_FLOAT32', transform_matrix=transforms);
+  # Verify that the tree is a valid GIFTI file:
+  gifti_xsd = "https://www.nitrc.org/frs/download.php/158/gifti.xsd";
+  xml2::xml_validate(xmltree, xml2::read_xml(gifti_xsd));
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,57 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>unemp_spx_model_3_2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Unemployment rate and S&amp;P 500 hierarchical HMM</h2>
+
+<h3>Description</h3>
+
+<p>A pre-computed HHMM with monthly unemployment rate in the US on the coarse
+scale using 3 states and S&amp;P 500 index data on the fine scale using 2 states
+from 1970 to 2020 for demonstration purpose.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("unemp_spx_model_3_2")
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>An object of class <code>fHMM_model</code>.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The model was estimated via:
+</p>
+<pre>
+controls &lt;- list(
+  hierarchy = TRUE, states = c(3, 2), 
+  sdds = c("t", "t"), period = "m",
+  data = list(
+    file = list(unemp, spx), 
+    data_column = c("rate_diff", "Close"), 
+    date_column = c("date", "Date"), 
+    from = "1970-01-01", to = "2020-01-01", 
+    logreturns = c(FALSE, TRUE)
+  ),
+  fit = list(runs = 50, iterlim = 1000, gradtol = 1e-6, steptol = 1e-6)
+)
+controls &lt;- set_controls(controls)
+unemp_spx_data &lt;- prepare_data(controls)
+unemp_spx_model_3_2 &lt;- fit_model(unemp_spx_data, seed = 1, ncluster = 10)
+unemp_spx_model_3_2 &lt;- decode_states(unemp_spx_model_3_2)
+unemp_spx_model_3_2 &lt;- compute_residuals(unemp_spx_model_3_2)
+summary(unemp_spx_model_3_2)
+state_order &lt;- matrix(c(3, 2, 1, 2, 2, 2, 1, 1, 1), 3, 3)
+unemp_spx_model_3_2 &lt;- reorder_states(unemp_spx_model_3_2, state_order)
+</pre>
+
+
+</div>

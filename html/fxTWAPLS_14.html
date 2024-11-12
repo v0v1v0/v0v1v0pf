@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>TWAPLS.predict.w</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>TWA-PLS predict function</h2>
+
+<h3>Description</h3>
+
+<p>TWA-PLS predict function
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">TWAPLS.predict.w(TWAPLSoutput, fossil_taxa)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>TWAPLSoutput</code></td>
+<td>
+<p>The output of the <code>TWAPLS.w</code> training
+function, either with or without <code>fx</code> correction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fossil_taxa</code></td>
+<td>
+<p>Fossil taxa abundance data to reconstruct past climates,
+each row represents a site to be reconstructed, each column represents
+a taxon.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of the reconstruction results. Each element in the list is
+described below:
+</p>
+
+<dl>
+<dt><code>fit</code></dt>
+<dd>
+<p>the fitted values using each number of components.</p>
+</dd>
+<dt><code>nPLS</code></dt>
+<dd>
+<p>the total number of components extracted.</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p><code>TWAPLS.w</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Load modern pollen data
+modern_pollen &lt;- read.csv("/path/to/modern_pollen.csv")
+
+# Extract taxa
+taxaColMin &lt;- which(colnames(modern_pollen) == "taxa0")
+taxaColMax &lt;- which(colnames(modern_pollen) == "taxaN")
+taxa &lt;- modern_pollen[, taxaColMin:taxaColMax]
+
+# Load reconstruction data
+Holocene &lt;- read.csv("/path/to/Holocene.csv")
+taxaColMin &lt;- which(colnames(Holocene) == "taxa0")
+taxaColMax &lt;- which(colnames(Holocene) == "taxaN")
+core &lt;- Holocene[, taxaColMin:taxaColMax]
+
+## Train
+fit_t_Tmin &lt;- fxTWAPLS::TWAPLS.w(taxa, modern_pollen$Tmin, nPLS = 5)
+fit_tf_Tmin &lt;- fxTWAPLS::TWAPLS.w(
+  taxa,
+  modern_pollen$Tmin,
+  nPLS = 5,
+  usefx = TRUE,
+  fx_method = "bin",
+  bin = 0.02
+)
+fit_t_Tmin2 &lt;- fxTWAPLS::TWAPLS.w2(taxa, modern_pollen$Tmin, nPLS = 5)
+fit_tf_Tmin2 &lt;- fxTWAPLS::TWAPLS.w2(
+  taxa,
+  modern_pollen$Tmin,
+  nPLS = 5,
+  usefx = TRUE,
+  fx_method = "bin",
+  bin = 0.02
+)
+
+## Predict
+fossil_t_Tmin &lt;- fxTWAPLS::TWAPLS.predict.w(fit_t_Tmin, core)
+fossil_tf_Tmin &lt;- fxTWAPLS::TWAPLS.predict.w(fit_tf_Tmin, core)
+fossil_t_Tmin2 &lt;- fxTWAPLS::TWAPLS.predict.w(fit_t_Tmin2, core)
+fossil_tf_Tmin2 &lt;- fxTWAPLS::TWAPLS.predict.w(fit_tf_Tmin2, core)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

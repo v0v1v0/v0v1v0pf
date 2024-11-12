@@ -1,0 +1,203 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fnets.var</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+<code>l1</code>-regularised Yule-Walker estimation for VAR processes</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the VAR parameter matrices via <code>l1</code>-regularised Yule-Walker estimation
+and innovation covariance matrix via constrained <code>l1</code>-minimisation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fnets.var(
+  x,
+  center = TRUE,
+  method = c("lasso", "ds"),
+  lambda = NULL,
+  var.order = 1,
+  tuning.args = list(tuning = c("cv", "bic"), n.folds = 1, penalty = NULL, path.length =
+    10),
+  do.threshold = FALSE,
+  n.iter = NULL,
+  tol = 0,
+  n.cores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>input time series each column representing a time series variable; it is coerced into a ts object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>whether to de-mean the input <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a string specifying the method to be adopted for VAR process estimation; possible values are:
+</p>
+
+<dl>
+<dt><code>"lasso"</code></dt>
+<dd>
+<p> Lasso-type <code>l1</code>-regularised <code>M</code>-estimation</p>
+</dd>
+<dt><code>"ds"</code></dt>
+<dd>
+<p> Dantzig Selector-type constrained <code>l1</code>-minimisation</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p><code>l1</code>-regularisation parameter; if <code>lambda = NULL</code>, <code>tuning</code> is employed to select the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.order</code></td>
+<td>
+<p>order of the VAR process; if a vector of integers is supplied, the order is chosen via <code>tuning</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tuning.args</code></td>
+<td>
+<p>a list specifying arguments for <code>tuning</code>
+for selecting the regularisation parameter (and VAR order). It contains:
+</p>
+
+<dl>
+<dt><code>tuning</code></dt>
+<dd>
+<p>a string specifying the selection procedure for <code>var.order</code> and <code>lambda</code>; possible values are:
+<code>"cv"</code> for cross validation, and <code>"bic"</code> for information criterion</p>
+</dd>
+<dt><code>n.folds</code></dt>
+<dd>
+<p> if <code>tuning = "cv"</code>, positive integer number of folds</p>
+</dd>
+<dt><code>penalty</code></dt>
+<dd>
+<p> if <code>tuning = "bic"</code>, penalty multiplier between 0 and 1; if <code>penalty = NULL</code>, it is set to <code>1/(1+exp(dim(x)[1])/dim(x)[2]))</code></p>
+</dd>
+</dl>
+<p> by default
+</p>
+<dl>
+<dt><code>path.length</code></dt>
+<dd>
+<p> positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.threshold</code></td>
+<td>
+<p>whether to perform adaptive thresholding of VAR parameter estimator with threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.iter</code></td>
+<td>
+<p>maximum number of descent steps, by default depends on <code>var.order</code>; applicable when <code>method = "lasso"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>numerical tolerance for increases in the loss function; applicable when <code>method = "lasso"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>number of cores to use for parallel computing, see makePSOCKcluster; applicable when <code>method = "ds"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Further information can be found in Barigozzi, Cho and Owens (2024+).
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list which contains the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p> estimate of VAR parameter matrix; each column contains parameter estimates for the regression model for a given variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gamma</code></td>
+<td>
+<p> estimate of the innovation covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+ <p><code>l1</code>-regularisation parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.order</code></td>
+<td>
+<p> VAR order</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.x</code></td>
+<td>
+<p> if <code>center = TRUE</code>, returns a vector containing row-wise sample means of <code>x</code>; if <code>center = FALSE</code>, returns a vector of zeros</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Barigozzi, M., Cho, H. &amp; Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business &amp; Economic Statistics (to appear).
+</p>
+<p>Owens, D., Cho, H. &amp; Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(fnets)
+
+set.seed(123)
+n &lt;- 500
+p &lt;- 50
+idio &lt;- sim.var(n, p)
+x &lt;- idio$data
+
+fv &lt;- fnets.var(x,
+  n.cores = 2
+)
+</code></pre>
+
+
+</div>

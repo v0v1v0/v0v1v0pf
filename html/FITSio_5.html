@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>axVec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate axis vector for image</h2>
+
+<h3>Description</h3>
+
+<p><code>axVec</code> generates a vector of axis values from variables
+contained in a FITS image file header.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">axVec(nax = 1, axDat)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nax</code></td>
+<td>
+<p>index number of the axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axDat</code></td>
+<td>
+<p>data table axis variables produced by
+<code>readFITSarray</code> (which is also contained in <code>readFITS</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Run once for each axis needed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector with length equal to the number of pixels along the axis.
+Vector values <code class="reqn">v[i]</code> for <code class="reqn">i = 1:NAXISn</code> (<code class="reqn">NAXISn = len</code>,
+the vector length, in
+the axDat data frame) are:
+</p>
+<p style="text-align: center;"><code class="reqn"> v[i] = (i - CRPIXn) CDELTn + CRVALn</code>
+</p>
+
+<p>where <code class="reqn">CRPIXn</code>, <code class="reqn">CDELTn</code>, and <code class="reqn">CVALn</code> are the reference
+pixel, pixel increment, and reference pixel value for each axis
+<code class="reqn">n</code>, following the FITS standard.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew Harris</p>
+
+
+<h3>References</h3>
+
+<p>Hanisch et al., <em>Astron.\ Astrophys.</em> 376, 359-380 (2001)
+</p>
+<p><a href="https://fits.gsfc.nasa.gov/">https://fits.gsfc.nasa.gov/</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>readFITS</code>, <code>readFITSarray</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(FITSio)
+Z &lt;- matrix(1:15, ncol = 3)
+filename &lt;- paste(tempdir(), "test.fits", sep="")
+writeFITSim(Z, file = filename, c1 = 'Test FITS file',
+            crpix = c(1,1), crvaln = c(10, 100), cdeltn = c(8, 2),
+            ctypen = c('Distance', 'Time'),
+            cunitn = c('Furlongs', 'Fortnights'))
+X &lt;-  readFITS(filename)
+ax1 &lt;- axVec(1, X$axDat)
+ax2 &lt;- axVec(2, X$axDat)
+xlab &lt;- X$axDat$ctype[1]
+ylab &lt;- paste(X$axDat$ctype[2], " [", X$axDat$cunit[2], "]", sep = "")
+image(ax1, ax2, X$imDat, xlab = xlab, ylab = ylab)
+
+## Clean up files to avoid clutter
+unlink(filename)
+</code></pre>
+
+
+</div>

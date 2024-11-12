@@ -1,0 +1,401 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lsjm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>lsjm : Estimation of joint model for longitudinal data with a subject-specific time-dependent variability and time-to-event data.</h2>
+
+<h3>Description</h3>
+
+<p>This function fits complex joint models with shared random effects.
+The longitudinal submodel estimates longitudinal data with a mixed-effects model in which
+we suppose that the variance of the residual error is time-dependent and subject-specific.
+The survival submodel handles right-censored and left-truncated time-to-event data and competing risks.
+The dependence structure between the longitudinal and the survival data can be the random effects from the mixed
+model or the current value of the marker and/or the slope of the marker. We can also adjust on the current variance of the marker.
+(See below)
+Parameters are estimated simultaneously through a maximum likelihood method, using a Marquardt-Levenberg algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lsjm(
+  formFixed,
+  formRandom,
+  formGroup,
+  formSurv,
+  timeVar,
+  data.long,
+  variability_hetero = TRUE,
+  formFixedVar,
+  formRandomVar,
+  correlated_re = FALSE,
+  sharedtype = c("current value", "variability"),
+  hazard_baseline = "Exponential",
+  formSlopeFixed = NULL,
+  formSlopeRandom = NULL,
+  indices_beta_slope = NULL,
+  nb_pointsGK = 15,
+  ord.splines = 3,
+  competing_risk = FALSE,
+  formSurv_CR = NULL,
+  hazard_baseline_CR = "Exponential",
+  sharedtype_CR = c("current value", "variability"),
+  left_trunc = FALSE,
+  Time.0 = NULL,
+  S1 = 1000,
+  S2 = 5000,
+  nproc = 1,
+  clustertype = "SOCK",
+  maxiter = 100,
+  print.info = FALSE,
+  file = NULL,
+  epsa = 0.001,
+  epsb = 0.001,
+  epsd = 0.001,
+  binit = NULL,
+  Comp.Rcpp = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formFixed</code></td>
+<td>
+<p>A formula for the fixed effects of the longitudinal submodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formRandom</code></td>
+<td>
+<p>A formula for the random effects of the longitudinal submodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formGroup</code></td>
+<td>
+<p>A formula which indicates the group variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formSurv</code></td>
+<td>
+<p>A formula which indicates the variables used in the survival submodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeVar</code></td>
+<td>
+<p>The name of the column of time in data.long. This variable must appears in data.long</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.long</code></td>
+<td>
+<p>A dataframe with the longitudinal data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variability_hetero</code></td>
+<td>
+<p>A logical to indicate if we suppose a subject_specific variability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formFixedVar</code></td>
+<td>
+<p>A formula for the fixed effects of the variance predictor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formRandomVar</code></td>
+<td>
+<p>A formula for the random effects of the variance predictor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correlated_re</code></td>
+<td>
+<p>A logical to indicate if the random effects of the marker and the variance predictors are correlated (By default there are supposed to be independent)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sharedtype</code></td>
+<td>
+<p>char : dependence structure for survival model : "RE" (random effects) or "CV" (current value) or "CVS" (current value and slope) or "S" (slope)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazard_baseline</code></td>
+<td>
+<p>char : baseline hazard function : "Exponential" or "Weibull" or "Splines"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formSlopeFixed</code></td>
+<td>
+<p>A formula for the fixed effects of the slope of the longitudinal submodel : the derivative of the formFixed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formSlopeRandom</code></td>
+<td>
+<p>A formula for the random effects of the slope of the longitudinal submodel : the derivative of the formRandom</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indices_beta_slope</code></td>
+<td>
+<p>A vector of index indicating which beta of the formFixed formula is used in the formSlopeFixed formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb_pointsGK</code></td>
+<td>
+<p>the number of points for Gauss-Kronrod approximation : choice between 7 and 15. 15 by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ord.splines</code></td>
+<td>
+<p>A numeric, the order of splines for the baseline risk function (3 by default)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>competing_risk</code></td>
+<td>
+<p>A logical indicating if the model handles with competing risks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formSurv_CR</code></td>
+<td>
+<p>In case of competing risk A formula which indicates the variables used in the survival submodel for the second event</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazard_baseline_CR</code></td>
+<td>
+<p>In case of competing risk : a character for the baseline hazard function of the second event</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sharedtype_CR</code></td>
+<td>
+<p>In case of competing risk ; a character for the dependence structure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left_trunc</code></td>
+<td>
+<p>A logical indicating if the model handles with left truncated data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Time.0</code></td>
+<td>
+<p>In case of left truncation : a vector of entry times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S1</code></td>
+<td>
+<p>An integer : the number of QMC draws for the first step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S2</code></td>
+<td>
+<p>An integer : the number of QMC draws for the second step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nproc</code></td>
+<td>
+<p>An integer : the number of processors for parallel computing</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustertype</code></td>
+<td>
+<p>one of the supported types from <code>makeCluster</code> function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>optional maximum number of iterations for the marqLevAlg iterative algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.info</code></td>
+<td>
+<p>logical indicating if the outputs of each iteration should be written</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>optional character giving the name of the file where the outputs of each iteration should be written (if print.info=TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsa</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the parameter stability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsb</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the objective function stability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsd</code></td>
+<td>
+<p>optional threshold for the relative distance to maximum. This criterion has the nice interpretation of estimating the ratio of the approximation error over the statistical error, thus it can be used for stopping the iterative process whatever the problem.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binit</code></td>
+<td>
+<p>optional initials parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Comp.Rcpp</code></td>
+<td>
+<p>boolean to indicate if the computation is performed with RCPP program or R program. True by default.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A. LONGITUDINAL SUBMODEL
+</p>
+<p>The longitudinal submodel is defined by a linear mixed effects model with the residual variance which could be supposed to be time-dependent and subject-specific :
+<code class="reqn">\quad\left\{\begin{array}{ll}
+Y_{ij} = Y_{i}(t_{ij}) = \widetilde{Y}_i(t_{ij}) + \epsilon_{ij} = X_{ij}^{\top} \beta+Z_{ij}^{\top} b_{i}+\epsilon_{ij}, \\
+\epsilon_{ij}(t_{ij}) \sim \mathcal{N}(0,\sigma_i^2(t_{ij})) \hspace{3mm} \text{with} \hspace{3mm} \log(\sigma_i(t_{ij}))  = O_{ij}^{\top} \mu+M_{ij}^{\top} \tau_{i}
+\end{array}
+\right.</code>
+</p>
+
+
+<h4>with <code class="reqn">X_{ij}</code>, <code class="reqn">O_{ij}</code>, <code class="reqn">Z_{ij}</code> and <code class="reqn">M_{ij}</code> four vectors of explanatory variables for subject <code class="reqn">i</code> at visit <code class="reqn">j</code>,
+respectively associated with the fixed-effect vectors <code class="reqn">\beta</code> and <code class="reqn">\mu</code>, and the subject-specific random-effect vector <code class="reqn">b_i</code> and <code class="reqn">\tau_i</code>, such as
+<code class="reqn">\quad\left(\begin{array}{c}
+             b_{i} \\
+             \tau_i
+             \end{array}\right) \sim N\left(\left(\begin{array}{c}
+                                                  0 \\
+                                                  0
+                                                  \end{array}\right),\left(\begin{array}{cc}
+                                                                           \Sigma_{b} &amp; \Sigma_{\tau b} \\
+                                                                           \Sigma_{\tau b}' &amp; \Sigma_{\tau}
+\end{array}\right)\right)</code>
+</h4>
+
+<p><code class="reqn">Y_{i}(t_{ij}) = \tilde{Y}_i(t_{ij}) + \epsilon_{ij} = X_{ij}^{\top} \beta+Z_{ij}^{\top} b_{i}+\epsilon_{ij}</code>
+</p>
+<p>with <code class="reqn">X_{ij}</code> and <code class="reqn">Z_{ij}</code> two covariate vectors for subject i at visit j,
+respectively associated with the vector of fixed effects <code class="reqn">\beta</code> and the vector of
+subject-specific individual random effects <code class="reqn">b_i</code>.
+The vector <code class="reqn">b_i</code> is assumed to be normally distributed and a specific-subject random effect on the
+variance of the measure error can be added: <code class="reqn">\epsilon_{ij} \sim \mathcal{N}(0,\sigma_i^2)</code> and
+</p>
+<p><code class="reqn">\quad\left(\begin{array}{c}
+b_{i} \\
+\log \sigma_{i}
+\end{array}\right) \sim \mathcal{N}\left(\left(\begin{array}{c}
+                                               0 \\
+                                               \mu_{\sigma}
+                                               \end{array}\right),\left(\begin{array}{cc}
+                                                                        \Sigma_{b} &amp; 0 \\
+                                                                        0 &amp; \tau_{\sigma}^{2}
+                                                                        \end{array}\right)\right)</code>
+</p>
+<p>B. SURVIVAL SUBMODEL
+</p>
+<p>The risk function for the event $k = {1,2}$ is defined by:
+<code class="reqn">\lambda_{ik}(t)=\lambda_{0k}(t) \exp \left(W_{i}^{\top} \gamma_{k}+\alpha_{1k}\tilde{y}_i(t)+\\
+\alpha_{2k}\tilde{y}'_i(t)+ \alpha_{\sigma k} \sigma_i(t) \right)</code>
+</p>
+<p>with <code class="reqn">\lambda_{0k}(t)</code> the baseline risk function, <code class="reqn">W_{i}</code> a vector of baseline covariates associated with the regression coefficient <code class="reqn">\gamma_k</code>,
+and <code class="reqn">\alpha_{1k}</code>, <code class="reqn">\alpha_{2k}</code> and <code class="reqn">\alpha_{\sigma k}</code> the regression coefficients associated with the current value <code class="reqn">\tilde{y}_i(t)</code>,
+the current slope <code class="reqn">\tilde{y}'_i(t)</code> and the current variability <code class="reqn">\sigma_i(t)</code> of the marker, respectively.
+Different parametric forms for the baseline risk function can be considered, such as exponential, Weibull, or, for more flexibility, a B-splines base.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A FlexVarJoint object which contains the following elements :
+</p>
+
+<dl>
+<dt><code>result</code></dt>
+<dd>
+<p>A marqLevAlg object with the results of the estimation.</p>
+</dd>
+<dt><code>table.res</code></dt>
+<dd>
+<p>The table of results : Estimation and SE</p>
+</dd>
+<dt><code>time.compute</code></dt>
+<dd>
+<p>Computation time</p>
+</dd>
+<dt><code>control</code></dt>
+<dd>
+<p>A list of control elements</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+
+
+#fit a joint model with competing risks and subject-specific variability
+example &lt;- lsjm(formFixed = y~visit,
+formRandom = ~ visit,
+formGroup = ~ID,
+formSurv = Surv(time, event ==1 ) ~ 1,
+timeVar = "visit",
+data.long = Data_toy,
+variability_hetero = TRUE,
+formFixedVar =~visit,
+formRandomVar =~visit,
+correlated_re = TRUE,
+sharedtype = c("current value", "variability"),
+hazard_baseline = "Weibull",
+formSlopeFixed =~1,
+formSlopeRandom = ~1,
+indices_beta_slope = c(2), 
+competing_risk = TRUE,
+formSurv_CR = Surv(time, event ==2 ) ~ 1,
+hazard_baseline_CR = "Weibull",
+sharedtype_CR = c("current value", "variability"),
+S1 = 100,
+S2 = 1000,
+nproc = 1,
+maxiter = 100,
+Comp.Rcpp = TRUE
+)
+ 
+summary(example)
+
+
+</code></pre>
+
+
+</div>

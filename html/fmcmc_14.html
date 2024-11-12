@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cov_recursive</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Recursive algorithms for computing variance and mean</h2>
+
+<h3>Description</h3>
+
+<p>These algorithms are used in <code>kernel_adapt()</code> to simplify variance-covariance
+recalculation at every step of the algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cov_recursive(
+  X_t,
+  Cov_t,
+  Mean_t_prev,
+  t.,
+  Mean_t = NULL,
+  eps = 0,
+  Sd = 1,
+  Ik = diag(ncol(Cov_t))
+)
+
+mean_recursive(X_t, Mean_t_prev, t.)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X_t</code></td>
+<td>
+<p>Last value of the sample</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Cov_t</code></td>
+<td>
+<p>Covariance in t</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.</code></td>
+<td>
+<p>Sample size up to <code>t-1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mean_t, Mean_t_prev</code></td>
+<td>
+<p>Vectors of averages in time <code>t</code> and <code>t-1</code> respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sd, eps, Ik</code></td>
+<td>
+<p>See <code>kernel_adapt()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The variance covariance algorithm was described in Haario, Saksman and
+Tamminen (2002).
+</p>
+
+
+<h3>References</h3>
+
+<p>Haario, H., Saksman, E., &amp; Tamminen, J. (2001). An adaptive Metropolis algorithm.
+Bernoulli, 7(2), 223–242.
+<a href="https://projecteuclid.org/euclid.bj/1080222083">https://projecteuclid.org/euclid.bj/1080222083</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generating random data (only four points to see the difference)
+set.seed(1231)
+n &lt;- 3
+X &lt;- matrix(rnorm(n*4), ncol = 4)
+
+# These two should be equal
+mean_recursive(
+  X_t         = X[1,],
+  Mean_t_prev = colMeans(X[-1,]),
+  t.          = n - 1
+)
+colMeans(X)
+
+# These two should be equal
+cov_recursive(
+  X_t         = X[1, ], 
+  Cov_t       = cov(X[-1,]), 
+  Mean_t      = colMeans(X),
+  Mean_t_prev = colMeans(X[-1, ]),
+  t           = n-1
+)
+cov(X)
+
+# Speed example -------------------------------------------------------------
+set.seed(13155511)
+X &lt;- matrix(rnorm(1e3*100), ncol = 100)
+
+ans0 &lt;- cov(X[-1,])
+t0 &lt;- system.time({
+  ans1 &lt;- cov(X)
+})
+
+t1 &lt;- system.time(ans2 &lt;- cov_recursive(
+  X[1, ], ans0,
+  Mean_t      = colMeans(X),
+  Mean_t_prev = colMeans(X[-1,]),
+  t. = 1e3 - 1
+))
+
+# Comparing accuracy and speed
+range(ans1 - ans2)
+t0/t1
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,274 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flan.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fluctuation Analysis parametric testing</h2>
+
+<h3>Description</h3>
+
+<p>Performs one-sample and two-sample Fluctuation Analysis tests on mutant counts. Returns confidence intervals and p-values, based on asymptotic normality, from the values returned by <code>mutestim</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+  flan.test(mc, fn = NULL, mfn = NULL, cvfn = NULL,
+               fitness = NULL, death = 0., plateff = 1.,
+               model = c("LD", "H", "I"), muinf = +Inf,
+               mutations0 = 1., mutprob0 = NULL, fitness0 = 1.,
+               conf.level = 0.95,
+               alternative = c("two.sided", "less", "greater"),
+               method = c("ML", "GF", "P0"), winsor = 2000
+               )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mc</code></td>
+<td>
+<p> a numeric vector of mutant counts or a list of two numeric vectors of mutant counts.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+<p> an optional numeric vector of final numbers or a list of two numeric vectors of final numbers. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfn</code></td>
+<td>
+<p> mean final number of cells. Ignored if <code>fn</code> is non-missing. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvfn</code></td>
+<td>
+<p> coefficient of variation of final number of cells. Ignored if <code>fn</code> is non-missing. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitness</code></td>
+<td>
+<p> fitness parameter: ratio of growth rates of normal and mutant cells. If <code>fitness</code> is <code>NULL</code> (default) then the fitness will be estimated. Otherwise, the given value will
+be used to estimate the mean mutation number <code>mutations</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>death</code></td>
+<td>
+<p> death probability. Must be smaller than 0.5. By default 0. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plateff</code></td>
+<td>
+<p> plating efficiency parameter. Must be non-larger than 1. By default 1. Available for <code>GF</code> method, and for <code>ML</code> method under <code>LD</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p> statistical lifetime model. Must be one of "LD" (default) for Luria-Delbrück model (exponential lifetimes), "H" for Haldane model (constant lifetimes), or "I" for Inhomogeneous model </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muinf</code></td>
+<td>
+<p> parameter used only if <code>model</code> is <code>I</code>. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutations0</code></td>
+<td>
+<p> null hypothesis value for parameter mutations. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutprob0</code></td>
+<td>
+<p> null hypothesis value for parameter mutprob. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitness0</code></td>
+<td>
+<p> null hypothesis value for parameter fitness. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+<p> confidence level of the interval. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p> a character string specifying the alternative hypothesis, must be one of <code>"two.sided"</code> (default), <code>"greater"</code> or <code>"less"</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p> estimation method as a character string: one of <code>ML</code> (default), <code>P0</code>, or <code>GF</code>. See <code>mutestim</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>winsor</code></td>
+<td>
+<p> winsorization parameter: positive integer. Only used when <code>method</code> is <code>ML</code> or when    <code>method</code> is <code>P0</code> and <code>fitness</code> is NULL. See <code>mutestim</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>flan.test</code> tests the values of parameters <code>mutations</code>, <code>mutprob</code>, or <code>fitness</code>, with <code>mutations0</code> <code>mutprob0</code>, <code>fitness0</code> as null hypotheses.
+</p>
+<p>If <code>fn</code> or <code>mfn</code> are given, mutprob is tested, otherwise, <code>mutations</code> is tested. If <code>fitness</code> is given, it is not tested.
+</p>
+<p><code>muinf</code> corresponds to the cumulative division rate on the interval [0 ; +Inf).
+If <code>model</code> is <code>I</code>, <code>muinf</code> has to be finite, else <code>model</code> is set to "LD".
+</p>
+<p><code>alternative</code> may be a two dimensional vector specifying the alternatives for the two parameters to be tested.
+</p>
+<p>If <code>mc</code> is a list, a two-sample test is performed. In that case, the values in <code>mutations0</code>, <code>mutprob0</code> and <code>fitness0</code> apply to the difference between the two samples (with 0 as default value)
+For the two-sample tests, the parameters <code>mfn</code>, <code>cvfn</code>, <code>fitness</code>, <code>death</code> and <code>plateff</code> may be two dimensional vectors, where the first (resp. second) components are related to the first (resp. second) sample.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list with class <code>"flantest"</code>. The structure of a <code>"flantest"</code> object, is similar to that of a <code>"htest"</code> object (see also <code>t.test</code>).
+The class <code>"flantest"</code> contains the following components :
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Tstat</code></td>
+<td>
+<p> the value of the computed statistic(s). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p> the values of <code>fitness</code> (if not tested), <code>death</code> and <code>plateff</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p> the p-value(s) of the test. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+<p> confidence interval(s) for the parameter(s) relative to the specified alternative. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimates</code></td>
+<td>
+<p> the estimate(s). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>null.value</code></td>
+<td>
+<p> the specified hypothesized value(s). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p> a (vector of) character string(s) describing the alternative hypothesis. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p> the statistical lifetime model. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p> method used to compute the estimate(s). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p> a character string giving the name of the complete data. </p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>mutestim</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># one sample test, without final numbers
+b &lt;- unlist(boeal)
+# is the mean mutation number greater than 0.7, and the fitness greater than 0.8?
+flan.test(b, alternative = "greater", mutations0 = 0.7, fitness0 = 0.8)
+# is the mean mutation number less than 0.8, given the fitness?
+flan.test(b, alternative = "less", mutations0 = 0.8, fitness = 0.84)
+
+# one sample test, with final numbers
+d &lt;- david[[11]]
+flan.test(d$mc, d$fn, alternative = "less", mutprob0 = 2e-10, fitness0 = 2)
+
+# two-sample test: test equality of parameters
+b1 &lt;- unlist(boeal[1:10])
+b2 &lt;- unlist(boeal[11:20])
+flan.test(list(b1, b2))
+
+# realistic random sample of size 100: mutation probability 1e-9,
+# mean final number 1e9, coefficient of variation on final numbers 0.3,
+# fitness 0.9, lognormal lifetimes, 5% mutant deaths
+
+x &lt;- rflan(100, mutprob = 1e-9, mfn = 1e9, cvfn = 0.3, fitness = 0.9, death = 0.05)
+
+# test on mutations and fitness, without final numbers
+flan.test(x$mc, mutations0 = 1, fitness0 = 0.9)
+
+# test on mutprob and fitness, with final numbers
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9)
+
+# given fitness
+
+flan.test(x$mc, x$fn, fitness = 0.9, mutprob0 = 1e-9)
+
+# take deaths into account
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, death = 0.05)
+
+# change method
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, death = 0.05, method = "GF")
+
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, death = 0.05, method = "P0")
+# change model
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, model = "H")
+
+# Two-sample test
+y &lt;- rflan(100, mutprob = 1e-9, mfn = 1e9, cvfn = 0.3, fitness = 1.2, death = 0.05)
+MC &lt;- list(x$mc, y$mc)
+FN &lt;- list(x$fn, y$fn)
+#
+flan.test(mc = MC, fn = FN, fitness = c(0.9, 1.1), death = 0.05)
+
+
+</code></pre>
+
+
+</div>

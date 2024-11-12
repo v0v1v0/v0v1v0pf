@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>forsearch_cph</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Statistics Of Forward Search in a Cox Proportional Hazard Database</h2>
+
+<h3>Description</h3>
+
+<p>Prepares summary statistics at each stage of forward search for subsequent
+plotting.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">forsearch_cph(alldata, formula.rhs, initial.sample=1000, 
+        n.obs.per.level=1, skip.step1=NULL, ties = "efron", maxdisturb=0.01,
+        proportion=TRUE, unblinded=TRUE, begin.diagnose= 100, verbose=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alldata</code></td>
+<td>
+<p>Data frame containing variables 'Observation', 'event.time',
+'status', and independent variables, in that order</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula.rhs</code></td>
+<td>
+<p>Character vector of names of independent variables in 
+model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.sample</code></td>
+<td>
+<p>Number of observations in Step 1 of forward search</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.obs.per.level</code></td>
+<td>
+<p>Number of observations per level of (possibly crossed) 
+factor levels to include in Step 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip.step1</code></td>
+<td>
+<p>NULL or a vector of integers for observations to be included
+in Step 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>Method for handling ties in event time; = "efron", "breslow", or 
+"exact"; see survival::coxph</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdisturb</code></td>
+<td>
+<p>Maximum amount to add randomly to event.time to prevent 
+ties. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion</code></td>
+<td>
+<p>TRUE causes evaluation of proportionality of Cox regression
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unblinded</code></td>
+<td>
+<p>TRUE causes printing of presumed analysis structure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>begin.diagnose</code></td>
+<td>
+<p>Numeric. Indicates where in code to begin printing 
+diagnostics. 0 prints all; 100 prints none</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>TRUE causes function identifier display before and after run</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>LIST
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Rows in stage </code></td>
+<td>
+<p>Observation numbers of rows included at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Number of model parameters </code></td>
+<td>
+<p>Number of fixed coefficients in Cox model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fixed parameter estimates </code></td>
+<td>
+<p>Vector of parameter estimates at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Wald Test </code></td>
+<td>
+<p>Vector of Wald tests at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Proportionality Test</code></td>
+<td>
+<p>Result of Cox proportionality test, if run</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LogLikelihood </code></td>
+<td>
+<p>Vector of null and overall coefficients log likelihoods at
+each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Likelihood ratio test </code></td>
+<td>
+<p>Vector of LRTs at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Leverage </code></td>
+<td>
+<p>Matrix of leverage of each observation at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Call </code></td>
+<td>
+<p>Call to this function</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>William R. Fairweather</p>
+
+
+<h3>References</h3>
+
+<p>Atkinson, A and M Riani. Robust Diagnostic Regression Analysis, Springer, New York, 2000.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+{# Forsearch for Cox Proportional Survival, including Step 1
+veteran &lt;- survival::veteran
+veteran &lt;- veteran[order(veteran$celltype),]
+veteranx &lt;- veteran[,c(3,4,1,2)]
+veteranx$trt &lt;- as.factor(veteranx$trt)
+dimv &lt;- dim(veteran)[1]
+Observation &lt;- 1:dimv
+veteranx &lt;- data.frame(Observation,veteranx)
+names(veteranx)[2] &lt;- "event.time"
+form.1 &lt;- "trt + celltype"  
+forskip &lt;- NULL
+# forskip &lt;- c(12,  23,  38,  71,  91, 104, 116, 130,  31,  73,  62,  76)
+cphtest1a.out &lt;- forsearch_cph(alldata=veteranx, formula.rhs=form.1, 
+       n.obs.per.level=2, skip.step1=forskip, ties="efron", unblinded=TRUE, 
+       initial.sample=467, begin.diagnose = 100, verbose = TRUE)
+}
+{# Same, but skipping Step 1.
+forskip &lt;- c(12, 6, 31, 23, 38, 62, 71, 73, 91,  84, 104, 101, 116, 125,128,76)
+cphtest1b.out &lt;- forsearch_cph(alldata=veteranx, formula.rhs=form.1, 
+      n.obs.per.level=2, skip.step1=forskip, ties="efron", unblinded=TRUE, 
+      initial.sample=467, begin.diagnose = 100, verbose = TRUE) 
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

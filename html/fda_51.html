@@ -1,0 +1,639 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CSTR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Continuously Stirred Tank Reactor
+</h2>
+
+<h3>Description</h3>
+
+<p>Functions for solving the Continuously Stirred Tank Reactor
+(CSTR) Ordinary Differential Equations (ODEs).  A solution for
+observations where metrology error is assumed to be negligible can be
+obtained via lsoda(y, Time, CSTR2, parms);  CSTR2 calls CSTR2in.  When
+metrology error can not be ignored, use CSTRfn (which calls
+CSTRfitLS).  To estimate parameters in the CSTR differential equation
+system (kref, EoverR, a, and / or b), pass CSTRres to nls.  If nls
+fails to converge, first use optim or nlminb with CSTRsse, then pass
+the estimates to nls.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CSTR2in(Time, condition =
+   c('all.cool.step', 'all.hot.step', 'all.hot.ramp', 'all.cool.ramp',
+     'Tc.hot.exponential', 'Tc.cool.exponential', 'Tc.hot.ramp',
+     'Tc.cool.ramp', 'Tc.hot.step', 'Tc.cool.step'),
+   tau=1)
+CSTR2(Time, y, parms)
+
+CSTRfitLS(coef, datstruct, fitstruct, lambda, gradwrd=FALSE)
+CSTRfn(parvec, datstruct, fitstruct, CSTRbasis, lambda, gradwrd=TRUE)
+CSTRres(kref=NULL, EoverR=NULL, a=NULL, b=NULL,
+        datstruct, fitstruct, CSTRbasis, lambda, gradwrd=FALSE)
+CSTRsse(par, datstruct, fitstruct, CSTRbasis, lambda)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Time</code></td>
+<td>
+
+<p>The time(s) for which computation(s) are desired
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+
+<p>a character string with the name of one of ten preprogrammed input
+scenarios.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> tau </code></td>
+<td>
+
+<p>time for exponential decay of exp(-1) under condition =
+'Tc.hot.exponential' or 'Tc.cool.exponential';  ignored for other
+values of 'condition'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>Either a vector of length 2 or a matrix with 2 columns giving the
+observation(s) on Concentration and Temperature for which
+computation(s) are desired
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parms</code></td>
+<td>
+
+<p>a list of CSTR model parameters passed via the lsoda 'parms'
+argument.  This list consists of the following 3 components:
+</p>
+
+<dl>
+<dt>fitstruct</dt>
+<dd>
+<p>a list with 12 components describing the structure for fitting.
+This is the same as the 'fitstruct' argument of 'CSTRfitLS' and
+'CSTRfn' without the 'fit' component;  see below.
+</p>
+</dd>
+<dt>condition</dt>
+<dd>
+<p>a character string identifying the inputs to the simulation.
+Currently, any of the following are accepted:  'all.cool.step',
+'all.hot.step', 'all.hot.ramp', 'all.cool.ramp',
+'Tc.hot.exponential', 'Tc.cool.exponential', 'Tc.hot.ramp',
+'Tc.cool.ramp', 'Tc.hot.step', or 'Tc.cool.step'.
+</p>
+</dd>
+<dt>Tlim</dt>
+<dd>
+<p>end time for the computations.
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+
+<p>a matrix with one row for each basis function in fitstruct and
+columns c("Conc", "Temp") or a vector form of such a matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datstruct</code></td>
+<td>
+
+<p>a list describing the structure of the data.  CSTRfitLS uses the
+following components:
+</p>
+
+<dl>
+<dt>basismat, Dbasismat</dt>
+<dd>
+<p>basis coefficent matrices with one row for each observation and
+one column for each basis vector.  These are typically produced
+by code something like the following:
+</p>
+<p>basismat &lt;- eval.basis(Time, CSTRbasis)
+</p>
+<p>Dbasismat &lt;- eval.basis(Time, CSTRbasis, 1)
+</p>
+</dd>
+<dt>Cwt, Twt</dt>
+<dd>
+<p>scalar variances of 'fd' functional data objects for
+Concentration and Temperature used to place the two series on
+comparable scales.
+</p>
+</dd>
+<dt>y</dt>
+<dd>
+<p>a matrix with 2 columns for the observed 'Conc' and 'Temp'.
+</p>
+</dd>
+<dt>quadbasismat, Dquadbasismat</dt>
+<dd>
+<p>basis coefficient matrices with one row for each quadrature
+point and one column for each basis vector.  These are typically
+produced by code something like the following:
+</p>
+<p>quadbasismat &lt;- eval.basis(quadpts, CSTRbasis)
+</p>
+<p>Dquadbasismat &lt;- eval.basis(quadpts, CSTRbasis, 1)
+</p>
+</dd>
+<dt>Fc, F., CA0, T0, Tc</dt>
+<dd>
+<p>input series for CSTRfitLS and CSTRfn as the output list
+produced by CSTR2in.
+</p>
+</dd>
+<dt>quadpts</dt>
+<dd>
+<p>Quadrature points created by 'quadset' and stored in
+CSTRbasis[["quadvals"]][, "quadpts"].
+</p>
+</dd>
+<dt>quadwts</dt>
+<dd>
+<p>Quadrature weights created by 'quadset' and stored in
+CSTRbasis[["quadvals"]][, "quadpts"].
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitstruct</code></td>
+<td>
+
+<p>a list with 14 components:
+</p>
+
+<dl>
+<dt>V</dt>
+<dd>
+<p>volume in cubic meters
+</p>
+</dd>
+<dt>Cp</dt>
+<dd>
+<p>concentration in cal/(g.K) for computing betaTC and betaTT;  see
+details below.
+</p>
+</dd>
+<dt>rho</dt>
+<dd>
+<p>density in grams per cubic meter
+</p>
+</dd>
+<dt>delH</dt>
+<dd>
+<p>cal/kmol
+</p>
+</dd>
+<dt>Cpc</dt>
+<dd>
+<p>concentration in cal/(g.K) used for computing alpha;  see
+details below.
+</p>
+</dd>
+<dt>Tref</dt>
+<dd>
+<p>reference temperature.
+</p>
+</dd>
+<dt>kref</dt>
+<dd>
+<p>reference value
+</p>
+</dd>
+<dt>EoverR</dt>
+<dd>
+<p>E/R in units of K/1e4
+</p>
+</dd>
+<dt>a</dt>
+<dd>
+<p>scale factor for Fco in alpha;  see details below.
+</p>
+</dd>
+<dt>b</dt>
+<dd>
+<p>power of Fco in alpha;  see details below.
+</p>
+</dd>
+<dt>Tcin</dt>
+<dd>
+<p>Tc input temperature vector.
+</p>
+</dd>
+<dt>fit</dt>
+<dd>
+<p>logical vector of length 2 indicating whether Contentration or
+Temperature or both are considered to be observed and used for
+parameter estimation.
+</p>
+</dd>
+<dt>coef0</dt>
+<dd>
+<p>data.frame(Conc = Cfdsmth[["coef"]], Temp = Tfdsmth[["coef"]]),
+where Cfdsmth and Tfdsmth are the objects returned by
+smooth.basis when applied to the observations on Conc and Temp,
+respectively.
+</p>
+</dd>
+<dt>estimate</dt>
+<dd>
+<p>logical vector of length 4 indicating which of kref, EoverR, a
+and b are taken from 'parvec';  all others are taken from
+'fitstruct'.
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>a 2-vector of rate parameters 'lambdaC' and 'lambdaT'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradwrd</code></td>
+<td>
+
+<p>a logical scalar TRUE if the gradient is to be returned as well as
+the residuals matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parvec, par</code></td>
+<td>
+
+<p>initial values for the parameters specified by fitstruct[[
+"estimate"]] to be estimated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CSTRbasis</code></td>
+<td>
+
+<p>Quadrature basis returned by 'quadset'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kref, EoverR, a, b</code></td>
+<td>
+
+<p>the kref, EoverR, a, and b coefficients of the CSTR model as
+individual arguments of CSTRres to support using 'nls' with the CSTR
+model.  Those actually provided by name will be estimated;  the
+others will be taken from '.fitstruct';  see details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Ramsay et al. (2007) considers the following differential equation
+system for a continuously stirred tank reactor (CSTR):
+</p>
+<p>dC/dt = (-betaCC(T, F.in)*C + F.in*C.in)
+</p>
+<p>dT/dt = (-betaTT(Fcvec, F.in)*T + betaTC(T, F.in)*C +
+alpha(Fcvec)*T.co)
+</p>
+<p>where
+</p>
+<p>betaCC(T, F.in) = kref*exp(-1e4*EoverR*(1/T - 1/Tref)) + F.in
+</p>
+<p>betaTT(Fcvec, F.in) = alpha(Fcvec) + F.in
+</p>
+<p>betaTC(T, F.in) = (-delH/(rho*Cp))*betaCC(T, F.in)
+</p>
+<p style="text-align: center;"><code class="reqn">
+    alpha(Fcvec) = (a*Fcvec^(b+1) / (K1*(Fcvec + K2*Fcvec^b)))
+  </code>
+</p>
+
+<p>K1 = V*rho*Cp
+</p>
+<p>K2 = 1/(2*rhoc*Cpc)
+</p>
+<p>The four functions CSTR2in, CSTR2, CSTRfitLS, and CSTRfn compute
+coefficients of basis vectors for two different solutions to this set
+of differential equations.  Functions CSTR2in and CSTR2 work with
+'lsoda' to provide a solution to this system of equations.  Functions
+CSTSRitLS and CSTRfn are used to estimate parameters to fit this
+differential equation system to noisy data.  These solutions are
+conditioned on specified values for kref, EoverR, a, and b.  The other
+function, CSTRres, support estimation of these parameters using
+'nls'.
+</p>
+<p>CSTR2in translates a character string 'condition' into a data.frame
+containing system inputs for which the reaction of the system is
+desired.  CSTR2 calls CSTR2in and then computes the corresponding
+predicted first derivatives of CSTR system outputs according to the
+right hand side of the system equations.  CSTR2 can be called by
+'lsoda' in the 'deSolve' package to actually solve the system of
+equations.  To solve the CSTR equations for another set of inputs, the
+easiest modification might be to change CSTR2in to return the desired
+inputs.  Another alternative would be to add an argument
+'input.data.frame' that would be used in place of CSTR2in when
+present.
+</p>
+<p>CSTRfitLS computes standardized residuals for systems outputs Conc,
+Temp or both as specified by fitstruct[["fit"]], a logical vector of
+length 2.  The standardization is sqrt(datstruct[["Cwt"]]) and / or
+sqrt(datstruct[["Twt"]]) for Conc and Temp, respectively.  CSTRfitLS
+also returns standardized deviations from the predicted first
+derivatives for Conc and Temp.
+</p>
+<p>CSTRfn uses a Gauss-Newton optimization to estimates the coefficients
+of CSTRbasis to minimize the weighted sum of squares of residuals
+returned by CSTRfitLS.
+</p>
+<p>CSTRres provides an interface between 'nls' and 'CSTRfn'.  It gets the
+parameters to be estimated via the official function arguments, kref,
+EoverR, a, and / or b.  The subset of these parameters to estimate must
+be specified both directly in the function call to 'nls' and
+indirectly via fitstruct[["estimate"]].  CSTRres gets the other CSTRfn
+arguments (datstruct, fitstruct, CSTRbasis, and lambda) via the 'data'
+argument of 'nls'.
+</p>
+<p>CSTRsse computes sum of squares of residuals for use with optim or
+nlminb.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>CSTR2in</code></td>
+<td>
+
+<p>a matrix with number of rows = length(Time) and columns for F., CA0,
+T0, Tcin, and Fc.  This gives the inputs to the CSTR simulation for
+the chosen 'condition'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CSTR2</code></td>
+<td>
+
+<p>a list with one component being a matrix with number of rows =
+length(tobs) and 2 columns giving the first derivatives of Conc and
+Temp according to the right hand side of the differential equation.
+CSTR2 calls CSTR2in to get its inputs.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CSTRfitLS</code></td>
+<td>
+
+<p>a list with one or two components as follows:
+</p>
+
+<dl>
+<dt>res</dt>
+<dd>
+<p>a list with two components
+</p>
+<p>Sres = a matrix giving the residuals between observed and
+predicted datstruct[["y"]] divided by sqrt(datstruct[[c("Cwt",
+"Twt")]]) so the result is dimensionless.  dim(Sres) =
+dim(datstruct[["y"]]).  Thus, if datstruct[["y"]] has only one
+column, 'Sres' has only one column.
+</p>
+<p>Lres = a matrix with two columns giving the difference between
+left and right hand sides of the CSTR differential equation at
+all the quadrature points.  dim(Lres) = c(nquad, 2).
+</p>
+</dd>
+<dt>Dres</dt>
+<dd>
+<p>If gradwrd=TRUE, a list with two components:
+</p>
+<p>DSres = a matrix with one row for each element of res[["Sres"]]
+and two columns for each basis function.
+</p>
+<p>DLres = a matrix with two rows for each quadrature point and two
+columns for each basis function.
+</p>
+<p>If gradwrd=FALSE, this component is not present.
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CSTRfn</code></td>
+<td>
+
+<p>a list with five components:
+</p>
+
+<dl>
+<dt>res</dt>
+<dd>
+<p>the 'res' component of the final 'CSTRfitLS' object reformatted
+with its component Sres first followed by Lres, using
+with(CSTRfitLS(...)[["res"]], c(Sres, Lres)).
+</p>
+</dd>
+<dt>Dres</dt>
+<dd>
+<p>one of two very different gradient matrices depending on the
+value of 'gradwrd'.
+</p>
+<p>If gradwrd = TRUE, Dres is a matrix with one row for each
+observation value to match and one column for each parameter
+taken from 'parvec' per fitstruct[["estimate"]].  Also, if
+fitstruct[["fit"]] = c(1,1), CSTRfn tries to  match both
+Concentration and Temperature, and rows corresponding to
+Concentration come first following by rows corresponding to
+Temperature.
+</p>
+<p>If gradwrd = FALSE, this is the 'Dres' component of the final
+'CSTRfitLS' object reformatted as follows:
+</p>
+<p>Dres &lt;- with(CSTRfitLS(...)[["Dres"]], rbind(DSres, DLres))
+</p>
+</dd>
+<dt>fitstruct</dt>
+<dd>
+<p>a list components matching the 'fitstruct' input, with
+coefficients estimated replaced by their initial values from
+parvec and with coef0 replace by its final estimate.
+</p>
+</dd>
+<dt>df</dt>
+<dd>
+<p>estimated degrees of freedom as the trace of the appropriate
+matrix.
+</p>
+</dd>
+<dt>gcv</dt>
+<dd>
+<p>the Generalized cross validation estimate of the mean square
+error, as discussed in Ramsay and Silverman (2006, sec. 5.4).
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CSTRres</code></td>
+<td>
+
+<p>the 'res' component of CSTRfd(...) as a column vector.  This allows
+us to use 'nls' with the CSTR model.  This can be especially useful
+as 'nls' has several helper functions to facilitate evaluating
+goodness of fit and and uncertainty in parameter estimates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CSTRsse</code></td>
+<td>
+
+<p>sum(res*res) from CSTRfd(...).  This allows us to use 'optim' or
+'nlminb' with the CSTR model.  This can also be used to obtain
+starting values for 'nls' in cases where 'nls' fails to converge
+from the initial provided starting values.  Apart from 'par', the
+other arguments 'datstruct', 'fitstruct', 'CSTRbasis', and 'lambda',
+must be passed via '...' in 'optim' or 'nlminb'.
+</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ramsay, J. O., Hooker, G., Cao, J. and Campbell, D. (2007) Parameter
+estimation for differential equations: A generalized smoothing
+approach (with discussion). <em>Journal of the Royal Statistical
+Society</em>, Series B, 69, 741-796.
+</p>
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lsoda</code>
+<code>nls</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">###
+###
+### 1.  lsoda(y, times, func=CSTR2, parms=...)
+###
+###
+#  The system of two nonlinear equations has five forcing or
+#  input functions.
+#  These equations are taken from
+#  Marlin, T. E. (2000) Process Control, 2nd Edition, McGraw Hill,
+#  pages 899-902.
+##
+##  Set up the problem
+##
+fitstruct &lt;- list(V    = 1.0,#  volume in cubic meters
+                  Cp   = 1.0,#  concentration in cal/(g.K)
+                  rho  = 1.0,#  density in grams per cubic meter
+                  delH = -130.0,# cal/kmol
+                  Cpc  = 1.0,#  concentration in cal/(g.K)
+                  rhoc = 1.0,#  cal/kmol
+                  Tref = 350)#  reference temperature
+#  store true values of known parameters
+EoverRtru = 0.83301#   E/R in units K/1e4
+kreftru   = 0.4610 #   reference value
+atru      = 1.678#     a in units (cal/min)/K/1e6
+btru      = 0.5#       dimensionless exponent
+
+#% enter these parameter values into fitstruct
+
+fitstruct[["kref"]]   = kreftru#
+fitstruct[["EoverR"]] = EoverRtru#  kref = 0.4610
+fitstruct[["a"]]      = atru#       a in units (cal/min)/K/1e6
+fitstruct[["b"]]      = btru#       dimensionless exponent
+
+Tlim  = 64#    reaction observed over interval [0, Tlim]
+delta = 1/12#  observe every five seconds
+tspan = seq(0, Tlim, delta)#
+
+coolStepInput &lt;- CSTR2in(tspan, 'all.cool.step')
+
+#  set constants for ODE solver
+
+#  cool condition solution
+#  initial conditions
+
+Cinit.cool = 1.5965#  initial concentration in kmol per cubic meter
+Tinit.cool = 341.3754# initial temperature in deg K
+yinit = c(Conc = Cinit.cool, Temp=Tinit.cool)
+
+#  load cool input into fitstruct
+
+fitstruct[["Tcin"]] = coolStepInput[, "Tcin"];
+
+#  solve  differential equation with true parameter values
+
+if (require(deSolve)) {
+coolStepSoln &lt;- lsoda(y=yinit, times=tspan, func=CSTR2,
+  parms=list(fitstruct=fitstruct, condition='all.cool.step', Tlim=Tlim) )
+}
+###
+###
+### 2.  CSTRfn
+###
+###
+
+# See the script in '~R\library\fda\scripts\CSTR\CSTR_demo.R'
+#  for more examples.
+
+</code></pre>
+
+
+</div>

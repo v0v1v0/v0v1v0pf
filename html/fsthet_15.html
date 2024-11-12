@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fst.boot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>This is the major bootstrapping function to calculate confidence intervals. </h2>
+
+<h3>Description</h3>
+
+<p>This randomly samples all of the loci, with replacement 
+(so if you have 200 loci, it will choose 200 loci to calculate Fst for, but some may be sampled multiply)
+It makes use of fst.boot.onerow.
+To calculate the confidence intervals, this function bins the Fst values based on heterozygosity values.
+The bins are overlapping and each bin is the width of smooth.rate. 
+The Fst value which separates the top 100*(ci/2) and bottom 100*(ci/2) percent in each bin are the upper and lower CIs.
+This function can be slow. We recommend running it 10 times to generate confidence intervals for analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fst.boot(df,fst.choice="fst",ci=0.05,num.breaks=25, bootstrap = TRUE,min.per.bin=20)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A dataframe containing the genepop information, where the first column is the population ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fst.choice</code></td>
+<td>
+
+<p>A character defining which fst calculation is to be used. See fst.options.print() for the choices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>A value for the confidence intervals alpha (default is 0.05).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.breaks</code></td>
+<td>
+<p>The number of breaks used to create bins (default is 25)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>A TRUE/FALSE statement telling the program whether to bootstrap and then determine the bins or to calculate bins and confidence intervals from the empirical dataset without bootstrapping. The default is TRUE, which means bootstrapping occurs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.per.bin</code></td>
+<td>
+<p>The minimum number of loci that are required for a bin to be retained. Default is 20.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Fsts</code></td>
+<td>
+<p>The bootstrapped Fst and Ht values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bins</code></td>
+<td>
+<p>A dataframe containing the bins start and stop Ht values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fst.CI</code></td>
+<td>
+<p>A list of dataframes containing the lower and upper confidence intervals' Ht values.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">  gpop&lt;-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20))
+   for(i in 1:40){
+    gpop[1:20,(i+2)]&lt;-sample(c("0101","0102","0202"),20,replace=TRUE)
+    gpop[21:40,(i+2)]&lt;-sample(c("0101","0102","0202"),20,replace=TRUE)
+   }
+  fsts&lt;-calc.actual.fst(gpop)
+  quant.out&lt;-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap=FALSE))))
+  ## Not run: 
+    gfile&lt;-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+    gpop&lt;-my.read.genepop(gfile)
+    fsts&lt;-calc.actual.fst(gpop)
+    quant.out&lt;-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap=FALSE))))
+  
+## End(Not run)
+</code></pre>
+
+
+</div>

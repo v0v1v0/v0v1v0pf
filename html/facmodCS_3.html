@@ -1,0 +1,507 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitFfm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a fundamental factor model using cross-sectional regression</h2>
+
+<h3>Description</h3>
+
+<p>Fit a fundamental (cross-sectional) factor model using ordinary
+least squares or robust regression. Fundamental factor models use observable
+asset specific characteristics (or) fundamentals, like industry
+classification, market capitalization, style classification (value, growth)
+etc. to calculate the common risk factors. An object of class <code>"ffm"</code>
+is returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitFfm(
+  data,
+  asset.var,
+  ret.var,
+  date.var,
+  exposure.vars,
+  weight.var = NULL,
+  fit.method = c("LS", "WLS", "Rob", "W-Rob"),
+  rob.stats = FALSE,
+  full.resid.cov = FALSE,
+  z.score = c("none", "crossSection", "timeSeries"),
+  addIntercept = FALSE,
+  lagExposures = TRUE,
+  resid.scaleType = "stdDev",
+  lambda = 0.9,
+  GARCH.params = list(omega = 0.09, alpha = 0.1, beta = 0.81),
+  GARCH.MLE = FALSE,
+  stdReturn = FALSE,
+  analysis = c("none", "ISM", "NEW"),
+  targetedVol = 0.06,
+  ...
+)
+
+## S3 method for class 'ffm'
+coef(object, ...)
+
+## S3 method for class 'ffm'
+fitted(object, ...)
+
+## S3 method for class 'ffm'
+residuals(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the balanced panel data containing the variables 
+<code>asset.var</code>, <code>ret.var</code>, <code>exposure.vars</code>, <code>date.var</code> and 
+optionally, <code>weight.var</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asset.var</code></td>
+<td>
+<p>character; name of the variable for asset names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ret.var</code></td>
+<td>
+<p>character; name of the variable for asset returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.var</code></td>
+<td>
+<p>character; name of the variable containing the dates 
+coercible to class <code>Date</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exposure.vars</code></td>
+<td>
+<p>vector; names of the variables containing the 
+fundamental factor exposures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight.var</code></td>
+<td>
+<p>character; name of the variable containing the weights 
+used when standarizing style factor exposures. Default is <code>NULL</code>. See 
+Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.method</code></td>
+<td>
+<p>method for estimating factor returns; one of "LS", "WLS" 
+"Rob" or "W-Rob". See details. Default is "LS".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rob.stats</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, robust estimates of covariance, 
+correlation, location and univariate scale are computed as appropriate (see 
+Details). Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full.resid.cov</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, a full residual covariance 
+matrix is estimated. Otherwise, a diagonal residual covariance matrix is 
+estimated. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z.score</code></td>
+<td>
+<p>method for exposure standardization; one of "none", 
+"crossSection", or "timeSeries". Default is <code>"none"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addIntercept</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, intercept is added in the 
+exposure matrix. Note, if 2 or more variables are categorical, this must be
+false. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lagExposures</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, the style exposures in the 
+exposure matrix are lagged by one time period. Default is <code>TRUE</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.scaleType</code></td>
+<td>
+<p>character; Only valid when fit.method is set to WLS or 
+W-Rob. The weights used in the weighted regression are estimated  using 
+sample variance, classic EWMA, robust EWMA or GARCH model. Valid values are 
+<code>stdDev</code>, <code>EWMA</code>, <code>robEWMA</code>, or <code>GARCH</code>.Default is 
+<code>stdDev</code> where the inverse of residual sample variances are used as the 
+weights. If using GARCH option, make sure to install and load 
+rugarch package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>lambda value to be used for the EWMA estimation of residual 
+variances. Default is 0.9</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GARCH.params</code></td>
+<td>
+<p>list containing GARCH parameters omega, alpha, and beta. 
+Default values are (0.09, 0.1, 0.81) respectively. Valid only when 
+<code>GARCH.MLE</code> is set to <code>FALSE</code>. Estimation outsourced to the
+rugarch package, please load it first.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GARCH.MLE</code></td>
+<td>
+<p>boolean input (TRUE|FALSE), default value = <code>FALSE</code>. This
+argument allows one to choose to compute GARCH parameters by maximum 
+likelihood estimation. Estimation outsourced to the rugarch
+package, please load it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stdReturn</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, the returns will be standardized 
+using GARCH(1,1) volatilities. Default is <code>FALSE</code>. Make sure to load 
+rugarch package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analysis</code></td>
+<td>
+<p>method used in the analysis of fundamental law of active 
+management; one of "none", "ISM", or "NEW". Default is "none".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetedVol</code></td>
+<td>
+<p>numeric; the targeted portfolio volatility in the analysis. 
+Default is 0.06.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>potentially further arguments passed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fit object of class <code>ffm</code> which is returned by 
+<code>fitFfm</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Estimation method "LS" corresponds to ordinary least squares using 
+<code>lm</code> and "Rob" is robust regression using 
+<code>lmrobdetMM</code>. "WLS" is weighted least squares using estimates 
+of the residual variances from LS regression as weights (feasible GLS). 
+Similarly, "W-Rob" is weighted robust regression.
+</p>
+<p>The weights to be used in "WLS" or "W-Rob" can be set using 
+<code>resid.scaleType</code> argument which computes the residual variances in one of the following ways - 
+sample variace, EWMA, Robust EWMA and GARCH(1,1). The inverse of these residual variances
+are used as the weights. For EWMA model, lambda = 0.9 is used as default and for GARCH(1,1) 
+omega = 0.09, alpha = 0.1, and beta = 0.81 are used as default as mentioned in Martin &amp; Ding (2017).
+These default parameters can be changed using the arguments <code>lambda</code>, 
+<code>GARCH.params</code> for EWMA and GARCH respectively. To compute GARCH 
+parameters via MLE, set <code>GARCH.MLE</code> to <code>TRUE</code>. Make sure you have
+the rugarch package installed and loaded, as is merely listed as SUGGESTS.
+</p>
+<p>Standardizing style factor exposures: The exposures can be standardized into
+z-scores using regular or robust (see <code>rob.stats</code>) measures of location 
+and scale. Further, <code>weight.var</code>, a variable such as market-cap, can be 
+used to compute the weighted mean exposure, and an equal-weighted standard 
+deviation of the exposures about the weighted mean. This may help avoid an 
+ill-conditioned covariance matrix. Default option equally weights exposures 
+of different assets each period. 
+</p>
+<p>If <code>rob.stats=TRUE</code>, <code>covRob</code> is used to compute a 
+robust estimate of the factor covariance/correlation matrix, and, 
+<code>scaleTau2</code> is used to compute robust tau-estimates 
+of univariate scale for residuals during "WLS" or "W-Rob" regressions. When 
+standardizing style exposures, the <code>median</code> and 
+<code>mad</code> are used for location and scale respectively.
+When <code>resid.scaleType</code> is EWMA or GARCH, the residual covariance is equal to the 
+diagonal matrix of the estimated residual variances in last time period.
+</p>
+<p>The original function was designed by Doug Martin and initially implemented
+in S-PLUS by a number of University of Washington Ph.D. students:
+Christopher Green, Eric Aldrich, and Yindeng Jiang. Guy Yollin ported the
+function to R and Yi-An Chen modified that code. Sangeetha Srinivasan
+re-factored, tested, corrected and expanded the functionalities and S3 
+methods.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fitFfm</code> returns an object of class <code>"ffm"</code> for which 
+<code>print</code>, <code>plot</code>, <code>predict</code> and <code>summary</code> methods exist. 
+</p>
+<p>The generic accessor functions <code>coef</code>, <code>fitted</code> and 
+<code>residuals</code> extract various useful features of the fit object. 
+Additionally, <code>fmCov</code> computes the covariance matrix for asset returns 
+based on the fitted factor model.
+</p>
+<p>An object of class <code>"ffm"</code> is a list containing the following 
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>factor.fit</code></td>
+<td>
+<p>list of fitted objects that estimate factor returns in each 
+time period. Each fitted object is of class <code>lm</code> if 
+<code>fit.method="LS" or "WLS"</code>, or, class <code>lmrobdetMM</code> if 
+<code>fit.method="Rob" or "W-Rob"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>N x K matrix of factor exposures for the last time period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.returns</code></td>
+<td>
+<p>xts object of K-factor returns (including intercept).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>xts object of residuals for N-assets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r2</code></td>
+<td>
+<p>length-T vector of R-squared values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.cov</code></td>
+<td>
+<p>K x K covariance matrix of the factor returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g.cov</code></td>
+<td>
+<p> covariance matrix of the g coefficients for a Sector plus market and Sector plus Country plus global market models .</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.cov</code></td>
+<td>
+<p>N x N covariance matrix of residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.cov</code></td>
+<td>
+<p>N x N return covariance estimated by the factor model, 
+using the factor exposures from the last time period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restriction.mat</code></td>
+<td>
+<p>The restriction matrix used in the computation of f=Rg.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.var</code></td>
+<td>
+<p>N x T matrix of estimated residual variances. It will be a length-N vector of sample residual variances when <code>resid.scaleType</code> is set to <code>stdDev</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame object as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.var</code></td>
+<td>
+<p>date.var as input</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ret.var</code></td>
+<td>
+<p>ret.var as input</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asset.var</code></td>
+<td>
+<p>asset.var as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exposure.vars</code></td>
+<td>
+<p>exposure.vars as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight.var</code></td>
+<td>
+<p>weight.var as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.method</code></td>
+<td>
+<p>fit.method as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asset.names</code></td>
+<td>
+<p>length-N vector of asset names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.names</code></td>
+<td>
+<p>length-K vector of factor.names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.periods</code></td>
+<td>
+<p>length-T vector of dates.</p>
+</td>
+</tr>
+</table>
+<p>Where N is the number of assets, K is the number of factors (including the 
+intercept or dummy variables) and T is the number of unique time periods.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>activeWeights</code></td>
+<td>
+<p>active weights obtaining from the fundamental law of active management</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>activeReturns</code></td>
+<td>
+<p>active returns corresponding to the active weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IR</code></td>
+<td>
+<p>the vector of Granold-K, asymptotic IR, and finite-sample IR.</p>
+</td>
+</tr>
+</table>
+<p>Where N is the number of assets, K is the number of factors (including the 
+intercept or dummy variables) and T is the number of unique time periods.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sangeetha Srinivasan, Guy Yollin,  Yi-An Chen, Avinash Acharya and Chindhanai Uthaisaad
+</p>
+
+
+<h3>References</h3>
+
+<p>Menchero, J. (2010). The Characteristics of Factor Portfolios. Journal of
+Performance Measurement, 15(1), 52-62.
+</p>
+<p>Grinold, R. C., &amp; Kahn, R. N. (2000). Active portfolio management (Second
+Ed.). New York: McGraw-Hill.
+</p>
+<p>Ding, Z. and Martin, R. D. (2016). "The Fundamental Law of Active Management Redux", SSRN 2730434.
+</p>
+<p>And, the following extractor functions: <code>coef</code>, 
+<code>fitted</code>, <code>residuals</code>,
+<code>fmCov</code>, <code>fmSdDecomp</code>, <code>fmVaRDecomp</code> 
+and <code>fmEsDecomp</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(PCRA)
+# load data 
+data(stocksCRSP)
+data(factorsSPGMI)
+dateRange &lt;- c("2006-01-31","2010-12-31")
+stockItems &lt;-  c("Date", "TickerLast", "CapGroupLast", "Return",
+                "Ret13WkBill","MktIndexCRSP","Sector")
+                factorItems &lt;- c("BP","Beta60M","PM12M1M")
+stocks_factors &lt;- selectCRSPandSPGMI("monthly", dateRange = dateRange, 
+stockItems = stockItems, factorItems = factorItems, outputType ="data.table")
+                                    
+
+# fit a fundamental factor model with style variables BP and LogMktCap
+
+fundamental_model &lt;- fitFfm(data = stocks_factors, 
+                           asset.var = "TickerLast", 
+                           ret.var = "Return", 
+                           date.var = "Date", 
+                           exposure.vars = c("BP", "PM12M1M")
+                           )
+
+  summary(fundamental_model)
+
+# Fit a Fundamental Sector Factor Model with Intercept
+ 
+ sector_model &lt;- fitFfm(data = stocks_factors, 
+                        asset.var = "TickerLast", 
+                        ret.var = "Return", 
+                        date.var = "Date", 
+                        exposure.vars = c("Sector", "BP"),
+                        addIntercept = TRUE)
+
+ summary(sector_model)
+
+               
+
+</code></pre>
+
+
+</div>

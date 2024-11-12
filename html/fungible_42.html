@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>faSort</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sort a factor loadings matrix</h2>
+
+<h3>Description</h3>
+
+<p>faSort takes an unsorted factor pattern or structure matrix and returns a
+sorted matrix with (possibly) reflected columns. Sorting is done such that
+variables that load on a common factor are grouped together for ease of
+interpretation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">faSort(fmat, phi = NULL, BiFactor = FALSE, salient = 0.25, reflect = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fmat</code></td>
+<td>
+<p>factor loadings (pattern or structure) matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>factor correlation matrix. Default = NULL. If reflect = TRUE then
+phi will be corrected to match the new factor orientations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BiFactor</code></td>
+<td>
+<p>(logical) Is the solution a bifactor model?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>salient</code></td>
+<td>
+<p>factor markers with loadings &gt;= abs(salient) will be saved in
+the markers list. Note that a variable can be a marker of more than one
+factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reflect</code></td>
+<td>
+<p>(logical) if reflect = TRUE then the factors will be
+reflected such that salient loadings are mostly positive. Default <code>Reflect = TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>loadings</code></td>
+<td>
+<p>sorted factor loadings matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>reflected factor correlation matrix when phi is given as an argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>markers</code></td>
+<td>
+<p>A list of factor specific markers with loadings &gt;=
+abs(salient). Markers are sorted by the absolute value of the salient factor
+loadings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortOrder</code></td>
+<td>
+<p>sorted row numbers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SEmat</code></td>
+<td>
+<p>The SEmat is a
+so-called Start-End matrix that lists the first (start) and last (end) row
+for each factor in the sorted pattern matrix.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Niels Waller
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fals</code>
+</p>
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(123)
+F &lt;- matrix( c( .5,  0, 
+                .6,  0,
+                 0, .6,
+                .6,  0,
+                 0, .5,
+                .7,  0,
+                 0, .7,
+                 0, .6), nrow = 8, ncol = 2, byrow=TRUE)
+
+Rex1 &lt;- F %*% t(F); diag(Rex1) &lt;- 1
+
+Items &lt;- c("1. I am often tense.\n",
+           "2. I feel anxious much of the time.\n",
+           "3. I am a naturally curious individual.\n",
+           "4. I have many fears.\n",
+           "5. I read many books each year.\n",
+           "6. My hands perspire easily.\n",
+           "7. I have many interests.\n",
+           "8. I enjoy learning new words.\n")
+
+exampleOut &lt;- fals(R = Rex1, nfactors = 2)
+
+# Varimax rotation
+Fload &lt;- varimax(exampleOut$loadings)$loadings[]
+
+# Add some row labels
+rownames(Fload) &lt;- paste0("V", 1:nrow(Fload))
+
+cat("\nUnsorted fator loadings\n")
+print(round( Fload, 2) )
+
+# Sort items and reflect factors
+out1 &lt;- faSort(fmat = Fload, 
+               salient = .25, 
+               reflect = TRUE)
+               
+FloadSorted &lt;- out1$loadings
+
+cat("\nSorted fator loadings\n")
+print(round( FloadSorted, 2) )
+
+# Print sorted items
+cat("\n Items sorted by Factor\n")
+cat("\n",Items[out1$sortOrder])
+</code></pre>
+
+
+</div>

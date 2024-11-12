@@ -1,0 +1,374 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BiFAD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bifactor Analysis via Direct Schmid-Leiman (DSL) Transformations</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the (rank-deficient) Direct Schmid-Leiman (DSL) bifactor solution as well as the (full-rank) Direct Bifactor (DBF) solution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BiFAD(
+  R,
+  B = NULL,
+  numFactors = NULL,
+  facMethod = "fals",
+  rotate = "oblimin",
+  salient = 0.25,
+  rotateControl = NULL,
+  faControl = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>(Matrix) A correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>(Matrix) Bifactor target matrix. If B is NULL the program will create an empirically defined target matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFactors</code></td>
+<td>
+<p>(Numeric) The number of group factors to estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facMethod</code></td>
+<td>
+<p>(Character) The method used for factor extraction 
+(<code>faX</code>). The supported options are "fals" for unweighted least 
+squares, "faml" for maximum likelihood, "fapa" for iterated principal axis 
+factoring, "faregLS" for regularized least squares,
+"faregML" for regularized maximum likelihood, and "pca" for principal components 
+analysis. The default method  is "fals". 
+</p>
+
+<ul>
+<li> <p><strong>"fals"</strong>: Factors are extracted using the unweighted least 
+squares estimation procedure using the <code>fals</code> function.
+</p>
+</li>
+<li> <p><strong>"faml"</strong>: Factors are extracted using the maximum likelihood 
+estimation procedure using the <code>factanal</code> function.
+</p>
+</li>
+<li> <p><strong>"fapa"</strong>: Factors are extracted using the iterated principal 
+axis factoring estimation procedure using the <code>fapa</code> function.
+</p>
+</li>
+<li> <p><strong>"faregLS"</strong>: Factors are extracted using regularized 
+least squares factor analysis using the <code>fareg</code> function. 
+</p>
+</li>
+<li> <p><strong>"faregML"</strong>: Factors are extracted using regularized 
+maximum likelihood factor using the <code>fareg</code> function. 
+</p>
+</li>
+<li> <p><strong>"pca"</strong>: Principal components are extracted. 
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotate</code></td>
+<td>
+<p>(Character) Designate which rotation algorithm to apply. See the <code>faMain</code> function for more details about possible rotations. An oblimin rotation is the default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>salient</code></td>
+<td>
+<p>(Numeric) Threshold value for creating an empirical target matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotateControl</code></td>
+<td>
+<p>(List) A list of control values to pass to the factor rotation algorithms.
+</p>
+
+<ul>
+<li> <p><strong>numberStarts</strong>: (Numeric) The number of random (orthogonal) 
+starting configurations for the chosen rotation method (e.g., oblimin). The first
+rotation will always commence from the unrotated factors orientation.
+Defaults to numberStarts = 10. 
+</p>
+</li>
+<li> <p><strong>gamma</strong>: (Numeric) This is a tuning parameter (between 0 
+and 1, inclusive) for an oblimin rotation.  See the <span class="pkg">GPArotation</span> 
+library's oblimin documentation for more details. Defaults to gamma = 0 
+(i.e., a quartimin rotation).
+</p>
+</li>
+<li> <p><strong>delta</strong>: (Numeric) This is a tuning parameter for the geomin
+rotation. It adds a small number (default = .01) to the squared factor 
+loadings before computing the geometric means in the discrepancy function.
+</p>
+</li>
+<li> <p><strong>kappa</strong>: (Numeric) The main parameterization of the 
+Crawford-Ferguson (CF) rotations (i.e., "cfT" and "cfQ" for orthogonal and 
+oblique CF rotation, respectively). Defaults to kappa = 0. 
+</p>
+</li>
+<li> <p><strong>k</strong>: (Numeric) A specific parameter of the simplimax rotation. 
+Defaults to k = the number of observed variables.
+</p>
+</li>
+<li> <p><strong>standardize</strong>: (Character) The standardization routine used 
+on the unrotated factor structure. The three options are "none", "Kaiser", 
+and "CM". Defaults to standardize = "none". 
+</p>
+
+<ul>
+<li> <p><strong>"none"</strong>: No standardization is applied to the unrotated 
+factor structure. 
+</p>
+</li>
+<li> <p><strong>"Kaiser"</strong>: Use a factor structure matrix that has been 
+normed by Kaiser's method (i.e., normalize all rows to have a unit length).
+</p>
+</li>
+<li> <p><strong>"CM"</strong>: Use a factor structure matrix that has been normed
+by the Cureton-Mulaik method.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>epsilon</strong>: (Numeric) The rotational convergence criterion to 
+use. Defaults to epsilon = 1e-5.
+</p>
+</li>
+<li> <p><strong>power</strong>: (Numeric) Raise factor loadings the the n-th power 
+in the <code>promaxQ</code> rotation. Defaults to power = 4.
+</p>
+</li>
+<li> <p><strong>maxItr</strong>: (Numeric) The maximum number of iterations for the 
+rotation algorithm. Defaults to maxItr = 15000.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>faControl</code></td>
+<td>
+<p>(List) A list of optional parameters passed to the factor 
+extraction (<code>faX</code>) function.
+</p>
+
+<ul>
+<li> <p><strong>treatHeywood</strong>: (Logical) In <code>fals</code>, if treatHeywood is 
+true, a penalized least squares function is used to bound the communality 
+estimates below 1.0. Defaults to treatHeywood = TRUE.
+</p>
+</li>
+<li> <p><strong>nStart</strong>: (Numeric) The number of starting values to be tried 
+in <code>faml</code>. Defaults to nStart = 10.
+</p>
+</li>
+<li> <p><strong>start</strong>: (Matrix) NULL or a matrix of starting values, each column 
+giving an initial set of uniquenesses. Defaults to start = NULL. 
+</p>
+</li>
+<li> <p><strong>maxCommunality</strong>: (Numeric) In <code>faml</code>, set the maximum 
+communality value for the estimated solution. Defaults to maxCommunality = .995.
+</p>
+</li>
+<li> <p><strong>epsilon</strong>: (Numeric) In <code>fapa</code>, the numeric threshold 
+designating when the algorithm has converged. Defaults to epsilon = 1e-4.
+</p>
+</li>
+<li> <p><strong>communality</strong>: (Character) The method used to estimate the 
+initial communality values in <code>fapa</code>. Defaults to communality = 'SMC'.
+</p>
+
+<ul>
+<li> <p><strong>"SMC"</strong>: Initial communalities are estimated by taking the 
+squared multiple correlations of each indicator after regressing the 
+indicator on the remaining variables.
+</p>
+</li>
+<li> <p><strong>"maxr"</strong>: Initial communalities equal the largest 
+(absolute value) correlation in each column of the correlation matrix.
+</p>
+</li>
+<li> <p><strong>"unity"</strong>: Initial communalities equal 1.0 for all variables.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>maxItr</strong>: (Numeric) In <code>fapa</code>, the maximum number of 
+iterations to reach convergence. Defaults to maxItr = 15,000.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The following output are returned in addition to the estimated Direct Schmid-Leiman bifactor solution.
+</p>
+
+<ul>
+<li> <p><strong>B</strong>: (Matrix) The target matrix used for the Procrustes rotation.
+</p>
+</li>
+<li> <p><strong>BstarSL</strong>: (Matrix) The resulting (rank-deficient) matrix of Direct Schmid-Leiman factor loadings.
+</p>
+</li>
+<li> <p><strong>BstarFR</strong>: (Matrix) The resulting (full-rank) matrix of Direct Bifactor factor loadings.
+</p>
+</li>
+<li> <p><strong>rmsrSL</strong>: (Scalar) The root mean squared residual (rmsr) between the known B matrix and the estimated (rank-deficient) Direct Schmid-Leiman rotation. If the B target matrix is empirically generated, this value is NULL.
+</p>
+</li>
+<li> <p><strong>rmsrFR</strong>: (Scalar) The root mean squared residual (rmsr) between the known B matrix and the estimated (full-rank) Direct Bifactor rotation. If the B target matrix is empirically generated, this value is NULL.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+
+<ul><li>
+<p> Niels G. Waller (nwaller@umn.edu)
+</p>
+</li></ul>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Giordano, C. &amp; Waller, N. G. (under review). Recovering bifactor models: A comparison of seven methods.
+</p>
+</li>
+<li>
+<p> Mansolf, M., &amp; Reise, S. P. (2016). Exploratory bifactor analysis: The Schmid-Leiman orthogonalization and Jennrich-Bentler analytic rotations. <em>Multivariate Behavioral Research, 51</em>(5), 698-717.
+</p>
+</li>
+<li>
+<p> Waller, N. G. (2018). Direct Schmid Leiman transformations and rank deficient loadings matrices. <em>Psychometrika, 83</em>, 858-870.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">cat("\nExample 1:\nEmpirical Target Matrix:\n")
+# Mansolf and Reise Table 2 Example
+Btrue &lt;- matrix(c(.48, .40,  0,   0,   0,
+                  .51, .35,  0,   0,   0,
+                  .67, .62,  0,   0,   0,
+                  .34, .55,  0,   0,   0,
+                  .44,  0, .45,   0,   0,
+                  .40,  0, .48,   0,   0,
+                  .32,  0, .70,   0,   0,
+                  .45,  0, .54,   0,   0,
+                  .55,  0,   0, .43,   0,
+                  .33,  0,   0, .33,   0,
+                  .52,  0,   0, .51,   0,
+                  .35,  0,   0, .69,   0,
+                  .32,  0,   0,   0, .65,
+                  .66,  0,   0,   0, .51,
+                  .68,  0,   0,   0, .39,
+                  .32,  0,   0,   0, .56), 16, 5, byrow=TRUE)
+
+Rex1 &lt;- Btrue %*% t(Btrue)
+diag(Rex1) &lt;- 1
+
+out.ex1 &lt;- BiFAD(R          = Rex1,
+                 B          = NULL,
+                 numFactors = 4,
+                 facMethod  = "fals",
+                 rotate     = "oblimin",
+                 salient    = .25)
+
+cat("\nRank Deficient Bifactor Solution:\n")
+print( round(out.ex1$BstarSL, 2) )
+
+cat("\nFull Rank Bifactor Solution:\n")
+print( round(out.ex1$BstarFR, 2) )
+
+cat("\nExample 2:\nUser Defined Target Matrix:\n")
+
+Bpattern &lt;- matrix(c( 1,  1,  0,   0,   0,
+                      1,  1,  0,   0,   0,
+                      1,  1,  0,   0,   0,
+                      1,  1,  0,   0,   0,
+                      1,  0,  1,   0,   0,
+                      1,  0,  1,   0,   0,
+                      1,  0,  1,   0,   0,
+                      1,  0,  1,   0,   0,
+                      1,  0,   0,  1,   0,
+                      1,  0,   0,  1,   0,
+                      1,  0,   0,  1,   0,
+                      1,  0,   0,  1,   0,
+                      1,  0,   0,   0,  1,
+                      1,  0,   0,   0,  1,
+                      1,  0,   0,   0,  1,
+                      1,  0,   0,   0,  1), 16, 5, byrow=TRUE)
+
+out.ex2 &lt;- BiFAD(R          = Rex1,
+                 B          = Bpattern,
+                 numFactors = NULL,
+                 facMethod  = "fals",
+                 rotate     = "oblimin",
+                 salient    = .25)
+
+cat("\nRank Deficient Bifactor Solution:\n")
+print( round(out.ex2$BstarSL, 2) )
+
+cat("\nFull Rank Bifactor Solution:\n")
+print( round(out.ex2$BstarFR, 2) )
+
+</code></pre>
+
+
+</div>

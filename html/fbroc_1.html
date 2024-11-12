@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fbroc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>fbroc: A package for fast bootstrap analysis and comparison of ROC curves</h2>
+
+<h3>Description</h3>
+
+<p>Fbroc enables the fast bootstrap analysis and comparison of ROC curves for simulation
+studies and shiny applications by using a fast
+algorithm where the cost of a single bootstrap replicate is <code class="reqn">O(n)</code>, with 
+n denoting the number of observations. The algorithm is implemented in C++ to further
+increase the efficiency. On a typical desktop computer the time needed for the calculation of 
+100000 bootstrap replicates given 500 observations requires time on the order of magnitude 
+of one second. The ROC curve as used shows
+the True Positive Rate (TPR) as a function of the False Positive Rate (FPR). The package also
+support the analysis of paired ROC curves, where we compare two predictions given for the same
+set of samples.
+</p>
+
+
+<h3>Important fbroc functions</h3>
+
+
+<dl>
+<dt><code>boot.roc</code></dt>
+<dd>
+<p>Use <code>boot.roc</code> to bootstrap a ROC curve.</p>
+</dd>
+<dt><code>boot.paired.roc</code></dt>
+<dd>
+<p>Use <code>boot.paired.roc</code> to bootstrap two paired ROC curves.</p>
+</dd>
+<dt><code>conf</code></dt>
+<dd>
+<p>Calculate confidence regions for the ROC curve.</p>
+</dd>
+<dt><code>perf</code></dt>
+<dd>
+<p>Estimate performance and calculate confidence
+intervals.</p>
+</dd>
+</dl>
+<h3>Example Data</h3>
+
+<p>fbroc also contains the example data set roc.examples, 
+which you can use to test the functionality of the
+package. This data set contains simulated data and not an real application.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The algorithm works by first determining the critical thresholds of the ROC
+curve - cutoffs at which the curve changes directions. Each observation is then linked
+to the specific thresholds at which they first cause a change in the TPR
+or FPR. Calculating this link and directly bootstrapping that link
+allows us to construct the bootstrapped ROC
+curve very quickly. Since multiple observation can be linked to the same
+threshold, it is difficult to implement the algorithm efficiently in R. 
+This is why <code>fbroc</code> implements it in C++.
+<br><br>
+When bootstrapping paired ROC curves, the packages takes care of using the same set of samples
+for both predictors in each iteration of the bootstrap. This preserves the correlation structure
+between both predictors.
+<br><br>
+All bootstrap confidence interval are based on the percentile method.
+</p>
+
+
+<h3>Notes</h3>
+
+<p>Package <code>fbroc</code> is still in an early development stage. Currently it supports bootstrapping
+the confidence region of single and paired ROC curves, as well as the AUC, partial AUC, 
+the FPR at a fixed TPR and vice versa.
+More sophisticated bootstrap confidence interval 
+calculation and improved documentation will be added at a later time.
+</p>
+
+
+<h3>References</h3>
+
+<p>Efron, B., &amp; Tibshirani, R. (1998). <em>An introduction to the bootstrap.</em>
+Boca Raton, Fla: Chapman &amp; Hall/CRC.
+</p>
+<p>Donna Katzman McClish. (1989). <em>Analyzing a Portion of the ROC Curve.</em>
+Medical Decision Making, <a href="http://mdm.sagepub.com/content/9/3/190.abstract">http://mdm.sagepub.com/content/9/3/190.abstract</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(roc.examples)
+# work with a single ROC curves
+result.boot &lt;- boot.roc(roc.examples$Cont.Pred, roc.examples$True.Class, n.boot = 100)
+plot(result.boot)
+perf(result.boot, "auc")
+perf(result.boot, "auc", conf.level = 0.99)
+perf(result.boot, "tpr", conf.level = 0.95, fpr = 0.1)
+conf(result.boot, steps = 10)
+# work with paired ROC curves
+result.boot &lt;- boot.paired.roc(roc.examples$Cont.Pred, roc.examples$Cont.Pred.Outlier, 
+                               roc.examples$True.Class, n.boot = 100)
+plot(result.boot)
+perf(result.boot, "auc")
+perf(result.boot, "auc", conf.level = 0.99)
+perf(result.boot, "tpr", conf.level = 0.95, fpr = 0.1)
+conf(result.boot, steps = 10)
+</code></pre>
+
+
+</div>

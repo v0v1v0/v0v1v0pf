@@ -1,0 +1,256 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>causality_pred</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Out-of-sample Tests of Granger Causality</h2>
+
+<h3>Description</h3>
+
+<p>Test for Granger causality using out-of-sample prediction errors from an
+autoregression (AR) model, where some of the near-contemporaneous lags can be removed:
+</p>
+<p style="text-align: center;"><code class="reqn">Y_t = \sum_{i=1}^{p1}\alpha_iY_{t-i} + \sum_{i=lag.restrict+1}^{p2}\beta_iX_{t-i} + e_t,</code>
+</p>
+
+<p>where <code class="reqn">Y_t</code> is the dependent variable,
+<code class="reqn">X_t</code> is the cause variable,
+<code class="reqn">p1</code> and <code class="reqn">p2</code> are the AR orders (if <code>p.free = FALSE</code>, <code class="reqn">p1 = p2</code>),
+<code class="reqn">lag.restrict</code> is the number of restricted first lags (see the argument <code>lag.restrict</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">causality_pred(
+  y,
+  cause = NULL,
+  p = NULL,
+  p.free = FALSE,
+  lag.restrict = 0L,
+  lag.max = NULL,
+  k = 2,
+  B = 500L,
+  test = 0.3,
+  cl = 1L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>matrix, data frame, or <code>ts</code> object with two columns
+(a dependent and an explanatory time-series variable). Missing values are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cause</code></td>
+<td>
+<p>name of the cause variable. If not specified, the first variable in
+<code>y</code> is treated as the dependent variable and the second is treated as the cause.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>a vector of one or two positive integers specifying the order <code class="reqn">p</code> of
+autoregressive dependence. The input of length one is recycled, then <code>p[1]</code> is used for
+the dependent variable and <code>p[2]</code> is used for the cause variable.
+The user must specify <code>p</code> or <code>lag.max</code>.
+If <code>lag.max</code> is specified, the argument <code>p</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.free</code></td>
+<td>
+<p>logical value indicating whether the autoregressive orders for the
+dependent and cause variables should be selected independently.
+The default <code>p.free = FALSE</code> means the same autoregressive order is
+selected for both variables. Note that if <code>p.free = TRUE</code> and <code>lag.max</code> is specified,
+then <code>lag.max[1] * (lag.max[2] - lag.restrict)</code> models are compared,
+which might be slow depending on the maximal lags and sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag.restrict</code></td>
+<td>
+<p>integer for the number of short-term lags in the cause variable
+to remove from consideration (default is zero, meaning no lags are removed).
+This setting does not affect the dependent variable lags that are always present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag.max</code></td>
+<td>
+<p>a vector of one or two positive integers for the highest lag orders to explore.
+The input of length one is recycled, then <code>lag.max[1]</code> used for
+the dependent variable and <code>lag.max[2]</code> is used for the cause variable.
+The order is then selected using the Akaike information criterion (AIC; default),
+see the argument <code>k</code> to change the criterion.
+<code>lag.max</code> of length 2 automatically sets <code>p.free = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric scalar specifying the weight of the equivalent degrees of freedom part
+in the AIC formula. Default <code>k = 2</code> corresponds to the traditional AIC.
+Use <code>k = log(n)</code> to use the Bayesian information criterion instead
+(see <code>extractAIC</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap replications. Default is 500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>a numeric value specifying the size of the testing set. If <code>test</code> &lt; 1,
+the value is treated as a proportion of the sample size to be used as the testing set.
+Otherwise, <code>test</code> is treated as the number of the most recent values to be used as the testing set.
+Default is 0.3, which means that 30% of the sample is used for calculating
+out-of-sample errors. The testing set is always at the end of the time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>parameter to specify computer cluster for bootstrapping passed to
+the package <code>parallel</code> (default <code>cl = 1</code>, means no cluster is used).
+Possible values are:
+</p>
+
+<ul>
+<li>
+<p> cluster object (list) produced by makeCluster.
+In this case, a new cluster is not started nor stopped;
+</p>
+</li>
+<li> <p><code>NULL</code>. In this case, the function will detect
+available cores (see detectCores) and, if there are
+multiple cores (<code class="reqn">&gt;1</code>), a cluster will be started with
+makeCluster. If started, the cluster will be stopped
+after the computations are finished;
+</p>
+</li>
+<li>
+<p> positive integer defining the number of cores to start a cluster.
+If <code>cl = 1</code> (default), no attempt to create a cluster will be made.
+If <code>cl</code> &gt; 1, a cluster will be started (using makeCluster)
+and stopped afterward (using stopCluster).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The tests include the MSE-t approach (McCracken 2007) and
+MSE-correlation test as in Chapter 9.3 of Granger and Newbold (1986).
+The bootstrap is used to empirically derive distributions of the statistics.
+</p>
+<p>In the implemented bootstrapping, residuals of the restricted model under the null hypothesis of no Granger
+causality are bootstrapped to generate new data under the null hypothesis. Then, the full and restricted
+models are re-estimated on the bootstrapped data to obtain new (bootstrapped) forecast errors.
+</p>
+<p>In the current implementation, the bootstrapped <code class="reqn">p</code>-value is calculated using Equation 4.10 in
+Davison and Hinkley (1997): <code>p.value</code> = (1 + <code class="reqn">n</code>) / (<code>B</code> + 1),
+where <code class="reqn">n</code> is the number of bootstrapped statistics smaller or equal to the observed statistic.
+</p>
+<p>This function tests the Granger causation
+of <code class="reqn">X</code> to <code class="reqn">Y</code> or from <code class="reqn">Y</code> to <code class="reqn">X</code>
+(to test in both directions, need to run the function twice, with different argument <code>cause</code>).
+To use the symmetric vector autoregression (VAR), use the function <code>causality_predVAR</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p>a table with the observed values of the test statistics and <code class="reqn">p</code>-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cause</code></td>
+<td>
+<p>the cause variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>the AR orders used for the dependent variable (<code>p[1]</code>) and for the cause variable (<code>p[2]</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Vyacheslav Lyubchich
+</p>
+
+
+<h3>References</h3>
+
+<p>Davison AC, Hinkley DV (1997).
+<em>Bootstrap Methods and Their Application</em>.
+Cambridge University Press, Cambridge.<br><br> Granger CWJ, Newbold P (1986).
+<em>Forecasting economic time series</em>, 2 edition.
+Academic Press.<br><br> McCracken MW (2007).
+“Asymptotics for out of sample tests of Granger causality.”
+<em>Journal of Econometrics</em>, <b>140</b>(2), 719–752.
+<a href="https://doi.org/10.1016/j.jeconom.2006.07.020">doi:10.1016/j.jeconom.2006.07.020</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>causality_predVAR</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Example 1: Canada time series (ts object)
+Canada &lt;- vars::Canada
+causality_pred(Canada[,1:2], cause = "e", lag.max = 5, p.free = TRUE)
+causality_pred(Canada[,1:2], cause = "e", lag.restrict = 3, lag.max = 15, p.free = TRUE)
+
+# Example 2 (run in parallel, initiate the cluster automatically)
+# Box &amp; Jenkins time series
+# of sales and a leading indicator, see ?BJsales
+
+D &lt;- cbind(BJsales.lead, BJsales)
+causality_pred(D, cause = "BJsales.lead", lag.max = 5, B = 1000, cl = NULL)
+
+# Example 3 (run in parallel, initiate the cluster manually)
+
+# Initiate a local cluster
+cores &lt;- parallel::detectCores()
+cl &lt;- parallel::makeCluster(cores)
+parallel::clusterSetRNGStream(cl, 123) # to make parallel computations reproducible
+
+causality_pred(D, cause = "BJsales.lead", lag.max = 5, B = 1000, cl = cl)
+causality_pred(D, cause = "BJsales.lead", lag.restrict = 3, p = 5, B = 1000, cl = cl)
+parallel::stopCluster(cl)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>print.FRESHD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Print Function for objects of Class FRESHD</h2>
+
+<h3>Description</h3>
+
+<p>This function will print some information about the FRESHD object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FRESHD'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a FRESHD object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A three-column data.frame with columns 'sparsity', 'Df' and 'lambda'.
+The 'Df' column is the number of nonzero coefficients and 'sparsity' is the 
+percentage   of zeros in the solution.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The data.frame above is silently returned
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Adam Lund
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##size of example
+set.seed(42)
+G &lt;- 50; n &lt;- c(65, 26, 13); p &lt;- c(13, 5, 4)
+sigma &lt;-0.1
+nlambda =30
+##marginal design matrices (Kronecker components)
+x &lt;- list()
+for(i in 1:length(n)){x[[i]] &lt;- matrix(rnorm(n[i] * p[i],0,sigma), n[i], p[i])}
+
+##common features and effects
+common_features &lt;- rbinom(prod(p), 1, 0.1)
+common_effects &lt;- rnorm(prod(p), 0, 0.1) * common_features
+
+##group response and fit
+lambda &lt;- exp(seq(0, -5, length.out = nlambda))
+B &lt;- array(NA, c(prod(p), nlambda, G))
+y &lt;- array(NA, c(n, G))
+for(g in 1:G){
+bg &lt;- rnorm(prod(p), 0, 0.1) * (1 - common_features) + common_effects
+Bg &lt;- array(bg, p)
+mu &lt;- RH(x[[3]], RH(x[[2]], RH(x[[1]], Bg)))
+y[,,, g] &lt;- array(rnorm(prod(n), 0, var(mu)), dim = n) + mu
+}
+
+##fit model for range of lambda
+system.time(fit &lt;- maximin(y, x, penalty = "lasso", alg = "tos"))
+Betahat &lt;- fit$coef
+
+##estimated common effects for specific lambda
+modelno &lt;- 20;
+m &lt;- min(Betahat[, modelno], common_effects)
+M &lt;- max(Betahat[, modelno], common_effects)
+plot(common_effects, type = "h", ylim = c(m, M), col = "red")
+lines(Betahat[, modelno], type = "h")
+
+</code></pre>
+
+
+</div>

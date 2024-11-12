@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rean_cna</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>rean_cna</h2>
+
+<h3>Description</h3>
+
+<p>Perform a reanalysis series on a data set with <code>cna()</code> using
+all combinations of consistency and coverage threshold values in a given
+range of values
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rean_cna(x, attempt = seq(1, 0.7, -0.1), ncsf = deprecated(),
+output = c("csf", "asf", "msc"),
+n.init = 1000, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>data.frame</code> or <code>configTable</code> to be analyzed with <code>cna()</code>. In case of multi-value or fuzzy-set data, the data type must be indicated by <code>type = "mv"</code> and <code>type = "fs"</code>, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attempt</code></td>
+<td>
+<p>Numeric vector that contains the values from which
+combinations of consistency and coverage thresholds are formed, to be used
+in the analyses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncsf</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Allowed for backward compatibility, due to be dropped in future
+versions. Please use <code>n.init</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Character vector that determines whether csfs, asfs, or mscs are
+returned; <code>"csf"</code> (default) returns csfs, <code>"asf"</code> asfs,
+and <code>"msc"</code> mscs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.init</code></td>
+<td>
+<p>Integer that determines the maximum number of csfs built in
+the analyses. See <code>csf()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any arguments to be passed to <code>cna()</code> except <code>con</code>, <code>cov</code> or
+<code>con.msc</code>. The effect of argument <code>what</code> is overriden
+by <code>output</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>rean_cna()</code> performs a reanalysis series of a data set <code>x</code>, which constitutes the first
+computational phase of fit-robustness scoring as introduced in Parkkinen and Baumgartner (2021). The  series consists of <code>cna()</code> calls at all combinatorially possible consistency and coverage settings drawn from the vector <code>attempt</code>. If the <code>output</code> argument is set to its default value <code>"csf"</code>, <code>rean_cna()</code> returns complex solutions formulas (csf), in case of <code>"asf"</code> only atomic solution formulas ("asf") are built, which is faster. The argument <code>n.init</code> allows for controlling the number of csf to be built, if <code>output = "csf"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list where each element is a data frame containing the results of
+a single analysis of the input data set with <code>cna()</code>, each using a
+different combination of consistency and coverage threshold values. These
+values are added to the output as extra columns 'cnacon' and 'cnacov'.
+</p>
+
+
+<h3>References</h3>
+
+<p>V.P. Parkkinen and M. Baumgartner (2021), “Robustness and Model Selection in Configurational Causal Modeling,” <em>Sociological Methods and Research</em>, doi:10.1177/0049124120986200.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frscore()</code>, <code>cna()</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Crisp-set data
+sols1 &lt;- rean_cna(d.error, attempt = seq(1, 0.8, -0.1))
+sols1 &lt;- do.call(rbind, sols1)
+sols1
+
+# Multi-value data
+sols2 &lt;- rean_cna(d.pban, type = "mv", attempt = seq(0.9, 0.7, -0.1),
+                  ordering = list("T", "PB"), strict = TRUE)
+sols2 &lt;- do.call(rbind, sols2)
+sols2
+
+# Fuzzy-set data
+sols3 &lt;- rean_cna(d.jobsecurity, type = "fs", attempt = seq(0.9, 0.7, -0.1),
+                  ordering = list("JSR"), strict = TRUE) # execution takes a couple of seconds
+sols3 &lt;- do.call(rbind, sols2)
+sols3
+</code></pre>
+
+
+</div>

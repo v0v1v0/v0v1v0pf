@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>export_model_vimp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract and export model-based variable importance.</h2>
+
+<h3>Description</h3>
+
+<p>Extract and export model-based variable importance from a
+familiarCollection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">export_model_vimp(
+  object,
+  dir_path = NULL,
+  aggregate_results = TRUE,
+  aggregation_method = waiver(),
+  rank_threshold = waiver(),
+  export_collection = FALSE,
+  ...
+)
+
+## S4 method for signature 'familiarCollection'
+export_model_vimp(
+  object,
+  dir_path = NULL,
+  aggregate_results = TRUE,
+  aggregation_method = waiver(),
+  rank_threshold = waiver(),
+  export_collection = FALSE,
+  ...
+)
+
+## S4 method for signature 'ANY'
+export_model_vimp(
+  object,
+  dir_path = NULL,
+  aggregate_results = TRUE,
+  aggregation_method = waiver(),
+  rank_threshold = waiver(),
+  export_collection = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>familiarCollection</code> object, or other other objects from which
+a <code>familiarCollection</code> can be extracted. See details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir_path</code></td>
+<td>
+<p>Path to folder where extracted data should be saved. <code>NULL</code>
+will allow export as a structured list of data.tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregate_results</code></td>
+<td>
+<p>Flag that signifies whether results should be
+aggregated for export.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregation_method</code></td>
+<td>
+<p>(<em>optional</em>) The method used to aggregate variable
+importances over different data subsets, e.g. bootstraps. The following
+methods can be selected:
+</p>
+
+<ul>
+<li> <p><code>mean</code> (default): Use the mean rank of a feature over the subsets to
+determine the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>median</code>: Use the median rank of a feature over the subsets to determine
+the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>best</code>: Use the best rank the feature obtained in any subset to determine
+the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>worst</code>: Use the worst rank the feature obtained in any subset to
+determine the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>stability</code>: Use the frequency of the feature being in the subset of
+highly ranked features as measure for the aggregated feature rank
+(Meinshausen and Buehlmann, 2010).
+</p>
+</li>
+<li> <p><code>exponential</code>: Use a rank-weighted frequence of occurrence in the subset
+of highly ranked features as measure for the aggregated feature rank (Haury
+et al., 2011).
+</p>
+</li>
+<li> <p><code>borda</code>: Use the borda count as measure for the aggregated feature rank
+(Wald et al., 2012).
+</p>
+</li>
+<li> <p><code>enhanced_borda</code>: Use an occurrence frequency-weighted borda count as
+measure for the aggregated feature rank (Wald et al., 2012).
+</p>
+</li>
+<li> <p><code>truncated_borda</code>: Use borda count computed only on features within the
+subset of highly ranked features.
+</p>
+</li>
+<li> <p><code>enhanced_truncated_borda</code>: Apply both the enhanced borda method and the
+truncated borda method and use the resulting borda count as the aggregated
+feature rank.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank_threshold</code></td>
+<td>
+<p>(<em>optional</em>) The threshold used to define the subset of
+highly important features. If not set, this threshold is determined by
+maximising the variance in the occurrence value over all features over the
+subset size.
+</p>
+<p>This parameter is only relevant for <code>stability</code>, <code>exponential</code>,
+<code>enhanced_borda</code>, <code>truncated_borda</code> and <code>enhanced_truncated_borda</code> methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_collection</code></td>
+<td>
+<p>(<em>optional</em>) Exports the collection if TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>as_familiar_collection</code>
+</p>
+
+<dl>
+<dt><code>familiar_data_names</code></dt>
+<dd>
+<p>Names of the dataset(s). Only used if the <code>object</code>
+parameter is one or more <code>familiarData</code> objects.</p>
+</dd>
+<dt><code>collection_name</code></dt>
+<dd>
+<p>Name of the collection.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Data, such as model performance and calibration information, is
+usually collected from a <code>familiarCollection</code> object. However, you can also
+provide one or more <code>familiarData</code> objects, that will be internally
+converted to a <code>familiarCollection</code> object. It is also possible to provide a
+<code>familiarEnsemble</code> or one or more <code>familiarModel</code> objects together with the
+data from which data is computed prior to export. Paths to the previous
+files can also be provided.
+</p>
+<p>All parameters aside from <code>object</code> and <code>dir_path</code> are only used if <code>object</code>
+is not a <code>familiarCollection</code> object, or a path to one.
+</p>
+<p>Variable importance is based on the ranking produced by model-specific
+variable importance routines, e.g. permutation for random forests. If such a
+routine is absent, variable importance is based on the feature selection
+method that led to the features included in the model. In case multiple
+models (<code>familiarModel</code> objects) are combined, feature ranks are first
+aggregated using the method defined by the <code>aggregation_method</code>, some of
+which require a <code>rank_threshold</code> to indicate a subset of most important
+features.
+</p>
+<p>Information concerning highly similar features that form clusters is
+provided as well. This information is based on consensus clustering of the
+features that were used in the signatures of the underlying models. This
+clustering information is also used during aggregation to ensure that
+co-clustered features are only taken into account once.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.table (if <code>dir_path</code> is not provided), or nothing, as all data
+is exported to <code>csv</code> files.
+</p>
+
+
+</div>

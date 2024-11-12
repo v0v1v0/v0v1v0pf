@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FClust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional clustering and identifying substructures of longitudinal data</h2>
+
+<h3>Description</h3>
+
+<p>Default:  Cluster functional data using the functional principal component (FPC) scores obtained from the data
+FPC analysis using EMCluster (Chen and Maitra, 2015) or directly clustering the functional data using kCFC (Chiou and Li, 2007).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FClust(Ly, Lt, k = 3, cmethod = "EMCluster", optnsFPCA = NULL, optnsCS = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ly</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual. Missing values specified by <code>NA</code>s are supported for dense case (<code>dataType='dense'</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual corresponding to y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>A scalar defining the number of clusters to define; default 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cmethod</code></td>
+<td>
+<p>A string specifying the clustering method to use ('EMCluster' or 'kCFC'); default: 'EMCluster'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optnsFPCA</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code> to be used for by FPCA on the sample y; by default: 
+"list( methodMuCovEst ='smooth', FVEthreshold= 0.90, methodBwCov = 'GCV', methodBwMu = 'GCV' )". See ‘Details in ?FPCA’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optnsCS</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code> to be used for cluster-specific FPCA from kCFC; by default:
+"list( methodMuCovEst ='smooth', FVEthreshold= 0.70, methodBwCov = 'GCV', methodBwMu = 'GCV' )". See ‘Details in ?FPCA’ and '?kCFC'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Within EMCluster, uses the model initiated <code>EMCluster::em.EM</code> and returns the optimal model based on <code>EMCluster::emcluster</code>. 
+See ?EMCluster::emcluster for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>A vector of levels 1:k, indicating the cluster to which each curve is allocated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fpca</code></td>
+<td>
+<p>An FPCA object derived from the sample used by Rmixmod, otherwise NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterObj</code></td>
+<td>
+<p>Either a EMCluster object or kCFC object.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Wei-Chen Chen and Ranjan Maitra, "EMCluster: EM Algorithm for Model-Based Clustering of Finite Mixture Gaussian Distribution". (2015)</cite>
+</p>
+<p><cite>Julien Jacques and Cristian Preda, "Funclust: A curves clustering method using functional random variables density approximation". Neurocomputing 112 (2013): 164-171</cite>
+</p>
+<p><cite>Jeng-Min Chiou and Pai-Ling Li, "Functional clustering and identifying substructures of longitudinal data". Journal of the Royal Statistical Society B 69 (2007): 679-699</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(medfly25)
+Flies &lt;- MakeFPCAInputs(medfly25$ID, medfly25$Days, medfly25$nEggs) 
+newClust &lt;- FClust(Flies$Ly, Flies$Lt, k = 2, optnsFPCA = 
+                    list(methodMuCovEst = 'smooth', userBwCov = 2, FVEthreshold = 0.90))
+                    
+# We denote as 'veryLowCount' the group of flies that lay less
+# than twenty-five eggs during the 25-day period examined.
+
+veryLowCount = ifelse( sapply( unique(medfly25$ID), function(u) 
+                   sum( medfly25$nEggs[medfly25$ID == u] )) &lt; 25, 0, 1)
+N &lt;- length(unique(medfly25$ID))
+(correctRate &lt;- sum( (1 + veryLowCount) ==  newClust$cluster) / N) # 99.6%
+
+</code></pre>
+
+
+</div>

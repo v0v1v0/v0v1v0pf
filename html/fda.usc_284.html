@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rdir.pc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data-driven sampling of random directions guided by sample of functional
+data</h2>
+
+<h3>Description</h3>
+
+<p>Generation of random directions based on the principal components <code class="reqn">\hat
+e_1,\ldots,\hat e_k</code> of a sample of functional data
+<code class="reqn">X_1,\ldots,X_n</code>. The random directions are sampled as
+</p>
+<p style="text-align: center;"><code class="reqn">h=\sum_{j=1}^kh_j\hat e_j,</code>
+</p>
+<p> with
+<code class="reqn">h_j\sim\mathcal{N}(0, \sigma_j^2)</code>,
+<code class="reqn">j=1,\ldots,k</code>. Useful for sampling non-orthogonal random
+directions <code class="reqn">h</code> such that they are non-orthogonal for the random
+sample.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rdir.pc(
+  n,
+  X.fdata,
+  ncomp = 0.95,
+  fdata2pc.obj = fdata2pc(X.fdata, ncomp = min(length(X.fdata$argvals), nrow(X.fdata))),
+  sd = 0,
+  zero.mean = TRUE,
+  norm = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of curves to be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.fdata</code></td>
+<td>
+<p>an <code>fdata</code> object used to compute the
+functional principal components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncomp</code></td>
+<td>
+<p>if an integer vector is provided, the index for the principal
+components to be considered. If a threshold between <code>0</code> and <code>1</code> is
+given, the number of components <code class="reqn">k</code> is determined automatically as
+the minimum number that explains at least the <code>ncomp</code> proportion of the
+total variance of <code>X.fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdata2pc.obj</code></td>
+<td>
+<p>output of <code>fdata2pc</code> containing as
+many components as the ones to be selected by <code>ncomp</code>. Otherwise, it is
+computed internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd</code></td>
+<td>
+<p>if <code>0</code>, the standard deviations <code class="reqn">\sigma_j</code> are estimated
+by the standard deviations of the scores for <code class="reqn">e_j</code>. If not, the
+<code class="reqn">\sigma_j</code>'s are set to <code>sd</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zero.mean</code></td>
+<td>
+<p>whether the projections should have zero mean. If not, the
+mean is set to the mean of <code>X.fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norm</code></td>
+<td>
+<p>whether the samples should be L2-normalized or not.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>fdata</code> object with the sampled directions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eduardo Garcia-Portugues (<a href="mailto:edgarcia@est-econ.uc3m.es">edgarcia@est-econ.uc3m.es</a>) and
+Manuel Febrero-Bande (<a href="mailto:manuel.febrero@usc.es">manuel.febrero@usc.es</a>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Simulate some data
+set.seed(345673)
+X.fdata &lt;- r.ou(n = 200, mu = 0, alpha = 1, sigma = 2, t = seq(0, 1, l = 201), 
+                x0 = rep(0, 200))
+pc &lt;- fdata2pc(X.fdata, ncomp = 20)
+
+# Samples
+set.seed(34567)
+rdir.pc(n = 5, X.fdata = X.fdata, zero.mean = FALSE)$data[, 1:5]
+set.seed(34567)
+rdir.pc(n = 5, X.fdata = X.fdata, fdata2pc.obj = pc)$data[, 1:5]
+
+# Comparison for the variance type
+set.seed(456732)
+n.proj &lt;- 100
+set.seed(456732)
+samp1 &lt;- rdir.pc(n = n.proj, X.fdata = X.fdata, sd = 1, norm = FALSE, ncomp = 0.99)
+set.seed(456732)
+samp2 &lt;- rdir.pc(n = n.proj, X.fdata = X.fdata, sd = 0, norm = FALSE, ncomp = 0.99)
+set.seed(456732)
+samp3 &lt;- rdir.pc(n = n.proj, X.fdata = X.fdata, sd = 1, norm = TRUE, ncomp = 0.99)
+set.seed(456732)
+samp4 &lt;- rdir.pc(n = n.proj, X.fdata = X.fdata, sd = 0, norm = TRUE, ncomp = 0.99)
+par(mfrow = c(1, 2))
+plot(X.fdata, col = gray(0.85), lty = 1)
+lines(samp1[1:10], col = 2, lty = 1)
+lines(samp2[1:10], col = 4, lty = 1)
+legend("topleft", legend = c("Data", "Different variances", "Equal variances"), 
+       col = c(gray(0.85), 2, 4), lwd = 2)
+plot(X.fdata, col = gray(0.85), lty = 1)
+lines(samp3[1:10], col = 5, lty = 1)
+lines(samp4[1:10], col = 6, lty = 1)
+legend("topleft", legend = c("Data", "Different variances, normalized", 
+       "Equal variances, normalized"), col = c(gray(0.85), 5:6), lwd = 2)
+
+# Correlations (stronger with different variances and unnormalized; 
+# stronger with lower ncomp)
+ind &lt;- lower.tri(matrix(nrow = n.proj, ncol = n.proj))
+median(abs(cor(sapply(1:n.proj, function(i) inprod.fdata(X.fdata, samp1[i]))))[ind])
+median(abs(cor(sapply(1:n.proj, function(i) inprod.fdata(X.fdata, samp2[i]))))[ind])
+median(abs(cor(sapply(1:n.proj, function(i) inprod.fdata(X.fdata, samp3[i]))))[ind])
+median(abs(cor(sapply(1:n.proj, function(i) inprod.fdata(X.fdata, samp4[i]))))[ind])
+
+# Comparison for the threshold
+samp1 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.25, fdata2pc.obj = pc)
+samp2 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.50, fdata2pc.obj = pc)
+samp3 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.90, fdata2pc.obj = pc)
+samp4 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.95, fdata2pc.obj = pc)
+samp5 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.99, fdata2pc.obj = pc)
+cols &lt;- rainbow(5, alpha = 0.25)
+par(mfrow = c(3, 2))
+plot(X.fdata, col = gray(0.75), lty = 1, main = "Data")
+plot(samp1, col = cols[1], lty = 1, main = "Threshold = 0.25")
+plot(samp2, col = cols[2], lty = 1, main = "Threshold = 0.50")
+plot(samp3, col = cols[3], lty = 1, main = "Threshold = 0.90")
+plot(samp4, col = cols[4], lty = 1, main = "Threshold = 0.95")
+plot(samp5, col = cols[5], lty = 1, main = "Threshold = 0.99")
+
+# Normalizing
+samp1 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.50, fdata2pc.obj = pc,
+                 norm = TRUE)
+samp2 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.90, fdata2pc.obj = pc,
+                 norm = TRUE)
+samp3 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.95, fdata2pc.obj = pc,
+                 norm = TRUE)
+samp4 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.99, fdata2pc.obj = pc,
+                 norm = TRUE)
+samp5 &lt;- rdir.pc(n = 100, X.fdata = X.fdata, ncomp = 0.999, fdata2pc.obj = pc,
+                 norm = TRUE)
+cols &lt;- rainbow(5, alpha = 0.25)
+par(mfrow = c(3, 2))
+plot(X.fdata, col = gray(0.75), lty = 1, main = "Data")
+plot(samp1, col = cols[1], lty = 1, main = "Threshold = 0.50")
+plot(samp2, col = cols[2], lty = 1, main = "Threshold = 0.90")
+plot(samp3, col = cols[3], lty = 1, main = "Threshold = 0.95")
+plot(samp4, col = cols[4], lty = 1, main = "Threshold = 0.99")
+plot(samp5, col = cols[5], lty = 1, main = "Threshold = 0.999")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

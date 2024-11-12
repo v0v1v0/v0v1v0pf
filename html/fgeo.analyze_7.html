@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abundance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Abundance and basal area, optionally by groups.</h2>
+
+<h3>Description</h3>
+
+
+<ul>
+<li> <p><code>abundance()</code> counts the number of rows in a dataset, optionally by groups
+created with <code>dplyr::group_by()</code> (similar to <code>dplyr::n()</code>). It warns if it
+detects duplicated values of treeid.
+</p>
+</li>
+<li> <p><code>basal_area()</code> sums the basal area of
+all stems in a dataset, optionally by groups created with <code>group_by()</code>. It
+warns if it detects duplicated values of stemid. It does not convert units
+(but see examples).
+</p>
+</li>
+</ul>
+<p>Both <code>abundance()</code> and <code>basal_area()</code> warn if they detect
+multiple censusid and multiple plots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abundance(data)
+
+basal_area(data)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A dataframe. <code>basal_area()</code> requires a column named <code>dbh</code> (case
+insensitive).</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>You may want to calculate the abundance or basal area for a specific subset
+of data (e.g. "alive" stems or stems which <code>dbh</code> is within some range).
+Subsetting data is not the job of these functions. Instead see
+<code>base::subset()</code>, <code>dplyr::filter()</code>, or <code>[</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dplyr::n()</code>, <code>dplyr::group_by()</code>.
+</p>
+<p>Other functions for abundance and basal area: 
+<code>abundance_byyr()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(fgeo.tool)
+
+# abundance() -------------------------------------------------------------
+
+abundance(data.frame(1))
+
+# One stem per tree
+tree &lt;- tribble(
+  ~TreeID, ~StemID, ~DBH,
+  "1", "1.1", 11,
+  "2", "2.1", 21
+)
+
+abundance(tree)
+
+# One tree with multiple stems
+stem &lt;- tribble(
+  ~TreeID, ~StemID, ~DBH,
+  "1", "1.1", 11,
+  "1", "1.2", 12
+)
+
+abundance(stem)
+
+# Skip R CMD check for speed
+
+# Similar but more realistic
+assert_is_installed("fgeo.x")
+stem &lt;- fgeo.x::download_data("luquillo_stem5_random")
+
+abundance(stem)
+
+abundance(pick_main_stem(stem))
+
+
+vft &lt;- tribble(
+  ~PlotName, ~CensusID, ~TreeID, ~StemID, ~DBH,
+  "p", 1, "1", "1.1", 10,
+  "q", 2, "1", "1.1", 10
+)
+
+# * Warns if it detects multiple values of censusid or plotname
+# * Also warns if it detects duplicated values of treeid
+abundance(vft)
+
+# If trees have buttressess, the data may have multiple stems per treeid or
+# multiple measures per stemid.
+vft2 &lt;- tribble(
+  ~CensusID, ~TreeID, ~StemID, ~DBH, ~HOM,
+  1, "1", "1.1", 88, 130,
+  1, "1", "1.1", 10, 160,
+  1, "2", "2.1", 20, 130,
+  1, "2", "2.2", 30, 130,
+)
+
+# You should count only the main stem of each tree
+(main_stem &lt;- pick_main_stem(vft2))
+
+abundance(main_stem)
+
+vft3 &lt;- tribble(
+  ~CensusID, ~TreeID, ~StemID, ~DBH, ~HOM,
+  1, "1", "1.1", 20, 130,
+  1, "1", "1.2", 10, 160, # Main stem
+  2, "1", "1.1", 12, 130,
+  2, "1", "1.2", 22, 130 # Main stem
+)
+
+# You can compute by groups
+by_census &lt;- group_by(vft3, CensusID)
+(main_stems_by_census &lt;- pick_main_stem(by_census))
+
+abundance(main_stems_by_census)
+
+# basal_area() ------------------------------------------------------------
+
+# Data must have a column named dbh (case insensitive)
+basal_area(data.frame(dbh = 1))
+
+# * Warns if it detects multiple values of censusid or plotname
+# * Also warns if it detects duplicated values of stemid
+basal_area(vft)
+
+# First you may pick the main stemid of each stem
+(main_stemids &lt;- pick_main_stemid(vft2))
+
+basal_area(main_stemids)
+
+# You can compute by groups
+basal_area(by_census)
+
+# Skip R CMD check for speed
+
+measurements_is_installed &lt;- requireNamespace("measurements", quietly = TRUE)
+if (measurements_is_installed) {
+  library(measurements)
+
+  # Convert units
+  ba &lt;- basal_area(by_census)
+  ba$basal_area_he &lt;- conv_unit(
+    ba$basal_area,
+    from = "mm2",
+    to = "hectare"
+  )
+
+  ba
+}
+
+
+</code></pre>
+
+
+</div>

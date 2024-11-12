@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fnn.plot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plotting Functional Response Predictions</h2>
+
+<h3>Description</h3>
+
+<p>This function is to be used for functional responses. It outputs a <code>ggplot()</code> object of the predicted functional responses.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fnn.plot(
+  FNN_Predict_Object,
+  Basis_Type = "fourier",
+  domain_range = c(0, 1),
+  step_size = 0.01
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>FNN_Predict_Object</code></td>
+<td>
+<p>An object output by the <code>fnn.predict()</code> function. Must be for when the problem is that of
+a functional response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Basis_Type</code></td>
+<td>
+<p>The type of basis to use to create the functional response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domain_range</code></td>
+<td>
+<p>The continuum range of the functional responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step_size</code></td>
+<td>
+<p>The size of the movement from the lower bound of the <code>domanin_range</code> to the upper bound.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>No additional details for now.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The following are returned:
+</p>
+<p><code>plot</code> – A <code>ggplot()</code> object of the predicted functional responses.
+</p>
+<p><code>evaluations</code> – The discrete evaluations across the domain of the functional response.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# libraries
+library(fda)
+
+# Loading data
+data("daily")
+
+# Creating functional data
+temp_data = array(dim = c(65, 35, 1))
+tempbasis65  = create.fourier.basis(c(0,365), 65)
+tempbasis7 = create.bspline.basis(c(0,365), 7, norder = 4)
+timepts = seq(1, 365, 1)
+temp_fd = Data2fd(timepts, daily$tempav, tempbasis65)
+prec_fd = Data2fd(timepts, daily$precav, tempbasis7)
+prec_fd$coefs = scale(prec_fd$coefs)
+
+# Data set up
+temp_data[,,1] = temp_fd$coefs
+resp_mat = prec_fd$coefs
+
+# Non functional covariate
+weather_scalar = data.frame(total_prec = apply(daily$precav, 2, sum))
+
+# Splitting into test and train
+ind = 1:30
+nbasis = 65
+weather_data_train &lt;- array(dim = c(nbasis, length(ind), 1))
+weather_data_test &lt;- array(dim = c(nbasis, ncol(daily$tempav) - length(ind), 1))
+weather_data_train[,,1] = temp_data[, ind, ]
+weather_data_test[,,1] = temp_data[, -ind, ]
+scalar_train = data.frame(weather_scalar[ind,1])
+scalar_test = data.frame(weather_scalar[-ind,1])
+resp_train = t(resp_mat[,ind])
+resp_test = t(resp_mat[,-ind])
+
+# Running model
+weather_func_fnn &lt;- fnn.fit(resp = resp_train,
+                            func_cov = weather_data_train,
+                            scalar_cov = scalar_train,
+                            basis_choice = c("bspline"),
+                            num_basis = c(7),
+                            hidden_layers = 2,
+                            neurons_per_layer = c(1024, 1024),
+                            activations_in_layers = c("sigmoid", "linear"),
+                            domain_range = list(c(1, 365)),
+                            epochs = 300,
+                            learn_rate = 0.01,
+                            func_resp_method = 1)
+
+# Getting predictions
+predictions = fnn.predict(weather_func_fnn,
+                          weather_data_test,
+                          scalar_cov = scalar_test,
+                          basis_choice = c("bspline"),
+                          num_basis = c(7),
+                          domain_range = list(c(1, 365)))
+
+# Looking at plot
+fnn.plot(predictions, domain_range = c(1, 365), step_size = 1, Basis_Type = "bspline")
+
+
+</code></pre>
+
+
+</div>

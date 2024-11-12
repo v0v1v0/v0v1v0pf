@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>VECM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a VECM model</h2>
+
+<h3>Description</h3>
+
+<p>Searches through the vector of lag orders to find the best VECM model which
+has lowest AIC, AICc or BIC value. The model is estimated using the Johansen
+procedure (maximum likelihood).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">VECM(formula, ic = c("aicc", "aic", "bic"), r = 1L, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>The information criterion used in selecting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>The number of cointegrating relationships</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments for arima</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Exogenous regressors and <code>common_xregs</code> can be specified in the model
+formula.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+
+
+<h3>Specials</h3>
+
+
+
+<h4>AR</h4>
+
+<p>The <code>AR</code> special is used to specify the lag order for the auto-regression.
+</p>
+<pre>
+AR(p = 0:5)
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>p</code>        </td>
+<td style="text-align: left;"> The order of the auto-regressive (AR) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h4>xreg</h4>
+
+<p>Exogenous regressors can be included in an VECM model without explicitly using the <code>xreg()</code> special. Common exogenous regressor specials as specified in <code>common_xregs</code> can also be used. These regressors are handled using <code>stats::model.frame()</code>, and so interactions and other functionality behaves similarly to <code>stats::lm()</code>.
+</p>
+<p>The inclusion of a constant in the model follows the similar rules to <code>stats::lm()</code>, where including <code>1</code> will add a constant and <code>0</code> or <code>-1</code> will remove the constant. If left out, the inclusion of a constant will be determined by minimising <code>ic</code>.
+</p>
+<pre>
+xreg(...)
+</pre>
+
+<table><tr>
+<td style="text-align: left;">
+<code>...</code>      </td>
+<td style="text-align: left;"> Bare expressions for the exogenous regressors (such as <code>log(x)</code>)
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+lung_deaths &lt;- cbind(mdeaths, fdeaths) %&gt;%
+  as_tsibble(pivot_longer = FALSE)
+
+fit &lt;- lung_deaths %&gt;%
+  model(VECM(vars(mdeaths, fdeaths) ~ AR(3)))
+
+report(fit)
+
+fit %&gt;%
+  forecast() %&gt;%
+  autoplot(lung_deaths)
+</code></pre>
+
+
+</div>

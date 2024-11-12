@@ -1,0 +1,263 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flimoptim_Julia</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Internal flimoptim function in Julia mode</h2>
+
+<h3>Description</h3>
+
+<p>Computes several parameter inferences with Julia optimizer and
+either IPNewton with or without Automatic Differentiation, Nelder-Mead
+or Brent method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flimoptim_Julia(
+  ndraw,
+  data = NULL,
+  dsumstats = NULL,
+  simulatorQ = NULL,
+  julia_obj = NULL,
+  nsim = 10,
+  ninfer = 1,
+  lower = 0,
+  upper = 1,
+  Theta0 = (lower + upper)/2,
+  randomTheta0 = FALSE,
+  AD = TRUE,
+  method = "",
+  obj_threshold = Inf,
+  number_tries = 1,
+  maxit = 1000,
+  time_limit = NULL,
+  xtol = 0,
+  ftol = 0,
+  gtol = 1e-08,
+  reltol = sqrt(.Machine$double.eps),
+  abstol = .Machine$double.eps,
+  show_trace = FALSE,
+  store_trace = FALSE,
+  store_quantiles = FALSE,
+  par_names = NULL,
+  load_julia = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ndraw</code></td>
+<td>
+<p>Integer. Number of random variables to draw
+for one simulation of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>1D array containing the observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dsumstats</code></td>
+<td>
+<p>Summary statistics to measure distance
+between simulations and data.
+String containing the script of the Julia function
+dsumstats(simulations, data).
+The name "dsumstats" is mandatory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulatorQ</code></td>
+<td>
+<p>Simulator of the stochastic process
+with fixed quantiles (see README).
+simulatorQ(Theta, quantiles).
+The name "simulatorQ" is mandatory.
+Theta is the parameter set for the simulations and
+quantiles are drawn in U(0,1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>julia_obj</code></td>
+<td>
+<p>Objective function to minimize.
+Default : is directly computed from dsumstats and simulatorQ.
+String containing the script of the Julia function
+julia_obj(Theta, quantiles).
+Warning : can be tricky to call data.
+The name "julia_obj" is mandatory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Integer. Number of simulations to run for each step
+of the optimization algorithm.
+Computation time grows linearly with this number. Default to 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ninfer</code></td>
+<td>
+<p>Integer. Number of independent inferences to run. Default to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>1D array. Lower bounds for parameters. Same length as upper.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>1D array. Upper bounds for parameters. Same length as lower.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Theta0</code></td>
+<td>
+<p>1D array. Initial values of the parameters.
+Default : mean(lower, upper).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomTheta0</code></td>
+<td>
+<p>Boolean.
+If True, Theta0 is randomly drawn between lower and upper bounds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AD</code></td>
+<td>
+<p>Boolean.
+Only in Julia mod, uses Automatic Differentiation with IPNewton method.
+Default to true.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>String.
+Allows to choose the optimization method :
+"Brent", "IPNewton" or "NelderMead". Default : IPNewton.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj_threshold</code></td>
+<td>
+<p>Float. Threshold score. If Final value of objective is
+bigger, relaunch the inference if number_tries is not reached.
+The purpose is to avoid local minima. Default to Inf (no threshold).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>number_tries</code></td>
+<td>
+<p>Integer. Number of tries (inferences) for the objective
+value to reach a point lower than obj_threshold. Default to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>Integer. Max number of iterations during optimization.
+Default to 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_limit</code></td>
+<td>
+<p>Float. Time limit in second for each inference.
+Default to no limit. Not available for Brent method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xtol</code></td>
+<td>
+<p>Float. With IPNewton method : xtol option in Optim.Options.
+Default to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ftol</code></td>
+<td>
+<p>Float. With IPNewton method : ftol option in Optim.Options.
+Default to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gtol</code></td>
+<td>
+<p>Float. With IPNewton method : gtol option in Optim.Options.
+Default to 1e-8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol</code></td>
+<td>
+<p>Float. With Brent method : reltol of Optim.optimize.
+Default is sqrt(.Machine$double.eps), about 1e-8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abstol</code></td>
+<td>
+<p>Float. With Brent method : abstol of Optim.optimize.
+Default is .Machine$double.eps, about 1e-16.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_trace</code></td>
+<td>
+<p>Boolean. If true, shows standard trace. Default to false.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>store_trace</code></td>
+<td>
+<p>Boolean.
+If true, stores standard trace as an array of strings.
+Default to false. Not available for R mod.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>store_quantiles</code></td>
+<td>
+<p>Boolean.
+If true, stores every quantiles used for inference, to reproduce the results.
+Default to false.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_names</code></td>
+<td>
+<p>vector of names for parameters.
+Default is "par1", ..., "parn".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>load_julia</code></td>
+<td>
+<p>Boolean. If true, run julia_load. It can take few seconds.
+Default to False.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object of class flimo_result (list) converted from Julia object
+containing every information about convergence results.
+</p>
+
+
+</div>

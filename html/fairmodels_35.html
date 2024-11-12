@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_fairmodels</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot fairmodels</h2>
+
+<h3>Description</h3>
+
+<p>Easier access to all plots in fairmodels. Provide plot type (that matches to function name), pass additional parameters and plot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_fairmodels(x, type, ...)
+
+## S3 method for class 'explainer'
+plot_fairmodels(x, type = "fairness_check", ..., protected, privileged)
+
+## S3 method for class 'fairness_object'
+plot_fairmodels(x, type = "fairness_check", ...)
+
+## Default S3 method:
+plot_fairmodels(x, type = "fairness_check", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object created with <code>fairness_check</code> or with <code>explain</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character, type of plot. Should match function name in fairmodels. Default is fairness_check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other parameters passed to fairmodels functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>protected</code></td>
+<td>
+<p>factor, vector containing sensitive attributes such as gender, race, etc...</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>privileged</code></td>
+<td>
+<p>character/factor, level in factor denoting privileged subgroup</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>types (function names) available:
+</p>
+
+<ul>
+<li>
+<p> fairness_check
+</p>
+</li>
+<li>
+<p> stack_metrics
+</p>
+</li>
+<li>
+<p> fairness_heatmap
+</p>
+</li>
+<li>
+<p> fairness_pca
+</p>
+</li>
+<li>
+<p> fairness_radar
+</p>
+</li>
+<li>
+<p> group_metric
+</p>
+</li>
+<li>
+<p> choose_metric
+</p>
+</li>
+<li>
+<p> metric_scores
+</p>
+</li>
+<li>
+<p> performance_and_fairness
+</p>
+</li>
+<li>
+<p> all_cutoffs
+</p>
+</li>
+<li>
+<p> ceteris_paribus_cutoff
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>ggplot2</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+
+# works with explainer when protected and privileged are passed
+plot_fairmodels(explainer_lm,
+  type = "fairness_radar",
+  protected = german$Sex,
+  privileged = "male"
+)
+
+# or with fairness_object
+fobject &lt;- fairness_check(explainer_lm,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+plot_fairmodels(fobject, type = "fairness_radar")
+</code></pre>
+
+
+</div>

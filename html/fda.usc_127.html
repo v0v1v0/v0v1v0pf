@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flm.Ftest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>F-test for the Functional Linear Model with scalar response</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>flm.Ftest</code> tests the null hypothesis of no interaction between a functional covariate and a scalar response inside the Functional Linear Model (FLM): <code class="reqn">Y=\big&lt;X,\beta\big&gt;+\epsilon</code>. The null hypothesis is <code class="reqn">H_0:\,\beta=0</code> and the alternative is <code class="reqn">H_1:\,\beta\neq 0</code>. 
+The null hypothesis is tested by a functional extension of the classical F-test (see Details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Ftest.statistic(X.fdata, Y)
+
+flm.Ftest(X.fdata, Y, B = 5000, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X.fdata</code></td>
+<td>
+<p>Functional covariate for the FLM. The object must be in the class <code>fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Scalar response for the FLM. Must be a vector with the same number of elements as functions are in <code>X.fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of bootstrap replicates to calibrate the distribution of the test statistic. <code>B=5000</code> replicates are the recommended for carry out the test, although for exploratory analysis (<b>not inferential</b>), an acceptable less time-consuming option is <code>B=500</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Either to show or not information about computing progress.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Functional Linear Model with scalar response (FLM), is defined as
+<code class="reqn">Y=\big&lt;X,\beta\big&gt;+\epsilon</code>, for a functional process <code class="reqn">X</code> 
+such that <code class="reqn">E[X(t)]=0</code>, <code class="reqn">E[X(t)\epsilon]=0</code> for all <code class="reqn">t</code>
+and for a scalar variable <code class="reqn">Y</code> such that <code class="reqn">E[Y]=0</code>.
+The <em>functional F-test</em> is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">T_n=\bigg\|\frac{1}{n}\sum_{i=1}^n (X_i-\bar X)(Y_i-\bar Y)\bigg\|,</code>
+</p>
+<p> where <code class="reqn">\bar X</code> is the functional mean of <code class="reqn">X</code>, <code class="reqn">\bar Y</code> is the ordinary mean of <code class="reqn">Y</code> and <code class="reqn">\|\cdot\|</code> is the <code class="reqn">L^2</code> functional norm.
+The statistic is computed with the function <code>Ftest.statistic</code>. The distribution of the 
+test statistic is approximated by a wild bootstrap resampling on the residuals, using the 
+<em>golden section bootstrap</em>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The value for <code>Ftest.statistic</code> is simply the F-test statistic. The value for <code>flm.Ftest</code> is an object with class <code>"htest"</code> whose underlying structure is a list containing the following components:
+</p>
+
+<ul>
+<li> <p>statistic The value of the F-test statistic.
+</p>
+</li>
+<li> <p>boot.statistics A vector of length <code>B</code> with the values of the bootstrap F-test statistics.
+</p>
+</li>
+<li> <p>p.value The p-value of the test.
+</p>
+</li>
+<li> <p>method The character string "Functional Linear Model F-test".
+</p>
+</li>
+<li> <p>B The number of bootstrap replicates used.
+</p>
+</li>
+<li> <p>data.name The character string "Y=&lt;X,0&gt;+e"
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>No NA's are allowed neither in the functional covariate nor in the scalar response.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eduardo Garcia-Portugues. Please, report bugs and suggestions to <a href="mailto:eduardo.garcia.portugues@uc3m.es">eduardo.garcia.portugues@uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Garcia-Portugues, E., Gonzalez-Manteiga, W. and Febrero-Bande, M. (2014). A goodness–of–fit test for the functional linear model with scalar response. Journal of Computational and Graphical Statistics, 23(3), 761-778. <a href="https://doi.org/10.1080/10618600.2013.812519">doi:10.1080/10618600.2013.812519</a>
+</p>
+<p>Gonzalez-Manteiga, W., Gonzalez-Rodriguez, G., Martinez-Calvo, A. and Garcia-Portugues, E. Bootstrap independence test for functional linear models. arXiv:1210.1072. <a href="https://arxiv.org/abs/1210.1072">https://arxiv.org/abs/1210.1072</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rwild</code>, <code>flm.test</code>, <code>dfv.test</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## Simulated example ##
+X=rproc2fdata(n=50,t=seq(0,1,l=101),sigma="OU")
+beta0=fdata(mdata=rep(0,length=101)+rnorm(101,sd=0.05),
+argvals=seq(0,1,l=101),rangeval=c(0,1))
+beta1=fdata(mdata=cos(2*pi*seq(0,1,l=101))-(seq(0,1,l=101)-0.5)^2+
+rnorm(101,sd=0.05),argvals=seq(0,1,l=101),rangeval=c(0,1))
+
+# Null hypothesis holds
+Y0=drop(inprod.fdata(X,beta0)+rnorm(50,sd=0.1))
+# Null hypothesis does not hold
+Y1=drop(inprod.fdata(X,beta1)+rnorm(50,sd=0.1))
+
+# Do not reject H0
+flm.Ftest(X,Y0,B=100)
+flm.Ftest(X,Y0,B=5000)
+
+# Reject H0
+flm.Ftest(X,Y1,B=100)
+flm.Ftest(X,Y1,B=5000)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

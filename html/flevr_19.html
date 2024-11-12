@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SL.ranger.imp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Super Learner wrapper for a ranger object with variable importance</h2>
+
+<h3>Description</h3>
+
+<p>Super Learner wrapper for a ranger object with variable importance
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SL.ranger.imp(
+  Y,
+  X,
+  newX,
+  family,
+  obsWeights = rep(1, length(Y)),
+  num.trees = 500,
+  mtry = floor(sqrt(ncol(X))),
+  write.forest = TRUE,
+  probability = family$family == "binomial",
+  min.node.size = ifelse(family$family == "gaussian", 5, 1),
+  replace = TRUE,
+  sample.fraction = ifelse(replace, 1, 0.632),
+  num.threads = 1,
+  verbose = FALSE,
+  importance = "impurity",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Outcome variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Training dataframe</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newX</code></td>
+<td>
+<p>Test dataframe</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Gaussian or binomial</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsWeights</code></td>
+<td>
+<p>Observation-level weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.trees</code></td>
+<td>
+<p>Number of trees.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mtry</code></td>
+<td>
+<p>Number of variables to possibly split at in each node. Default is
+the (rounded down) square root of the number variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write.forest</code></td>
+<td>
+<p>Save ranger.forest object, required for prediction. Set
+to FALSE to reduce memory usage if no prediction intended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probability</code></td>
+<td>
+<p>Grow a probability forest as in Malley et al. (2012).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.node.size</code></td>
+<td>
+<p>Minimal node size. Default 1 for classification, 5 for
+regression, 3 for survival, and 10 for probability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace</code></td>
+<td>
+<p>Sample with replacement.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample.fraction</code></td>
+<td>
+<p>Fraction of observations to sample. Default is 1 for
+sampling with replacement and 0.632 for sampling without replacement.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.threads</code></td>
+<td>
+<p>Number of threads to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If TRUE, display additional output during execution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>importance</code></td>
+<td>
+<p>Variable importance mode, one of 'none', 'impurity', 'impurity_corrected', 'permutation'. The 'impurity' measure is the Gini index for classification, the variance of the responses for regression and the sum of test statistics (see <code>splitrule</code>) for survival.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any additional arguments, not currently used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list with elements <code>pred</code> (predictions on <code>newX</code>) and <code>fit</code> (the fitted <code>ranger</code> object).
+</p>
+
+
+<h3>References</h3>
+
+<p>Breiman, L. (2001). Random forests. Machine learning 45:5-32.
+</p>
+<p>Wright, M. N. &amp; Ziegler, A. (2016). ranger: A Fast Implementation of Random
+Forests for High Dimensional Data in C++ and R. Journal of Statistical
+Software, in press. http://arxiv.org/abs/1508.04409.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SL.ranger</code> <code>ranger</code>
+<code>predict.ranger</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("biomarkers")
+# subset to complete cases for illustration
+cc &lt;- complete.cases(biomarkers)
+dat_cc &lt;- biomarkers[cc, ]
+# use only the mucinous outcome, not the high-malignancy outcome
+y &lt;- dat_cc$mucinous
+x &lt;- dat_cc[, !(names(dat_cc) %in% c("mucinous", "high_malignancy"))]
+feature_nms &lt;- names(x)
+# get the fit
+set.seed(20231129)
+fit &lt;- SL.ranger.imp(Y = y, X = x, newX = x, family = binomial())
+fit
+</code></pre>
+
+
+</div>

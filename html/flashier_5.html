@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash_backfit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Backfit a flash object</h2>
+
+<h3>Description</h3>
+
+<p>Backfits existing flash factor/loadings pairs. Whereas a "greedy" fit optimizes
+each newly added factor/loadings pair in one go without returning to optimize
+previously added pairs, a "backfit" updates all existing pairs in a cyclical
+fashion. See <code>flash</code> for examples of usage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash_backfit(
+  flash,
+  kset = NULL,
+  extrapolate = TRUE,
+  warmstart = TRUE,
+  maxiter = 500,
+  tol = NULL,
+  verbose = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>flash</code></td>
+<td>
+<p>A <code>flash</code> or <code>flash_fit</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kset</code></td>
+<td>
+<p>A vector of integers specifying which factors to backfit.
+If <code>kset = NULL</code>, then all existing factors will be backfitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extrapolate</code></td>
+<td>
+<p>Whether to use an extrapolation technique
+inspired by Ang and Gillis (2019) to accelerate the fitting process.
+Control parameters are handled via global options and can be set by
+calling <code>options("extrapolate.control") &lt;- control.param</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warmstart</code></td>
+<td>
+<p>Whether to use "warmstarts" when solving the EBNM
+subproblems by initializing solutions at the previous value of the fitted
+prior <code class="reqn">\hat{g}</code>. An important side effect of warmstarts for
+<code>ashr</code>-like prior families is to fix the grid at its initial setting.
+Fixing the grid can lead to poor fits if there
+are large changes in the scale of the estimated prior over the
+course of the fitting process. However, allowing the grid to
+vary can occasionally result in decreases in ELBO.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of backfitting iterations. An "iteration"
+is defined such that all factors in <code>kset</code> get updated at each
+iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The convergence tolerance parameter. After each update, the fit
+is compared to the fit from before the update using a convergence
+criterion function (by default, the difference in ELBO, but the criterion
+can be changed via <code>flash_set_conv_crit</code>).
+The backfit is considered to have "converged" when the value of the
+convergence criterion function over successive updates to
+<em>all</em> factor/loadings pairs is less than or equal to <code>tol</code>. If,
+for example, factor/loadings pairs <code class="reqn">1, \ldots, K</code> are being
+sequentially backfitted, then fits are compared before and
+after the update to factor/loadings 1, before and after the update to
+factor/loadings 2, and so on through factor/loadings <code class="reqn">K</code>,
+and backfitting only terminates when the convergence criterion function
+returns a value less
+than or equal to <code>tol</code> for all <code class="reqn">K</code> updates. Note that
+specifying <code>tol</code> here will override any value set by
+<code>flash_set_conv_crit</code>; to use the "global" tolerance parameter,
+<code>tol</code> must be left unspecified (<code>NULL</code>).
+If <code>tol = NULL</code> and a global tolerance
+parameter has not been set, then the default
+tolerance used is <code class="reqn">np\sqrt{\epsilon}</code>, where <code class="reqn">n</code> is the
+number of rows in the dataset, <code class="reqn">p</code> is the number of columns, and
+<code class="reqn">\epsilon</code> is equal to <code>.Machine$double.eps</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>When and how to display progress updates. Set to
+<code>0</code> for none, <code>1</code> for updates after a factor is added or a
+backfit is completed, <code>2</code> for additional notifications about the
+variational lower bound, and <code>3</code> for updates after every iteration.
+It is also possible to output a single tab-delimited table of values
+using function <code>flash_set_verbose</code> with <code>verbose = -1</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>flash</code> object from argument <code>flash</code>, backfitted
+as specified.
+</p>
+
+
+</div>

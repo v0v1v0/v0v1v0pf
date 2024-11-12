@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>discrete_entropy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Shannon entropy for discrete pmf</h2>
+
+<h3>Description</h3>
+
+<p>Computes the Shannon entropy <code class="reqn">\mathcal{H}(p) = -\sum_{i=1}^{n} p_i \log p_i</code>
+of a discrete RV <code class="reqn">X</code> taking
+values in <code class="reqn">\lbrace x_1, \ldots, x_n \rbrace</code> with probability
+mass function (pmf) <code class="reqn">P(X = x_i) = p_i</code> with
+<code class="reqn">p_i \geq 0</code> for all <code class="reqn">i</code> and <code class="reqn">\sum_{i=1}^{n} p_i = 1</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">discrete_entropy(
+  probs,
+  base = 2,
+  method = c("MLE"),
+  threshold = 0,
+  prior.probs = NULL,
+  prior.weight = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p>numeric; probabilities (empirical frequencies). Must be non-negative and add up to <code class="reqn">1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>logarithm base; entropy is measured in “nats” for 
+<code>base = exp(1)</code>; in “bits” if <code>base = 2</code> (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>string; method to estimate entropy; see Details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>numeric; frequencies below <code>threshold</code> are set to <code class="reqn">0</code>;
+default <code>threshold = 0</code>, i.e., no thresholding.
+If <code>prior.weight &gt; 0</code> then thresholding will be done <em>before</em> smoothing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.probs</code></td>
+<td>
+<p>optional; only used if <code>prior.weight &gt; 0</code>.
+Add a prior probability distribution to <code>probs</code>. By default it uses a
+uniform distribution putting equal probability on each outcome.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.weight</code></td>
+<td>
+<p>numeric; how much weight does the prior distribution get in a mixture
+model between data and prior distribution? Must be between <code>0</code> and <code>1</code>.
+Default: <code>0</code> (no prior).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>discrete_entropy</code> uses a plug-in estimator (<code>method = "MLE"</code>):
+</p>
+<p style="text-align: center;"><code class="reqn">
+\widehat{\mathcal{H}}(p) = - \sum_{i=1}^{n} \widehat{p}_i \log \widehat{p}_i.
+</code>
+</p>
+
+<p>If <code>prior.weight &gt; 0</code>, then it mixes the observed proportions <code class="reqn">\widehat{p}_i</code>
+with a prior distribution
+</p>
+<p style="text-align: center;"><code class="reqn">
+\widehat{p}_i \leftarrow (1-\lambda) \cdot \widehat{p_i} + \lambda \cdot prior_i, \quad i=1, \ldots, n,
+</code>
+</p>
+
+<p>where <code class="reqn">\lambda \in [0, 1]</code> is the <code>prior.weight</code> parameter.  By default
+the prior is a uniform distribution, i.e., <code class="reqn">prior_i = \frac{1}{n}</code> for all i.
+</p>
+<p>Note that this plugin estimator is biased. See References for an overview of alternative
+methods.
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric; non-negative real value.
+</p>
+
+
+<h3>References</h3>
+
+<p>Archer E., Park I. M., Pillow J.W. (2014). “Bayesian Entropy Estimation for
+Countable Discrete Distributions”. Journal of Machine Learning Research (JMLR) 15,
+2833-2868. Available at <a href="http://jmlr.org/papers/v15/archer14a.html">http://jmlr.org/papers/v15/archer14a.html</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>continuous_entropy</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+probs.tmp &lt;- rexp(5)
+probs.tmp &lt;- sort(probs.tmp / sum(probs.tmp))
+
+unif.distr &lt;- rep(1/length(probs.tmp), length(probs.tmp))
+
+matplot(cbind(probs.tmp, unif.distr), pch = 19,
+        ylab = "P(X = k)", xlab = "k")
+matlines(cbind(probs.tmp, unif.distr))
+legend("topleft", c("non-uniform", "uniform"), pch = 19,
+       lty = 1:2, col = 1:2, box.lty = 0)
+
+discrete_entropy(probs.tmp)
+# uniform has largest entropy among all bounded discrete pmfs
+# (here = log(5))
+discrete_entropy(unif.distr)
+# no uncertainty if one element occurs with probability 1
+discrete_entropy(c(1, 0, 0))
+
+</code></pre>
+
+
+</div>

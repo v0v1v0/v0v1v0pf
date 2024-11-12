@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.igls</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit of  Functional Generalized Least Squares Model Iteratively</h2>
+
+<h3>Description</h3>
+
+<p>This function fits iteratively a functional linear model using generalized 
+least squares. The errors are allowed to be correlated and/or have unequal variances.  
+</p>
+
+<ol>
+<li>
+<p> Begin with a preliminary estimation of <code class="reqn">\hat{\theta}=\theta_0</code> (for instance, 
+<code class="reqn">\theta_0=0</code>). Compute <code class="reqn">\hat{W}</code>.
+</p>
+</li>
+<li>
+<p> Estimate <code class="reqn">b_\Sigma =(Z'\hat{W}Z)^{-1}Z'\hat{W}y</code>
+</p>
+</li>
+<li>
+<p> Based on the residuals, <code class="reqn">\hat{e}=\left(y-Zb_\Sigma \right)</code>, update
+<code class="reqn">\hat{\theta}=\rho\left({\hat{e}}\right)</code> where <code class="reqn">\rho</code> depends on the 
+dependence structure chosen.
+</p>
+</li>
+<li>
+<p> Repeats steps 2 and 3 until convergence (small changes in <code class="reqn">b_\Sigma</code> and/or <code class="reqn">\hat{\theta}</code>). 
+</p>
+</li>
+</ol>
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.igls(
+  formula,
+  data,
+  basis.x = NULL,
+  basis.b = NULL,
+  correlation,
+  maxit = 100,
+  rn,
+  lambda,
+  weights = rep(1, n),
+  control,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A two-sided linear formula object describing the
+model, with the response on the left of a <code>~</code> operator and the
+terms, separated by <code>+</code> operators, on the right.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional data frame containing the variables named in
+<code>model</code>, <code>correlation</code>, <code>weights</code>, and
+<code>subset</code>. By default the variables are taken from the environment
+from which <code>gls</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.x</code></td>
+<td>
+<p>List of basis for functional explanatory data estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.b</code></td>
+<td>
+<p>List of basis for <code class="reqn">\beta(t)</code> parameter estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correlation</code></td>
+<td>
+<p>List  describing the  correlation structure. Defaults to 
+<code>NULL</code>, corresponding to uncorrelated errors.
+See the following internal functions  for a description and a code example in script file.
+</p>
+
+<ul>
+<li> <p><code>corUnstruc(x)</code>, fit an unstrutured correlation.
+</p>
+</li>
+<li> <p><code>cor.AR(x, order.max = 8, p=1, method = "lm")</code> fit an Autoregressive Models to Time Series using <code>ar</code> function.
+</p>
+</li>
+<li> <p><code>cor.ARMA(x, p, d = 0, q = 0, method = "lm", order.max = 1)</code> Fit an ARIMA model to a univariate time series using <code>arima</code> function.
+</p>
+</li>
+<li> <p><code>corExpo(xy,range, method = "euclidean",p=2)</code> Fit an exponential correlation structure.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>Number of maximum of interactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rn</code></td>
+<td>
+<p>List of Ridge parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>List of Roughness penalty parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>Control parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>"fregre.igls"</code> representing the functional linear model
+fit with temporal dependence errors.
+Beside, the class(z) is  similar to "fregre.lm" plus the following objects:
+</p>
+
+<ul><li>
+<p>corStruct Fitted  AR or ARIMA model.  
+</p>
+</li></ul>
+<h3>References</h3>
+
+<p>Oviedo de la Fuente, M., Febrero-Bande, M., Pilar Munoz, and
+Dominguez, A.  (2018). Predicting seasonal influenza transmission using 
+functional regression models with temporal dependence. PloS one, 13(4), e0194250.
+<a href="https://doi.org/10.1371/journal.pone.0194250">doi:10.1371/journal.pone.0194250</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:  
+data(tecator)
+x=tecator$absorp.fdata
+x.d2&lt;-fdata.deriv(x,nderiv=)
+tt&lt;-x[["argvals"]]
+dataf=as.data.frame(tecator$y)
+# plot the response
+plot(ts(tecator$y$Fat))
+ldata=list("df"=dataf,"x.d2"=x.d2)
+res.gls=fregre.igls(Fat~x.d2,data=ldata,
+correlation=list("cor.ARMA"=list()),
+control=list("p"=1)) 
+res.gls
+res.gls$corStruct
+
+## End(Not run)
+</code></pre>
+
+
+</div>

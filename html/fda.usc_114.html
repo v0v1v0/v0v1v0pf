@@ -1,0 +1,305 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.glm.vs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variable Selection using Functional Linear Models</h2>
+
+<h3>Description</h3>
+
+<p>Computes functional GLM model between functional covariates
+<code class="reqn">(X^1(t_1),\cdots,X^{q}(t_q))</code> and non functional covariates
+<code class="reqn">(Z^1,...,Z^p)</code> with a scalar response <code class="reqn">Y</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.glm.vs(
+  data = list(),
+  y,
+  include = "all",
+  exclude = "none",
+  family = gaussian(),
+  weights = NULL,
+  basis.x = NULL,
+  numbasis.opt = FALSE,
+  dcor.min = 0.1,
+  alpha = 0.05,
+  par.model,
+  xydist,
+  trace = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>List that containing the variables in the model. 
+"df" element is a data.frame containing the response and scalar covariates 
+(numeric and factors variables are allowed). Functional covariates of class
+<code>fdata</code> or <code>fd</code> are included as named components in the <code>data</code> list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Caracter string with the name of the scalar response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include</code></td>
+<td>
+<p>vector with the name of variables to use. By default <code>"all"</code>, all variables are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude</code></td>
+<td>
+<p>vector with the name of variables to not use. By default  <code>"none"</code>, no variable is deleted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>a description of the error distribution and link function to
+be used in the model. This can be a character string naming a family
+function, a family function or the result of a call to a family function.
+(See <code>family</code> for details of family functions.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.x</code></td>
+<td>
+<p>Basis parameter options
+</p>
+
+<ul>
+<li>
+<p><code>list</code> (recomended)  List of basis for functional covariates,
+see same argument in <code>fregre.glm</code>. By default, 
+the function uses a basis of 3 PC to represent each functional covariate. 
+</p>
+</li>
+<li>
+<p><code>vector</code> (by default) Vector with two parameters:
+</p>
+
+<ol>
+<li>
+<p> Type of basis. By default <code>basis.x[1]="pc"</code>, principal
+component basis is used  for each functional covariate included in the model.
+Other options <code>"pls"</code> and <code>"bspline"</code>.  
+</p>
+</li>
+<li>
+<p> Maximum number of  basis elements <code>numbasis</code>  to be used.
+By default, <code>basis.x[2]=3</code>. 
+</p>
+</li>
+</ol>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numbasis.opt</code></td>
+<td>
+<p>Logical, if <code>FALSE</code> by default, for each functional 
+covariate included in the model, the function uses all basis elements. 
+Otherwise, the function selects the significant coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dcor.min</code></td>
+<td>
+<p>Threshold for a variable to be entered into the model. X is discarded 
+if the distance correlation <code class="reqn">R(X,e)&lt; dcor.min</code> (e is the residual of previous steps).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Alpha value for testing the independence among covariate X and residual
+e in previous steps. By default is <code>0.05</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.model</code></td>
+<td>
+<p>Model parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xydist</code></td>
+<td>
+<p>List with the inner distance matrices of each variable (all potential 
+covariates and the response).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>Interactive Tracing and Debugging of Call.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is an extension of the functional generalized spectral additive 
+regression models: <code>fregre.glm</code> where the <code class="reqn">E[Y|X,Z]</code> is related to the 
+linear prediction <code class="reqn">\eta</code> via a link function <code class="reqn">g(\cdot)</code>. 
+</p>
+<p style="text-align: center;"><code class="reqn">E[Y|X,Z]=\eta=g^{-1}(\alpha+\sum_{j=1}^{p}\beta_{j}Z^{j}+\sum_{k=1}^{q}\frac{1}{\sqrt{T_k}}\int_{T_k}{X^{k}(t)\beta_{k}(t)dt})</code>
+</p>
+
+<p>where <code class="reqn">Z=\left[ Z^1,\cdots,Z^p \right]</code> are the
+non functional covariates and <code class="reqn">X(t)=\left[ X^{1}(t_1),\cdots,X^{q}(t_q)
+\right]</code> are the functional ones.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return an object corresponding to the estimated additive mdoel using 
+the selected variables (ame output as the<code>fregre.glm</code> function) and the following elements:
+</p>
+
+<ul>
+<li>
+<p><code>gof</code>, the goodness of fit for each step of VS algorithm.
+</p>
+</li>
+<li>
+<p><code>i.predictor</code>, <code>vector</code> with 1 if the variable is selected, 0 otherwise.
+</p>
+</li>
+<li>
+<p><code>ipredictor</code>, <code>vector</code> with the name of selected variables (in order of selection)
+</p>
+</li>
+<li>
+<p><code>dcor</code>, the value of distance correlation for each potential covariate and the residual of the model in each step.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>If the formula only contains a non functional explanatory variables (multivariate covariates),
+the function compute a standard  <code>glm</code> procedure.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo-de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Febrero-Bande, M., Gonz\'alez-Manteiga, W. and Oviedo de la
+Fuente, M. Variable selection in functional additive regression models,
+(2018).  Computational Statistics, 1-19. DOI: <a href="https://doi.org/10.1007/s00180-018-0844-5">doi:10.1007/s00180-018-0844-5</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also as:  <code>predict.fregre.glm</code> and <code>summary.glm</code>.
+Alternative methods: <code>fregre.glm</code>, <code>fregre.glm</code>
+and <code>fregre.gsam.vs</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:  
+data(tecator)
+x=tecator$absorp.fdata
+x1 &lt;- fdata.deriv(x)
+x2 &lt;- fdata.deriv(x,nderiv=2)
+y=tecator$y$Fat
+xcat0 &lt;- cut(rnorm(length(y)),4)
+xcat1 &lt;- cut(tecator$y$Protein,4)
+xcat2 &lt;- cut(tecator$y$Water,4)
+ind &lt;- 1:165
+dat &lt;- data.frame("Fat"=y, x1$data, xcat1, xcat2)
+ldat &lt;- ldata("df"=dat[ind,],"x"=x[ind,],"x1"=x1[ind,],"x2"=x2[ind,])
+# 3 functionals (x,x1,x2), 3 factors (xcat0, xcat1, xcat2)
+# and 100 scalars (impact poitns of x1) 
+
+# Time consuming
+res.glm0 &lt;- fregre.glm.vs(data=ldat,y="Fat",numbasis.opt=T) # All the covariates
+summary(res.glm0)
+res.glm0$ipredictors
+res.glm0$i.predictor
+
+res.glm1 &lt;- fregre.glm.vs(data=ldat,y="Fat") # All the covariates
+summary(res.glm1)
+res.glm1$ipredictors
+covar &lt;- c("xcat0","xcat1","xcat2","x","x1","x2")
+res.glm2 &lt;- fregre.glm.vs(data=ldat, y="Fat", include=covar)
+summary(res.glm2)
+res.glm2$ipredictors 
+res.glm2$i.predictor
+
+res.glm3 &lt;- fregre.glm.vs(data=ldat,y="Fat",
+                           basis.x=c("type.basis"="pc","numbasis"=2))
+summary(res.glm3)
+res.glm3$ipredictors
+
+res.glm4 &lt;- fregre.glm.vs(data=ldat,y="Fat",include=covar,
+basis.x=c("type.basis"="pc","numbasis"=5),numbasis.opt=T)
+summary(res.glm4)
+res.glm4$ipredictors
+lpc &lt;- list("x"=create.pc.basis(ldat$x,1:4)
+           ,"x1"=create.pc.basis(ldat$x1,1:3)
+           ,"x2"=create.pc.basis(ldat$x2,1:4))
+res.glm5 &lt;- fregre.glm.vs(data=ldat,y="Fat",basis.x=lpc)
+summary(res.glm5)
+res.glm5 &lt;- fregre.glm.vs(data=ldat,y="Fat",basis.x=lpc,numbasis.opt=T)
+summary(res.glm5)
+bsp &lt;- create.fourier.basis(ldat$x$rangeval,7)
+lbsp &lt;- list("x"=bsp,"x1"=bsp,"x2"=bsp)
+res.glm6 &lt;- fregre.glm.vs(data=ldat,y="Fat",basis.x=lbsp)
+summary(res.glm6)
+# Prediction like fregre.glm() 
+newldat &lt;- ldata("df"=dat[-ind,],"x"=x[-ind,],"x1"=x1[-ind,],
+                "x2"=x2[-ind,])
+pred.glm1 &lt;- predict(res.glm1,newldat)
+pred.glm2 &lt;- predict(res.glm2,newldat)
+pred.glm3 &lt;- predict(res.glm3,newldat)
+pred.glm4 &lt;- predict(res.glm4,newldat)
+pred.glm5 &lt;- predict(res.glm5,newldat)
+pred.glm6 &lt;- predict(res.glm6,newldat)
+plot(dat[-ind,"Fat"],pred.glm1)
+points(dat[-ind,"Fat"],pred.glm2,col=2)
+points(dat[-ind,"Fat"],pred.glm3,col=3)
+points(dat[-ind,"Fat"],pred.glm4,col=4)
+points(dat[-ind,"Fat"],pred.glm5,col=5)
+points(dat[-ind,"Fat"],pred.glm6,col=6)
+pred2meas(newldat$df$Fat,pred.glm1)
+pred2meas(newldat$df$Fat,pred.glm2)
+pred2meas(newldat$df$Fat,pred.glm3)
+pred2meas(newldat$df$Fat,pred.glm4)
+pred2meas(newldat$df$Fat,pred.glm5)
+pred2meas(newldat$df$Fat,pred.glm6)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

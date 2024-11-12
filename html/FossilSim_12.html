@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fossils.to.pyrate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate output in the format used by the program PyRate</h2>
+
+<h3>Description</h3>
+
+<p>Generate output in the format used by the program PyRate
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fossils.to.pyrate(
+  fossils,
+  python = TRUE,
+  traits = NULL,
+  cutoff = NULL,
+  random = FALSE,
+  min = NULL,
+  exclude.extant.singletons = TRUE,
+  file = "",
+  use.sp.names = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fossils</code></td>
+<td>
+<p>Fossils object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>python</code></td>
+<td>
+<p>If TRUE the function outputs the data in the python format used by PyRate (default).
+If FALSE the function outputs a tab-delimited table used by tools associated with PyRate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>traits</code></td>
+<td>
+<p>Vector of trait values equal to the number of unique species in the fossils dataframe.
+The order should correspond to the order in which they appear in <code>unique(fossils$sp)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>Exclude occurrences with age uncertainty greater than this value i.e. <code>hmax - hmin &gt; cutoff</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>If TRUE use a random number from within the interval U(hmin, hmax) for specimen ages,
+otherwise use the midpoint of this interval (default). Applicable only when <code>python = TRUE</code> and for specimens with <code>hmin != hmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min</code></td>
+<td>
+<p>Value used to represent the minimum possible interval age of extinct specimens with <code>hmin = 0</code>. By default <code>min = NULL</code> and the function will use the sampling times in the fossils dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude.extant.singletons</code></td>
+<td>
+<p>If TRUE exclude species that have extant samples only (default = TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>Output file name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.sp.names</code></td>
+<td>
+<p>If TRUE use the value in fossils$sp as the complete taxon name, otherwise the function adds the prefix "taxa" (default = FALSE).</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(123)
+
+# simulate tree
+t = ape::rtree(6)
+
+# assign a max age based on tree height
+max.age = tree.max(t)
+
+# define a set of non-uniform length intervals
+times = c(0, sort(runif(3, min = 0, max = max.age)), max.age)
+rates = c(1,2,3,4)
+
+# simulate fossils reflect age uncertainty
+f = sim.fossils.intervals(tree = t, interval.ages = times, rates = rates,
+    use.exact.times = FALSE)
+
+# simulate extant samples
+rho = 1
+f = sim.extant.samples(f, t, rho = 1)
+
+plot(f, t)
+
+# generate input files for pyrate
+fossils.to.pyrate(f)
+fossils.to.pyrate(f, python = FALSE)
+
+# add trait values
+traits = runif(length(unique(f$sp)))
+fossils.to.pyrate(f, traits = traits)
+
+</code></pre>
+
+
+</div>

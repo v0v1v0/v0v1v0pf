@@ -1,0 +1,391 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FindIt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>FindIt for Estimating Heterogeneous Treatment Effects</h2>
+
+<h3>Description</h3>
+
+<p><code>FindIt</code> returns a model with the most predictive treatment-treatment
+interactions or treatment-covariate interactions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FindIt(
+  model.treat,
+  model.main,
+  model.int,
+  data = NULL,
+  type = "binary",
+  treat.type = "multiple",
+  nway,
+  search.lambdas = TRUE,
+  lambdas = NULL,
+  make.twoway = TRUE,
+  make.allway = TRUE,
+  wts = 1,
+  scale.c = 1,
+  scale.int = 1,
+  fit.glmnet = TRUE,
+  make.reference = TRUE,
+  reference.main = NULL,
+  threshold = 0.999999
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model.treat</code></td>
+<td>
+<p>A formula that specifies outcome and treatment variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.main</code></td>
+<td>
+<p>An optional formula that specifies pre-treatment
+covariates to be adjusted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.int</code></td>
+<td>
+<p>A formula specifying pre-treatment covariates to be
+interacted with treatment assignments when <code>treat.type="single"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional data frame, list or environment (or object coercible
+by 'as.data.frame' to a data frame) containing the variables in the model.
+If not found in 'data', the variables are taken from 'environment(formula)',
+typically the environment from which 'FindIt' is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>"binary" for a binary outcome variable, which needs to be
+<code>integer</code> class; "continuous" for a continuous outcome variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat.type</code></td>
+<td>
+<p>"single" for interactions between a single treatment
+variable, which needs to be <code>integer</code> class, and multiple pre-treatment
+covariates specified with <code>model.int</code>; "multiple" is used when
+treatment-treatment interactions are of interest and <code>treat</code> is a
+matrix of multiple treatments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nway</code></td>
+<td>
+<p>An argument passed to <code>makeallway</code> when
+<code>treat.type="multiple"</code>. <code>FindIt</code> generates treatment-treatment
+interactions up to the order specified with this argument. In general, it is
+recommended to use the number of factorial treatments. The current version
+covers up to four way interactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search.lambdas</code></td>
+<td>
+<p>Whether to search for the tuning parameters for the
+LASSO constraints. If <code>FALSE</code>, <code>lambdas</code> must be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>Tuning parameters to be given to <code>FindIt</code>; only used if
+<code>search.lambdas=FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>make.twoway</code></td>
+<td>
+<p>If <code>make.twoway=TRUE</code>, all possible two-way
+interactions for the pre-treatment covariates specified in <code>model.main</code>
+and <code>model.int</code> are generated within <code>FindIt</code>. The default is set
+to be <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>make.allway</code></td>
+<td>
+<p>If <code>make.allway=TRUE</code>, all possible
+treatment-treatment interactions for multiple treatments are generated when
+<code>treat.type="multiple"</code>. Interactions of the order up to the value of
+<code>nway</code> is computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wts</code></td>
+<td>
+<p>An optional set of scaling weights. The default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale.c</code></td>
+<td>
+<p>A set of weights for recaling the pre-treatment covariates;
+only used if <code>make.twoway=FALSE</code>. <code>maketwoway</code> is useful for
+generating these.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale.int</code></td>
+<td>
+<p>A set of weights for recaling the covariates to be
+interacted with treatment variables ; only used if <code>make.twoway=FALSE</code>.
+<code>maketwoway</code> is useful for generating these.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.glmnet</code></td>
+<td>
+<p>Whether to fit using the coordinate descent method in
+glmnet (TRUE) or the regularization path method of LARS (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>make.reference</code></td>
+<td>
+<p>Whether to make a reference matrix to check which
+columns are dropped when <code>makeallway=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference.main</code></td>
+<td>
+<p>If <code>make.allway=FALSE</code> and researchers generate a
+matrix of all possible interactions between factorial treatments,
+<code>reference</code> from <code>makeallway</code> function is better to be passed to
+<code>FindIt</code> through this argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>An argument passed to <code>makeallway</code> when
+<code>treat.type="multiple"</code>. Threshold to drop correlated columns when
+<code>makeallway</code> is used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Implements the alternating line search algorithm for estimating the tuning
+parameters, as described in Imai and Ratkovic (2013).
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefs</code></td>
+<td>
+<p>A named vector of scaled coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefs.orig</code></td>
+<td>
+<p>A vector of coefficients on the original scale, if scale.c
+and scale.t was used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>Fitted values on an SVM scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>names.out</code></td>
+<td>
+<p>Names of the coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A vector of observed
+outcomes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.c</code></td>
+<td>
+<p>A matrix of pre-treatment covariates to be adjusted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.t</code></td>
+<td>
+<p>A matrix of treatments and treatment-treatment interactions, or
+treatment-covariate interactions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GCV</code></td>
+<td>
+<p>GCV statistic at the minimum</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ATE</code></td>
+<td>
+<p>When <code>treat.type="single"</code>, the estimated ATE. When
+<code>treat.type="multiple"</code>, the estimated treatment effect of each unique
+treatment combination</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>Tuning parameters used for the fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference</code></td>
+<td>
+<p>When <code>treat.type="multiple"</code>, after making all
+interaction terms, columns with no variation or columns perfectly correlated
+with one of other columns are automatically dropped. <code>reference</code> shows
+which columns are kept and dropped.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Naoki Egami, Marc Ratkovic and Kosuke Imai.
+</p>
+
+
+<h3>References</h3>
+
+<p>Imai, Kosuke and Marc Ratkovic. 2013.  “Estimating Treatment
+Effect Heterogeneity in Randomized Program Evaluation.” Annals of Applied
+Statistics, Vol.7, No.1(March), pp. 443-470.
+<a href="http://imai.fas.harvard.edu/research/files/svm.pdf">http://imai.fas.harvard.edu/research/files/svm.pdf</a>
+</p>
+<p>Egami, Naoki and Kosuke Imai. 2019. Causal Interaction in 
+Factorial Experiments: Application to Conjoint Analysis, Journal of the American Statistical Association.
+<a href="http://imai.fas.harvard.edu/research/files/int.pdf">http://imai.fas.harvard.edu/research/files/int.pdf</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+################################################### 
+## Example 1: Treatment-Covariate Interaction
+################################################### 
+data(LaLonde)
+
+## The model includes a treatment variable, 
+## nine covariates to be interacted with the treatment variable,
+## and the same nine covariates to be adjusted.
+
+## Not run: 
+
+## Run to find the LASSO parameters
+F1  &lt;-FindIt(model.treat= outcome ~ treat,
+             model.main= ~ age+educ+black+hisp+white+
+             marr+nodegr+log.re75+u75,
+             model.int= ~ age+educ+black+hisp+white+
+             marr+nodegr+log.re75+u75,
+             data = LaLonde,  
+             type="binary",
+             treat.type="single") 
+
+## End(Not run)
+
+## Fit with uncovered lambda parameters.
+F1  &lt;-FindIt(model.treat= outcome ~ treat,
+             model.main= ~ age+educ+black+hisp+white+
+             marr+nodegr+log.re75+u75,
+             model.int= ~ age+educ+black+hisp+white+
+             marr+nodegr+log.re75+u75,
+             data = LaLonde, 
+             type="binary",
+             treat.type="single",
+             search.lambdas=FALSE,
+             lambdas = c(-3.8760,-4.0025) )
+
+summary(F1)
+
+## Returns all the estimated treatment effects. 
+pred1 &lt;- predict(F1)
+## Top10
+head(pred1$data, n=10)
+## Bottom 10
+tail(pred1$data ,n=10)
+
+## Visualize all the estimated treatment effects.
+## Not run: 
+plot(pred1)
+
+## End(Not run)
+
+################################################### 
+## Example 2: Treatment-Treatment Interaction
+################################################### 
+
+## Not run: 
+data(GerberGreen)
+
+## The model includes four factorial treatments and 
+## all two, three, four-way interactions between them.
+## Four pre-treatment covariates are adjusted.
+
+## Run to search for lambdas.
+F2&lt;- FindIt(model.treat= voted98 ~ persngrp+phnscrpt+mailings+appeal,
+             nway=4,
+             model.main= ~ age+majorpty+vote96.1+vote96.0,
+             data = GerberGreen,
+             type="binary",
+             treat.type="multiple")
+
+## Fit, given selected lambdas.
+F2&lt;- FindIt(model.treat= voted98 ~ persngrp+phnscrpt+mailings+appeal,
+             nway=4,
+             model.main= ~ age+majorpty+vote96.1+vote96.0,
+             data = GerberGreen,
+             type="binary",
+             treat.type="multiple",
+             search.lambdas=FALSE,
+             lambdas=c(-15.000,-6.237))
+
+## Returns coefficient estimates.
+summary(F2)
+
+## Returns predicted values for unique treatment combinations.
+pred2 &lt;- predict(F2,unique=TRUE)
+## Top 10
+head(pred2$data, n=10)
+## Bottom 10
+tail(pred2$data, n=10)
+
+## Visualize predicted values for each treatment combination.
+plot(pred2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

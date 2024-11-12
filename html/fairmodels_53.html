@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>resample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Resample</h2>
+
+<h3>Description</h3>
+
+<p>Method of bias mitigation. Similarly to <code>reweight</code> this method computes desired number of observations if the protected variable is independent
+from y and on this basis decides if this subgroup with certain class (+ or -) should be more or less numerous. Than performs oversampling or undersampling depending on the case.
+If type of sampling is set to 'preferential' and probs are provided than instead of uniform sampling preferential sampling will be performed. Preferential sampling depending on the case
+will sample observations close to border or far from border.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">resample(protected, y, type = "uniform", probs = NULL, cutoff = 0.5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>protected</code></td>
+<td>
+<p>factor, protected variables with subgroups as levels (sensitive attributes)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>numeric, vector with classes 0 and 1, where 1 means favorable class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character, either (default) 'uniform' or 'preferential'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p>numeric, vector with probabilities for preferential sampling</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>numeric, threshold for probabilities</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>numeric vector of indexes
+</p>
+
+
+<h3>References</h3>
+
+<p>This method was implemented based on Kamiran, Calders 2011 <a href="https://link.springer.com/content/pdf/10.1007/s10115-011-0463-8.pdf">https://link.springer.com/content/pdf/10.1007/s10115-011-0463-8.pdf</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("german")
+
+data &lt;- german
+
+data$Age &lt;- as.factor(ifelse(data$Age &lt;= 25, "young", "old"))
+y_numeric &lt;- as.numeric(data$Risk) - 1
+
+rf &lt;- ranger::ranger(Risk ~ .,
+  data = data,
+  probability = TRUE,
+  num.trees = 50,
+  num.threads = 1,
+  seed = 123
+)
+
+u_indexes &lt;- resample(data$Age, y = y_numeric)
+
+rf_u &lt;- ranger::ranger(Risk ~ .,
+  data = data[u_indexes, ],
+  probability = TRUE,
+  num.trees = 50,
+  num.threads = 1,
+  seed = 123
+)
+
+explainer_rf &lt;- DALEX::explain(rf,
+  data = data[, -1],
+  y = y_numeric,
+  label = "not_sampled"
+)
+
+explainer_rf_u &lt;- DALEX::explain(rf_u, data = data[, -1], y = y_numeric, label = "sampled_uniform")
+
+fobject &lt;- fairness_check(explainer_rf, explainer_rf_u,
+  protected = data$Age,
+  privileged = "old"
+)
+
+fobject
+plot(fobject)
+
+p_indexes &lt;- resample(data$Age, y = y_numeric, type = "preferential", probs = explainer_rf$y_hat)
+rf_p &lt;- ranger::ranger(Risk ~ .,
+  data = data[p_indexes, ],
+  probability = TRUE,
+  num.trees = 50,
+  num.threads = 1,
+  seed = 123
+)
+
+explainer_rf_p &lt;- DALEX::explain(rf_p,
+  data = data[, -1], y = y_numeric,
+  label = "sampled_preferential"
+)
+
+fobject &lt;- fairness_check(explainer_rf, explainer_rf_u, explainer_rf_p,
+  protected = data$Age,
+  privileged = "old"
+)
+
+fobject
+plot(fobject)
+
+
+</code></pre>
+
+
+</div>

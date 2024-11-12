@@ -1,0 +1,276 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>funreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform penalized functional regression</h2>
+
+<h3>Description</h3>
+
+<p>Performs a penalized functional regression as in Goldsmith et al. (2012)
+on irregularly measured data such as that found in ecological momentary
+assessment (see Walls &amp; Schafer, 2006;  Shiffman, Stone, &amp; Hufford, 2008).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">funreg(
+  id,
+  response,
+  time,
+  x,
+  basis.method = 1,
+  deg = 2,
+  deg.penalty = 2,
+  family = gaussian,
+  other.covariates = NULL,
+  num.bins = 35,
+  preferred.num.eigenfunctions = 30,
+  preferred.num.knots.for.beta = 35,
+  se.method = 1,
+  smoothing.method = 1,
+  times.for.fit.grid = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>An integer or string uniquely identifying the
+subject to which each observation belongs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>The response, as a vector, one for each subject</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The time of observation, as a vector,
+one for each observation (i.e., each
+assessment on each person)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The functional predictor(s), as a matrix,
+one row for each observation (i.e., for each
+assessment on each person)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.method</code></td>
+<td>
+<p>An integer, either 1 or 2, describing how
+the beta function should be internally
+modeled. A value of 1 indicates that a
+truncated power spline basis should be used,
+and a value of 2 indicates that a B-spline
+basis should be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deg</code></td>
+<td>
+<p>An integer, either 1, 2, or 3, describing how 
+complicated the behavior of the beta function between knots 
+may be.  1, 2, or 3 represent linear, quadratic or cubic 
+function between knots.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deg.penalty</code></td>
+<td>
+<p>Only relevant for B-splines.  The
+difference order used to weight the smoothing
+penalty (see Eilers and Marx, 1996)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>The response distribution.  For example,
+this is  <code>family=gaussian</code> for normal linear
+models, <code>family=binomial</code> for logistic regression models,
+or <code>family=poisson</code> for count models.  See the <code>gam</code>
+documentation in the <code>mgcv</code> package, or use <code>help(family)</code>
+for details on <code>family</code> objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>other.covariates</code></td>
+<td>
+<p>Subject-level (time-invariant) covariates, 
+if any, as a matrix, one column per covariate. The default, 
+<code>NULL</code>, means that no subject-level covariates will be included 
+in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.bins</code></td>
+<td>
+<p>The number of knots used in the spline basis for the
+beta function. The default is based on the  Goldsmith et al. (2011) 
+sample code.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preferred.num.eigenfunctions</code></td>
+<td>
+<p>The number of eigenfunctions to use in approximating the covariance function of x (see Goldsmith et al., 2011)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preferred.num.knots.for.beta</code></td>
+<td>
+<p>number of knots to use in the spline
+estimation.  The default, is based on the Goldsmith et al (2011) sample code.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.method</code></td>
+<td>
+<p>An integer, either 1 or 2, describing how
+the standard errors should be calculated. A value
+of 1 means that the uncertainty related to
+selecting the smoothing parameter is ignored.
+Option 2 means that a Bayesian approach is used
+to try to take this uncertainty into account
+(see the documentation for Wood's <code>mgcv</code> package).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smoothing.method</code></td>
+<td>
+<p>An integer, either 1 or 2, describing
+how the weight of the smoothing penalty should be
+determined.  Option 1 means that the smoothing
+weight should be estimated using an approach
+similar to restricted maximum likelihood, and
+Option 2 means an approach similar to generalized
+cross-validation.  Option 1 is strongly
+recommended (based both on our experience and on
+remarks in the documentation for the gam function
+in the mgcv package).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times.for.fit.grid</code></td>
+<td>
+<p>Points at which to calculate
+the estimated beta function.  The default, NULL, means that the
+code will choose these times automatically.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of type <code>funreg</code>.  This object 
+can be examined using <code>summary</code>, <code>print</code>,
+or <code>fitted</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This function mostly follows code by Jeff Goldsmith and co-workers:
+the sample code from Goldsmith et al (2011), and the "pfr" function in
+the "refund" R package.  However, this code is adapted here to allow
+idiosyncratic measurement times and unequal numbers of observations
+per subject to be handled easily, and also allows the use of a different
+estimation method.  Also follows some sample code for penalized
+B-splines from Eilers and Marx (1996) in implementing B-splines.
+As the pfr function in refund also does, the function calls
+the gam function in the mgcv package (Wood 2011) to do much of the
+internal calculations. This function may be somewhat obselete, because
+a more flexible function is available in the new version of pfr in
+the refund package (see <a href="http://jeffgoldsmith.com/software.html">http://jeffgoldsmith.com/software.html</a>).
+</p>
+<p>In the example below, to fit a more complicated model, replace
+<code>x=SampleFunregData$x1</code> with <code>x=cbind(SampleFunregData$x1,
+  SampleFunregData$x2),other.covariates=cbind(SampleFunregData$s1,
+  SampleFunregData$s2, SampleFunregData$s3, SampleFunregData$s4)</code>.  This 
+model will take longer to run, perhaps 10 or 20 seconds.  Then try
+<code>plot(complex.model)</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Crainiceanu, C., Reiss, P., Goldsmith, J., Huang, L., Huo, L.,
+Scheipl, F. (2012). refund: Regression with Functional Data
+(version 0.1-6). R package Available online at cran.r-project.org.
+</p>
+<p>Eilers, P. H. C., and Marx, B. D. (1996). Flexible smoothing with
+B-splines and penalties. Statistical Science, 11, 89-121. DOI:10.1.1.47.4521.
+</p>
+<p>Goldsmith, J., Bobb, J., Crainiceanu, C. M., Caffo, B., and Reich, D.
+(2011). Penalized functional regression. Journal of Computational
+and Graphical Statistics, 20(4), 830-851. DOI: 10.1198/jcgs.2010.10007.
+For writing parts of this function I especially followed "PFR_Example.R",
+in the supplemental materials for this paper, written on Jan. 15 2010, by Jeff Goldsmith.
+</p>
+<p>Ruppert, D., Wand, M., and Carroll, R. (2003). Semiparametric regression.
+Cambridge, UK: Cambridge University Press.
+</p>
+<p>Shiffman, S., Stone, A. A., and Hufford, M. R. (2008). Ecological
+momentary assessment. Annual Review of Clinical Psychology, 4, 1-32. DOI:10.1146/annurev.clinpsy.3.022806.091415.
+</p>
+<p>Walls, T. A., &amp; Schafer, J. L. (2006) Models for intensive longitudinal data. New York: Oxford.
+</p>
+<p>Wood, S.N. (2006) Generalized Additive Models: An Introduction with
+R. Chapman and Hall/CRC.
+</p>
+<p>Wood, S.N. (2011) Fast stable restricted maximum likelihood and
+marginal likelihood estimation of semiparametric generalized linear
+models. Journal of the Royal Statistical Society (B) 73(1):3-36. DOI:10.1111/j.1467-9868.2010.00749.x
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fitted.funreg</code>, <code>link{plot.funreg}</code>,
+<code>print.funreg</code>, <code>link{summary.funreg}</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">simple.model &lt;- funreg(id=SampleFunregData$id,
+                       response=SampleFunregData$y,
+                       time=SampleFunregData$time,
+                       x=SampleFunregData$x1,
+                       family=binomial);
+print(simple.model);                 
+par(mfrow=c(2,2));                          
+plot(x=simple.model$model.for.x[[1]]$bin.midpoints,
+     y=simple.model$model.for.x[[1]]$mu.x.by.bin,
+     xlab="Time t",ylab="X(t)",main="Smoothed mean x values"); 
+# The smoothed average value of the predictor function x(t) at different times t. 
+# The ``[[1]]'' after model.for.x is there because model.for.x is a list with one entry.
+# This is because more than one functional covariate is allowed.
+plot(simple.model,type="correlations");
+# The marginal correlation of x(t) with y at different times t.
+# It appears that earlier time points are more strongly related to y.
+plot(simple.model,type="coefficients");
+# The functional regression coefficient of y on x(t).  
+# It also appears that earlier time points are more strongly related to y.
+plot(simple.model$subject.info$response,
+     simple.model$subject.info$fitted,
+     main="Predictive Performance",
+     xlab="True Y",
+     ylab="Fitted Y");  
+</code></pre>
+
+
+</div>

@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.flexrsurv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predictions for a relative survival model</h2>
+
+<h3>Description</h3>
+
+<p>Predict linear predictors, hazard and cumulative
+hazard for a model fitted by <code>flexrsuv</code> </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  ## S3 method for class 'flexrsurv'
+predict(object, newdata= NULL,
+   type = c("lp", "link", "risk", "hazard", "hazardrate",
+             "rate", "loghazard", "log", "lograte",
+             "cumulative.rate", "cumulative.hazard", "cumulative", "cum",
+             "survival", "surv", "netsurv"),
+   se.fit=FALSE,  		
+   ci.fit = FALSE,
+   level = .95,
+   na.action=na.pass, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>the results of a flexrsurv fit. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+
+<p>Optional new data at which to do predictions.
+If absent predictions are for the data frame used in the original fit. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>the type of predicted value. 
+Choices are the linear predictor (<code>"lp"</code>, <code>"log"</code>,
+<code>"loghazard"</code>, <code>"lograte"</code>), the hazard (<code>"rate"</code>, <code>"hazard"</code>, <code>"hazardrate"</code>, <code>"risk"</code>) or the cumulative
+hazard (<code>"cum"</code>, <code>"cumulative.hazard"</code>, <code>"cumulative"</code>). 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+
+<p>if TRUE, pointwise standard errors are produced for the predictions
+(not available for cumulative hazard).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci.fit</code></td>
+<td>
+
+<p>if TRUE, confidence intervale are produced for the predictions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+
+<p>Confidence level.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>function determining what should be done with missing values in
+<code>newdata</code>. The default is to predict <code>NA</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For future methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For cumulative hazard, the cumulative hazard is computed from 0 until
+the given end time. The cumulative hazard is computed using the same numerical
+integration method as the one used to fit the model. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>a vector or a list containing the predictions (element <code>"fit"</code>) and their
+standard errors (element <code>"se.fit"</code>) if the se.fit option is TRUE. 
+</p>
+
+
+<h3>Note</h3>
+
+<p>To work correctly, arguments <code>Boundary.knots</code> and
+<code>Boundary.knots.t</code> must be included in the call to <code>NPH()</code>, <code>NLL()</code> and
+<code>NPHNLL()</code> in the formula of <code>flexrsurv</code> 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict</code>, <code>flexrsurv</code>, <code>flexrsurvclt</code>  </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+if (requireNamespace("relsurv", quietly = TRUE)) {
+
+	# data from package relsurv
+	data(rdata, package="relsurv")
+	
+	# rate table from package relsurv
+	data(slopop, package="relsurv")
+	
+	
+	# get the death rate at event (or end of followup) from slopop for rdata
+	rdata$iage &lt;- findInterval(rdata$age*365.24+rdata$time, attr(slopop, "cutpoints")[[1]])
+	rdata$iyear &lt;- findInterval(rdata$year+rdata$time, attr(slopop, "cutpoints")[[2]])
+	therate &lt;- rep(-1, dim(rdata)[1])
+	for( i in 1:dim(rdata)[1]){
+	  therate[i] &lt;- slopop[rdata$iage[i], rdata$iyear[i], rdata$sex[i]]
+	}
+	
+	rdata$slorate &lt;- therate
+	
+	# change sex coding
+	rdata$sex01 &lt;- rdata$sex -1
+	# centering age
+	rdata$agec &lt;- rdata$age- 60
+	
+	# fit a relative survival model with a non linear effect of age
+	fit &lt;- flexrsurv(Surv(time,cens)~sex01+NLL(age, Knots=60, Degree=3,
+	                                           Boundary.knots = c(24, 95)), 
+	                 rate=slorate, data=rdata,
+	                 knots.Bh=1850,  # one interior knot at 5 years
+	                 degree.Bh=3,
+	                 Spline = "b-spline", 
+	                 initbyglm=TRUE, 
+	                 int_meth= "BOOLE",
+	                 step=50
+	                 )
+	summary(fit, correlation=TRUE)
+	
+	
+	
+	newrdata &lt;- rdata
+	newrdata$age &lt;- rep(60, length(rdata$age))
+	newrdata$sex &lt;- factor(newrdata$sex, labels=c("m", "f"))
+	
+	linpred &lt;- predict(fit, newdata=newrdata, type="lp", ci.fit=TRUE)
+	predhazard &lt;- predict(fit, newdata=newrdata, type="hazard" , ci.fit=TRUE)
+	predcumhazard &lt;- predict(fit, newdata=newrdata, type="cum", ci.fit=TRUE)
+	
+	require(ggplot2)
+	tmp &lt;- cbind(newrdata, linpred)
+	glp &lt;- ggplot(tmp, aes(time, colour=sex))
+	glp + geom_ribbon(aes(ymin = lwr, ymax = upr, fill=sex)) +
+	   geom_line(aes(y=fit)) +
+	   scale_fill_manual(values = alpha(c("blue", "red"), .3))
+	
+	
+	tmp &lt;- cbind(newrdata, predhazard)
+	glp &lt;- ggplot(tmp, aes(time, colour=sex))
+	glp + geom_ribbon(aes(ymin = lwr, ymax = upr, fill=sex)) +
+	   geom_line(aes(y=fit))  +
+	   scale_fill_manual(values = alpha(c("blue", "red"), .3))
+	
+	
+	tmp &lt;- cbind(newrdata, predcumhazard)
+	glp &lt;- ggplot(tmp, aes(time, colour=sex))
+	glp + geom_ribbon(aes(ymin = lwr, ymax = upr, fill=sex)) +
+	   geom_line(aes(y=fit)) +
+	   scale_fill_manual(values = alpha(c("blue", "red"), .3))
+}
+
+</code></pre>
+
+
+</div>

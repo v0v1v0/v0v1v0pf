@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash_add_intercept</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add "intercept" to a flash object</h2>
+
+<h3>Description</h3>
+
+<p>Adds an all-ones vector as a fixed set of loadings (if <code>rowwise = TRUE</code>)
+or fixed factor (if <code>rowwise = FALSE</code>). Assuming (without loss of
+generality) that the fixed factor/loadings is indexed as <code class="reqn">k = 1</code>,
+a fixed set of loadings gives:
+</p>
+<p style="text-align: center;"><code class="reqn">\mathbf{y}_{i \cdot} \approx \mathbf{f}_1 + \sum_{k = 2}^K \ell_{i k}
+  \mathbf{f}_k,</code>
+</p>
+
+<p>so that the (estimated) factor <code class="reqn">\mathbf{f}_1 \in \mathbf{R}^p</code> is shared
+by all row-wise observations <code class="reqn">\mathbf{y}_{i \cdot} \in \mathbf{R}^p</code>.
+A fixed factor gives:
+</p>
+<p style="text-align: center;"><code class="reqn">\mathbf{y}_{\cdot j} \approx \boldsymbol{\ell}_1 + \sum_{k = 2}^K f_{j k}
+  \boldsymbol{\ell}_k,</code>
+</p>
+
+<p>so that the (estimated) set of loadings <code class="reqn">\ell_1 \in \mathbf{R}^n</code> is
+shared by all column-wise observations <code class="reqn">y_{\cdot j} \in \mathbf{R}^n</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash_add_intercept(flash, rowwise = TRUE, ebnm_fn = ebnm_point_normal)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>flash</code></td>
+<td>
+<p>A <code>flash</code> or <code>flash_fit</code> object to which an "intercept"
+is to be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rowwise</code></td>
+<td>
+<p>Should the all-ones vector be added as a fixed set of loadings
+("row-wise") or a fixed factor ("column-wise")? See above for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ebnm_fn</code></td>
+<td>
+<p>As with other factor/loadings pairs, a prior is put on the
+estimated factor (if <code>rowwise = TRUE</code>) or set of loadings (if
+<code>rowwise = FALSE</code>). Parameter <code>ebnm_fn</code> specifies the function
+used to estimate that prior; see <code>flash</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The estimated factor (if <code>rowwise = TRUE</code>) or set of loadings
+(if <code>rowwise = FALSE</code>) is initialized at the column-
+or row-wise means of the data (or, if factor/loadings pairs have previously
+been added, at the column- or row-wise means of the matrix of residuals)
+and then backfit via function <code>flash_backfit</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>flash</code> object from argument <code>flash</code>, with an
+"intercept" added.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># The following are equivalent:
+init &lt;- list(matrix(rowMeans(gtex), ncol = 1),
+             matrix(1, nrow = ncol(gtex)))
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_factors_init(init) %&gt;%
+  flash_factors_fix(kset = 1, which_dim = "factors") %&gt;%
+  flash_backfit(kset = 1)
+
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_add_intercept(rowwise = FALSE)
+
+</code></pre>
+
+
+</div>

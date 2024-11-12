@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>read.merlin.files</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+function to read input files in Merlin format
+</h2>
+
+<h3>Description</h3>
+
+<p>Reads the pedigree, data and allele frequency input files.  The data read is reformatted to be used by the function <code>fat2Lpoly.withinR</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read.merlin.files(pedfilenames, datfilenames, freq.data, ibdfilenames = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pedfilenames</code></td>
+<td>
+
+<p>vector of 1 or 2 (the number of loci involved in the <code>design</code> function) character strings giving the names of the pedigree files in Merlin format (see Merlin website [1]). Put the full path of the files if they are not in the current working directory. If the phenotype is polytomous with 4 levels created by all combinations of two dichotomous phenotypic variables <code class="reqn">Y_{1}</code> and <code class="reqn">Y_{2}</code>, then the sixth and seventh columns of each file contain respectively <code class="reqn">Y_{1}</code> (e.g. the endophenotype) and <code class="reqn">Y_{2}</code> (e.g. the disease phenotype). If the phenotype is dichotomous, then the sixth column of each file contains it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datfilenames</code></td>
+<td>
+
+<p>vector of 1 or 2 (the number of loci involved in the <code>design</code> function) character strings giving the names of the Merlin format data files corresponding to the pedigree files.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq.data</code></td>
+<td>
+
+<p>Either 
+(1) a vector of 1 or 2 (the number of loci involved in the <code>design</code> function) character strings giving the names of the allele frequency files corresponding to the pedigree files. These files must be in Merlin Classic format.
+or
+(2) a list of length 1 or 2 (the number of loci involved in the <code>design</code> function), each element of which is a numeric vector of length 'number of SNPs in <code>datfilenames</code>' and specifies each SNP's minor allele.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ibdfilenames</code></td>
+<td>
+
+<p>vector of 1 or 2 (the number of loci involved in the <code>design</code> function) character strings giving the names of the Merlin format ibd files corresponding to the pedigree files. If NULL (the default), the reading of the IBD files is skipped.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All subjects included in the pedigree files must also be found in the IBD files.
+</p>
+<p>All fields in the pedigree files must be numeric.  No letters allowed, even for family and subject ID's.
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns a list of six objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ped</code></td>
+<td>
+
+<p>data frame with columns fam.id, subject.ids, endophenotype and phenotype (in the given order)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.all</code></td>
+<td>
+
+<p>data frame of SNP genotypes in the format "(number of minor alleles)/2", for all SNPs listed in the file(s) in <code>datfilenames</code>.  It contains only the SNP data and it has as column names the SNP names in <code>datfilenames</code>.  The lines come in the same order as in <code>ped</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MA.table</code></td>
+<td>
+
+<p>data frame giving the minor allele numbers of all the SNPs.  The first column consists of <code>x.all</code>'s column names and the second column the minor allele numbers.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ibd.dat.list</code></td>
+<td>
+
+<p>list of one or two data frames containing the columns of the IBD data file(s) in <code>ibdfilenames</code>.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y1.name</code></td>
+<td>
+
+<p>affection name extracted from first line of the data file(s)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y2.name</code></td>
+<td>
+
+<p>affection name extracted from second line of the data file(s)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ibdfilenames</code></td>
+<td>
+
+<p>(same object as provided as argument) vector of 1 or 2 (the number of loci involved in the <code>design</code> function) character strings giving the names of the Merlin format ibd files corresponding to the pedigree files.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Alexandre Bureau and Jordie Croteau
+</p>
+
+
+<h3>References</h3>
+
+<p>1. http://www.sph.umich.edu/csg/abecasis/Merlin/tour/input_files.html
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fat2Lpoly.withinR</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">path.data=paste(.libPaths()[which(unlist(lapply(.libPaths(),
+function(x) length(grep("fat2Lpoly",dir(x)))))&gt;0)],
+"/fat2Lpoly/extdata/",sep="")
+if(length(path.data)&gt;1) path.data=path.data[length(path.data)]
+
+input.data=read.merlin.files(pedfilenames=
+                  paste(path.data,c("loc1.ped","loc2.ped"),sep=""),
+                  datfilenames=
+				paste(path.data,c("loc1.dat","loc2.dat"),sep=""),
+			      freq.data=
+			      paste(path.data,c("loc1.freq","loc2.freq"),sep=""),
+                       ibdfilenames=
+				paste(path.data,c("loc1.ibd","loc2.ibd"),sep=""))
+
+input.data2=read.merlin.files(pedfilenames=
+					paste(path.data,"loc2.ped",sep=""),
+                            datfilenames=
+                            paste(path.data,"loc2.dat",sep=""),
+                            freq.data=
+                            paste(path.data,"loc2.freq",sep=""),
+					ibdfilenames=
+					paste(path.data,"loc2.ibd",sep=""))
+</code></pre>
+
+
+</div>

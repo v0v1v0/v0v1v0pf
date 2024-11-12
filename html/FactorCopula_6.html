@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>discrepancy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Diagnostics to detect a factor dependence structure 
+</h2>
+
+<h3>Description</h3>
+
+<p>The diagnostic method in Joe (2014, pages 245-246)  to show that each dataset has  a factor  structure based on linear factor analysis. The  correlation matrix <code class="reqn">\R_{\mathrm{observed}}</code>  has been obtained based on the sample correlations  from the bivariate pairs of the observed variables. 
+These are the linear  (when both variables are continuous),  polychoric (when both variables are ordinal),  and polyserial (when one variable is continuous and the other is ordinal) sample correlations among the observed variables. 
+The resulting <code class="reqn">\R_{\mathrm{observed}}</code>  is generally positive definite  if the sample size is not small enough; if not one has to convert it to positive definite. We calculate various measures of discrepancy between <code class="reqn">\R_{\mathrm{observed}}</code>  and <code class="reqn">\R_{\mathrm{model}}</code> (the resulting correlation matrix of linear factor analysis), such as  the maximum absolute correlation
+difference <code class="reqn">D_1=\max|\R_{\mathrm{model}} - \R_{\mathrm{observed}}|</code>, the average absolute correlation
+difference <code class="reqn">D_2=\mathrm{avg}| \R_{\mathrm{model}} - \R_{\mathrm{observed}}|</code>, and  the correlation matrix discrepancy measure <code class="reqn">D_3=\log\bigl( \det(\R_{\mathrm{model}}) \bigr) - \log\bigl( \det(\R_{\mathrm{observed}})\bigr) + \mathrm{tr}( \R^{-1}_{\mathrm{model}} \R_{\mathrm{observed}} ) - d</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">discrepancy(cormat, n, f3)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cormat</code></td>
+<td>
+<p><code class="reqn">\R_{\mathrm{observed}}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f3</code></td>
+<td>
+<p>If TRUE, then the linear 3-factor analysis is fitted.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A matrix with the calculated discrepancy measures for different number of factors. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sayed H. Kadhem <a href="mailto:s.kadhem@uea.ac.uk">s.kadhem@uea.ac.uk</a><br>
+Aristidis K. Nikoloulopoulos <a href="mailto:a.nikoloulopoulos@uea.ac.uk">a.nikoloulopoulos@uea.ac.uk</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Joe, H. (2014).
+<em>Dependence Modelling with Copulas</em>. Chapman &amp; Hall, London.
+</p>
+<p>Kadhem, S.H. and Nikoloulopoulos, A.K. (2021)
+Factor copula models for mixed data.
+<em>British Journal of Mathematical and Statistical Psychology</em>, <b>74</b>, 365–403. <a href="https://doi.org/10.1111/bmsp.12231">doi:10.1111/bmsp.12231</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#------------------------------------------------
+#                     PE Data
+#------------------             -----------------
+data(PE)
+#correlation
+continuous.PE1 &lt;- -PE[,1] 
+continuous.PE &lt;- cbind(continuous.PE1, PE[,2])
+u.PE &lt;- apply(continuous.PE, 2, rank)/(nrow(PE)+1)
+z.PE &lt;- qnorm(u.PE)
+categorical.PE &lt;- data.frame(apply(PE[, 3:5], 2, factor))
+nPE &lt;- cbind(z.PE, categorical.PE)
+
+#-------------------------------------------------
+# Discrepancy measures----------------------------
+#-------------------------------------------------
+#correlation matrix for mixed data
+cormat.PE &lt;- as.matrix(polycor::hetcor(nPE, std.err=FALSE))
+#discrepancy measures
+out.PE = discrepancy(cormat.PE, n = nrow(nPE), f3 = FALSE)
+
+#------------------------------------------------
+#------------------------------------------------
+#                    GSS Data
+#------------------             -----------------
+data(GSS)
+attach(GSS)
+continuous.GSS &lt;- cbind(INCOME,AGE)
+continuous.GSS &lt;- apply(continuous.GSS, 2, rank)/(nrow(GSS)+1)
+z.GSS &lt;- qnorm(continuous.GSS)
+ordinal.GSS &lt;- cbind(DEGREE,PINCOME,PDEGREE) 
+count.GSS &lt;- cbind(CHILDREN,PCHILDREN)
+
+# Transforming the count variables to ordinal
+# count1 : CHILDREN
+count1  = count.GSS[,1]
+count1[count1 &gt; 3] = 3
+
+# count2: PCHILDREN
+count2  = count.GSS[,2]
+count2[count2 &gt; 7] = 7
+
+# Combining both transformed count variables
+ncount.GSS = cbind(count1, count2)
+
+# Combining ordinal and transformed count variables
+categorical.GSS &lt;- cbind(ordinal.GSS, ncount.GSS)
+categorical.GSS &lt;- data.frame(apply(categorical.GSS, 2, factor))
+
+# combining continuous and categorical variables
+nGSS = cbind(z.GSS, categorical.GSS)
+
+#-------------------------------------------------
+# Discrepancy measures----------------------------
+#-------------------------------------------------
+#correlation matrix for mixed data
+cormat.GSS &lt;- as.matrix(polycor::hetcor(nGSS, std.err=FALSE))
+#discrepancy measures
+out.GSS = discrepancy(cormat.GSS, n = nrow(nGSS), f3 = TRUE)
+
+</code></pre>
+
+
+</div>

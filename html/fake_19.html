@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SimulateAdjacency</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation of undirected graph with block structure</h2>
+
+<h3>Description</h3>
+
+<p>Simulates the adjacency matrix of an unweighted, undirected graph with no
+self-loops. If <code>topology="random"</code>, different densities in diagonal
+(<code>nu_within</code>) compared to off-diagonal (<code>nu_between</code>) blocks can be
+used.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SimulateAdjacency(
+  pk = 10,
+  implementation = HugeAdjacency,
+  topology = "random",
+  nu_within = 0.1,
+  nu_between = 0,
+  nu_mat = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pk</code></td>
+<td>
+<p>vector of the number of variables per group in the simulated
+dataset. The number of nodes in the simulated graph is <code>sum(pk)</code>. With
+multiple groups, the simulated (partial) correlation matrix has a block
+structure, where blocks arise from the integration of the <code>length(pk)</code>
+groups. This argument is only used if <code>theta</code> is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>implementation</code></td>
+<td>
+<p>function for simulation of the graph. By default,
+algorithms implemented in <code>huge.generator</code> are used.
+Alternatively, a user-defined function can be used. It must take <code>pk</code>,
+<code>topology</code> and <code>nu</code> as arguments and return a
+<code>(sum(pk)*(sum(pk)))</code> binary and symmetric matrix for which diagonal
+entries are all equal to zero. This function is only applied if
+<code>theta</code> is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>topology</code></td>
+<td>
+<p>topology of the simulated graph. If using
+<code>implementation=HugeAdjacency</code>, possible values are listed for the
+argument <code>graph</code> of <code>huge.generator</code>. These are:
+"random", "hub", "cluster", "band" and "scale-free".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_within</code></td>
+<td>
+<p>probability of having an edge between two nodes belonging to
+the same group, as defined in <code>pk</code>. If <code>length(pk)=1</code>, this is
+the expected density of the graph. If <code>implementation=HugeAdjacency</code>,
+this argument is only used for <code>topology="random"</code> or
+<code>topology="cluster"</code> (see argument <code>prob</code> in
+<code>huge.generator</code>). Only used if <code>nu_mat</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_between</code></td>
+<td>
+<p>probability of having an edge between two nodes belonging
+to different groups, as defined in <code>pk</code>. By default, the same density
+is used for within and between blocks (<code>nu_within</code>=<code>nu_between</code>).
+Only used if <code>length(pk)&gt;1</code>. Only used if <code>nu_mat</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_mat</code></td>
+<td>
+<p>matrix of probabilities of having an edge between nodes
+belonging to a given pair of node groups defined in <code>pk</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to the graph simulation function
+provided in <code>implementation</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Random graphs are simulated using the Erdos-Renyi algorithm.
+Scale-free graphs are simulated using a preferential attachment algorithm.
+More details are provided in <code>huge.generator</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A symmetric adjacency matrix encoding an unweighted, undirected graph
+with no self-loops, and with different densities in diagonal compared to
+off-diagonal blocks.
+</p>
+
+
+<h3>References</h3>
+
+<p>Bodinier B, Filippi S, Nost TH, Chiquet J, Chadeau-Hyam M (2021).
+“Automated calibration for stability selection in penalised regression and graphical models: a multi-OMICs network application exploring the molecular response to tobacco smoking.”
+<a href="https://arxiv.org/abs/2106.02521">https://arxiv.org/abs/2106.02521</a>.
+</p>
+<p>Jiang H, Fei X, Liu H, Roeder K, Lafferty J, Wasserman L, Li X, Zhao T (2021).
+<em>huge: High-Dimensional Undirected Graph Estimation</em>.
+R package version 1.3.5, <a href="https://CRAN.R-project.org/package=huge">https://CRAN.R-project.org/package=huge</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other simulation functions: 
+<code>SimulateClustering()</code>,
+<code>SimulateComponents()</code>,
+<code>SimulateCorrelation()</code>,
+<code>SimulateGraphical()</code>,
+<code>SimulateRegression()</code>,
+<code>SimulateStructural()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulation of a scale-free graph with 20 nodes
+adjacency &lt;- SimulateAdjacency(pk = 20, topology = "scale-free")
+plot(adjacency)
+
+# Simulation of a random graph with three connected components
+adjacency &lt;- SimulateAdjacency(
+  pk = rep(10, 3),
+  nu_within = 0.7, nu_between = 0
+)
+plot(adjacency)
+
+# Simulation of a random graph with block structure
+adjacency &lt;- SimulateAdjacency(
+  pk = rep(10, 3),
+  nu_within = 0.7, nu_between = 0.03
+)
+plot(adjacency)
+
+# User-defined function for graph simulation
+CentralNode &lt;- function(pk, hub = 1) {
+  theta &lt;- matrix(0, nrow = sum(pk), ncol = sum(pk))
+  theta[hub, ] &lt;- 1
+  theta[, hub] &lt;- 1
+  diag(theta) &lt;- 0
+  return(theta)
+}
+simul &lt;- SimulateAdjacency(pk = 10, implementation = CentralNode)
+plot(simul) # star
+simul &lt;- SimulateAdjacency(pk = 10, implementation = CentralNode, hub = 2)
+plot(simul) # variable 2 is the central node
+</code></pre>
+
+
+</div>

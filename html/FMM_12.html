@@ -1,0 +1,249 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitFMM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting FMM models</h2>
+
+<h3>Description</h3>
+
+<p><code>fitFMM()</code> is used to fit FMM models. The only required argument to fit FMM models is the input data.
+By default it is assumed that time points, corresponding to a single time period, are equally spaced from 0 to <code class="reqn">2\pi</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitFMM(
+  vData,
+  nPeriods = 1,
+  timePoints = NULL,
+  nback = 1,
+  betaOmegaRestrictions = 1:nback,
+  maxiter = nback,
+  stopFunction = alwaysFalse,
+  lengthAlphaGrid = 48,
+  lengthOmegaGrid = 24,
+  numReps = 3,
+  showProgress = TRUE,
+  showTime = FALSE,
+  parallelize = FALSE,
+  restrExactSolution = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vData</code></td>
+<td>
+<p>A numeric vector containing the data to be fitted a FMM model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nPeriods</code></td>
+<td>
+<p>A numeric value specifying the number of periods at which <code>vData</code> is observed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timePoints</code></td>
+<td>
+<p>A numeric vector containing the time points at which each data of one single period is observed. The default value is <code>NULL</code>,
+in which case they are equally spaced in range <code class="reqn">[0, 2\pi]</code>. It must be between 0 and <code class="reqn">2\pi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nback</code></td>
+<td>
+<p>Number of FMM components to be fitted. Its default value is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betaOmegaRestrictions</code></td>
+<td>
+<p>An integer vector of length <code>nback</code> indicating which FMM waves are constrained to have equal <code>beta</code> and <code>omega</code> parameters. For example, <code>c(1,1,1,2,2)</code> indicates that <code>beta1=beta2=beta3</code> and
+<code>beta4=beta5</code> as well as <code>omega1=omega2=omega3</code> and <code>omega4=omega5</code>. In brief, some waves are restricted to have the same shape. Its default value is the sequence <code>1:nback</code> to fit the FMM model without restrictions on shape parameters (<code>beta</code> and <code>omega</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number of iterations for the backfitting algorithm. By default, it is set at <code>nback</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stopFunction</code></td>
+<td>
+<p>Function to check the convergence criterion for the backfitting algorithm (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthAlphaGrid</code></td>
+<td>
+<p>Precision of the grid of alpha in the search of the best model. If it is increased, more possible values of alpha will be considered, resulting in an increasing in the computation time too.
+By default, it is set to 48 possible values of alpha, equally spaced between 0 and <code class="reqn">2\pi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthOmegaGrid</code></td>
+<td>
+<p>Precision of the grid of omega in the search of the best model. If it is increased, more possible values of omega will be considered, resulting in an increasing in the computation time too.
+By default it is set to 24 possible values of omega, equally spaced between 0 and 1 in a logarithmic way.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numReps</code></td>
+<td>
+<p>Number of times (alpha, omega) parameters are refined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showProgress</code></td>
+<td>
+<p><code>TRUE</code> to display a progress indicator on the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showTime</code></td>
+<td>
+<p><code>TRUE</code> to display execution time on the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallelize</code></td>
+<td>
+<p><code>TRUE</code> to use parallelized procedure to fit FMM model. Its default value is <code>FALSE</code>. When it is <code>TRUE</code>, the number of cores to be used is equal to 12, or if the machine has less, the number of cores - 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restrExactSolution</code></td>
+<td>
+<p><code>FALSE</code> to use an aproximated algorithm to fit the FMM model with restrictions (default). If <code>TRUE</code> is specified, the exact solution is computed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Data will be collected over <code>nPeriods</code> periods. When <code>nPeriods &gt; 1</code> the fitting is carried out by averaging the data collected
+at each time point across all considered periods. The model is fitting to summarized data.
+<code>timePoints</code> is a <code>n</code>-length numeric vector where <code>n</code> is the number of different time points per period.
+</p>
+<p>The <code>stopFunction</code> argument can either be the functions <code>alwaysFalse</code> or <code>R2</code> included in the package or user-defined functions that have the same arguments. The included functions serve for the following:
+</p>
+
+<ul>
+<li>
+<p><code>alwaysFalse()</code>, its default value, which returns <code>FALSE</code> to force <code>maxiter</code> iterations; and
+</p>
+</li>
+<li>
+<p><code>R2(vData,pred,prevPred,difMax = 0.001)</code>, a function that computes the difference between the explained variability in two consecutive iterations returning <code>TRUE</code> when the convergence criterion is reached.
+To calculate the explained variability difference, the data and the fitted values from the current and previous iteration are passed as arguments <code>vData</code>, <code>pred</code> and <code>prevPred</code>, respectively. The convergence
+criterion is fulfilled when the explained variability difference is less than the argument <code>difMax</code> (by default 0.001).
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An S4 object of class <code>'FMM'</code> with information about the fitted model. The object contains the following slots:
+</p>
+
+<dl>
+<dt>@timePoints</dt>
+<dd>
+<p>The time points as specified by the input argument. It is a numeric vector containing the time points at which each data of one single period is observed.</p>
+</dd>
+<dt>@data</dt>
+<dd>
+<p>The data as specified by the input argument. It is a numeric vector containing the data to be fitted a FMM model. Data could be collected over multiple periods.</p>
+</dd>
+<dt>@summarizedData</dt>
+<dd>
+<p>When the data has more than one period, a numeric vector containing <code>data</code> averaging the data at each time point across all considered periods.</p>
+</dd>
+<dt>@nPeriods</dt>
+<dd>
+<p>A numeric value containing the number of periods in data as specified by the input argument.</p>
+</dd>
+<dt>@fittedValues</dt>
+<dd>
+<p>A numeric vector of the fitted values by the FMM model.</p>
+</dd>
+<dt>@M</dt>
+<dd>
+<p>A numeric value of the estimated intercept parameter <code class="reqn">M</code>.</p>
+</dd>
+<dt>@A</dt>
+<dd>
+<p>A numeric value or vector of the estimated FMM wave amplitude parameter(s) <code class="reqn">A</code>.</p>
+</dd>
+<dt>@alpha</dt>
+<dd>
+<p>A numeric value or vector of the estimated FMM wave phase translation parameter(s) <code class="reqn">\alpha</code>.</p>
+</dd>
+<dt>@beta</dt>
+<dd>
+<p>A numeric value or vector of the estimated FMM wave skewness parameter(s) <code class="reqn">\beta</code>.</p>
+</dd>
+<dt>@omega</dt>
+<dd>
+<p>A numeric value or vector of the estimated FMM wave kurtosis parameter(s) <code class="reqn">\omega</code>.</p>
+</dd>
+<dt>@SSE</dt>
+<dd>
+<p>A numeric value of the sum of the residual squares values.</p>
+</dd>
+<dt>@R2</dt>
+<dd>
+<p>A numeric vector specifying the explained variance by each of the fitted FMM components.</p>
+</dd>
+<dt>@nIter</dt>
+<dd>
+<p>A numeric value specifying the number of iterations of the fitting algorithm.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Rueda C, Larriba Y, Peddada SD (2019). Frequency Modulated Moebius Model Accurately Predicts Rhythmic Signals in Biological and Physical Sciences.
+<em>Scientific reports</em>, <b>9</b> (1), 18701. <a href="https://www.nature.com/articles/s41598-019-54569-1">https://www.nature.com/articles/s41598-019-54569-1</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A monocomponent FMM model is fitted.
+FMM_data &lt;- generateFMM(2, 3, 1.5, 2.3, 0.1,
+                        from = 0, to = 2*pi, length.out = 100,
+                        outvalues = TRUE, sigmaNoise = 0.3, plot = FALSE)
+fit &lt;- fitFMM(FMM_data$y, lengthAlphaGrid = 10, lengthOmegaGrid = 10)
+summary(fit)
+
+# To see the differences between number of repetitions.
+FMM_data &lt;- generateFMM(2, 1, 1.5, 1.1 ,0.14 , outvalues = TRUE, sigmaNoise = 0.15, plot=TRUE)
+fit1 &lt;- fitFMM(FMM_data$y, lengthAlphaGrid = 6, lengthOmegaGrid = 3, numReps = 1)
+fit2 &lt;- fitFMM(FMM_data$y, lengthAlphaGrid = 6, lengthOmegaGrid = 3, numReps = 6,
+               showProgress = FALSE)  # suppress progress messages
+getSSE(fit1)
+getSSE(fit2)
+
+# Finer resolution grid.
+fit3 &lt;- fitFMM(FMM_data$y, lengthAlphaGrid = 10, lengthOmegaGrid = 5, numReps = 1)
+getSSE(fit3)
+
+# Two component FMM model with beta and omega restricted
+restFMM2w_data &lt;- generateFMM(M = 3, A = c(7, 4), alpha = c(0.5, 5), beta = c(rep(3, 2)),
+                              omega = rep(0.05, 2), from = 0, to = 2*pi, length.out = 100,
+                              sigmaNoise = 0.3, plot = FALSE)
+fit2w.rest &lt;- fitFMM(restFMM2w_data$y, nback = 2, maxiter = 1, numReps = 1,
+                     lengthAlphaGrid = 15, lengthOmegaGrid = 10,
+                     betaOmegaRestrictions = c(1, 1))
+plotFMM(fit2w.rest, components = TRUE)
+
+</code></pre>
+
+
+</div>

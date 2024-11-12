@@ -1,0 +1,708 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modMAratio</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model-Assisted module - Generate model-assisted tree estimates.</h2>
+
+<h3>Description</h3>
+
+<p>Generates tree estimates by estimation unit. Estimates are calculated from
+McConville et al. (2018)'s mase R package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modMAratio(
+  MApopdat,
+  ratiotype = "PERACRE",
+  woodland = "Y",
+  landarea = "FOREST",
+  estseed = "none",
+  pcfilter = NULL,
+  estvarn = NULL,
+  estvarn.filter = NULL,
+  estvard = NULL,
+  estvard.filter = NULL,
+  prednames = NULL,
+  FIA = TRUE,
+  rowvar = NULL,
+  colvar = NULL,
+  sumunits = TRUE,
+  returntitle = FALSE,
+  savedata = FALSE,
+  table_opts = NULL,
+  title_opts = NULL,
+  savedata_opts = NULL,
+  gui = FALSE,
+  bootstrap = FALSE,
+  modelselect = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>MApopdat</code></td>
+<td>
+<p>List. Population data objects returned from modMApop().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratiotype</code></td>
+<td>
+<p>String. The type of ratio estimates ("PERACRE", "PERTREE").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>woodland</code></td>
+<td>
+<p>String. If woodland = 'Y', include woodland tree species
+where measured. If woodland = 'N', only include timber species. See 
+FIESTA::ref_species$WOODLAND ='Y/N'. If woodland = 'only', only include
+woodland species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>landarea</code></td>
+<td>
+<p>String. The sample area filter for estimates ("FOREST",
+"TIMBERLAND").  If landarea=FOREST, filtered to COND_STATUS_CD = 1; If
+landarea=TIMBERLAND, filtered to SITECLCD in(1:6) and RESERVCD = 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estseed</code></td>
+<td>
+<p>String. Use seedling data only or add to tree data. Seedling
+estimates are only for counts (estvar='TPA_UNADJ')-('none', 'only', 'add').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pcfilter</code></td>
+<td>
+<p>String. A filter for plot or cond attributes (including
+pltassgn).  Must be R logical syntax.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estvarn</code></td>
+<td>
+<p>String. Name of the tree estimate variable (numerator).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estvarn.filter</code></td>
+<td>
+<p>String. A tree filter for the estimate variable
+(numerator).  Must be R syntax (e.g., "STATUSCD == 1").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estvard</code></td>
+<td>
+<p>String. Name of the tree estimate variable (denominator).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estvard.filter</code></td>
+<td>
+<p>String. A tree filter for the estimate variable
+(denominator).  Must be R syntax (e.g., "STATUSCD == 1").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prednames</code></td>
+<td>
+<p>String vector. Name(s) of predictor variables to include in
+model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FIA</code></td>
+<td>
+<p>Logical. If TRUE, the finite population term is removed from
+estimator to match FIA estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rowvar</code></td>
+<td>
+<p>String. Optional. Name of domain variable to group estvarn and
+estvard by for rows in table output. Rowvar must be included in an input data frame
+(i.e., plt, cond, tree). If no rowvar is included, an estimate is returned
+for the total estimation unit. Include colvar for grouping by 2 variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colvar</code></td>
+<td>
+<p>String. Optional. If rowvar != NULL, name of domain variable
+to group estvarn and estvard by for columns in table output. Colvar must be included in
+an input data frame (i.e., plt, cond, tree).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumunits</code></td>
+<td>
+<p>Logical. If TRUE, estimation units are summed and returned
+in one table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returntitle</code></td>
+<td>
+<p>Logical. If TRUE, returns title(s) of the estimation
+table(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves table(s) to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table_opts</code></td>
+<td>
+<p>List. See help(table_options()) for a list of
+options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title_opts</code></td>
+<td>
+<p>List. See help(title_options()) for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gui</code></td>
+<td>
+<p>Logical. If gui, user is prompted for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>Logical. If TRUE, returns bootstrap variance estimates,
+otherwise uses Horvitz-Thompson estimator under simple random sampling
+without replacement.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelselect</code></td>
+<td>
+<p>Logical. If TRUE, an elastic net regression model is fit 
+to the entire plot level data, and the variables selected in that model are 
+used for the proceeding estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters for modMApop() if MApopdat is NULL.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If variables are NULL, then it will prompt user to input variables.
+</p>
+<p>Necessary variables:<br></p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>Data</b> </td>
+<td style="text-align: left;">
+<b>Variable</b> </td>
+<td style="text-align: left;"> <b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> tree </td>
+<td style="text-align: left;"> tuniqueid </td>
+<td style="text-align: left;">
+Unique identifier for each plot, to link to pltassgn (e.g. PLT_CN).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> CONDID </td>
+<td style="text-align: left;"> Unique identifier of each condition on plot, to link to
+cond.  Set CONDID=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> TPA_UNADJ
+</td>
+<td style="text-align: left;"> Number of trees per acre each sample tree represents (e.g., DESIGNCD=1:
+TPA_UNADJ=6.018046 for trees on subplot; 74.965282 for trees on
+microplot).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> cond </td>
+<td style="text-align: left;"> cuniqueid </td>
+<td style="text-align: left;"> Unique identifier for each
+plot, to link to pltassgn (ex. PLT_CN).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDID </td>
+<td style="text-align: left;"> Unique
+identifier of each condition on plot.  Set CONDID=1, if only 1 condition per
+plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDPROP_UNADJ </td>
+<td style="text-align: left;"> Unadjusted proportion of condition on
+each plot.  Set CONDPROP_UNADJ=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+COND_STATUS_CD </td>
+<td style="text-align: left;"> Status of each forested condition on plot (i.e.
+accessible forest, nonforest, water, etc.)</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> NF_COND_STATUS_CD
+</td>
+<td style="text-align: left;"> If ACI=TRUE. Status of each nonforest condition on plot (i.e.
+accessible nonforest, nonsampled nonforest)</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SITECLCD </td>
+<td style="text-align: left;"> If
+landarea=TIMBERLAND. Measure of site productivity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> RESERVCD
+</td>
+<td style="text-align: left;"> If landarea=TIMBERLAND. Reserved status.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SUBPROP_UNADJ
+</td>
+<td style="text-align: left;"> Unadjusted proportion of subplot conditions on each plot.  Set
+SUBPROP_UNADJ=1, if only 1 condition per subplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+MICRPROP_UNADJ </td>
+<td style="text-align: left;"> If microplot tree attributes. Unadjusted proportion of
+microplot conditions on each plot. Set MICRPROP_UNADJ=1, if only 1 condition
+per microplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MACRPROP_UNADJ </td>
+<td style="text-align: left;"> If macroplot tree
+attributes. Unadjusted proportion of macroplot conditions on each plot. Set
+MACRPROP_UNADJ=1, if only 1 condition per macroplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> pltassgn </td>
+<td style="text-align: left;">
+puniqueid </td>
+<td style="text-align: left;"> Unique identifier for each plot, to link to cond (ex. CN).</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> STATECD </td>
+<td style="text-align: left;"> Identifies state each plot is located in.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> INVYR </td>
+<td style="text-align: left;"> Identifies inventory year of each plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+PLOT_STATUS_CD </td>
+<td style="text-align: left;"> Status of each plot (i.e. sampled, nonsampled).  If not
+included, all plots are assumed as sampled.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>Reference names are available for the following variables: <br> ADFORCD,
+AGENTCD, CCLCD, DECAYCD, DSTRBCD, KINDCD, OWNCD, OWNGRPCD, FORTYPCD,
+FLDTYPCD, FORTYPCDCALC, TYPGRPCD, FORINDCD, RESERVCD, LANDCLCD, STDSZCD,
+FLDSZCD, PHYSCLCD, MIST_CL_CD, PLOT_STATUS_CD, STATECD, TREECLCD, TRTCD,
+SPCD, SPGRPCD
+</p>
+
+
+<h3>Value</h3>
+
+<p>If FIA=TRUE or unitvar=NULL and colvar=NULL, one data frame is
+returned with tree estimates and percent sample errors. Otherwise, a list is
+returned with tree estimates in one data frame (est) and percent sample
+errors in another data frame (est.pse). If rawdata=TRUE, another list is
+returned including raw data used in the estimation process.  If
+addtitle=TRUE and returntitle=TRUE, the title for est/pse is returned. If
+savedata=TRUE, all data frames are written to outfolder.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p> Data frame. Tree estimates by rowvar, colvar (and estimation
+unit). If FIA=TRUE or one estimation unit and colvar=NULL, estimates and
+percent sampling error are in one data frame. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pse</code></td>
+<td>
+<p> Data frame.
+Percent sampling errors for estimates by rowvar and colvar (and estimation
+unit). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>titlelst</code></td>
+<td>
+<p> List with 1 or 2 string vectors. If
+returntitle=TRUE a list with table title(s). The list contains one title if
+est and pse are in the same table and two titles if est and pse are in
+separate tables. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw</code></td>
+<td>
+<p> List of data frames. If rawdata=TRUE, a list
+including: number of plots by plot status, if in dataset (plotsampcnt);
+number of conditions by condition status (condsampcnt); data used for
+post-stratification (stratdat); and 1-8 tables with calculated variables
+used for processing estimates and percent sampling error for table cell
+values and totals (See processing data below). </p>
+</td>
+</tr>
+</table>
+<p>Raw data
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>plotsampcnt</code></td>
+<td>
+<p> Table. Number of plots by plot status (ex. sampled
+forest on plot, sampled nonforest, nonsampled). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condsampcnt</code></td>
+<td>
+<p> DF.
+Number of conditions by condition status (forest land, nonforest land,
+noncensus water, census water, nonsampled). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitarea</code></td>
+<td>
+<p> DF. Area by
+estimation unit. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expcondtab</code></td>
+<td>
+<p> DF. Condition-level area expansion
+factors. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tdomdat</code></td>
+<td>
+<p> DF. Final data table used for estimation. </p>
+</td>
+</tr>
+</table>
+<p>The data frames include the following information: </p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+<b>Variable</b> </td>
+<td style="text-align: left;"> <b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> rhat </td>
+<td style="text-align: left;"> estimated ratio estn/estd
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> rhat.var </td>
+<td style="text-align: left;"> variance estimate
+of estimated ratio estn/estd </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> NBRPLT Number of plots used in estimates </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+NBRPLT.gt0 </td>
+<td style="text-align: left;"> Number of non-zero plots used in estimates </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> 
+ACRES </td>
+<td style="text-align: left;"> total area for estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> rhat.se </td>
+<td style="text-align: left;">
+estimated standard error of ratio sqrt(rhat.var) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> rhat.cv </td>
+<td style="text-align: left;">
+estimated coefficient of variation of ratio rhat.se/rhat </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> rhat.pse
+</td>
+<td style="text-align: left;"> estimated percent standard error or ratio rhat.cv*100 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI99left
+</td>
+<td style="text-align: left;"> left tail of 99 percent confidence interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+CI99right </td>
+<td style="text-align: left;"> right tail of 99 percent confidence interval for estimated
+area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI95left </td>
+<td style="text-align: left;"> left tail of 95 percent confidence interval for
+estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI95right </td>
+<td style="text-align: left;"> right tail of 95 percent confidence
+interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI67left </td>
+<td style="text-align: left;"> left tail of 67 percent
+confidence interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI67right </td>
+<td style="text-align: left;"> right tail of
+67 percent confidence interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>Table(s) are also written to outfolder.
+</p>
+
+
+<h3>Note</h3>
+
+<p>ADJUSTMENT FACTOR:<br> The adjustment factor is necessary to account for
+nonsampled conditions. It is calculated for each estimation unit by strata.
+by summing the unadjusted proportions of the subplot, microplot, and
+macroplot (i.e. *PROP_UNADJ) and dividing by the number of plots in the
+strata/estimation unit).
+</p>
+<p>An adjustment factor is determined for each tree based on the size of the
+plot it was measured on. This is identified using TPA_UNADJ as follows:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>PLOT SIZE</b> </td>
+<td style="text-align: right;"> <b>TPA_UNADJ</b> </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SUBPLOT
+</td>
+<td style="text-align: right;"> 6.018046 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MICROPLOT </td>
+<td style="text-align: right;"> 74.965282 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MACROPLOT </td>
+<td style="text-align: right;">
+0.999188 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>If ACI=FALSE, only nonsampled forest conditions are accounted for in the
+adjustment factor. <br> If ACI=TRUE, the nonsampled nonforest conditions are
+removed as well and accounted for in adjustment factor.  This is if you are
+interested in estimates for all lands or nonforest lands in the
+All-Condition-Inventory.
+</p>
+<p>sumunits:<br> An estimation unit is a population, or area of interest, with
+known area and number of plots. Individual counties or combined
+Super-counties are common estimation units for FIA. An estimation unit may
+also be a subpopulation of a larger population (e.g., Counties within a
+State). Subpopulations are mutually exclusive and independent within a
+population, therefore estimated totals and variances are additive. For
+example, State-level estimates are generated by summing estimates from all
+subpopulations within the State (Bechtold and Patterson. 2005. Chapter 2).
+Each plot must be assigned to only one estimation unit.
+</p>
+<p>autoxreduce:<br> If MAmethod='GREG', and autoxreduce=TRUE, and there is an
+error because of multicolinearity, a variable reduction method is applied to
+remove correlated variables. The method used is based on the
+variance-inflation factor (vif) from a linear model. The vif estimates how
+much the variance of each x variable is inflated due to mulitcolinearity in
+the model.
+</p>
+<p>rowlut/collut:<br> There are several objectives for including rowlut/collut
+look-up tables: 1) to include descriptive names that match row/column codes
+in the input table; 2) to use number codes that match row/column names in
+the input table for ordering rows; 3) to add rows and/or columns with 0
+values for consistency. No duplicate names are allowed.
+</p>
+<p>Include 2 columns in the table:<br> 1-the merging variable with same name as
+the variable in the input merge table;<br> 2-the ordering or descriptive
+variable.<br> If the ordering variable is the rowvar/colvar in the input
+table and the descriptive variable is in rowlut/collut, set
+row.orderby/col.orderby equal to rowvar/colvar. If the descriptive variable
+is the rowvar/colvar in the input table, and the ordering code variable is
+in rowlut/collut, set row.orderby/col.orderby equal to the variable name of
+the code variable in rowlut/collut.
+</p>
+<p>UNITS:<br> The following variables are converted from pounds (from FIA
+database) to short tons by multiplying the variable by 0.0005.  DRYBIO_AG,
+DRYBIO_BG, DRYBIO_WDLD_SPP, DRYBIO_SAPLING, DRYBIO_STUMP, DRYBIO_TOP,
+DRYBIO_BOLE, DRYBIOT, DRYBIOM, DRYBIOTB, JBIOTOT, CARBON_BG, CARBON_AG
+</p>
+<p>MORTALITY:<br> For Interior-West FIA, mortality estimates are mainly based on
+whether a tree has died within the last 5 years of when the plot was
+measured. If a plot was remeasured, mortality includes trees that were alive
+the previous visit but were dead in the next visit. If a tree was standing
+the previous visit, but was not standing in the next visit, no diameter was
+collected (DIA = NA) but the tree is defined as mortality.
+</p>
+<p>Common tree filters: <br></p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>FILTER</b> </td>
+<td style="text-align: right;"> <b>DESCRIPTION</b> </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> "STATUSCD
+== 1" </td>
+<td style="text-align: right;"> Live trees </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> "STATUSCD == 2" </td>
+<td style="text-align: right;"> Dead trees </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+"TPAMORT_UNADJ &gt; 0" </td>
+<td style="text-align: right;"> Mortality trees </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> "STATUSCD == 2 &amp; DIA &gt;=
+5.0" </td>
+<td style="text-align: right;"> Dead trees &gt;= 5.0 inches diameter </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> "STATUSCD == 2 &amp;
+AGENTCD == 30" </td>
+<td style="text-align: right;"> Dead trees from fire </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Josh Yamamoto
+</p>
+
+
+<h3>References</h3>
+
+<p>Kelly McConville, Becky Tang, George Zhu, Shirley Cheung, and
+Sida Li (2018). mase: Model-Assisted Survey Estimation. R package version
+0.1.4 https://cran.r-project.org/package=mase
+</p>
+
+
+</div>

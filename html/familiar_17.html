@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>.parse_feature_selection_settings</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Internal function for parsing settings related to feature selection</h2>
+
+<h3>Description</h3>
+
+<p>Internal function for parsing settings related to feature selection
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">.parse_feature_selection_settings(
+  config = NULL,
+  data,
+  parallel,
+  outcome_type,
+  fs_method = waiver(),
+  fs_method_parameter = waiver(),
+  vimp_aggregation_method = waiver(),
+  vimp_aggregation_rank_threshold = waiver(),
+  parallel_feature_selection = waiver(),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>config</code></td>
+<td>
+<p>A list of settings, e.g. from an xml file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data set as loaded using the <code>.load_data</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical value that whether familiar uses parallelisation. If
+<code>FALSE</code> it will override <code>parallel_feature_selection</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_type</code></td>
+<td>
+<p>Type of outcome found in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fs_method</code></td>
+<td>
+<p>(<strong>required</strong>) Feature selection method to be used for
+determining variable importance. <code>familiar</code> implements various feature
+selection methods. Please refer to the vignette on feature selection
+methods for more details.
+</p>
+<p>More than one feature selection method can be chosen. The experiment will
+then repeated for each feature selection method.
+</p>
+<p>Feature selection methods determines the ranking of features. Actual
+selection of features is done by optimising the signature size model
+hyperparameter during the hyperparameter optimisation step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fs_method_parameter</code></td>
+<td>
+<p>(<em>optional</em>) List of lists containing parameters
+for feature selection methods. Each sublist should have the name of the
+feature selection method it corresponds to.
+</p>
+<p>Most feature selection methods do not have parameters that can be set.
+Please refer to the vignette on feature selection methods for more details.
+Note that if the feature selection method is based on a learner (e.g. lasso
+regression), hyperparameter optimisation may be performed prior to
+assessing variable importance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vimp_aggregation_method</code></td>
+<td>
+<p>(<em>optional</em>) The method used to aggregate
+variable importances over different data subsets, e.g. bootstraps. The
+following methods can be selected:
+</p>
+
+<ul>
+<li> <p><code>none</code>: Don't aggregate ranks, but rather aggregate the variable
+importance scores themselves.
+</p>
+</li>
+<li> <p><code>mean</code>: Use the mean rank of a feature over the subsets to
+determine the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>median</code>: Use the median rank of a feature over the subsets to determine
+the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>best</code>: Use the best rank the feature obtained in any subset to determine
+the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>worst</code>: Use the worst rank the feature obtained in any subset to
+determine the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>stability</code>: Use the frequency of the feature being in the subset of
+highly ranked features as measure for the aggregated feature rank
+(Meinshausen and Buehlmann, 2010).
+</p>
+</li>
+<li> <p><code>exponential</code>: Use a rank-weighted frequence of occurrence in the subset
+of highly ranked features as measure for the aggregated feature rank (Haury
+et al., 2011).
+</p>
+</li>
+<li> <p><code>borda</code> (default): Use the borda count as measure for the aggregated
+feature rank (Wald et al., 2012).
+</p>
+</li>
+<li> <p><code>enhanced_borda</code>: Use an occurrence frequency-weighted borda count as
+measure for the aggregated feature rank (Wald et al., 2012).
+</p>
+</li>
+<li> <p><code>truncated_borda</code>: Use borda count computed only on features within the
+subset of highly ranked features.
+</p>
+</li>
+<li> <p><code>enhanced_truncated_borda</code>: Apply both the enhanced borda method and the
+truncated borda method and use the resulting borda count as the aggregated
+feature rank.
+</p>
+</li>
+</ul>
+<p>The <em>feature selection methods</em> vignette provides additional information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vimp_aggregation_rank_threshold</code></td>
+<td>
+<p>(<em>optional</em>) The threshold used to
+define the subset of highly important features. If not set, this threshold
+is determined by maximising the variance in the occurrence value over all
+features over the subset size.
+</p>
+<p>This parameter is only relevant for <code>stability</code>, <code>exponential</code>,
+<code>enhanced_borda</code>, <code>truncated_borda</code> and <code>enhanced_truncated_borda</code> methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel_feature_selection</code></td>
+<td>
+<p>(<em>optional</em>) Enable parallel processing for
+the feature selection workflow. Defaults to <code>TRUE</code>. When set to <code>FALSE</code>,
+this will disable the use of parallel processing while performing feature
+selection, regardless of the settings of the <code>parallel</code> parameter.
+<code>parallel_feature_selection</code> is ignored if <code>parallel=FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Unused arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of parameters related to feature selection.
+</p>
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> Wald, R., Khoshgoftaar, T. M., Dittman, D., Awada, W. &amp;
+Napolitano, A. An extensive comparison of feature ranking aggregation
+techniques in bioinformatics. in 2012 IEEE 13th International Conference on
+Information Reuse Integration (IRI) 377–384 (2012).
+</p>
+</li>
+<li>
+<p> Meinshausen, N. &amp; Buehlmann, P. Stability selection. J. R. Stat. Soc.
+Series B Stat. Methodol. 72, 417–473 (2010).
+</p>
+</li>
+<li>
+<p> Haury, A.-C., Gestraud, P. &amp; Vert, J.-P. The influence of feature
+selection methods on accuracy, stability and interpretability of molecular
+signatures. PLoS One 6, e28210 (2011).
+</p>
+</li>
+</ol>
+</div>

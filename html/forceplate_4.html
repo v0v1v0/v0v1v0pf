@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>time_lock_stats</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate Statistics for Time Locked Bins</h2>
+
+<h3>Description</h3>
+
+<p>Processing segmented force-plate data by calculating descriptive statistics like mean, standard
+deviation, and range for defined time bins around time-locked events, such as stimulus onset
+or response onset etc.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">time_lock_stats(
+  fp.dt,
+  vars,
+  time.lock.trigger,
+  bins,
+  bin.width = NULL,
+  n.bins = NULL,
+  FUN = list(mean = mean, sd = sd, range = function(x) diff(range(x)))
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fp.dt</code></td>
+<td>
+<p>A <code>data.table</code> of the class <code>"fp.segm"</code> produced by <code>segment_fp_data()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>A (vector of) character(s) giving the variable names in <code>fp.dt$forceplate</code>, for
+which the statistics (see <code>FUN</code> below) should be calculated for each bin (see arguments below). For example Fx, Fy, Mx, My etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.lock.trigger</code></td>
+<td>
+<p>A (vector of) number(s) containing the trigger(s) marking the onset of the
+time locking (the event of interest like stimulus onset or response onset). The onset of this trigger will be treated as reference (point zero) for the bins to
+be defined in the next argument(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bins</code></td>
+<td>
+<p>Either a vector of length 2 or a list of vectors of length 2 providing the lower and
+upper boundaries of the bins (in milliseconds). If only one vector is used either one of the next
+two arguments can be used to make (equaly sized) bins. If a list is used the next two arguments
+are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin.width</code></td>
+<td>
+<p>If <code>bins</code> is a vector of 2 then this argument can be used to divide the bin
+into smaller bins of the size <code>bin.width</code> in milliseconds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.bins</code></td>
+<td>
+<p>If <code>bins</code> is a vector of 2 then this argument can be used to divide the bin into
+<code>n.bins</code> number of bins of equal size. If <code>bin.width</code> is provided as well, <code>n.bins</code>
+will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>A list of functions. These functions should be statistics that take as input a vector and
+return a scalar. See usage for an example (mean, standard deviation, range).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.table</code> of the class <code>fp.tl</code>.
+The following variables are included in the <code>data.table</code>:
+</p>
+
+<ul>
+<li> <p><code>subj</code>: subject number,
+</p>
+</li>
+<li> <p><code>block</code>: block number,
+</p>
+</li>
+<li> <p><code>trial</code>: trial number,
+</p>
+</li>
+<li> <p><code>forceplate</code>: force-plate data of each trial as <code>data.table</code>. Use, for example,
+<code>fp.dt$forceplate[[1]]</code> to open the force-plate data of the first trial, first block, and first subject
+(if <code>sort</code> in the <code>segment_fp_data</code> was set to <code>TRUE</code>.
+</p>
+</li>
+<li>
+<p> For each combination of variable <code>vars</code> and <code>bin</code> a new variable is created by the function(s) provided
+by <code>FUN</code>.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Raphael Hartmann &amp; Anton Koger
+</p>
+
+
+<h3>References</h3>
+
+<p>Johannsen, L., Stephan, D. N., Straub, E., Döhring, F., Kiesel, A., Koch, I., &amp; Müller, H. (2023). Assessing the influence of cognitive response conflict on balance control: An
+event-related approach using response-aligned force-plate time series data.
+<em>Psychological Research, 87</em>, 2297–2315.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Using example data from github which requires internet
+ # takes longer than 5 seconds
+if (curl::has_internet()) {
+  url &lt;- paste0("https://raw.githubusercontent.com/RaphaelHartmann/forceplate/",
+                "main/data/subj013_block001.txt")
+  
+  # Safe download, handling potential errors
+  tryCatch({
+    filenames &lt;- tempfile(pattern = c("subj013_block001_"), 
+                          tmpdir = tempdir(), fileext = ".txt")
+    download.file(url, filenames)
+    fp.dt &lt;- segment_fp_data(filenames = filenames, n.trials = 80, baseline.trigger = 128,
+                             baseline.intv = c(0, 215), start.trigger = 128, start.prepend = 0,
+                             stimulus.trigger.list = c(1, 2, 4, 8),
+                             response.trigger.list = c(32, 64),
+                             cond.trigger.list = list(stimulus = c(1, 2, 4, 8), 
+                                                      correctness = c(32, 64)))
+    
+    # Response-locking with 2 bins before and 2 bins after response onset. Each bin is 100 ms.
+    tl.dt &lt;- time_lock_stats(fp.dt = fp.dt, vars = c("Mx", "My"), 
+                             time.lock.trigger = c(1,2,4,8), bins = c(-150, 150), n.bins = 2, 
+                             FUN = list(mean = mean, sd = sd, range = function(x) diff(range(x))))
+    
+    # Clean up
+    unlink(filenames)
+  }, error = function(e) {
+    message("Failed to download data: ", e$message)
+  })
+}
+
+
+</code></pre>
+
+
+</div>

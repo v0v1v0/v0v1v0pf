@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ibdLoglik</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pairwise IBD likelihood</h2>
+
+<h3>Description</h3>
+
+<p>Given genotype data from two individuals, computes the log-likelihood of a
+single set of IBD coefficients, either  <code>kappa</code> = <code class="reqn">(\kappa_0, \kappa_1,
+\kappa_2)</code> or the Jacquard coefficients <code>delta</code> = <code class="reqn">(\Delta_1, ..., \Delta_9)</code>.
+The <code>ibdLoglikFUN</code> version returns an efficient <em>function</em> for computing such
+likelihoods, suitable for optimisations such as in <code>ibdEstimate()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ibdLoglik(x = NULL, ids = NULL, kappa = NULL, delta = NULL)
+
+ibdLoglikFUN(x, ids, input = c("kappa", "kappa02", "delta"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>ped</code> object or a list of such.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>A vector of ID labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>A probability vector of length 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>A probability vector of length 9.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Either "kappa", "kappa02" or "delta". See Value.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ibdLoglik()</code> returns a single number; the total log-likelihood over
+all markers included.
+</p>
+<p><code>ibdLoglikFUN()</code> returns a function for computing such log-likelihoods. The
+function takes a single input vector <code>p</code>, whose interpretation depends on
+the <code>input</code> parameter:
+</p>
+
+<ul>
+<li>
+<p> "kappa": <code>p</code> is expected to be a set of kappa coefficients
+<code class="reqn">(\kappa_0, \kappa_1, \kappa_2)</code>.
+</p>
+</li>
+<li>
+<p> "kappa02": <code>p</code> should be a vector of length 2 containing the coefficients
+<code class="reqn">\kappa_0</code> and <code class="reqn">\kappa_2</code>. This is sometimes a convenient shortcut
+when working in the IBD triangle.
+</p>
+</li>
+<li>
+<p> "delta": Expects <code>p</code> to be a set of condensed Jacquard coefficients
+<code class="reqn">(\Delta_1, ..., \Delta_9)</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Siblings typed with 10 markers
+x = nuclearPed(2) |&gt; markerSim(N = 10, alleles = 1:4)
+
+# Calculate log-likelihood at a single point
+k = c(0.25, 0.5, 0.25)
+ibdLoglik(x, ids = 3:4, kappa = k)
+
+# Or first get a function, and then apply it
+llFun = ibdLoglikFUN(x, ids = 3:4, input = "kappa")
+llFun(k)
+
+
+</code></pre>
+
+
+</div>

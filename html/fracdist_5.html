@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fpval</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate P-values for Fractional Unit Root and Cointegration Tests</h2>
+
+<h3>Description</h3>
+
+<p><code>fpval</code> calculates P-values for a particular value of the observed
+statistic and a set of intermediate calculations
+that are output from other functions in the <code>fracdist</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fpval(npts = 9, iq, stat, probs, bedf, ginv)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>npts</code></td>
+<td>
+<p>An integer number of points for local approximation
+of the EDF near the observed value of <code>stat</code>.
+It is usually 9, unless near a boundary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iq</code></td>
+<td>
+<p>An integer scalar rank parameter for the test, from 1 through 12.
+This is often the difference in cointegration rank.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p>A numeric scalar value of the test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p>A numeric vector of probabilities over which an approximating
+empirical distribution function is obtained, taken from precalculated tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bedf</code></td>
+<td>
+<p>A numeric vector of quantiles of numerical distribution for specified
+value of fractional integration order <code class="reqn">b</code> or values of <code class="reqn">b</code> and <code class="reqn">d</code>,
+depending on the particular model. Each element is the output of the function <code>blocal</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ginv</code></td>
+<td>
+<p>A numeric vector of quantiles of the approximating chi-squared distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A numeric scalar P-value.
+</p>
+
+
+<h3>References</h3>
+
+<p>James G. MacKinnon and Morten Ørregaard Nielsen,
+"Numerical Distribution Functions of Fractional Unit Root and Cointegration Tests,"
+<em>Journal of Applied Econometrics</em>, Vol. 29, No. 1, 2014, pp.161-171.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fracdist_pvalues</code> for the calculation of P-values including any
+intermediate calculations.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">frtab &lt;- get_fracdist_tab(iq = 3, iscon = 0)
+bval &lt;- unique(frtab[, 'bbb'])
+probs &lt;- unique(frtab[, 'probs'])
+bedf &lt;- rep(NA, length(probs))
+for (i in 1:length(probs)) {
+    estcrit &lt;- frtab[frtab[, 'probs'] == probs[i], 'xndf']
+    bedf[i] &lt;- blocal(nb = 31, bb = 0.75, estcrit, bval)
+}
+fpval(npts = 9, iq = 3, stat = 3.84, probs, bedf, ginv = qchisq(probs, df = 3^2))
+</code></pre>
+
+
+</div>

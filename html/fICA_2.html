@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adapt_fICA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Adaptive Deflation-based FastICA Method for Independent Component Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>The adaptive deflation-based FastICA method for the independent component problem. The function estimates the unmixing matrix by finding, for each component separately, the best nonlinearity from a set of nonlinearities.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adapt_fICA(X, gs=gf, dgs=dgf, name=gnames, kj=0, inR=TRUE, 
+           eps=1e-06, maxiter=100)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a numeric data matrix. Missing values are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gs</code></td>
+<td>
+<p>a list of functions containing the nonlinearities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dgs</code></td>
+<td>
+<p>a list of functions containing the first derivatives of the nonlinearities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>a list of strings containing the names of the nonlinearities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kj</code></td>
+<td>
+<p>defines the initial estimate of the unmixing matrix, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inR</code></td>
+<td>
+<p>a logical which indicates whether R or C is used for computations. If FALSE, the default set of nonlinearities gf is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>convergence tolerance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p> The algorithm first finds initial estimates of the sources. The method to find the estimates is decided by the choice of the argument <code>kj</code>. If the value of <code>kj</code> is an integer between 1 and number of the sources, then the method is <code>kj</code>-JADE, otherwise it is FOBI. 
+For the meaning of the value <code>kj</code> used as <code>kj</code>-JADE, see the help for <code>k_JADE</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with class 'bss' containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>estimated unmixing matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gs</code></td>
+<td>
+<p>nonlinearities that were available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>used_gs</code></td>
+<td>
+<p>nonlinearities, in order of appearance, that were used. The last row of the unmixing matrix follows directly from the other rows, and hence no nonlinearity is connected to it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphas</code></td>
+<td>
+<p>the statistics for the choice of the nonlinearities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_est</code></td>
+<td>
+<p>method that was used for the initial estimate (FOBI or k-JADE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>estimated source components standardized to have mean 0 and unit variances.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jari Miettinen</p>
+
+
+<h3>References</h3>
+
+<p><cite>Hyvarinen, A. and Oja, E. (1997), A fast fixed-point algorithm for independent component analysis, <em>Neural Computation</em>, vol. 9, 1483–1492.</cite>
+</p>
+<p><cite>Nordhausen, K., Ilmonen, P., Mandal, A., Oja, H. and Ollila, E. (2011), Deflation-based FastICA reloaded,
+in <em>Proc. "19th European Signal Processing Conference 2011 (EUSIPCO 2011)",</em> Barcelona, 1854–1858.</cite>
+</p>
+<p><cite>Miettinen, J., Nordhausen, K., Oja, H. and Taskinen, S. (2014), Deflation-based FastICA with adaptive choices of nonlinearities, <em>IEEE Transactions on Signal Processing</em>, 62(21), 5716–5724.</cite>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>fICA, nonlinearities, FOBI, k_JADE</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">A &lt;- matrix(rnorm(9),3,3)
+s1 &lt;- rt(1000,6)
+s2 &lt;- rexp(1000,1)
+s3 &lt;- runif(1000)
+
+S &lt;- cbind(s1,s2,s3)
+X &lt;- S %*% t(A)
+
+res1&lt;-adapt_fICA(X, inR=FALSE)
+res1
+coef(res1)
+plot(res1) 
+
+require(JADE)
+MD(coef(res1),A)
+
+# changing the set of candidate nonlinearities
+
+?nonlinearities
+g &lt;- function(x){x^2}
+dg &lt;- function(x){2*x}
+gf_new &lt;- c(gf[-c(5,8,10)],g)
+dgf_new &lt;- c(dgf[-c(5,8,10)],g)
+gnames_new &lt;- c(gnames[-c(5,8,10)],"skew")
+
+res2&lt;-adapt_fICA(X, gs=gf_new, dgs=dgf_new, name=gnames_new)
+res2
+MD(coef(res2),A)
+
+# reloaded FastICA using tanh
+
+res3&lt;-adapt_fICA(X, gs=gf[2], dgs=dgf[2], name=gnames[2])
+res3
+MD(coef(res3),A)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>expectedLR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Expected likelihood ratio</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the expected LR for a single marker, in a kinship test
+comparing two hypothesised relationships between a set of individuals. The
+true relationship may differ from both hypotheses. Some individuals may
+already be genotyped, while others are available for typing. The
+implementation uses <code>oneMarkerDistribution()</code> to find the joint genotype
+distribution for the available individuals, conditional on the known data, in
+each pedigree.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">expectedLR(numeratorPed, denominatorPed, truePed = numeratorPed, ids, marker)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>numeratorPed</code></td>
+<td>
+<p>A <code>ped</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>denominatorPed</code></td>
+<td>
+<p>A <code>ped</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truePed</code></td>
+<td>
+<p>A <code>ped</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>A vector of ID labels corresponding to untyped pedigree members.
+(These must be members of all three input pedigrees).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>marker</code></td>
+<td>
+<p>either a marker object compatible with <code>numeratorPed</code>, or the
+name or index of a marker attached to <code>numeratorPed</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A positive number.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#---------
+# Curious example showing that ELR may decrease
+# by typing additional reference individuals
+#---------
+
+# Numerator ped
+numPed = nuclearPed(father = "fa", mother = "mo", child = "ch")
+
+# Denominator ped: fa, mo, ch are unrelated. (Hack!)
+denomPed = halfSibPed() |&gt; relabel(old = 1:3, new = c("mo", "fa", "ch"))
+
+# Scenario 1: Only mother is typed; genotype 1/2
+p = 0.9
+m1 = marker(numPed, mo = "1/2", afreq = c("1" = p, "2" = 1-p))
+expectedLR(numPed, denomPed, ids = "ch", marker = m1)
+
+1/(8*p*(1-p)) + 1/2 # exact formula
+
+# Scenario 2: Include father, with genotype 1/1
+m2 = m1
+genotype(m2, id = "fa") = "1/1"
+expectedLR(numPed, denomPed, ids = "ch", marker = m2)
+
+1/(8*p*(1-p)) + 1/(4*p^2) # exact formula
+
+</code></pre>
+
+
+</div>

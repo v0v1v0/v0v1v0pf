@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>finbif_occurrence_load</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Load FinBIF occurrence records from a file</h2>
+
+<h3>Description</h3>
+
+<p>Load occurrence data from a file as a <code>data.frame</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">finbif_occurrence_load(
+  file,
+  select = NULL,
+  n = -1,
+  count_only = FALSE,
+  quiet = getOption("finbif_hide_progress"),
+  cache = getOption("finbif_use_cache"),
+  dwc = FALSE,
+  date_time_method = NULL,
+  tzone = getOption("finbif_tz"),
+  write_file = tempfile(),
+  dt = NA,
+  keep_tsv = FALSE,
+  facts = list(),
+  type_convert_facts = TRUE,
+  drop_na = FALSE,
+  drop_facts_na = drop_na,
+  locale = getOption("finbif_locale"),
+  skip = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>Character or Integer. Either the path to a Zip archive or
+tabular data file that has been downloaded from "laji.fi", a URI
+linking to such a data file (e.g.,
+<a href="https://tun.fi/HBF.49381">https://tun.fi/HBF.49381</a>) or an integer
+representing the URI (i.e., <code>49381</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>Character vector. Variables to return. If not specified, a
+default set of commonly used variables will be used. Use <code>"default_vars"</code>
+as a shortcut for this set. Variables can be deselected by prepending a <code>-</code>
+to the variable name. If only deselects are specified the default set of
+variables without the deselection will be returned. Use <code>"all"</code> to select
+all available variables in the file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Integer. How many records to import. Negative and other invalid
+values are ignored causing all records to be imported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>count_only</code></td>
+<td>
+<p>Logical. Only return the number of records available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Logical. Suppress the progress indicator for multipage
+downloads. Defaults to value of option <code>finbif_hide_progress</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cache</code></td>
+<td>
+<p>Logical or Integer. If <code>TRUE</code> or a number greater than zero,
+then data-caching will be used. If not logical then the cache will be
+invalidated after the number of hours indicated by the argument. If a
+length one vector is used, its value will only apply to caching
+occurrence records. If the value is length two, then the second element
+will determine how metadata is cached.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dwc</code></td>
+<td>
+<p>Logical. Use Darwin Core (or Darwin Core style) variable names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_time_method</code></td>
+<td>
+<p>Character. Passed to <code>lutz::tz_lookup_coords()</code> when
+<code>date_time</code> and/or <code>duration</code> variables have been selected. Default is
+<code>"fast"</code> when  less than 100,000 records are requested and <code>"none"</code> when
+more. Using method <code>"none"</code> assumes all records are in timezone
+"Europe/Helsinki", Use <code>date_time_method = "accurate"</code> (requires package
+<code>sf</code>) for greater accuracy at the cost of slower computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tzone</code></td>
+<td>
+<p>Character. If <code>date_time</code> has been selected the timezone of the
+outputted date-time. Defaults to system timezone.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write_file</code></td>
+<td>
+<p>Character. Path to write downloaded zip file to if <code>file</code>
+refers to a URI. Will be ignored if <code>getOption("finbif_cache_path")</code> is not
+<code>NULL</code> and will use the cache path instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>Logical. If package, <code>data.table</code>, is available return a
+<code>data.table</code> object rather than a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_tsv</code></td>
+<td>
+<p>Logical. Whether to keep the TSV file if <code>file</code> is a ZIP
+archive or represents a URI. Is ignored if <code>file</code> is already a TSV. If
+<code>TRUE</code> the tsv file will be kept in the same directory as the ZIP archive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facts</code></td>
+<td>
+<p>List. A named list of "facts" to extract from supplementary
+"fact" files in a local or online FinBIF data archive. Names can include
+one or more of <code>"record"</code>, <code>"event"</code> or <code>"document"</code>. Elements of the list
+are character vectors of the "facts" to be extracted and then joined to the
+return value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type_convert_facts</code></td>
+<td>
+<p>Logical. Should facts be converted from character
+to numeric or integer data where applicable?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_na</code></td>
+<td>
+<p>Logical. A vector indicating which columns to check for
+missing data. Values recycled to the number of columns. Defaults to all
+columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_facts_na</code></td>
+<td>
+<p>Logical. Should missing or "all <code>NA</code>" facts be dropped?
+Any value other than a length one logical vector with the value of TRUE
+will be interpreted as FALSE. Argument is ignored if <code>drop_na</code> is TRUE for
+all variables explicitly or via recycling. To only drop some
+missing/<code>NA</code>-data facts use <code>drop_na</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locale</code></td>
+<td>
+<p>Character. One of the supported two-letter ISO 639-1 language
+codes. Current supported languages are English, Finnish and Swedish. For
+data where more than one language is available the language denoted by
+<code>locale</code> will be preferred while falling back to the other languages in the
+order indicated above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>Integer. The number of lines of the data file to skip before
+beginning to read data (not including the header).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code>, or if <code>count_only =  TRUE</code> an integer.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# Get occurrence data
+finbif_occurrence_load(49381)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

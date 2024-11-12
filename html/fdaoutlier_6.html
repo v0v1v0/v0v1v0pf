@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>functional_boxplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Boxplot for a sample of functions.</h2>
+
+<h3>Description</h3>
+
+<p>This function finds outliers in a sample of curves using the functional boxplot by Sun and Genton (2011)
+<a href="https://doi.org/10.1198/jcgs.2011.09224">doi:10.1198/jcgs.2011.09224</a>.
+Unlike the name suggests, the function does not actually produce a plot but is only used as support in
+finding outliers in other functions. Different depth and outlyingness methods are supported for ordering
+functions. Alternatively, the depth values of the functions can be supplied directly.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">functional_boxplot(
+  dts,
+  depth_method = c("mbd", "tvd", "extremal", "dirout", "linfinity", "bd", "erld", "dq"),
+  depth_values = NULL,
+  emp_factor = 1.5,
+  central_region = 0.5,
+  erld_type = NULL,
+  dq_quantiles = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dts</code></td>
+<td>
+<p>A matrix or data frame of size <code class="reqn">n</code> observations/curves by <code class="reqn">p</code> domain/evaluation points for univariate functional data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depth_method</code></td>
+<td>
+<p>A character value specifying the method to use for computing the depth values (if <code>depth_values</code> is not supplied)
+used in ordering the functions. The following methods are are supported:
+</p>
+
+<dl>
+<dt>"mbd":</dt>
+<dd>
+<p>The modified band depth with bands defined by 2 functions.
+Uses the algorithm of Sun et al. (2012)<a href="https://doi.org/10.1002/sta4.8">doi:10.1002/sta4.8</a>.</p>
+</dd>
+<dt>"tvd"</dt>
+<dd>
+<p>The total variation depth of Huang and Sun (2019) <a href="https://doi.org/10.1080/00401706.2019.1574241">doi:10.1080/00401706.2019.1574241</a>.</p>
+</dd>
+<dt>"extremal"</dt>
+<dd>
+<p>The extremal depth of Narisetty and Nair (2016) <a href="https://doi.org/10.1080/01621459.2015.1110033">doi:10.1080/01621459.2015.1110033</a>.</p>
+</dd>
+<dt>"dirout"</dt>
+<dd>
+<p>Uses the robust distance of the mean and variation of directional outlyingness (<code>dir_out</code>)
+defined in Dai and Genton (2019) <a href="https://doi.org/10.1016/j.csda.2018.03.017">doi:10.1016/j.csda.2018.03.017</a>.
+Since this method is a measure of outlyingness of a function the negative
+of the computed robust distance is used in ordering the functions.</p>
+</dd>
+<dt>"linfinity"</dt>
+<dd>
+<p>The L-infinity depth defined in Long and Huang (2015)
+<a href="https://arxiv.org/abs/1506.01332">&lt;arXiv:1506.01332</a> is used in ordering functions.</p>
+</dd>
+<dt>"bd"</dt>
+<dd>
+<p>Uses the band depth with bands defined by 2 functions
+according to the algorithm of Sun et al. (2012) <a href="https://doi.org/10.1002/sta4.8">doi:10.1002/sta4.8</a>.</p>
+</dd>
+<dt>erld</dt>
+<dd>
+<p>Uses the extreme rank length depth used in Dai et al. (2020) <a href="https://doi.org/10.1016/j.csda.2020.106960">doi:10.1016/j.csda.2020.106960</a>.</p>
+</dd>
+<dt>"dq"</dt>
+<dd>
+<p>Uses the directional quantile (DQ) used in Dai et al. (2020) <a href="https://doi.org/10.1016/j.csda.2020.106960">doi:10.1016/j.csda.2020.106960</a>.
+Since DQ is a measure of outlyingness, the negative of the DQ values is used in ordering the functions.</p>
+</dd>
+</dl>
+<p>The default method is <code>"mbd"</code>. Alternatively, the <code>depth_values</code> of the functions can be supplied in which case
+the depths are not computed and <code>depth_method</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depth_values</code></td>
+<td>
+<p>A numeric vector containing the depth values of the functions in <code>dts</code> to use for ordering functions.
+<code>length(depth_values)</code> must be equal to number of rows of <code>dts</code>. If <code>depth_values</code> is specified, the depth is not
+computed and any method specified in <code>depth_method</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emp_factor</code></td>
+<td>
+<p>A numeric value specifying the empirical factor for the boxplot. Defaults to 1.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>central_region</code></td>
+<td>
+<p>A numeric value between 0 and 1 indicating the probability of central region. Defaults to 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>erld_type</code></td>
+<td>
+<p>If <code>depth_method = "erld"</code>, the type of ordering to use in computing the extreme rank length depth.
+Can be one of <code>"two_sided"</code>, <code>"one_sided_left"</code> or <code>"one_sided_right"</code>. A <code>"two_sided"</code> ordering is used by
+default if <code>erld_type</code> is not specified.
+See extreme_rank_length for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dq_quantiles</code></td>
+<td>
+<p>If <code>depth_method = "dq"</code>, a numeric vector of length 2 specifying the probabilities
+of upper and lower quantiles. Defaults to <code>c(0.025, 0.975)</code> for the upper and lower 2.5% quantiles.
+See directional_quantile for details.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>outliers</code></td>
+<td>
+<p>The indices of the functions/curves flagged as outliers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depth_values</code></td>
+<td>
+<p>The depths of the functions/curves in <code>dts</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>median_curve</code></td>
+<td>
+<p>The index of the median curve, which is the curve with the largest depth value (or smallest outlyingness value).</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Sun, Y., &amp; Genton, M. G. (2011). Functional boxplots. <em>Journal of Computational and Graphical
+Statistics</em>, 20(2), 316-334.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>seq_transform</code> for functional outlier detection using  sequential transformation.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dt1 &lt;- simulation_model1()
+fbplot_obj &lt;- functional_boxplot(dt1$data, depth_method = "mbd")
+fbplot_obj$outliers
+</code></pre>
+
+
+</div>

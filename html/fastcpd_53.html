@@ -1,0 +1,73 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>well_log</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Well-log Dataset from Numerical Bayesian Methods Applied to
+Signal Processing</h2>
+
+<h3>Description</h3>
+
+<p>This is the well-known well-log dataset used in many changepoint
+papers obtained from Alan Turing Institute GitHub repository and licensed
+under the MIT license.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">well_log
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A Time-Series of length 4050.
+</p>
+
+
+<h3>Source</h3>
+
+<p>&lt;https://github.com/alan-turing-institute/TCPD&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">result &lt;- fastcpd.mean(well_log, trim = 0.001)
+summary(result)
+plot(result)
+
+if (requireNamespace("matrixStats", quietly = TRUE)) {
+  sigma2 &lt;- variance.median(well_log)
+  median_loss &lt;- function(data) {
+    sum(abs(data - matrixStats::colMedians(data))) / sqrt(sigma2) / 2
+  }
+  result &lt;- fastcpd(
+    formula = ~ x - 1,
+    data = cbind.data.frame(x = well_log),
+    cost = median_loss,
+    trim = 0.002
+  )
+  summary(result)
+
+  segment_starts &lt;- c(1, result@cp_set)
+  segment_ends &lt;- c(result@cp_set - 1, length(well_log))
+  residual &lt;- NULL
+  for (segment_index in seq_along(segment_starts)) {
+    segment &lt;-
+      well_log[segment_starts[segment_index]:segment_ends[segment_index]]
+    residual &lt;- c(residual, segment - median(segment))
+  }
+
+  result@residuals &lt;- matrix(residual)
+  result@family &lt;- "mean"
+  result@data &lt;- data.frame(x = c(well_log))
+  plot(result)
+}
+
+</code></pre>
+
+
+</div>

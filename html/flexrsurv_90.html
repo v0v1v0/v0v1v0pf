@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getHazardFromTable</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> computes expected hazards with respect to a reference life table
+</h2>
+
+<h3>Description</h3>
+
+<p>returns the cumulative hazard and the hazard rate of subjects in a reference life table
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getHazardFromTable(Y, startdate, startage, matchdata = NULL, 
+        ratetable = survival::survexp.us, 
+		age = 1, year = 2, rmap, agemin = 16, scale = 365.25, 
+		ratename = "rateend", 
+		cumrateendname = "cumrateend", 
+		cumrateentername = "cumrateenter", 
+		origin = "01/01/1970", format = "%d/%m/%Y",
+		left.open = FALSE, verbose=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+
+<p>An object with interval data. It can be an object of class <code>Surv</code> with arguments <code>time</code>, <code>time2</code> and <code>event</code> 
+or a two-column matrix with starting time in the first column and ending time in the second column.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startdate</code></td>
+<td>
+
+<p>a numeric vector such that <code>as.Date(startadate)</code> is interpreted as the date of the start (when Y[,]==0).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startage</code></td>
+<td>
+
+<p>a numeric vector of age in days the start (when Y[,]==0).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matchdata</code></td>
+<td>
+
+<p>an optional data.frame in which to interpret the additional variables to be mapped to the <code>ratetable</code> variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratetable</code></td>
+<td>
+
+<p>an object of class <code>ratetable</code>, ie a table of event rates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age, year</code></td>
+<td>
+
+<p>character values of the names of the age and period variables in the rate table.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmap</code></td>
+<td>
+
+<p>an optional list that maps data set names to the ratetable names. See <code>survexp</code> an example bellow.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agemin</code></td>
+<td>
+
+<p>numeric value of the age at which the cumulative hazard starts.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+
+<p>numeric value to scale <code>agemin</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratename, cumrateendname, cumrateentername</code></td>
+<td>
+
+<p>names of the returned variables
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin, format</code></td>
+<td>
+
+<p>arguments passed <code>as.Date</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left.open</code></td>
+<td>
+
+<p>logical, passed to <code>findInterval</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>logical, if <code>true</code> the progression of the computation is output.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The cumulative rates are computed using <code>survexp</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with 3 columns with the rate at the ending time, the cumulative rate from agemin up to the starting time and upt to the ending time.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>getPseudoHazardFromTable</code> for the cumulative hazard in each period of a reference life table. 
+<code>getBrassHazardFromTable</code> for the cumulative hazard in a corrected reference life table. 
+<code>survexp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+if (requireNamespace("relsurv", quietly = TRUE) &amp; requireNamespace("date", quietly = TRUE)) {
+
+	library(date)
+	# data from package relsurv
+	data(rdata, package="relsurv")
+	
+	# rate table from package relsurv
+	data(slopop, package="relsurv")
+	
+	tmpsurv &lt;- Surv(rep(0, length(rdata$time)), rdata$time, rdata$cens)
+	
+	HH &lt;- getHazardFromTable(tmpsurv, startdate=rdata$year,
+	               startage=rdata$age*365.24 , matchdata=rdata, ratetable=slopop,
+	               age="age", year="year",
+	               rmap=list(sex=sex),
+	               agemin=18, scale=365.24,
+	               ratename = "poprate", 
+	               cumrateendname ="cumrateend", 
+	               cumrateentername ="cumrateenter"
+	               ) 
+	summary(HH)
+}
+						
+</code></pre>
+
+
+</div>

@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fr_flexpnr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Scaling Exponent Response, not assuming replacement</h2>
+
+<h3>Description</h3>
+
+<p>Scaling exponent response (not assuming replacement) based on ideas dating back to Real (1977, at least)</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    flexpnr_fit(data, samp, start, fixed, boot=FALSE, windows=FALSE)
+    flexpnr_nll(b, q, h, T, X, Y)
+    flexpnr(X, b, q, h, T)
+    </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>A dataframe containing X and Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp </code></td>
+<td>
+<p>A vector specifying the rows of data to use in the fit. Provided by <code>boot()</code> or manually, as required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>A named list. Starting values for items to be optimised.  Usually 'a' and 'h'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed </code></td>
+<td>
+<p>A names list. 'Fixed data' (not optimised). Usually 'T'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot </code></td>
+<td>
+<p>A logical. Is the function being called for use by <code>boot()</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows </code></td>
+<td>
+<p>A logical. Is the operating system Microsoft Windows?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b, q, h </code></td>
+<td>
+<p>The search coefficient (<em>b</em>), scaling exponent (<em>q</em>) and the handling time (<em>h</em>). Usually items to be optimised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T </code></td>
+<td>
+<p><em>T</em>, the total time available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>The X variable. Usually prey density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>The Y variable.  Usually the number of prey consumed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This combines a type-II non-replacement functional response (<em>i.e.</em> a Roger's random predator equation) with a scaling exponent on the capture rate (<em>a</em>). This function is generalised from that described in <code>flexp</code> relaxing the assumption that prey are replaced throughout the experiment. 
+</p>
+<p>The capture rate (<em>a</em>) follows the following relationship:
+</p>
+<p style="text-align: center;"><code class="reqn">a = b X^q</code>
+</p>
+
+<p>and then (<em>a</em>) is used to calculate the number of prey eaten (<em>Ne</em>) following the same relationship as <code>rogersII</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">N_e=N_0(1-e^{(a(N_eh-T))})</code>
+</p>
+
+<p>where <em>b</em> is a search coefficient and other coefficients are as defined in <code>rogersII</code>. Because <em>Ne</em> appears on both side of the equation, the solution is found using Lambert's transcendental equation. FRAIR uses the <code>lambertW0</code> function from the <em>lamW</em> package and the internal function is:
+</p>
+<p><code>Ne &lt;- X - lambertW0(a * h * X * exp(-a * (T - h * X)))/(a * h)</code>
+</p>
+<p>where <code class="reqn">X = N0</code>. When <code class="reqn">q = 0</code>, then <code class="reqn">a = b</code> and the relationship collapses to traditional type-II Rogers' random predator equation. There is, therefore, a useful test on <code class="reqn">q = 0</code> in the summary of the fit. 
+</p>
+<p>None of these functions are designed to be called directly, though they are all exported so that the user can call them directly if desired. The intention is that they are called via <code>frair_fit</code>, which calls them in the order they are specified above.
+</p>
+<p><code>flexpnr_fit</code> does the heavy lifting and also pulls double duty as the <code>statistic</code> function for bootstrapping (<em>via</em> <code>boot()</code> in the boot package). The <code>windows</code> argument if required to prevent needless calls to <code>require(frair)</code> on platforms that can manage sane parallel processing.
+</p>
+<p>The core fitting is done by <code>mle2</code> from the <code>bbmle</code> package and users are directed there for more information. <code>mle2</code> uses the <code>flexpnr_nll</code> function to optimise <code>flexpnr</code>.
+</p>
+<p>Further references and recommended reading can be found on the help page for frair_fit.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>References</h3>
+
+<p>Real LA (1977) The Kinetics of Functional Response. <em>The American Naturalist</em> 111: 289–300.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>, <code>flexp</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A 'type-II' example
+data(gammarus)
+
+rogfit &lt;- frair_fit(eaten~density, data=gammarus, 
+                response='rogersII', start=list(a = 1.2, h = 0.015), 
+                fixed=list(T=40/24))
+expofit &lt;- frair_fit(eaten~density, data=gammarus, 
+                response='flexpnr', start=list(b = 1.2, q = 0, h = 0.015), 
+                fixed=list(T=40/24))
+## Plot
+plot(rogfit)
+lines(rogfit)
+lines(expofit, col=2)
+
+## Inspect
+summary(rogfit$fit)
+summary(expofit$fit) # No evidence that q is different from zero...
+AIC(rogfit$fit)
+AIC(expofit$fit) # The exponent model is *not* preferred
+
+# A 'type-III' example
+data(bythotrephes)
+
+rogfit &lt;- frair_fit(eaten~density, data=bythotrephes, 
+                response='rogersII', start=list(a = 1.2, h = 0.015), 
+                fixed=list(T=12/24))
+expofit &lt;- frair_fit(eaten~density, data=bythotrephes, 
+                response='flexpnr', start=list(b = 1.2, q = 0, h = 0.015), 
+                fixed=list(T=12/24))
+## Plot
+plot(rogfit)
+lines(rogfit)
+lines(expofit, col=2)
+
+## Inspect
+summary(rogfit$fit)
+summary(expofit$fit) # Some evidence that q is different from zero...
+AIC(rogfit$fit)
+AIC(expofit$fit) # The exponent model is preferred
+</code></pre>
+
+
+</div>

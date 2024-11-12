@@ -1,0 +1,295 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>famos</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automated Model Selection</h2>
+
+<h3>Description</h3>
+
+<p>Given a vector containing all parameters of interest and a cost function, the <code>FAMoS</code> looks for the most appropriate subset model to describe the given data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">famos(
+  init.par,
+  fit.fn,
+  homedir = getwd(),
+  do.not.fit = NULL,
+  method = "forward",
+  init.model.type = "random",
+  refit = FALSE,
+  use.optim = TRUE,
+  optim.runs = 1,
+  default.val = NULL,
+  swap.parameters = NULL,
+  critical.parameters = NULL,
+  random.borders = 1,
+  control.optim = list(maxit = 1000),
+  parscale.pars = FALSE,
+  con.tol = 0.1,
+  save.performance = TRUE,
+  use.futures = FALSE,
+  reattempt = FALSE,
+  log.interval = 600,
+  interactive.session = TRUE,
+  verbose = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>init.par</code></td>
+<td>
+<p>A named vector containing the initial parameter values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.fn</code></td>
+<td>
+<p>A cost function. Has to take the complete parameter vector as an input (needs to be names <code>parms</code>) and must return a selection criterion value (e.g. AICc or BIC). See Details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homedir</code></td>
+<td>
+<p>The directory to which the results should be saved to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.not.fit</code></td>
+<td>
+<p>The names of the parameters that are not supposed to be fitted. Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The starting method of FAMoS. Options are "forward" (forward search), "backward" (backward elimination) and "swap" (only if <code>critical.parameters</code> or <code>swap.parameters</code> are supplied). Methods are adaptively changed over each iteration of FAMoS. Default to "forward".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.model.type</code></td>
+<td>
+<p>The starting model. Options are "global" (starts with the complete model), "random" (creates a randomly sampled starting model) or "most.distant" (uses the model most dissimilar from all other previously tested models). Alternatively, a specific model can be used by giving the corresponding names of the parameters one wants to start with. Default to "random".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refit</code></td>
+<td>
+<p>If TRUE, previously tested models will be tested again. Default to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.optim</code></td>
+<td>
+<p>Logical. If true, the cost function <code>fit.fn</code> will be fitted via <code>optim</code>. If FALSE, the cost function will only be evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.runs</code></td>
+<td>
+<p>The number of times that each model will be optimised. Default to 1. Numbers larger than 1 use random initial conditions (see <code>random.borders</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default.val</code></td>
+<td>
+<p>A named list containing the values that the non-fitted parameters should take. If NULL, all non-fitted parameters will be set to zero. Default values can be either given by a numeric value or by the name of the corresponding parameter the value should be inherited from (NOTE: In this case the corresponding parameter entry has to contain a numeric value). Default to NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>swap.parameters</code></td>
+<td>
+<p>A list specifying which parameters are interchangeable. Each swap set is given as a vector containing the names of the respective parameters. Default to NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>critical.parameters</code></td>
+<td>
+<p>A list specifying sets of critical parameters. Critical sets are parameters sets, of which at least one parameter per set has to be present in each tested model. Default to NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random.borders</code></td>
+<td>
+<p>The ranges from which the random initial parameter conditions for all <code>optim.runs</code> larger than one are sampled. Can be either given as a vector containing the relative deviations for all parameters or as a matrix containing in its first column the lower and in its second column the upper border values. Parameters are uniformly sampled based on <code>runif</code>. Default to 1 (100% deviation of all parameters). Alternatively, functions such as <code>rnorm</code>, <code>rchisq</code>, etc. can be used if the additional arguments are passed along as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.optim</code></td>
+<td>
+<p>Control parameters passed along to <code>optim</code>. For more details, see <code>optim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parscale.pars</code></td>
+<td>
+<p>Logical. If TRUE, the <code>parscale</code> option will be used when fitting with <code>optim</code>. This can help to speed up the fitting procedure, if the parameter values are on different scales. Default to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>con.tol</code></td>
+<td>
+<p>The absolute convergence tolerance of each fitting run (see Details). Default is set to 0.1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save.performance</code></td>
+<td>
+<p>Logical. If TRUE, the performance of <code>FAMoS</code> will be evaluated in each iteration via <code>famos.performance</code>, which will save the corresponding plots into the folder "FAMoS-Results/Figures/" (starting from iteration 3) and simultaneously show it on screen. Default to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.futures</code></td>
+<td>
+<p>Logical. If TRUE, FAMoS submits model evaluations via <code>futures</code>. For more information, see the <code>future</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reattempt</code></td>
+<td>
+<p>Logical. If TRUE, FAMoS will jump to a distant model, once the search methods are exhausted and continue from there. The algorithm terminates if the best model is encountered again or if all neighbouring models have been tested. If FALSE (default), FAMOS will terminate once the search methods are exhausted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.interval</code></td>
+<td>
+<p>The interval (in seconds) at which FAMoS informs about the current status, i.e. which models are still running and how much time has passed. Default to 600 (= 10 minutes).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interactive.session</code></td>
+<td>
+<p>Logical. If TRUE (default), FAMoS assumes it is running in an interactive session and users can supply input. If FALSE, no input is expected from the user, which can be helpful when running the script non-locally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical. If TRUE, FAMoS will output all details about the current fitting procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments that will be passed along to <code>future</code>, <code>optim</code> or the user-specified cost function <code>fit.fn</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In each iteration, FAMoS finds all neighbouring models based on the current model and method, and subsequently tests them. If one of the tested models performs better than the current model, the model, but not the method, will be updated. Otherwise, the method, but not the model, will be adaptively changed, depending on the previously used methods.
+</p>
+<p>The cost function <code>fit.fn</code> can take the following inputs:
+</p>
+
+<dl>
+<dt>parms</dt>
+<dd>
+<p>A named vector containing all parameter values. This input is mandatory. If <code>use.optim = TRUE</code>, FAMoS will automatically subset the complete parameter set into fitted and non-fitted parameters.</p>
+</dd>
+<dt>binary</dt>
+<dd>
+<p>Optional input. The binary vector contains the information which parameters are currently fitted. Fitted parameters are set to 1, non-fitted to 0. This input can be used to split the complete parameter set into fitted and non-fitted parameters if a customised optimisation function is used (see <code>use.optim</code>).</p>
+</dd>
+<dt>...</dt>
+<dd>
+<p>Other parameters that should be passed to <code>fit.fn</code></p>
+</dd>
+</dl>
+<p>If <code>use.optim = TRUE</code>, the cost function needs to return a single numeric value, which corresponds to the selection criterion value. However, if <code>use.optim = FALSE</code>, the cost function needs to return a list containing in its first entry the selection criterion value and in its second entry the named vector of the fitted parameter values (non-fitted parameters are internally assessed).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following elements:
+</p>
+
+<dl>
+<dt>SCV</dt>
+<dd>
+<p>The value of the selection criterion of the best model.</p>
+</dd>
+<dt>par</dt>
+<dd>
+<p>The values of the fitted parameter vector corresponding to the best model.</p>
+</dd>
+<dt>binary</dt>
+<dd>
+<p>The binary information of the best model.</p>
+</dd>
+<dt>vector</dt>
+<dd>
+<p>Vector indicating which parameters were fitted in the best model.</p>
+</dd>
+<dt>total.models.tested</dt>
+<dd>
+<p>The total number of different models that were analysed. May include repeats.</p>
+</dd>
+<dt>mrun</dt>
+<dd>
+<p>The number of the current FAMoS run.</p>
+</dd>
+<dt>initial.model</dt>
+<dd>
+<p>The first model evaluated by the FAMoS run.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#setting data
+true.p2 &lt;- 3
+true.p5 &lt;- 2
+sim.data &lt;- cbind.data.frame(range = 1:10,
+                             y = true.p2^2 * (1:10)^2 - exp(true.p5 * (1:10)))
+
+#define initial parameter values and corresponding test function
+inits &lt;- c(p1 = 3, p2 = 4, p3 = -2, p4 = 2, p5 = 0)
+
+cost_function &lt;- function(parms, binary, data){
+  if(max(abs(parms)) &gt; 5){
+    return(NA)
+  }
+  with(as.list(c(parms)), {
+    res &lt;- p1*4 + p2^2*data$range^2 + p3*sin(data$range) + p4*data$range - exp(p5*data$range)
+    diff &lt;- sum((res - data$y)^2)
+
+    #calculate AICC
+    nr.par &lt;- length(which(binary == 1))
+    nr.data &lt;- nrow(data)
+    AICC &lt;- diff + 2*nr.par + 2*nr.par*(nr.par + 1)/(nr.data - nr.par -1)
+
+    return(AICC)
+  })
+}
+
+
+#set swap set
+swaps &lt;- list(c("p1", "p5"))
+
+#perform model selection
+famos(init.par = inits,
+      fit.fn = cost_function,
+      homedir = tempdir(),
+      method = "swap",
+      swap.parameters = swaps,
+      init.model.type = c("p1", "p3"),
+      optim.runs = 1,
+      data = sim.data)
+
+#delete tempdir
+unlink(paste0(tempdir(),"/FAMoS-Results"), recursive = TRUE)
+</code></pre>
+
+
+</div>

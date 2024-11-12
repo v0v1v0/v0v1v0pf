@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LocCorReg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Local Fréchet regression for correlation matrices</h2>
+
+<h3>Description</h3>
+
+<p>Local Fréchet regression for correlation matrices
+with Euclidean predictors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LocCorReg(x, M, xOut = NULL, optns = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an n by p matrix or data frame of predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>a q by q by n array (resp. a list of q by q matrices) where
+<code>M[, , i]</code> (resp. <code>M[[i]]</code>) contains the i-th correlation matrix
+of dimension q by q.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xOut</code></td>
+<td>
+<p>an m by p matrix or data frame of output predictor levels.
+It can be a vector of length p if m = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by
+<code>list(name=value)</code>. See ‘Details’.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available control options are
+</p>
+
+<dl>
+<dt>metric</dt>
+<dd>
+<p>choice of metric. <code>'frobenius'</code> and <code>'power'</code> are supported,
+which corresponds to Frobenius metric and Euclidean power metric,
+respectively. Default is Frobenius metric.</p>
+</dd>
+<dt>alpha</dt>
+<dd>
+<p>the power for Euclidean power metric. Default is 1 which
+corresponds to Frobenius metric.</p>
+</dd>
+<dt>kernel</dt>
+<dd>
+<p>Name of the kernel function to be chosen from <code>'gauss'</code>,
+<code>'rect'</code>, <code>'epan'</code>, <code>'gausvar'</code> and <code>'quar'</code>. Default is <code>'gauss'</code>.</p>
+</dd>
+<dt>bw</dt>
+<dd>
+<p>bandwidth for local Fréchet regression, if not entered
+it would be chosen from cross validation.</p>
+</dd>
+<dt>digits</dt>
+<dd>
+<p>the integer indicating the number of decimal places (round)
+to be kept in the output. Default is NULL, which means no round operation.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A <code>corReg</code> object — a list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>a list of estimated correlation matrices at <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predict</code></td>
+<td>
+<p>a list of estimated correlation matrices at <code>xOut</code>.
+Included if <code>xOut</code> is not <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Frobenius distance between the true and
+fitted correlation matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xOut</code></td>
+<td>
+<p>the output predictor level used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>the control options used.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<ul><li> <p><cite>Petersen, A. and Müller, H.-G. (2019). Fréchet regression for random objects with Euclidean predictors. The Annals of Statistics, 47(2), 691–719.</cite>
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate simulation data
+
+n &lt;- 100
+q &lt;- 10
+d &lt;- q * (q - 1) / 2
+xOut &lt;- seq(0.1, 0.9, length.out = 9)
+x &lt;- runif(n, min = 0, max = 1)
+y &lt;- list()
+for (i in 1:n) {
+  yVec &lt;- rbeta(d, shape1 = sin(pi * x[i]), shape2 = 1 - sin(pi * x[i]))
+  y[[i]] &lt;- matrix(0, nrow = q, ncol = q)
+  y[[i]][lower.tri(y[[i]])] &lt;- yVec
+  y[[i]] &lt;- y[[i]] + t(y[[i]])
+  diag(y[[i]]) &lt;- 1
+}
+# Frobenius metric
+fit1 &lt;- LocCorReg(x, y, xOut,
+  optns = list(metric = "frobenius", digits = 2)
+)
+# Euclidean power metric
+fit2 &lt;- LocCorReg(x, y, xOut,
+  optns = list(
+    metric = "power", alpha = .5,
+    kernel = "epan", bw = 0.08
+  )
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,404 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spGetStrata</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spatial wrapper - Extracts point attribute values and pixel counts for
+strata and estimation unit spatial layers.</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper to extract attribute and area from a polygon or raster estimation
+unit layer and a polygon or raster layer with strata pixel categories.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spGetStrata(
+  xyplt,
+  xyplt_dsn = NULL,
+  unit_layer,
+  unit_dsn = NULL,
+  uniqueid = "PLT_CN",
+  unitvar = NULL,
+  unitvar2 = NULL,
+  unit.filter = NULL,
+  strattype = "RASTER",
+  strat_layer = NULL,
+  strat_dsn = NULL,
+  strvar = NULL,
+  strat_lut = NULL,
+  areaunits = "acres",
+  rast.NODATA = NULL,
+  keepNA = FALSE,
+  ncores = 1,
+  showext = FALSE,
+  returnxy = FALSE,
+  savedata = FALSE,
+  exportsp = FALSE,
+  exportNA = FALSE,
+  spMakeSpatial_opts = NULL,
+  savedata_opts = NULL,
+  vars2keep = NULL,
+  gui = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xyplt</code></td>
+<td>
+<p>Data frame, sf object, full pathname to *.csv or *shp, or layer
+name in a geodatabase. Includes XY coordinates and unique identifier.  If
+non-spatial, include options in spMakeSpatial_opts parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xyplt_dsn</code></td>
+<td>
+<p>String. Name of database where xyplt is. The dsn varies by
+driver. See gdal OGR vector formats (https://www.gdal.org/ogr_formats.html).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit_layer</code></td>
+<td>
+<p>sf R object or String. Name of estimation unit spatial
+layer. Can be a spatial polygon object, full pathname to a shapefile, name
+of a polygon layer within a database, or a full pathname to raster file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit_dsn</code></td>
+<td>
+<p>String. Data source name (dsn; e.g., sqlite or shapefile
+pathname) of unit_layer. The dsn varies by driver. See gdal OGR vector
+formats (https://www.gdal.org/ogr_formats.html). Optional if unit_layer is
+sf object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniqueid</code></td>
+<td>
+<p>String.* Unique identifier of xyplt records.
+Note: raster unit layers are converted to polygon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitvar</code></td>
+<td>
+<p>String. If unittype="POLY", name of attribute in unit_layer
+defining estimation units. If NULL, the unit_layer represents one estimation
+unit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitvar2</code></td>
+<td>
+<p>String. If unittype="POLY", name of attribute in unit_layer
+defining a second, hierarchical larger, estimation unit (e.g., Statecd).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit.filter</code></td>
+<td>
+<p>String. Filter to subset unit_layer spatial layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strattype</code></td>
+<td>
+<p>String. Spatial layer type of strat_layer ("POLY",
+"RASTER").  Note: polygon strata layers are converted to raster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strat_layer</code></td>
+<td>
+<p>sf R object or full pathname of spatial stratification
+layer.  Can be a spatial polygon object, full pathname to a shapefile, name
+of a polygon layer within a database, or a full pathname to raster file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strat_dsn</code></td>
+<td>
+<p>String. Data source name (dsn; e.g., sqlite or shapefile
+pathname) of strat_layer. The dsn varies by driver. See gdal OGR vector
+formats (https://www.gdal.org/ogr_formats.html). Optional if unit_layer is
+sf object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strvar</code></td>
+<td>
+<p>String. If strattype="POLY", name of strata attribute in
+strat_layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strat_lut</code></td>
+<td>
+<p>Data frame. A look-up table of codes to aggregate. The
+format of table includes 2 columns, one column same name as strvar.  If
+strattype="RASTER", strvar="value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areaunits</code></td>
+<td>
+<p>String. Output area units ("acres", "hectares",
+"sqmeters").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rast.NODATA</code></td>
+<td>
+<p>Numeric. NODATA value if stratlayer is raster (See
+notes). This values will be converted to NA and removed from output.  if
+keepNA=TRUE, NA values will not be in included in stratalut but will remain
+in pltassgn table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepNA</code></td>
+<td>
+<p>Logical. If TRUE, returns data frame of NA values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>Integer. Number of cores to use for extracting values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showext</code></td>
+<td>
+<p>Logical. If TRUE, layer extents are displayed in plot window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnxy</code></td>
+<td>
+<p>Logical. If TRUE, returns xy data as sf object (spxyplt).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, the input data with extracted values are
+saved to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exportsp</code></td>
+<td>
+<p>Logical. If savedata=TRUE and returnxy=TRUE, If TRUE, the
+extracted strata point data are exported to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exportNA</code></td>
+<td>
+<p>Logical. If TRUE and keepNA=TRUE, NA values are exported to
+outfolder as a point shapefile.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spMakeSpatial_opts</code></td>
+<td>
+<p>List. See help(spMakeSpatial_options()) for a list
+of options. Use to convert X/Y values to simple feature (sf) coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars2keep</code></td>
+<td>
+<p>String vector. Attributes in SAdoms, other than domvar to
+include in dunitlut output and extract to pltassgn points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gui</code></td>
+<td>
+<p>Logical. If gui, user is prompted for parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>*If variable = NULL, then it will prompt user for input.
+</p>
+<p>If spatial layers have different projections, the polygon spatial layer is
+transformed to the projection of raster (See note about on-the-fly
+projection conversion). If both layers are long/lat coordinate system, they
+are transformed to default coordinate system (Conus Albers, NAD83).
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pltassgn</code></td>
+<td>
+<p> Data frame. Input xyplt data with extracted
+estimation unit and strata values appended. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitarea</code></td>
+<td>
+<p> Data frame.
+Area by estimation unit. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitvar</code></td>
+<td>
+<p> Data frame. Variable name for
+estimation unit in unitarea. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acrevar</code></td>
+<td>
+<p> Data frame. Variable name for
+area in unitarea. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratalut</code></td>
+<td>
+<p> Data frame. Strata proportions
+(weights) by estimation unit and strata. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strvar</code></td>
+<td>
+<p> Data frame.
+Variable name for strata values in stratalut. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NAlst</code></td>
+<td>
+<p> sf List. If
+keepNA=TRUE, and NA values exist after data extraction, the spatial NA
+points are returned. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltassgnid</code></td>
+<td>
+<p> String. Unique identifier of plot.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spxy</code></td>
+<td>
+<p> Simple feature. If returnxy=TRUE, Spatial coordinates. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy.uniqueid</code></td>
+<td>
+<p> String. If returnxy=TRUE, unique identifier of spxy. </p>
+</td>
+</tr>
+</table>
+<p>If savedata=TRUE, pltassgn and unitarea are saved to outfolder.<br> If
+exportsp=TRUE, the spatial sf points object is exported to outfolder.<br>.
+If exportNA=TRUE and NA values exist after data extraction, the spatial NA
+points are exported to outfolder.
+</p>
+
+
+<h3>Note</h3>
+
+<p>rast.NODATA<br> NODATA values are raster pixel values that have no data of
+interest, including pixels within the extent of the layer, but outside the
+area of interest. Sometimes these pixels have been defined previously. The
+defined NODATA pixels are imported to R as NULL values. When not previously
+defined, the pixels outside the area of interest will be the minimum or
+maximum value depending on the data type (e.g., 16-bit signed: min=-32,768;
+max=32,768) or byte size (1 byte: min=0; max=255).  These NODATA values will
+be added to the zonal statistic calculations if not specified in
+rast.NODATA.
+</p>
+<p>If exportsp=TRUE:<br> If out_fmt="shp", the st_write (sf) function is
+called. The ArcGIS driver truncates variable names to 10 characters or less.
+Variable names are changed before export using an internal function
+(trunc10shp). If Spatial object has more than 1 record, it will be returned
+but not exported.
+</p>
+<p>On-the-fly projection conversion<br> The spTransform (sf) method is used
+for on-the-fly map projection conversion and datum transformation using
+PROJ.4 arguments. Datum transformation only occurs if the +datum tag is
+present in the both the from and to PROJ.4 strings. The +towgs84 tag is used
+when no datum transformation is needed. PROJ.4 transformations assume NAD83
+and WGS84 are identical unless other transformation parameters are
+specified.  Be aware, providing inaccurate or incomplete CRS information may
+lead to erroneous data shifts when reprojecting. See spTransform help
+documentation for more details.
+</p>
+<p>unitarea<br> Area by estimation unit is calculated and returned as object
+named unitarea.  Area is based on the projection of unit_layer. If no
+unit_layer input, than area is calculated from pixel counts.
+</p>
+<p>polygon to raster<br> If strattype="POLY", a raster template is created based
+on the masked extent of strat_layer, with strat_layer projected coordinate
+system and 30 meter pixel size.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create a `SpatialPoints` object from `WYplt`
+WYspplt &lt;- spMakeSpatialPoints(xyplt = WYplt, 
+                               xy.uniqueid = "CN", 
+                               xvar = "LON_PUBLIC", 
+                               yvar = "LAT_PUBLIC", 
+                               xy.crs = 4269)
+                               
+# Set up stratification from object in `FIESTA`
+fornffn &lt;- system.file("extdata",
+                       "sp_data/WYbighorn_forest_nonforest_250m.tif",
+                       package = "FIESTA")
+                       
+# Set up data from FIESTA
+WYbhfn &lt;- system.file("extdata",
+                      "sp_data/WYbighorn_adminbnd.shp",
+                      package = "FIESTA")
+                               
+# Run `spGetStrata`
+spGetStrata(WYspplt, 
+            uniqueid = "CN", 
+            unit_layer = WYbhfn, 
+            strattype = "RASTER", 
+            strat_layer = fornffn) 
+</code></pre>
+
+
+</div>

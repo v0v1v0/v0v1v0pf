@@ -1,0 +1,779 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SSposnegRichards</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Self-Starting Positive-Negative Richards Model (double-Richards)</h2>
+
+<h3>Description</h3>
+
+<p>This selfStart function evaluates a range of flexible logistic
+</p>
+<p>functions.  It also has an initial attribute that creates
+</p>
+<p>initial estimates of the parameters
+</p>
+<p>for the model specified.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+SSposnegRichards(x,
+
+Asym = NA,
+
+K = NA,
+
+Infl = NA,
+
+M = NA,
+
+RAsym = NA,
+
+Rk = NA,
+
+Ri = NA,
+
+RM = NA,
+
+modno,
+
+pn.options,
+
+Envir = ".GlobalEnv")
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector of the primary predictor
+</p>
+<p>variable at which to evaluate the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Asym</code></td>
+<td>
+<p>a numeric value for the asymptote of the
+</p>
+<p>positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>a numeric value for the rate parameter of
+</p>
+<p>the positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Infl</code></td>
+<td>
+<p>a numeric value for the point of inflection
+</p>
+<p>of the positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>a numeric value for the shape parameter of
+</p>
+<p>the positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RAsym</code></td>
+<td>
+<p>a numeric value for  the asymptote of the
+</p>
+<p>negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rk</code></td>
+<td>
+<p>a numeric value for the rate parameter of
+</p>
+<p>the negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ri</code></td>
+<td>
+<p>a numeric value for the point of inflection
+</p>
+<p>of the negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RM</code></td>
+<td>
+<p>a numeric value for the shape parameter of
+</p>
+<p>the negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modno</code></td>
+<td>
+<p>a numeric value (currently integer only)
+</p>
+<p>between 1 and 36 specifying the identification
+</p>
+<p>number of the equation to be fitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pn.options</code></td>
+<td>
+<p>character string specifying name of 
+</p>
+<p><code>list</code> object populated with starting 
+</p>
+<p>parameter estimates, fitting options and bounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Envir</code></td>
+<td>
+<p>a character vector that represents the valid R environment in which to 
+</p>
+<p>find pn.options in and write any output to,
+</p>
+<p>by default this is the global environment</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This selfStart function evaluates a range of flexible logistic
+</p>
+<p>functions.  It also has an initial attribute that creates
+</p>
+<p>initial estimates of the parameters
+</p>
+<p>for the model specified. Equations can fit both monotonic and non-monotonic 
+</p>
+<p>curves (two different trajectories). These equations have also been described as
+</p>
+<p>double-Richards curves, or positive-negative Richards curves. **From version 1.2 
+</p>
+<p>onwards this function can fit curves that exhibit negative followed by positive
+</p>
+<p>trajectories or double positive or double negative trajectories.***
+</p>
+<p>The 32 possible equations (plus custom model #17) are all based on the subtraction of one Richards
+</p>
+<p>curve from another, producing:
+</p>
+<p><code class="reqn">y = A / ([1+ m exp(-k (t-i))]1/m) + A' / ([1+ m' exp(-k' (t-i' ))]1/m' )</code>,
+</p>
+<p>where A=Asym, k=K, i=Infl, m=M,
+</p>
+<p>A'=RAsym, k'=Rk, i'=Ri, m'=RM; as described in the Arguments section above.
+</p>
+<p>All 32 possible equations are simply reformulations of this equation, in each
+</p>
+<p>case fixing a parameter or multiple parameters to (by default) the mean parameter across
+</p>
+<p>all individuals in the dataset (such as produced by a <code>nls</code>
+</p>
+<p>model). Thus, a model in which one parameter is fixed has a 7-parameter equation,
+</p>
+<p>and one in which four are fixed has a 4-parameter equation, thus reducing 
+</p>
+<p>complexity and computation and compensatory parameter changes when a parameter does not 
+</p>
+<p>vary across group levels (e.g individuals)
+</p>
+<p>[the most appropriate equation can be determined using model selection in
+</p>
+<p><code>pn.modselect.step</code> or <code>pn.mod.compare</code>].
+</p>
+<p>Any models that require parameter fixing (i.e. all except #1)
+</p>
+<p>extract appropriate values from the list object specified by <code>pn.options</code> for the fixed
+</p>
+<p>parameters. This object is most easily created by running
+</p>
+<p><code>modpar</code> and can be adjusted manually or by using
+</p>
+<p><code>change.pnparameters</code> to user-required specification.
+</p>
+<p>Each of the 32 equations is identified by an integer value for modno (1 to 36).Models
+</p>
+<p>21-36 are the same as 1-16 except that in the former the first curve parameter <code>m</code>
+</p>
+<p>is fixed and not estimated. All equations (except 17 - see below) contain parameters Asym, K, and Infl.
+</p>
+<p>The list below summarizes which of the other 5 parameters are contained in
+</p>
+<p>which of the models (Y indicates that the parameter is estimated, blank indicates
+</p>
+<p>it is fixed).
+</p>
+<pre>
+
+     modno   M   RAsym   Rk   Ri   RM   NOTES
+
+     1       Y     Y     Y    Y    Y    8 parameter model
+
+     2       Y     Y     Y    Y         
+
+     3       Y                Y    Y
+
+     4       Y     Y               Y
+
+     5       Y                     Y
+
+     6       Y     Y          Y    Y
+
+     7       Y           Y    Y    Y
+
+     8       Y     Y     Y         Y
+
+     9       Y           Y         Y
+
+     10      Y                Y
+
+     11      Y     Y
+
+     12      Y			 4 parameter, standard Richards model
+
+     13      Y     Y          Y
+
+     14      Y           Y    Y
+
+     15      Y     Y     Y
+
+     16      Y           Y
+
+     17      see below
+
+     18      see below
+
+     19      see below
+
+     20      see below                           
+
+     21            Y     Y    Y    Y    7 parameter model, 4 recession params
+
+     22            Y     Y    Y		6 parameter (double-logistic/double-Gompertz/double-Von Bertalannfy)
+
+     23                       Y    Y
+
+     24            Y               Y
+
+     25                            Y
+
+     26            Y          Y    Y
+
+     27                  Y    Y    Y
+
+     28            Y     Y         Y
+
+     29                  Y         Y
+
+     30                       Y
+
+     31            Y
+
+     32					only 3 parameters (used for logistic, Gompertz or Von Bertalannfy - see below)
+
+     33            Y          Y
+
+     34                  Y    Y
+
+     35            Y     Y
+
+     36                  Y           </pre>
+<p>modno 17 represents a different parameterization for a custom model:
+</p>
+<p>(Asym/ 1 + exp(Infl - x)/ M) - (RAsym / 1 + exp(Ri - x)/ RM), in
+</p>
+<p>which M and RM actually represent scale parameters not shape parameters. This model and a suite of reductions:
+</p>
+<p>modno 17.1:
+</p>
+<p>modno 17.2:
+</p>
+<p>modno 17.3:
+</p>
+<p>are designed for use in modeling migration, <code class="reqn">sensu.</code> Bunnefeld et al. 2011, Singh et al. 2012.
+</p>
+<p>modnos 18, 19 and 20 are reserved for internal use by <code>modpar</code>.
+</p>
+<p>To access common 3 parameter sigmoidal models use modno = 32, fixing
+</p>
+<p>parameters (using <code>change.pnparameters</code>) to M = 1 for logistic,
+</p>
+<p>M = 0.1 for Gompertz, and M= -0.3 for von Bertalanffy. The same settings can be
+</p>
+<p>used with modno = 2 to fit the double-logistic, double-Gompertz or double-Von Bertalannfy.
+</p>
+<p>Note that to fit only 3 or 4 parameter curves, the option force4par = TRUE should be specified
+</p>
+<p>when running <code>modpar</code>.
+</p>
+<p>The call for <code>SSposnegRichards</code> only differs from
+</p>
+<p>conventional selfStart models in that it requires a value for modno and a list of fitting options
+</p>
+<p>and values from <code>modpar</code> to which to fix parameters in the reduced models. 
+</p>
+<p>Depending on the model chosen, different combinations of the 8 possible
+</p>
+<p>parameters are required: if one is missing the routine will stop with an
+</p>
+<p>appropriate error, if an extra one is added, it will be ignored (provided
+</p>
+<p>that it is labelled, e.g. M = 1; this is good practice to prevent accidental
+</p>
+<p>misassignments). 
+</p>
+<p>Here are two examples (7 parameter and 3 parameter):
+</p>
+<pre>richardsR2.lis &lt;- nlsList(mass ~ SSposnegRichards(age,
+
+         Asym = Asym, K = K, Infl = Infl, M = M, RAsym = RAsym, Rk = Rk, Ri = Ri,
+
+         , modno = 2), data = posneg.data)
+
+         #correct call includes all necessary parameters</pre>
+<pre>richardsR20.lis &lt;- nlsList(mass ~ SSposnegRichards(age,
+
+         Asym = Asym, K = K, Infl = Infl, modno = 2), data = logist.data)
+
+         #incorrect call missing required parameters, 
+
+         #function terminates and generates an error message
+
+         </pre>
+<p>Examples for all models can be found in the list object
+</p>
+<p><code>posnegRichards.calls</code>.
+</p>
+<p>If specified using <code>modpar</code> optional constraints
+</p>
+<p>may be placed to specify response values at the minimum value and/or
+</p>
+<p>maximum values of the predictor. Such constraint allows realistic fits for
+</p>
+<p>datasets which are missing data
+</p>
+<p>at either end of the curve (e.g. hatching weight for some growth curves).
+</p>
+<p>Estimates are produced by splitting the two curves into separate positive
+</p>
+<p>and negative curves and estimating parameters for each curve separately
+</p>
+<p>in a similar manner to <code>SSlogis</code>. Each curve is fit first by
+</p>
+<p><code>optim</code> using the parameter bounds in <code>pnmodelparamsbounds</code>
+</p>
+<p>(see <code>modpar</code>) and a subsequent refinement is attempted using
+</p>
+<p><code>nls</code> with more restrictive parameter bounds. Finally, both curves
+</p>
+<p>are annealed
+</p>
+<p>and parameters are again estimated using restrictive bounds and starting values
+</p>
+<p>already determined during separate estimates. Equations for which the positive
+</p>
+<p>curve was inestimable are not estimated further, but if negative curve estimation
+</p>
+<p>or overall curve estimation fail, partial estimates are used: either default
+</p>
+<p>negative parameters (RAsym = 0.05*Asym, Rk = K, Ri = Infl, RM = M) annealed to positive
+</p>
+<p>curves or separate estimates annealed; both with compensation for interation
+</p>
+<p>between asymptotes.
+</p>
+<p>From version 1.2 onwards, this function can now fit two component models, where
+</p>
+<p>the first curve is used up to the x-value (e.g. age) of intersection and the second curve is used
+</p>
+<p>afterwards. Confusingly, these are also called "double Richards", "double Gompertz"
+</p>
+<p>or "double logistic": see Murphy et al. (2009) or Ross et al. (1995) for examples.
+</p>
+<p>To specify such models set twocomponent.x = TRUE (this will estimate the x of 
+</p>
+<p>intersection) when running <code>modpar</code>. Alternatively, if known, the 
+</p>
+<p>x of intersection can be set directly by setting
+</p>
+<p>twocomponent.x = # (where # is the x of intersection). When <code>modpar</code>
+</p>
+<p>is run this option will be saved in <code>pnmodelparas</code> and can be changed at will,
+</p>
+<p>either manually or using <code>change.pnparameters</code>.
+</p>
+<p>From version 1.2 onwards, this function can now fit bilogistic (and more generally
+</p>
+<p>biRichards) curves, where the final curve is effectively either two positive curves
+</p>
+<p>or two negative curves. See Meyer (1994) for examples. This functionality is default 
+</p>
+<p>and does not need to be specified. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>a numeric vector of the same length as x containing parameter
+</p>
+<p>estimates for equation specified (fixed parameters
+</p>
+<p>are not return but are substituted in calls to <code>nls</code>
+</p>
+<p><code>nlsList</code> and <code>nlme</code> with the fixed parameters
+</p>
+<p>stored in <code>pnmodelparams</code>; see <code>modpar</code></p>
+
+
+<h3>Note</h3>
+
+<p>Any models that require parameter fixing (i.e. all except #1)
+</p>
+<p>extract appropriate values from the object <code>pnmodelparams</code> for the fixed
+</p>
+<p>parameters. This object is created by running
+</p>
+<p><code>modpar</code> and can be adjusted manually or by using
+</p>
+<p><code>change.pnparameters</code> to user required specification.
+</p>
+<p>Output may show errors and warnings especially during a <code>nlsList</code>
+</p>
+<p>fit, in which the function is called repeatedly: once for each group level in the
+</p>
+<p>dataset. Warnings indicate conditions for which default parameters or incomplete estimates
+</p>
+<p>are used - see Details section - and errors occur from insufficient data or singularities.
+</p>
+<p>As a result of possible interaction and correlation between the parameters in some models,
+</p>
+<p>singularities may be common, but do not be alarmed by repeated error messages, as
+</p>
+<p>examination of a fitted <code>nlsList</code> model may releave a large number of
+</p>
+<p>well estimated group levels, thus the elimation of unsuitable outlying groups only. Also,
+</p>
+<p>because very few of the 32 equations are likely to be suitable for the majority
+</p>
+<p>of datasets, consideration of the model being fitted is crucial when examining the output. Functions
+</p>
+<p><code>pn.modselect.step</code> and <code>pn.mod.compare</code> provide the ability
+</p>
+<p>for model selection of these equations through stepwise backward deletion or all
+</p>
+<p>model comparison, respectively. These offer powerful ways to determine the
+</p>
+<p>best equation for your dataset.
+</p>
+<p>To increase the ability of optimization routines to deal with
+</p>
+<p>a wide variety of values, particularly negative values for M or RM,
+</p>
+<p>only real component of complex numbers are modelled and integer versions
+</p>
+<p>of M and RM are used during estimation if floating values cause conversion
+</p>
+<p>issues.
+</p>
+<p>Speed of the function depends on the complexity of the data being fit.
+</p>
+<p>Version 1.5 saves many variables, and internal variables in the package environment:
+</p>
+<p>FlexParamCurve:::FPCEnv. By default, the pn.options file is copied to the environment
+</p>
+<p>specified by the functions (global environment by default). Model selection routines
+</p>
+<p>also copy from FPCenv to the global environment all nlsList models fitted during 
+</p>
+<p>model selection to provide backcompatibility with code for earlier versions. The user
+</p>
+<p>can redirect the directory to copy to by altering the Envir argument when calling the 
+</p>
+<p>function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Oswald &lt;steve.oswald@psu.edu&gt;</p>
+
+
+<h3>References</h3>
+
+<p>## Oswald, S.A. et al. (2012) FlexParamCurve: R package for flexible
+</p>
+<p>fitting of nonlinear parametric curves. Methods in Ecology and Evolution 3: 1073-1077.
+</p>
+<pre>
+
+     doi: 10.1111/j.2041-210X.2012.00231.x 
+
+     (see also tutorial and introductory videos at:
+
+     http://www.methodsinecologyandevolution.org/view/0/podcasts.html
+
+     (posted September 2012 - if no longer at this link, check the archived videos at:
+
+     http://www.methodsinecologyandevolution.org/view/0/VideoPodcastArchive.html#allcontent
+
+               </pre>
+<p>#1# Nelder, J.A. (1962) Note: an alternative form of a generalized
+</p>
+<p>logistic equation. Biometrics, 18, 614-616.
+</p>
+<p>#2#
+</p>
+<p>Huin, N. &amp; Prince, P.A. (2000) Chick growth in albatrosses: curve fitting
+</p>
+<p>with a twist. Journal of Avian Biology, 31, 418-425.
+</p>
+<p>#3#
+</p>
+<p>Meyer, P. (1994) Bi-logistic growth. Technological Forecasting and Social 
+</p>
+<p>Change. 47: 89-102
+</p>
+<p>#4#
+</p>
+<p>Murphy, S. et al. (2009) Importance of biological parameters in assessing 
+</p>
+<p>the status of <code>Delphinus delphis</code>. Marine Ecology Progress Series 388: 273-291.
+</p>
+<p>#5#
+</p>
+<p>Pinheiro, J. &amp; Bates, D. (2000) <code>Mixed-Effects Models in S and S-Plus.</code>
+</p>
+<p>Springer Verlag, Berlin.
+</p>
+<p>#6#
+</p>
+<p>Ross, J.L. et al. (1994) Age, growth, mortality, and reproductive biology
+</p>
+<p>of red drums in North Carolina waters. Transactions of the American Fisheries
+</p>
+<p>Society 124: 37-54.
+</p>
+<p>#7#
+</p>
+<p>Bunnefeld et al. (2011) A model-driven approach to quantify migration patterns:
+</p>
+<p>individual, regional and yearly differences. Journal of Animal Ecology 80: 466-476.
+</p>
+<p>#8#
+</p>
+<p>Singh et al. (2012) From migration to nomadism: movement variability in a northern
+</p>
+<p>ungulate across its latitudinal range. Ecological Applications 22: 2007-2020.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SSlogis</code>
+</p>
+<p><code>SSgompertz</code>
+</p>
+<p><code>posnegRichards.eqn</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ set.seed(3) #for compatability issues
+
+ require(graphics)
+
+    # retrieve mean estimates of 8 parameters using getInitial
+
+    # and posneg.data object
+
+    modpar(posneg.data$age, posneg.data$mass,verbose=TRUE, pn.options = "myoptions", width.bounds=2)
+
+    getInitial(mass ~ SSposnegRichards(age, Asym, K, Infl, M, 
+
+        RAsym, Rk, Ri, RM, modno = 1, pn.options = "myoptions"), data = posneg.data)
+
+
+
+    # retrieve mean estimates and produce plot to illustrate fit for 
+
+    # curve with M, Ri and Rk fixed
+
+    pars &lt;- coef(nls(mass ~ SSposnegRichards(age, 
+
+        Asym = Asym, K = K, Infl = Infl, RAsym = RAsym, 
+
+        	RM = RM, modno = 24, pn.options = "myoptions"), data = posneg.data,
+
+        	control=list(tolerance = 10)))
+
+    plot(posneg.data$age, posneg.data$mass, pch=".")
+
+    curve(posnegRichards.eqn(x, Asym = pars[1], K = pars[2], 
+
+        Infl = pars[3], RAsym = pars[4],  
+
+        RM = pars[5],  modno = 24, pn.options = "myoptions"), xlim = c(0, 
+
+        200), add = TRUE)
+
+    
+
+
+
+    
+
+        # following example not run as appropriate data are not available in the package
+
+        # retrieve mean estimates and produce plot to illustrate fit for custom model 17
+
+     ## Not run:  
+
+     pars&lt;-as.numeric( getInitial(mass ~ SSposnegRichards(age, Asym, K, Infl,
+
+           M, RAsym, Rk, Ri, RM, modno = 17, pn.options = "myoptions"), data = datansd) )
+
+     plot(datansd$jday21March, datansd$moosensd)
+
+     curve( posnegRichards.eqn(x, Asym = pars[1], K = 1, Infl = pars[2], 
+
+            M = pars[3], RAsym = pars[4], Rk = 1, Ri = pars[5], RM = pars[6], 
+
+            modno = 17, pn.options = "myoptions"), lty = 3, xlim = c(0, 200) , add = TRUE)
+## End(Not run)
+
+        
+
+    # fit nls object using 8 parameter model
+
+    # note: ensure data object is a groupedData object
+
+    
+   
+        richardsR1.nls &lt;- nls(mass ~ SSposnegRichards(age, Asym = Asym, 
+
+        K = K, Infl = Infl, M = M, RAsym = RAsym, Rk = Rk, Ri = Ri, 
+
+        RM = RM, modno = 1, pn.options = "myoptions"), data = posneg.data)
+
+        
+
+
+
+    # following example not run as it fits very few levels in these data - as noted
+
+    # such a comprehensive equation is rarely required
+
+    # fit nlsList object using 8 parameter model
+
+    # note: ensure data object is a groupedData object
+
+    # also note: not many datasets require all 8 parameters
+
+         ## Not run: 
+
+         richardsR1.lis &lt;- nlsList(mass ~ SSposnegRichards(age, Asym = Asym, 
+
+        K = K, Infl = Infl, M = M, RAsym = RAsym, Rk = Rk, Ri = Ri, 
+
+        RM = RM, modno = 1, pn.options = "myoptions"), data = posneg.data)
+
+    summary(richardsR1.lis)
+## End(Not run)
+
+
+
+    # fit nlsList object using 6 parameter model with value M and RM
+
+    # fixed to value in pnmodelparams and then fit nlme model
+
+    # note data is subset to provide estimates for a few individuals
+
+    # as an example
+    
+     
+
+    subdata &lt;- subset(posneg.data,posneg.data$id == as.character(26)
+
+   		| posneg.data$id == as.character(1) 
+
+   		| posneg.data$id == as.character(32))
+
+    richardsR22.lis &lt;- nlsList(mass ~ SSposnegRichards(age, Asym = Asym, 
+
+        K = K, Infl = Infl, RAsym = RAsym, Rk = Rk, Ri = Ri, 
+
+        modno = 22, pn.options = "myoptions"), data = subdata)
+
+    summary(richardsR22.lis )
+
+    richardsR22.nlme &lt;- nlme(richardsR22.lis, random = pdDiag(Asym + Infl ~ 1) )
+
+    summary(richardsR22.nlme)
+
+         
+
+    # fit nls object using simple logistic model, with 
+
+    # M, RAsym, Rk, Ri, and RM fixed to values in pnmodelparams
+
+     
+    
+    modpar(logist.data$age, logist.data$mass ,force4par = TRUE, pn.options = "myoptions")
+
+    change.pnparameters(M = 1, pn.options = "myoptions") #set to logistic (M =1) prior to fit
+
+    richardsR32.nls &lt;- nls(mass ~ SSposnegRichards(age, Asym = Asym, 
+
+        K = K, Infl = Infl, modno = 32, pn.options = "myoptions"), data = logist.data)
+
+    coef(richardsR32.nls)
+
+                
+
+    # fit a two component model - enter your own data in place of "mydata"
+
+    # this is not run for want of an appropriate dataset
+
+    # if x of intersection unknown
+
+    ## Not run: 
+
+    modpar(mydata$x,mydata$y,twocomponent.x=TRUE, pn.options = "myoptions")
+
+    # if x of intersection = 75
+
+    modpar(mydata$x,mydata$y,twocomponent.x=75, pn.options = "myoptions") 
+
+    richardsR1.nls &lt;- nls(y~ SSposnegRichards(x, Asym = Asym, K = K,
+
+      Infl = Infl, M = M, RAsym = RAsym, Rk = Rk, Ri = Ri, RM = RM, 
+
+      modno = 1, pn.options = "myoptions")
+
+      , data = mydata)
+
+    coef(richardsR1.nls)
+## End(Not run)
+
+    </code></pre>
+
+
+</div>

@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MakePositiveDefinite</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Making positive definite matrix</h2>
+
+<h3>Description</h3>
+
+<p>Determines the diagonal entries of a symmetric matrix to make it is positive
+definite.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MakePositiveDefinite(
+  omega,
+  pd_strategy = "diagonally_dominant",
+  ev_xx = NULL,
+  scale = TRUE,
+  u_list = c(1e-10, 1),
+  tol = .Machine$double.eps^0.25
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>input matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_strategy</code></td>
+<td>
+<p>method to ensure that the generated precision matrix is
+positive definite (and hence can be a covariance matrix). If
+<code>pd_strategy="diagonally_dominant"</code>, the precision matrix is made
+diagonally dominant by setting the diagonal entries to the sum of absolute
+values on the corresponding row and a constant u. If
+<code>pd_strategy="min_eigenvalue"</code>, diagonal entries are set to the sum of
+the absolute value of the smallest eigenvalue of the precision matrix with
+zeros on the diagonal and a constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev_xx</code></td>
+<td>
+<p>expected proportion of explained variance by the first Principal
+Component (PC1) of a Principal Component Analysis. This is the largest
+eigenvalue of the correlation (if <code>scale_ev=TRUE</code>) or covariance (if
+<code>scale_ev=FALSE</code>) matrix divided by the sum of eigenvalues. If
+<code>ev_xx=NULL</code> (the default), the constant u is chosen by maximising the
+contrast of the correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>logical indicating if the proportion of explained variance by
+PC1 should be computed from the correlation (<code>scale=TRUE</code>) or
+covariance (<code>scale=FALSE</code>) matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u_list</code></td>
+<td>
+<p>vector with two numeric values defining the range of values to
+explore for constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>accuracy for the search of parameter u as defined in
+<code>optimise</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Two strategies are implemented to ensure positive definiteness: by
+diagonally dominance or using eigendecomposition.
+</p>
+<p>A diagonally dominant symmetric matrix with positive diagonal entries is
+positive definite. With <code>pd_strategy="diagonally_dominant"</code>, the
+diagonal entries of the matrix are defined to be strictly higher than the
+sum of entries on the corresponding row in absolute value, which ensures
+diagonally dominance. Let <code class="reqn">\Omega*</code> denote the input matrix with zeros
+on the diagonal and <code class="reqn">\Omega</code> be the output positive definite matrix. We
+have:
+</p>
+<p><code class="reqn">\Omega_{ii} = \sum_{j = 1}^p | \Omega_{ij}* | + u</code>, where <code class="reqn">u &gt; 0</code>
+is a parameter.
+</p>
+<p>A matrix is positive definite if all its eigenvalues are positive. With
+<code>pd_strategy="diagonally_dominant"</code>, diagonal entries of the matrix
+are defined to be higher than the absolute value of the smallest eigenvalue
+of the same matrix with a diagonal of zeros. Let <code class="reqn">\lambda_1</code> denote the
+smallest eigenvvalue of the input matrix <code class="reqn">\Omega*</code> with a diagonal of
+zeros, and <code class="reqn">v_1</code> be the corresponding eigenvector. Diagonal entries in
+the output matrix <code class="reqn">\Omega</code> are defined as:
+</p>
+<p><code class="reqn">\Omega_{ii} = | \lambda_1 | + u</code>, where <code class="reqn">u &gt; 0</code> is a parameter.
+</p>
+<p>It can be showed that <code class="reqn">\Omega</code> has stricly positive eigenvalues. Let
+<code class="reqn">\lambda</code> and <code class="reqn">v</code> denote any eigenpair of <code class="reqn">\Omega*</code>:
+</p>
+<p><code class="reqn">\Omega* v = \lambda v</code>
+</p>
+<p><code class="reqn">\Omega* v + (| \lambda_1 | + u) v = \lambda v + (| \lambda_1 | + u) v</code>
+</p>
+<p><code class="reqn">(\Omega* + (| \lambda_1 | + u) I) v = (\lambda + | \lambda_1 | + u) v</code>
+</p>
+<p><code class="reqn">\Omega v = (\lambda + | \lambda_1 | + u) v</code>
+</p>
+<p>The eigenvalues of <code class="reqn">\Omega</code> are equal to the eigenvalues of
+<code class="reqn">\Omega*</code> plus <code class="reqn">| \lambda_1 |</code>. The smallest eigenvalue of
+<code class="reqn">\Omega</code> is <code class="reqn">(\lambda_1 + | \lambda_1 | + u) &gt; 0</code>.
+</p>
+<p>Considering the matrix to make positive definite is a precision matrix, its
+standardised inverse matrix is the correlation matrix. In both cases, the
+magnitude of correlations is controlled by the constant u.
+</p>
+<p>If <code>ev_xx=NULL</code>, the constant u is chosen to maximise the
+<code>Contrast</code> of the corresponding correlation matrix.
+</p>
+<p>If <code>ev_xx</code> is provided, the constant u is chosen to generate a
+correlation matrix with required proportion of explained variance by the
+first Principal Component, if possible. This proportion of explained
+variance is equal to the largest eigenvalue of the correlation matrix
+divided by the sum of its eigenvalues. If <code>scale=FALSE</code>, the
+covariance matrix is used instead of the correlation matrix for faster
+computations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>positive definite matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>value
+of the constant u.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Bodinier B, Filippi S, Nost TH, Chiquet J, Chadeau-Hyam M (2021).
+“Automated calibration for stability selection in penalised regression and graphical models: a multi-OMICs network application exploring the molecular response to tobacco smoking.”
+<a href="https://arxiv.org/abs/2106.02521">https://arxiv.org/abs/2106.02521</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulation of a symmetric matrix
+p &lt;- 5
+set.seed(1)
+omega &lt;- matrix(rnorm(p * p), ncol = p)
+omega &lt;- omega + t(omega)
+diag(omega) &lt;- 0
+
+# Diagonal dominance maximising contrast
+omega_pd &lt;- MakePositiveDefinite(omega,
+  pd_strategy = "diagonally_dominant"
+)
+eigen(omega_pd$omega)$values # positive eigenvalues
+
+# Diagonal dominance with specific proportion of explained variance by PC1
+omega_pd &lt;- MakePositiveDefinite(omega,
+  pd_strategy = "diagonally_dominant",
+  ev_xx = 0.55
+)
+lambda_inv &lt;- eigen(cov2cor(solve(omega_pd$omega)))$values
+max(lambda_inv) / sum(lambda_inv) # expected ev
+
+# Version not scaled (using eigenvalues from the covariance)
+omega_pd &lt;- MakePositiveDefinite(omega,
+  pd_strategy = "diagonally_dominant",
+  ev_xx = 0.55, scale = FALSE
+)
+lambda_inv &lt;- 1 / eigen(omega_pd$omega)$values
+max(lambda_inv) / sum(lambda_inv) # expected ev
+
+# Non-negative eigenvalues maximising contrast
+omega_pd &lt;- MakePositiveDefinite(omega,
+  pd_strategy = "min_eigenvalue"
+)
+eigen(omega_pd$omega)$values # positive eigenvalues
+
+# Non-negative eigenvalues with specific proportion of explained variance by PC1
+omega_pd &lt;- MakePositiveDefinite(omega,
+  pd_strategy = "min_eigenvalue",
+  ev_xx = 0.7
+)
+lambda_inv &lt;- eigen(cov2cor(solve(omega_pd$omega)))$values
+max(lambda_inv) / sum(lambda_inv)
+
+# Version not scaled (using eigenvalues from the covariance)
+omega_pd &lt;- MakePositiveDefinite(omega,
+  pd_strategy = "min_eigenvalue",
+  ev_xx = 0.7, scale = FALSE
+)
+lambda_inv &lt;- 1 / eigen(omega_pd$omega)$values
+max(lambda_inv) / sum(lambda_inv)
+</code></pre>
+
+
+</div>

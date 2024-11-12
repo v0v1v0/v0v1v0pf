@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash_factors_init</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Initialize flash factors at specified values</h2>
+
+<h3>Description</h3>
+
+<p>Initializes factor/loadings pairs at values specified by <code>init</code>. This
+function has two primary uses: 1. One can initialize multiple
+factor/loadings pairs at once using an SVD-like function and then optimize
+them via function <code>flash_backfit</code>. Sometimes this results in
+a better fit than adding them one at a time via
+<code>flash_greedy</code>. 2. One can initialize factor/loadings pairs
+and then fix the factor (or loadings) via function
+<code>flash_factors_fix</code> to incorporate "known" factors into a
+<code>flash</code> object. See below for examples of both use cases.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash_factors_init(flash, init, ebnm_fn = ebnm_point_normal)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>flash</code></td>
+<td>
+<p>A <code>flash</code> or <code>flash_fit</code> object to which factors are
+to be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>An SVD-like object (specifically, a list containing fields
+<code>u</code>, <code>d</code>, and <code>v</code>), a <code>flash</code> or <code>flash_fit</code>
+object, or a list of matrices specifying the values at which factors
+and loadings are to be initialized (for a data
+matrix of size <code class="reqn">n \times p</code>, this should be a list of length two,
+with the first element a matrix of size <code class="reqn">n \times k</code> and the second
+a matrix of size <code class="reqn">p \times k</code>). If a flash fit is supplied, then it
+will be used to initialize both the first and second moments of
+posteriors on loadings and factors. Otherwise, the supplied values will
+be used to initialize posterior means, with posterior second moments
+initialized as the squared values of the first moments. Missing entries
+are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ebnm_fn</code></td>
+<td>
+<p>The function or functions used to solve the empirical Bayes
+normal means (EBNM) subproblems. Most importantly, these functions specify
+the families of distributions <code class="reqn">G_\ell^{(k)}</code> and <code class="reqn">G_f^{(k)}</code> to which the
+priors on loadings and factors <code class="reqn">g_\ell^{(k)}</code> and <code class="reqn">g_f^{(k)}</code> are
+assumed to belong. If the same function is to be used for both loadings
+<code class="reqn">L</code> and factors <code class="reqn">F</code>, then <code>ebnm_fn</code> can be a single function.
+If one function is to be used for loadings and a second for factors,
+then <code>ebnm_fn</code> should be a list of length two, with the first
+element giving the function for loadings and the second the function
+for factors. If different functions are to be used for different values of
+<code class="reqn">k</code>, then factor/loadings pairs must be added successively using
+multiple calls to either <code>flash_greedy</code> or
+<code>flash_factors_init</code>.
+</p>
+<p>Any EBNM function provided by package <code>ebnm</code> can be
+used as input. Non-default arguments to parameters can be supplied using
+the helper function <code>flash_ebnm</code>. Custom EBNM functions can
+also be used: for details, see <code>flash_ebnm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>flash</code> object from argument <code>flash</code>, with
+factors and loadings initialized as specified.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Initialize several factors at once and backfit.
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_factors_init(init = svd(gtex, nu = 5, nv = 5)) %&gt;%
+  flash_backfit()
+
+# Add fixed loadings with \ell_i identically equal to one. This can be
+#   interpreted as giving a "mean" factor that accounts for different
+#   row-wise means.
+ones &lt;- matrix(1, nrow = nrow(gtex), ncol = 1)
+# Initialize the factor at the least squares solution.
+ls_soln &lt;- t(solve(crossprod(ones), crossprod(ones, gtex)))
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_factors_init(init = list(ones, ls_soln)) %&gt;%
+  flash_factors_fix(kset = 1, which_dim = "loadings") %&gt;%
+  flash_backfit() %&gt;%
+  flash_greedy(Kmax = 5L)
+
+</code></pre>
+
+
+</div>

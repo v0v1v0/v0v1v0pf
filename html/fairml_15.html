@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fairness.profile.plot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Profile Fair Models with Respect to Tuning Parameters</h2>
+
+<h3>Description</h3>
+
+<p>Visually explore various aspect of a model over the range of possible values
+of the tuning parameters that control its fairness.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fairness.profile.plot(response, predictors, sensitive, unfairness,
+  legend = FALSE, type = "coefficients", model, model.args = list(), cluster)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>a numeric vector, the response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictors</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sensitive</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the sensitive attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unfairness</code></td>
+<td>
+<p>a vector of positive numbers in [0, 1], how unfair is the
+model allowed to be. The default value is <code>seq(from = 0.00, to = 1,
+    by = 0.02)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend</code></td>
+<td>
+<p>a logical value, whether to add a legend to the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>a character string, either <code>"coefficients"</code> (the default),
+<code>"constraints"</code>,  <code>"precision-recall"</code> or <code>"rmse"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a character string, the label of the model. Currently
+<code>"nclm"</code>, <code>"frrm"</code>, <code>"fgrrm"</code>, <code>"zlm"</code> and <code>"zlrm"</code>
+are available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.args</code></td>
+<td>
+<p>additional arguments passed to model estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>an optional cluster object from package <span class="pkg">parallel</span>, to
+fit models in parallel.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fairness.profile.plot()</code> fits the model for all the values of the
+argument <code>unfairness</code>, and produces a profile plot of the regression
+coefficients or the proportion of explained variance.
+</p>
+<p>If <code>type = "coefficients"</code>, the coefficients of the model are plotted
+against the values of <code>unfairness</code>.
+</p>
+<p>If <code>type = "constraints"</code>, the following quantities are plotted against
+the values of <code>unfairness</code>:
+</p>
+
+<ol>
+<li>
+<p> For model <code>"nclm"</code>, and model <code>"frrm"</code> with
+<code>definition = "sp-komiyama"</code>:
+</p>
+
+<ol>
+<li>
+<p> the proportion of variance explained by the sensitive attributes
+(with respect to the response);
+</p>
+</li>
+<li>
+<p> the proportion of variance explained by the predictors (with respect
+to the response);
+</p>
+</li>
+<li>
+<p> the proportion of variance explained by the sensitive attributes
+(with respect to the combined sensitive attributes and predictors).
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> For model <code>"frrm"</code> with <code>definition = "eo-komiyama"</code>:
+</p>
+
+<ol>
+<li>
+<p> the proportion of variance explained by the sensitive attributes
+(with respect to the fitted values);
+</p>
+</li>
+<li>
+<p> the proportion of variance explained by the response (with respect
+to the fitted values);
+</p>
+</li>
+<li>
+<p> the proportion of variance explained by the sensitive attributes
+(with respect to the combined sensitive attributes and response).
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> For model <code>"frrm"</code> with <code>definition = "if-berk"</code>, the ratio
+between the individual fairness loss computed for a given values of the
+constraint and that of the unrestricted model with <code>unfairness = 1</code>.
+</p>
+</li>
+<li>
+<p> For model <code>"fgrrm"</code>: same as for <code>"frrm"</code> for each
+<code>definition</code>.
+</p>
+</li>
+<li>
+<p> For models <code>"zlm"</code> and <code>"zlrm"</code>: the correlations between
+the fitted values (from <code>fitted()</code> with <code>type = "link"</code>) and the
+sensitive attributes.
+</p>
+</li>
+</ol>
+<p>If <code>type = "precision-recall"</code> and the <code>model</code> is a classifier, the
+precision, recall and F1 measures are plotted against the values of
+<code>unfairness</code>.
+</p>
+<p>If <code>type = "rmse"</code> and the <code>model</code> is a linear regression, the
+residuals mean square error are plotted against the values of
+<code>unfairness</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>trellis</code> object containing a <span class="pkg">lattice</span> plot.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marco Scutari</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(vu.test)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, type = "coefficients", model = "nclm", legend = TRUE)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, type = "constraints", model = "nclm", legend = TRUE)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, type = "rmse", model = "nclm", legend = TRUE)
+
+# profile plots fitting models in parallel.
+## Not run: 
+library(parallel)
+cl = makeCluster(2)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, model = "nclm", cluster = cl)
+stopCluster(cl)
+
+## End(Not run)</code></pre>
+
+
+</div>

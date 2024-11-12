@@ -1,0 +1,203 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsm_batch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Batched FSM for sequential experiments</h2>
+
+<h3>Description</h3>
+
+<p>Extension of the FSM to cases where units arrive sequentially in batches.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsm_batch(
+  data_frame,
+  data_frame_past,
+  t_ind,
+  SOM,
+  s_function = "Dopt",
+  Q_initial = NULL,
+  eps = 0.001,
+  ties = "random",
+  intercept = TRUE,
+  index_col_past = TRUE,
+  standardize = TRUE,
+  units_print = TRUE,
+  index_col = TRUE,
+  Pol_mat = NULL,
+  w_pol = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_frame</code></td>
+<td>
+<p>Data frame containing a column of unit indices (optional) and covariates (or transformations thereof).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_frame_past</code></td>
+<td>
+<p>A data frame of units already allocated to treatment groups. 
+Data frame contains a column of unit indices (optional), columns of covariates (or transformations thereof), 
+and a column for treatment indicator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t_ind</code></td>
+<td>
+<p>column name containing the treatment indicator in <code>data_frame_past</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SOM</code></td>
+<td>
+<p>Selection Order Matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s_function</code></td>
+<td>
+<p>Specifies a selection function, a string among <code>'constant'</code>, <code>'Dopt'</code>, 
+<code>'Aopt'</code>, <code>'max pc'</code>, <code>'min pc'</code>, <code>'Dopt pc'</code>, <code>'max average'</code>, <code>'min average'</code>,
+<code>'Dopt average'</code>. <code>'constant'</code> selection function puts a constant value on every unselected unit. 
+<code>'Dopt'</code> use the D-optimality criteria based on the full set of covariates to select units. 
+<code>'Aopt'</code> uses the A-optimality criteria. <code>'max pc'</code> (respectively, <code>'min pc'</code>) selects that 
+unit that has the maximum (respectively, minimum) value of the first principal component. 
+<code>'Dopt pc'</code> uses the D-optimality criteria on the first principal component, <code>'max average'</code> 
+(respectively, <code>'min average'</code>) selects that unit that has the maximum (respectively, minimum) 
+value of the simple average of the covariates. <code>'Dopt average'</code> uses the D-optimality criteria on the 
+simple average of the covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q_initial</code></td>
+<td>
+<p>A (optional) non-singular matrix (called 'initial matrix') that is added the <code class="reqn">(X^T X)</code> 
+matrix of the choosing treatment group at any stage, when the <code class="reqn">(X^T X)</code> matrix of that treatment group
+at that stage is non-invertible. If <code>FALSE</code>, the <code class="reqn">(X^T X)</code> matrix for the full set of observations is used
+as the non-singular matrix. Applicable if <code>s_function = 'Dopt'</code> or <code>'Aopt'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Proportionality constant for <code>Q_initial</code>, the default value is 0.001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>Specifies how to deal with ties in the values of the selection function. If <code>ties = 'random'</code>,
+a unit is selected randomly from the set of candidate units. If <code>ties = 'smallest'</code>, the unit 
+that appears earlier in the data frame, i.e. the unit with the smallest index gets selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>if <code>TRUE</code>, the design matrix of each treatment group includes a column of intercepts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index_col_past</code></td>
+<td>
+<p><code>TRUE</code> if column of unit indices is present in <code>data_frame_past</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>if <code>TRUE</code>, the columns of the <code class="reqn">X</code> matrix other than the column for the intercept (if any), 
+are standardized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units_print</code></td>
+<td>
+<p>if <code>TRUE</code>, the function automatically prints the candidate units at each step of selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index_col</code></td>
+<td>
+<p>if <code>TRUE</code>, data_frame contains a column of unit indices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pol_mat</code></td>
+<td>
+<p>Policy matrix. Applicable only when <code>s_function = 'Aopt'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w_pol</code></td>
+<td>
+<p>A vector of policy weights. Applicable only when <code>s_function = 'Aopt'</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following items.
+</p>
+<p><code>data_frame_allocated</code>:  The original data frame augmented with the column of the treatment indicator.
+</p>
+<p><code>som_appended</code>:  The SOM with augmented columns for the indices and covariate values for units selected.
+</p>
+<p><code>som_split</code>:  som_appended, split by the levels of the treatment.
+</p>
+<p><code>data_frame_allocated_augmented</code>: data frame combining <code>data_frame_allocated</code> and <code>data_frame_past</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ambarish Chattopadhyay, Carl N. Morris and Jose R. Zubizarreta
+</p>
+
+
+<h3>References</h3>
+
+<p>Chattopadhyay, A., Morris, C. N., and Zubizarreta, J. R. (2020), “Randomized and Balanced Allocation of Units into Treatment Groups Using the Finite Selection Model for <code>R</code>'.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Consider N=18, number of treatments = 2, n1 = n2 = 9, batch sizes = 6,6,6.
+# Get data frame for the first batch.
+df_sample_1 = data.frame(index = 1:6, age = c(20,30,40,40,50,60))
+# Obtain SOM for all the 12 units.
+som_gen = som(data_frame = NULL, n_treat = 2, treat_sizes = c(9,9), 
+include_discard = FALSE, method = 'SCOMARS', marginal_treat = rep((9/18),18), control = FALSE)
+# Assign the first batch.
+f1 = fsm(data_frame = df_sample_1, SOM = som_gen[1:6,], s_function = 'Dopt', 
+eps = 0.0001, ties = 'random', intercept = TRUE, standardize = TRUE, units_print = TRUE)
+f1_app = f1$data_frame_allocated
+# Get data frame for the second batch.
+df_sample_2 = data.frame(index = 7:12, age = c(20,30,40,40,50,60))
+# Assign the second batch.
+f2 = fsm_batch(data_frame = df_sample_2, SOM = som_gen[7:12,], s_function = 'Dopt', 
+eps = 0.0001, ties = 'random', intercept = TRUE, standardize = TRUE, units_print = TRUE,
+data_frame_past = f1_app, t_ind = 'Treat', index_col_past = TRUE)
+f2_app = f2$data_frame_allocated_augmented
+# Get data frame for the third batch.
+df_sample_3 = data.frame(index = 13:18, age = c(20,30,40,40,50,60))
+# Assign the third batch.
+f3 = fsm_batch(data_frame = df_sample_3, SOM = som_gen[13:18,], s_function = 'Dopt', 
+eps = 0.0001, ties = 'random', intercept = TRUE, standardize = TRUE, units_print = TRUE,
+data_frame_past = f2_app, t_ind = 'Treat', index_col_past = TRUE)
+f3_app = f3$data_frame_allocated_augmented
+</code></pre>
+
+
+</div>

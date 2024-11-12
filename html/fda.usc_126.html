@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.pls.cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional penalized PLS regression with scalar response using selection of
+number of PLS components</h2>
+
+<h3>Description</h3>
+
+<p>Functional Regression with scalar response using selection of number of
+penalized principal componentes PPLS through cross-validation. The algorithm
+selects the PPLS components with best estimates the response. The selection
+is performed by cross-validation (CV) or Model Selection Criteria (MSC).
+After is computing functional regression using the best selection of PPLS
+components.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.pls.cv(
+  fdataobj,
+  y,
+  kmax = 8,
+  lambda = 0,
+  P = c(0, 0, 1),
+  criteria = "SIC",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdataobj</code></td>
+<td>
+<p><code>fdata</code> class object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Scalar response with length <code>n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmax</code></td>
+<td>
+<p>The number of components to include in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Vector with the amounts of penalization. Default value is 0,
+i.e. no penalization is used.  If <code>lambda=TRUE</code> the algorithm computes
+a sequence of lambda values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>The vector of coefficients to define the penalty matrix object. For
+example, if <code>P=c(0,0,1)</code>, penalized regression is computed penalizing
+the second derivative (curvature).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criteria</code></td>
+<td>
+<p>Type of cross-validation (CV) or Model Selection Criteria
+(MSC) applied. Possible values are <em>"CV"</em>, <em>"AIC"</em>, <em>"AICc"</em>,
+<em>"SIC"</em>, <em>"SICc"</em>, <em>"HQIC"</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>fregre.pls</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm selects the best principal components
+<code>pls.opt</code> from the first <code>kmax</code> PLS and (optionally) the best
+penalized parameter <code>lambda.opt</code> from a sequence of non-negative
+numbers <code>lambda</code>. 
+</p>
+ 
+<ul>
+<li>
+<p> The method selects the best principal components with
+minimum MSC criteria by stepwise regression using <code>fregre.pls</code>
+in each step.  
+</p>
+</li>
+<li>
+<p> The process (point 1) is repeated for each <code>lambda</code> value.  
+</p>
+</li>
+<li>
+<p> The method selects the principal components (<code>pls.opt</code>=<code>pls.order[1:k.min]</code>) and (optionally) the lambda parameter with minimum MSC criteria.
+</p>
+</li>
+</ul>
+<p>Finally, is computing functional PLS regression between functional explanatory variable <code class="reqn">X(t)</code> and scalar response <code class="reqn">Y</code> using the best selection of PLS <code>pls.opt</code> and ridge parameter <code>rn.opt</code>.  
+The criteria selection is done by cross-validation (CV) or Model Selection Criteria (MSC).   
+</p>
+ 
+<ul>
+<li>
+<p> Predictive Cross-Validation: <code class="reqn">PCV(k_n)=\frac{1}{n}\sum_{i=1}^{n}{\Big(y_i -\hat{y}_{(-i,k_n)}\Big)^2}</code>, <code>criteria</code>=“CV” 
+</p>
+</li>
+<li>
+<p> Model Selection Criteria: 
+<code class="reqn">MSC(k_n)=log \left[ \frac{1}{n}\sum_{i=1}^{n}{\Big(y_i-\hat{y}_i\Big)^2} \right] +p_n\frac{k_n}{n} </code> <br><code class="reqn">p_n=\frac{log(n)}{n}</code>, <code>criteria</code>=“SIC” (by default)<br><code class="reqn">p_n=\frac{log(n)}{n-k_n-2}</code>,
+<code>criteria</code>=“SICc”<br><code class="reqn">p_n=2</code>, <code>criteria</code>=“AIC”<br><code class="reqn">p_n=\frac{2n}{n-k_n-2}</code>, <code>criteria</code>=“AICc”<br><code class="reqn">p_n=\frac{2log(log(n))}{n}</code>,
+<code>criteria</code>=“HQIC”<br>
+where <code>criteria</code> is an argument that controls the
+type of validation used in the selection of the smoothing parameter
+<code>kmax</code><code class="reqn">=k_n</code> and penalized parameter <code>lambda</code><code class="reqn">=\lambda</code>.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>Return:
+</p>
+
+<ul>
+<li> <p><code>fregre.pls</code> Fitted regression object by the best (<code>pls.opt</code>) components. 
+</p>
+</li>
+<li> <p><code>pls.opt</code> Index of PLS components' selected. 
+</p>
+</li>
+<li> <p><code>MSC.min</code> Minimum Model Selection Criteria (MSC) value for
+the (<code>pls.opt</code> components. 
+</p>
+</li>
+<li> <p><code>MSC</code> Minimum Model Selection Criteria (MSC) value for <code>kmax</code> components.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p><code>criteria=``CV''</code> is not recommended: time-consuming.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Preda C. and Saporta G. <em>PLS regression on a stochastic
+process</em>. Comput. Statist. Data Anal. 48 (2005): 149-158.
+</p>
+<p>Febrero-Bande, M., Oviedo de la Fuente, M. (2012).  <em>Statistical
+Computing in Functional Data Analysis: The R Package fda.usc.</em> Journal of
+Statistical Software, 51(4), 1-28. <a href="https://www.jstatsoft.org/v51/i04/">https://www.jstatsoft.org/v51/i04/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also as:<code>fregre.pc</code> .
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(tecator)
+x&lt;-tecator$absorp.fdata[1:129]
+y&lt;-tecator$y$Fat[1:129]
+# no penalization
+pls1&lt;- fregre.pls.cv(x,y,8)
+# 2nd derivative penalization
+pls2&lt;-fregre.pls.cv(x,y,8,lambda=0:5,P=c(0,0,1))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

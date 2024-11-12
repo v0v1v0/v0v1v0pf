@@ -1,0 +1,209 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flip.adjust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functions for multiplicity corrections</h2>
+
+<h3>Description</h3>
+
+<p><code>npc</code> provides overall tests (i.e. weak FWER control), while
+<code>flip.adjust</code> provides adjusted p-values (i.e. strong FWER control).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flip.adjust(permTP, method = flip.npc.methods, maxalpha = 1,
+  weights = NULL, stdSpace = FALSE, ...)
+
+npc(permTP, comb.funct = c(flip.npc.methods, p.adjust.methods),
+  subsets = NULL, weights = NULL, stdSpace = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>permTP</code></td>
+<td>
+<p>A permutation space (B times m matrix) or an
+<code>flip.object</code> as produced by <code>flip</code>. Alternatively it can
+be a <code>flip.object-class</code> resulting, for example from a call of
+function <code>flip</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A method among <code>flip.npc.methods</code> or
+<code>p.adjust.methods</code>. By default <code>"maxT"</code> is used.  See also
+the section <code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxalpha</code></td>
+<td>
+<p>Adjusted p-values greater than <code>maxalpha</code> are forced to
+1. It saves computational time when there are many hypotheses under test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional argument that can be used to give certain variables
+greater weight in the combined test.  Can be a vector or a list of vectors.
+In the latter case, a separate test will be performed for each weight
+vector.  If both <code>subsets</code> and <code>weights</code> are specified as a list,
+they must have the same length. In that case, <code>weights</code> vectors may
+have either the same length as the number of covariates in
+<code>alternative</code>, or the same length as the corresponding subset vector.
+Weights can be negative; the sign has no effect unless <code>directional</code> is
+<code>TRUE</code>. It works for <code>npc</code> and <code>flip.adjust</code> with
+<code>method</code>= "maxT", "maxTstd" or "minP"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stdSpace</code></td>
+<td>
+<p>Ask if the permutation distribution of the test statistic
+should be standardized or not. The default is <code>FALSE</code>. The option is
+applied only if <code>comb.funct</code> or <code>method</code> is equal to <code>"maxT"</code>
+or <code>"sumT"</code>, it becomes useful when test statistics are of different
+nature (e.g. chisquare and t-test).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments. Among them, <code>tail</code> can be used to set the
+tail of the alternative for the <code>permTP</code> (see also <code>flip</code>).
+The arguments <code>statTest</code>, <code>fastSumCombination</code> and <code>linComb</code>
+are used in objects <code>flipMix</code> and <code>comb.funct=
+"data.sum","data.linComb","data.pc"</code> or <code>"data.trace"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comb.funct</code></td>
+<td>
+<p>A combining function <code>flip.npc.methods</code> (all but
+"kfwer"): "Fisher", "Liptak", "MahalanobisT" , "MahalanobisP" (i.e. related
+to Hotelling T2), "minP" (i.e. Tippet), "maxT", "sumT" (i.e. direct) ,
+"sumT2" (sum of T^2).  <code>"Fisher"</code> combining function is the default.
+See also the section <code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subsets</code></td>
+<td>
+<p>Optional argument that can be used to test one or more
+subsets of variables.  Can be a vector of column names or indices of a
+<code>flip.object-class</code> (<code>names(flipObject)</code>), or a list of
+such vectors.  In the latter case, a separate test will be performed for
+each subset. Only for
+<code>comb.funct %in% c("data.sum","data.linComb","data.pc","data.trace")</code> the
+names refers to the columns of <code>Y</code> data
+<code>colnames(flipObject@data$Y) </code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>npc</code> combines the p-values using the combining functions (and the
+method) described in Pesarin (2001). It makes use of the join space of the
+permutations. This is usually derived from a call of <code>flip</code> function or
+<code>flipMixWithin</code>.
+</p>
+<p>Very shortly: <code>"Fisher"</code> =-sum log(p-values) <code>"Liptak"</code> =sum
+qnorm(p-values)  <code>"MahalanobisT"</code> = Mahalanobis distance of centered
+matrix <code>permTP</code> (or <code>permTP@permT </code>) <code>"MahalanobisP"</code> = same
+as above, but using scores defined by qnorm(p-values) (tails are forced to
+be one-sided)  <code>"minP"</code> = <code>"Tippett"</code> = min(p-values) \
+<code>"maxT"</code> = max(test statistics) <code>"maxTstd"</code> = max(standardized
+test statistics)  <code>"sumT"</code> = sum (test statistics) <code>"sumTstd"</code>
+= sum (standardized test statistics) <code>"sumT2"</code> = <code>sum (test
+statistics)^2</code>. The followings have to be used carefully and only with
+objects from function <code>flipMix</code>: <code>"data.sum" </code> = sum of all columns of
+Y, <code>"data.linComb" </code> = sum of all columns of Y (includes a vector or
+matrix <code>linComb</code> among the arguments), <code>"data.pc"</code> = extracts the
+first Principal component from the covariance matrix (you may also include a
+vector <code>whichPCs</code> indicating which PCs you want to consider)\
+<code>"data.trace"</code> = Extends the Pillai Trace, use parametric bootstrap to
+asses the significance.<code>"kfwer"</code> = can be only used with
+<code>flip.adjust</code> (not in <code>npc</code>). It requires an extra parameter
+<code>k</code> (<code>k=11</code> by default).
+</p>
+<p><code>flip.adjust</code> adjusts the p-value for multiplicity (FamilyWise Error
+Rate -FWER- and kFWER).  When <code>method</code> is equal to <code>"maxT"</code>,
+<code>"maxTstd"</code> (i.e. max T on <code>scale(permTP)</code>) or "minP" (i.e.
+Tippett) it performs the step-down method of Westfall and Young (1993).  For
+any other element of <code>flip.npc.methods</code> (i.e. "Fisher", "Liptak",
+"sumT" (i.e. direct) or "sumT2" (sum of T^2)) a call to <code>npc</code> together
+with a closed testing procedure is used (it make use of
+<code>cherry:closed</code>).  When <code>method</code> is any
+among <code>p.adjust.methods</code> the function <code>stats:p.adjust</code> or -if
+weights are provided- <code>someMTP:p.adjust.w</code> is used.  To perform control
+of the kFWER use <code>flip.adjust</code> with <code>method="kfwer"</code> and extra
+parameter <code>k</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class
+<code>flip.object-class</code> (and the use of
+<code>getFlip(obj,"Adjust")</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>livio finos, Florian Klinglmueller and Aldo Solari.
+</p>
+
+
+<h3>References</h3>
+
+<p>Pesarin (2001) Multivariate Permutation Tests with Applications
+in Biostatistics. Wiley, New York.
+</p>
+<p>P. H. Westfall and S. S. Young (1993). Resampling-based multiple testing:
+Examples and methods for p-value adjustment. John Wiley &amp; Sons.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+Y=data.frame(matrix(rnorm(50),10,5))
+names(Y)=LETTERS[1:5]
+Y[,1:2]=Y[,1:2]+1.5
+res = flip(Y,perms=10000)
+
+########npc
+p2=npc(res) # same as p2=npc(res,"Fisher")
+summary(p2)
+p2=npc(res,"minP")
+summary(p2)
+p2=npc(res,"Fisher",subsets=list(c1=c("A","B"),c2=names(Y)))
+summary(p2)
+p2=npc(res,"Fisher",subsets=list(c1=c("A","B"),c2=names(Y)),weights=1:5)
+summary(p2)
+
+
+res=flip.adjust(res, method="maxT")
+
+#res=flip.adjust(res,"BH")
+##same as
+#p.adjust(res,"BH")
+
+## now try
+getFlip(res,"Adjust")
+
+</code></pre>
+
+
+</div>

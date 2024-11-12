@@ -1,0 +1,79 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_next_bundle_url</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Next Bundle's URL</h2>
+
+<h3>Description</h3>
+
+<p>fhir_next_bundle_url() gives the link to the next available bundle, either of the bundle
+you provided in the argument <code>bundle</code> or of the last call to <code>fhir_search()</code>, if <code>bundle=NULL</code> (the default).
+</p>
+<p>This function is useful when you don't have a lot of memory available or when a download of bundles was
+interrupted for some reason. In case of small memory, you can use <code>fhir_next_bundle_url</code> together with the
+<code>max_bundle</code> argument from <code>fhir_search()</code> to download bundles in smaller batches in a loop.
+See details in the example.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_next_bundle_url(bundle = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>bundle</code></td>
+<td>
+<p>The bundle from which you wish to extract the next link. If this is <code>NULL</code> (the default), the function will
+extract the next link from the last bundle that was downloaded in the most recent call to <code>fhir_search()</code>.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A fhir_url object referencing next bundle available on the FHIR server.
+Empty fhir_url / character vector, if no further bundle is available.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+#' #the try({}, silent = TRUE) statement is only there to catch errors when the server is down
+#you can skip it when the server is reachable
+
+try({
+
+
+# workflow for small memory environments, downloading small batches of bundles
+# for really small memory environments consider also using the `_count` option in
+# your FHIR search request.
+# You can iteratively download, crack and save the bundles until all bundles are processed or the
+# desired number of bundles is reached.
+url &lt;- fhir_url("https://server.fire.ly/Patient")
+count &lt;- 0
+obs &lt;- fhir_table_description(resource = "Patient")
+design &lt;- fhir_design(obs)
+while(length(url)&gt;0 &amp;&amp; count &lt; 5){
+	 bundles &lt;- fhir_search(url, max_bundles = 2)
+	 tables &lt;- fhir_crack(bundles, design)
+  save(tables, file = paste0(tempdir(),"/table_", count, ".RData"))
+  count &lt;- count + 1
+  url &lt;- fhir_next_bundle_url()
+}
+#you can see the saved tables here:
+dir(tempdir())
+
+
+}, silent = TRUE)
+
+
+</code></pre>
+
+
+</div>

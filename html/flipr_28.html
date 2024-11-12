@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>two_sample_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Two-Sample Permutation Test</h2>
+
+<h3>Description</h3>
+
+<p>This function carries out an hypothesis test in which the null hypothesis is
+that the two samples are governed by the same underlying generative
+probability distribution against the alternative hypothesis that they are
+governed by two different generative probability distributions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">two_sample_test(
+  x,
+  y,
+  stats = list(stat_t),
+  B = 1000L,
+  M = NULL,
+  alternative = "two_tail",
+  combine_with = "tippett",
+  type = "exact",
+  seed = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric vector or a numeric matrix or a list representing the 1st
+sample. Alternatively, it can be a distance matrix stored as an object of
+class <code>dist</code>, in which case test statistics based on
+inter-point distances (marked with the <code style="white-space: pre;">⁠_ip⁠</code> suffix) should be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric vector if <code>x</code> is a numeric vector, or a numeric matrix if
+<code>x</code> is a numeric matrix, or a list if <code>x</code> is a list, representing the second
+sample. Alternatively, if <code>x</code> is an object of class
+<code>dist</code>, it should be a numeric scalar specifying the
+size of the first sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+<p>A list of functions produced by <code>as_function</code>
+specifying the chosen test statistic(s). A number of test statistic
+functions are implemented in the package and can be used as such.
+Alternatively, one can provide its own implementation of test statistics
+that (s)he deems relevant for the problem at hand. See the section
+<em>User-supplied statistic function</em> for more information on how these
+user-supplied functions should be structured for compatibility with the
+<strong>flipr</strong> framework. Default is <code>list(stat_t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>The number of sampled permutations. Default is <code>1000L</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>The total number of possible permutations. Defaults to <code>NULL</code>, which
+means that it is automatically computed from the given sample size(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>A single string or a character vector specifying whether
+the p-value is right-tailed, left-tailed or two-tailed. Choices are
+<code>"right_tail"</code>, <code>"left_tail"</code> and <code>"two_tail"</code>. Default is <code>"two_tail"</code>. If
+a single string is provided, it is assumed that it should be applied to all
+test statistics provided by the user. Alternative, the length of
+<code>alternative</code> should match the length of the <code>stats</code> parameter and it is
+assumed that there is a one-to-one correspondence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine_with</code></td>
+<td>
+<p>A string specifying the combining function to be used to
+compute the single test statistic value from the set of p-value estimates
+obtained during the non-parametric combination testing procedure. For now,
+choices are either <code>"tippett"</code> or <code>"fisher"</code>. Default is <code>"tippett"</code>, which
+picks Tippett's function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A string specifying which formula should be used to compute the
+p-value. Choices are <code>exact</code> (default), <code>upper_bound</code> and <code>estimate</code>. See
+Phipson &amp; Smith (2010) for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer specifying the seed of the random generator useful for
+result reproducibility or method comparisons. Default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra parameters specific to some statistics.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>list</code> with three components: the value of the
+statistic for the original two samples, the p-value of the resulting
+permutation test and a numeric vector storing the values of the permuted
+statistics.
+</p>
+
+
+<h3>User-supplied statistic function</h3>
+
+<p>A user-specified function should have at least two arguments:
+</p>
+
+<ul>
+<li>
+<p> the first argument is <code>data</code> which should be a list of the <code>n1 + n2</code>
+concatenated observations with the original <code>n1</code> observations from the first
+sample on top and the original <code>n2</code> observations from the second sample
+below;
+</p>
+</li>
+<li>
+<p> the second argument is <code>perm_data</code> which should be an integer vector giving
+the indices in <code>data</code> that are considered to belong to the first sample.
+</p>
+</li>
+</ul>
+<p>It is possible to use the <code>use_stat</code> function with <code>nsamples = 2</code>
+to have <strong>flipr</strong> automatically generate a template file for writing down
+your own test statistics in a way that makes it compatible with the <strong>flipr</strong>
+framework.
+</p>
+<p>See the <code>stat_t</code> function for an example.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n &lt;- 10L
+mx &lt;- 0
+sigma &lt;- 1
+
+# Two different models for the two populations
+x &lt;- rnorm(n = n, mean = mx, sd = sigma)
+delta &lt;- 10
+my &lt;- mx + delta
+y &lt;- rnorm(n = n, mean = my, sd = sigma)
+t1 &lt;- two_sample_test(x, y)
+t1$pvalue
+
+# Same model for the two populations
+x &lt;- rnorm(n = n, mean = mx, sd = sigma)
+delta &lt;- 0
+my &lt;- mx + delta
+y &lt;- rnorm(n = n, mean = my, sd = sigma)
+t2 &lt;- two_sample_test(x, y)
+t2$pvalue
+</code></pre>
+
+
+</div>

@@ -1,0 +1,407 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mocca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model-based clustering for functional data with covariates</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a functional clustering model to observed independent functional subjects, where a functional subject consists of a function and possibly a set of covariates. Here, each curve is projected onto a finite dimensional basis and clustering is done on the resulting basis coefficients. However, rather than treating basis coefficients as parameters, mixed effect modelling is used for the coefficients. In the model-based functional clustering approach the functional subjects (i.e. the spline/basis coefficients and the potential covariates) are assumed to follow a multivariate Gaussian mixture model, where the number of distributions in the mixture model corresponds to the number of (predefined) clusters, <code class="reqn">K</code>. Given that a functional subject belongs to a cluster <code class="reqn">k</code>, the basis coefficients and covariate values are normally distributed with a cluster-specific mean and covariance structure. 
+</p>
+<p>An EM-style algorithm based on James and Sugar (2003) is implemented to fit the Gaussian mixture model for a prespecified number of clusters <code>K</code>. The model allows for different cluster covariance structure for the spline coefficients and model coefficients for the covariates. See Arnqvist and Sjöstedt de Luna (2019) for details about differences to the clustering model and its implementation. 
+</p>
+<p>The routine calls <code>estimate.mocca</code> for the model fitting. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mocca(data=stop("No data supplied"), K = 5, q = 6, h = 2,
+     use.covariates=FALSE,stand.cov=TRUE,index.cov=NULL,
+     random=TRUE, B=NULL,svd=TRUE,lambda=1.4e-4, EM.maxit=50, 
+     EMstep.tol=1e-6,Mstep.maxit=20,Mstep.tol=1e-4,EMplot=TRUE,
+     trace=FALSE,n.cores=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a list containing at least three objects (vectors) named as <code>x</code>, <code>time</code>, <code>curve</code>, and optional <code>timeindex</code>, <code>grid</code> and <code>covariates</code>:
+</p>
+<p>i) suppose we observe <code class="reqn">N</code> independent subjects, each consisting of a curve and potentially a set of scalar covariates, where the <code class="reqn">i^{th}</code> curve has been observed at <code class="reqn">n_i</code> different time points, <code class="reqn">i=1,...,N</code>. <code>x</code> is a vector of length <code class="reqn">\sum_{i=1}^N n_i</code> with the first <code class="reqn">n_1</code> elements representing the observations of the first curve, followed by <code class="reqn">n_2</code> observations of the second curve, etc;
+</p>
+<p>ii)  <code>time</code> is a <code class="reqn">\sum_i n_i</code> vector of the concatenated time points for each curve <code class="reqn">(t_{ij}, j=1,...,n_i, i=1,...,N)</code>, with the first <code class="reqn">n_1</code> elements being the time points at which the first curve is observed, etc. Often, the time points within each curve are scaled to <code class="reqn">[0,1]</code>. 
+
+</p>
+<p>iii) <code>timeindex</code> is a <code class="reqn">\sum_i n_i</code> vector of time indices from <code class="reqn">T</code> possible from <code>grid</code>. So each observation has a corresponding location (time index) within <code class="reqn">[0,1]</code> uniquely specified time points. If not supplied, obtained from <code>time</code> and <code>grid</code>;
+</p>
+<p>iv)  <code>curve</code> is a <code class="reqn">\sum_i n_i</code> vector of integers from <code class="reqn">1,..., N</code>, specifying the subject number for each observation in <code>x</code>;
+</p>
+<p>v)  <code>grid</code> is a <code class="reqn">T</code> vector of all unique time points (values within <code class="reqn">[0,1]</code> interval) for all <code class="reqn">N</code> subjects, needed for estimation of the B-spline coefficients in <code>fda::eval.basis()</code>. <code>timeindex</code> and <code>grid</code> together give the timepoint for each subject (curve). If not supplied, obtained from <code>time</code>.
+</p>
+<p>vi) if supplied, <code>covariates</code> is an <code class="reqn">N \times r</code> matrix (or data frame) of scalar covariates (finite-dimensional covariates).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>number of clusters (default: <code>K=3</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>number of B-splines for the individual curves. Evenly spaced knots are used (default: <code>q=6</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>a positive integer, parameter vector dimension in the low-dimensionality representation of the curves (spline coefficients).
+<code class="reqn">h</code> should be smaller than the number of clusters <code class="reqn">K</code> (default: <code>h=2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.covariates</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether covariates should be used when modelling (default: <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stand.cov</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether covariates should be standardized when modelling (default: <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index.cov</code></td>
+<td>
+<p>a vector of indices indicating which covariates should be used when modelling. If <code>NULL</code> (default) all present covariates are included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p><code>TRUE/FALSE</code>,  if <code>TRUE</code> the initial cluster belongings is given by uniform distribution, otherwise <code>k-</code>means is used to initialize cluster belongings (default: <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p> an <code class="reqn">N \times q</code> matrix of spline coefficients,  the spline approximation of the yearly curves based on <code class="reqn">p</code> number of splines. If <code>B=NULL</code> (default), the coefficients are estimated using <code>fda:: create.bspline.basis</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svd</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether SVD decomposition should be used for the matrix of spline coefficients (default: <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>a positive real number, smoothing parameter value to be used when estimating B-spline coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EM.maxit</code></td>
+<td>
+<p>a positive integer which gives the maximum number of iterations for a EM algorithm (default:
+<code>EM.maxit=50</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EMstep.tol</code></td>
+<td>
+<p>the tolerance to use within iterative procedure of the EM algorithm (default: <code>EMstep.tol=1e-8</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mstep.maxit</code></td>
+<td>
+<p>a positive scalar which gives the maximum number of iterations for an inner loop of the parameter estimation in M step (default: <code>Mstep.maxit=20</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mstep.tol</code></td>
+<td>
+<p>the tolerance to use within iterative procedure to estimate model parameters (default: Mstep.tol=1e-4).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EMplot</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether plots of cluster means with some summary information should be produced at each iteration of the EM algorithm (default: <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether to print the current values of <code class="reqn">\sigma^2</code> and <code class="reqn">\sigma^2_x</code> for the covariates at each iteration of <code>M step</code>  (default: <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>number of cores to be used with parallel computing. If <code>NULL</code> (default) <code>n.cores</code> is set to the  numbers of available cores - 1 (<code>n.cores= detectCores()-1</code>). </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A model-based clustering with covariates (mocca) for the functional subjects (curves and potentially covariates) is a gaussian mixture model with <code class="reqn">K</code> components. 
+Let <code class="reqn">g_i(t)</code> be the true function (curve) of the <code class="reqn">i^{th}</code> subject, for a set of <code class="reqn">N</code> independent subjects. Assume that for each subject we have a vector of observed values of the function <code class="reqn">g_i(t)</code> at times <code class="reqn">t_{i1},...,t_{in_i},</code> obtained with some measurement errors. We are interested in clustering the subjects into <code class="reqn">K</code> (homogenous) groups. Let <code class="reqn">y_{ij}</code> be the observed value of the <code class="reqn">i</code>th curve at time point <code class="reqn">t_{ij}</code>. Then  
+</p>
+<p style="text-align: center;"><code class="reqn">
+y_{ij} = g_i(t_{ij})+ \epsilon_{ij},  i=1,...,N, j=1,...,n_i,</code>
+</p>
+
+<p>where <code class="reqn">\epsilon_{ij}</code> are assumed to be independent and normally distributed measurement errors
+with mean <code class="reqn">0</code> and variance <code class="reqn">\sigma^2</code>. Let <code class="reqn">\mathbf{y}_i</code>, <code class="reqn">\mathbf{g}_i,</code> and <code class="reqn">\boldsymbol{\epsilon}_i</code> be the <code class="reqn">n_i</code>-dimensional vectors for subject <code class="reqn">i</code>, corresponding to the observed values, true values and measurement errors, respectively. Then, in matrix notation, the above could be written as 
+</p>
+<p style="text-align: center;"><code class="reqn">
+ \mathbf{y}_i=\mathbf{g}_i+\boldsymbol{\epsilon}_i, ~~~~i=1,\ldots, N,
+</code>
+</p>
+
+<p>where <code class="reqn">\boldsymbol{\epsilon}_i ~\sim ~ N_{n_i}(\mathbf{0},\sigma^2 \mathbf{I}_{n_i}).</code> 
+We further assume that the smooth function <code class="reqn">g_i(t)</code> can be expressed as
+</p>
+<p style="text-align: center;"><code class="reqn"> 
+g_i(t) = \boldsymbol{\phi}^T(t) \boldsymbol{\eta}_i,
+</code>
+</p>
+
+<p>where <code class="reqn">\boldsymbol{\phi}(t)=\left(\phi_{1}(t),\ldots,\phi_{p}(t)\right)^T</code> 
+is a <code class="reqn">p</code>-dimensional vector of known basis functions evaluated at time t, e.g. B-splines, and <code class="reqn">\boldsymbol{\eta}_i</code> a <code class="reqn">p</code>-dimensional vector of unknown (random) coefficients. The <code class="reqn">\boldsymbol{\eta}_i</code>'s are modelled as
+</p>
+<p style="text-align: center;"><code class="reqn">
+\boldsymbol{\eta}_i = \boldsymbol{\mu}_{z_i} + \boldsymbol{\gamma}_i, ~~~ \boldsymbol{\eta}_i ~ \sim ~ N_p(\boldsymbol{\mu}_{z_i},\bm{\Gamma}_{z_i}),
+</code>
+</p>
+
+<p>where <code class="reqn">\boldsymbol{\mu}_{z_i}</code> is a vector of expected spline coefficients for a cluster <code class="reqn">k</code> and <code class="reqn">z_i</code> denotes the unknown cluster membership, with <code class="reqn">P(z_i=k)=\pi_k</code>,  <code class="reqn">k=1,\ldots,K</code>. The random vector <code class="reqn">\boldsymbol{\gamma}_i</code> corresponds to subject-specific within-cluster variability.
+Note that this variability is allowed to be different in different clusters, due to <code class="reqn">\bm\Gamma_{z_i}</code>. If desirable, given that subject <code class="reqn">i</code> belongs to cluster <code class="reqn">z_i=k</code>, a further parametrization of <code class="reqn">\boldsymbol{\mu}_{k},~~ k=1,\ldots,K,</code> may prove useful, for producing low-dimensional representations of the curves as suggested by James and Sugar (2003):
+</p>
+<p style="text-align: center;"><code class="reqn">
+\bm\mu_k = \bm\lambda_0+ \bm\Lambda \bm\alpha_k,
+</code>
+</p>
+
+<p>where <code class="reqn">\bm\lambda_0</code> and <code class="reqn">\bm\alpha_k</code> are <code class="reqn">p</code>- and <code class="reqn">h</code>-dimensional vectors respectively, and <code class="reqn">\bm\Lambda</code> is a <code class="reqn">p \times h</code> matrix with <code class="reqn">h \leq K-1</code>. Choosing <code class="reqn">h&lt;K-1</code> may be valuable, especially for sparse data. In order to ensure identifiability, some restrictions need to be put on the parameters. Imposing the restriction that <code class="reqn">\sum_{k=1}^K \bm\alpha_k=\mathbf{0}</code> implies that <code class="reqn">\bm\phi^T(t)\bm\lambda_0</code> can be viewed as the overall mean curve. Depending on the choice of <code class="reqn">h,p</code> and <code class="reqn">K</code>, further restrictions may need to be imposed in order to have identifiability of the parameters (<code class="reqn">\bm\lambda_0, \bm\Gamma</code> and <code class="reqn">\bm\alpha_k</code> are confounded if no restrictions are imposed).
+In vector-notation we thus have
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathbf{y}_i = \mathbf{B}_i(\bm\lambda_0 +  \bm\Lambda\bm\alpha_{z_i}+\bm\gamma_i)+\bm\epsilon_i,~~ i=1,...,N,
+</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{B}_i</code> is an <code class="reqn">n_i \times p</code> matrix with <code class="reqn">\bm\phi^T(t_{ij})</code> on the <code class="reqn">j^\textrm{th}</code> row, <code class="reqn">j=1,\ldots,n_i.</code>
+We will also assume that the <code class="reqn">\bm\gamma_i</code>'s, <code class="reqn">\bm\epsilon_i</code>'s and the <code class="reqn">z_i</code>'s are independent. Hence, given that subject <code class="reqn">i</code> belongs to cluster <code class="reqn">z_i=k</code> we have
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathbf{y}_i | z_i=k ~~\sim ~~ N_{n_i}\left(\mathbf{B}_i(\bm\lambda_0 +  \bm\Lambda \bm\alpha_k), ~~\mathbf{B}_i \bm\Gamma_k \mathbf{B}_i^T+ \sigma^2\mathbf{I}_{n_i}\right).
+</code>
+</p>
+
+<p>Based on the observed data <code class="reqn">\mathbf{y}_1,\ldots,\mathbf{y}_N</code>, the parameters <code class="reqn">\bm\theta</code>
+of the model can be estimated by maximizing the observed likelihood
+</p>
+<p style="text-align: center;"><code class="reqn">
+L_o(\bm\theta|\mathbf{y}_1,\ldots,\mathbf{y}_N)=\prod_{i=1}^N \sum_{k=1}^G \pi_k f_k(\mathbf{y}_i,\bm\theta),
+</code>
+</p>
+
+<p>where
+
+<code class="reqn">\bm\theta = \left\{\bm\lambda_0,\bm\Lambda,\bm\alpha_1,\ldots,\bm\alpha_K,\pi_1,\ldots,\pi_K,\sigma^2,\bm\Gamma_1,\ldots,\bm\Gamma_K\right\},</code>
+and <code class="reqn">f_k(\mathbf{y}_i,\bm\theta)</code> is the normal density given above. Note that here <code class="reqn">\bm\theta</code> will denote all scalar, vectors and matrices of parameters to be estimated. An EM-type algorithm is used to maximize the likelihood above.
+</p>
+<p>If additional covariates  have been observed for each subject besides the curves, they can also be included in the model when clustering the subjects. Given that the subject <code class="reqn">i</code> belongs to cluster <code class="reqn">k, (z_{i}=k)</code> the <code class="reqn">r</code> covariates <code class="reqn">\boldsymbol{x}_i \in \mathbf{R}^r</code> are assumed to have mean value <code class="reqn">\boldsymbol{\upsilon}_k</code> and moreover <code class="reqn">\boldsymbol{x}_{i} = \boldsymbol{\upsilon}_{k} + \boldsymbol{\delta}_{i} + \boldsymbol{e}_i,</code>
+where we assume that <code class="reqn">\boldsymbol{\delta}_{i}|z_{i}=k \sim N_r(\boldsymbol{0}, \mathbf{D}_k)</code> is the random deviation within cluster and <code class="reqn">\boldsymbol{e}_i \sim N_r(\boldsymbol{0},\sigma_x^2 \mathbf{I}_r)</code> independent remaining unexplained variability. 
+Note that this model also incorporates the dependence between covariates and the random curves via the random basis coefficients. See Arnqvist and Sjöstedt de Luna (2019) for further details.
+EM-algorithm is implemented to maximize the mixture likelihood.
+</p>
+<p>The method is applied to annually varved lake sediment data from the lake Kassjön in Northern Sweden. See an example and also <code>varve</code> for the data description.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>"mocca"</code> with the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>the maximized log likelihood value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig2</code></td>
+<td>
+<p>estimated residual variance for the functional data (for the model without covariates), or a vector of the estimated residual variances for the functional data and for the covariates (for the model with covariates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>indicates why the EM algorithm terminated:
+</p>
+<p>0: indicates successful completion.
+</p>
+<p>1: indicates that the iteration limit <code>EM.maxit</code> has been reached.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>number of iterations of the EM algorithm taken to get convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>number of subjects/curves.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>score.hist</code></td>
+<td>
+<p>a matrix of the succesive values of the scores, residual variances and log likelihood, up until convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p>a list containing all the estimated parameters: <code class="reqn">\bm\lambda_0</code>, <code class="reqn">\bm\Lambda</code>, <code class="reqn">\bm\alpha_k</code>, <code class="reqn">\bm\Gamma_k</code> (or <code class="reqn">\bm\Delta_k</code> in presence of the covariates), <code class="reqn">\pi_k</code> (probabilities of cluster belongnings), <code class="reqn">\sigma^2</code>, <code class="reqn">\sigma^2_x</code> (residual variance for the covariates if present), <code class="reqn">\mathbf{v}_k</code> (mean values of the covariates for each cluster).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>a list containing results from the E step of the algorithm: the posterior probabilities for each subject <code class="reqn">\pi_{k|i}</code>'s, the expected values of the <code class="reqn">\bm\gamma_i</code>'s, <code class="reqn">\bm\gamma_i\bm\gamma_i^T</code>, and the covariance matrix of <code class="reqn">\bm\gamma_i</code> given cluster membership and the observed values of the curve. See Arnqvist and Sjöstedt de Luna (2019) that explains these values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a list containing all the original data plus re-arranged functional data and covariates (if supplied).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>a list of spline basis matrices with and without covariates: 
+<code>FullS.bmat</code> is the spline basis matrix <code class="reqn">\mathbf{S}</code> computed on the grid of uniquily specified time points; 
+<code>FullS</code> is the spline basis matrix <code>FullS.bmat</code> or <code class="reqn">\mathbf U</code> matrix from the svd of <code>FullS</code> (if applied);
+<code class="reqn">\mathbf{S}</code> is the spline basis matrix computed on <code>timeindex</code>, a vector of time indices from <code class="reqn">T</code> possible from <code>grid</code>;
+the inverse <code class="reqn">(\mathbf{S}^T\mathbf{S})^{-1}</code>;
+<code>tag.S</code> is the matrix <code class="reqn">\mathbf{S}</code> with covariates; 
+<code>tag.FullS</code> is the matrix <code>FullS</code> with covariates. See Arnqvist and Sjöstedt de Luna (2019) for further details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initials</code></td>
+<td>
+<p>a list of initial settings: <code class="reqn">q</code> is the spline basis dimension, <code class="reqn">N</code> is the number of subjects/curves, <code class="reqn">Q</code> is the number of basis dimension plus the number of covariates (if present), <code class="reqn">random</code> is whether k-means was used to initialize cluster belonings, <code class="reqn">h</code> is the vector dimension in low-dimensionality representation of the curves, <code class="reqn">K</code> is the number of clusters,  <code class="reqn">r</code> is the number of scalar covariates, <code class="reqn">moc</code> TRUE/FALSE signaling if the model includes covariates.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Per Arnqvist, Natalya Pya Arnqvist, Sara Sjöstedt de Luna
+</p>
+
+
+<h3>References</h3>
+
+<p>Arnqvist, P., Bigler, C., Renberg, I., Sjöstedt de Luna, S. (2016). Functional clustering of varved lake sediment to reconstruct past seasonal climate. <em>Environmental and Ecological Statistics</em>, <b>23</b>(4), 513–529.
+</p>
+<p>Abramowicz, K., Arnqvist, P., Secchi, P., Sjöstedt de Luna, S., Vantini, S., Vitelli, V. (2017). Clustering misaligned dependent curves applied to varved lake sediment for climate reconstruction. <em>Stochastic Environmental Research and Risk Assessment</em>. Volume <b>31.1</b>, 71–85.
+</p>
+<p>Arnqvist, P., and Sjöstedt de Luna, S. (2019). Model based functional clustering of varved lake sediments. <em>arXiv preprint arXiv:1904.10265</em>.
+</p>
+<p>James, G.M., Sugar, C.A. (2003). Clustering for sparsely sampled functional data.  <em>Journal of the American Statistical Association</em>, 98.462, 397–408.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fdaMocca-package</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> 
+## example with lake sediment data from lake Kassjön...
+library(fdaMocca)
+data(varve) ## reduced data set
+
+## run without covariates...
+m &lt;- mocca(data=varve,K=3,n.cores=2)
+m
+## some summary information...
+summary(m)
+criteria.mocca(m)
+AIC(m)
+BIC(m)
+## various plots...
+plot(m)
+plot(m,select=2)
+plot(m,type=2,years=c(-750:750)) 
+plot(m,type=2,probs=TRUE,pts=TRUE,years=c(-750:750)) 
+plot(m,type=2,pts=TRUE,select=c(3,1),years=c(-750:750))
+plot(m,type=3)
+plot(m,type=3,covariance=FALSE)
+
+
+## model with two covariates...
+## note, it takes some time to analyze the data...
+m1 &lt;- mocca(data=varve, use.covariates=TRUE,index.cov=c(2,3), K=3,n.cores=2)
+m1
+## summary information...
+summary(m1)
+criteria.mocca(m1)
+## various plots...
+plot(m1)
+plot(m1,type=2,pts=TRUE,years=c(-750:750)) 
+plot(m1,type=3)
+plot(m1,type=3,covariance=FALSE)
+plot(m1,type=3,covariates=TRUE)
+
+## simple simulated data...
+data(simdata)
+set.seed(2)
+m2 &lt;- mocca(data=simdata,K=2,q=8,h=1,lambda=1e-10,n.cores=2,EMstep.tol=1e-3)
+summary(m2)
+criteria.mocca(m2)
+plot(m2)
+plot(m2,select=2)
+
+
+## even simpler simulated data
+##(reduced from 'simdata', EMstep.tol set high, q lower to allow automatic testing)...
+library(fdaMocca)
+data(simdata0)
+set.seed(2)
+m3 &lt;- mocca(data=simdata0,K=2,q=5,h=1,lambda=1e-10,n.cores=2,EMstep.tol=.5,
+      EMplot=FALSE,B=simdata0$B)
+summary(m3)
+#plot(m3)
+#plot(m3,select=2))
+ 
+</code></pre>
+
+
+</div>

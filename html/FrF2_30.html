@@ -1,0 +1,389 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>godolphin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Functions in support of Godolphin's approach for blocking designs </h2>
+
+<h3>Description</h3>
+
+<p>Function colpick handles the creation of X matrices for blocking, 
+function FF_from_X blocks a full factorial, function X_from_profile creates 
+an X matrix from a profile, 
+function phimax calculations the maximum number of clear 2fis from Godolphin's approach.
+Further helper functions support the use of the method. 
+The functions are meant for expert users only.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">colpick(design, q, all = FALSE, select.catlg = catlg, 
+      estimable = NULL, method = "VF2", sort = "natural",
+      res3 = FALSE, all0 = FALSE, quiet = FALSE, 
+      firsthit = is.numeric(design))
+FF_from_X(X, randomize = TRUE, seed = NULL, alias.info=2)
+X_from_profile(n, q, profile = NULL)
+clear2fis_from_profile(n, q, profile = NULL)
+X_from_parts(n, q, parts)
+phimax(n, q, profile = NULL)
+blockgencreate(X, p = 0)
+Xcalc(XI, gen)
+blockgengroup(X, p = 0, num = FALSE)
+colpickIV(design, q, all = FALSE, select.catlg = catlg, 
+      estimable = NULL, method = "VF2", sort = "natural",
+      res3 = FALSE, all0 = FALSE, quiet = FALSE, 
+      firsthit = is.numeric(design))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>a character string that identifies a design in the cataloge specified 
+by option <code>select.catlg</code>, <br>
+OR a class <code>catlg</code> object with a single entry (of longer, only the first one is used), <br>
+OR an integer number of factors for which a full factorial is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>the requested block size is <code class="reqn">2^q</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all</code></td>
+<td>
+<p>if TRUE (default FALSE), all possible <b>X</b> matrices are returned; 
+otherwise, <code>colpick</code> returns the first successful one (if <code>estimable</code> 
+is not NULL) or the best one (otherwise)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select.catlg</code></td>
+<td>
+<p>name of catalogue (not in quotes); 
+only relevant, if <code>design</code> is a character string</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimable</code></td>
+<td>
+<p>a specification of 2fis to be kept clear in the blocked design, 
+either as a character vector of pairs of factor letters (using the first 
+elements of 'Letters') or as a two-row matrix of pairs of factor numbers occurring 
+in 2fis)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character string identifying a subgraph isomorphism method
+(VF2 or LAD), see <code>FrF2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>character string specifying a presort strategy for subgraph 
+isomorphism search, see <code>FrF2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res3</code></td>
+<td>
+<p>relevant only if <code>estimable</code> is not NULL;<br>
+per default (<code>res3=FALSE</code>), <code>design</code> will yield no result, 
+if it has resolution III only; 
+set <code>res3</code> to TRUE for allowing a <code>design</code> of resolution III 
+(almost never useful)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all0</code></td>
+<td>
+<p>per default (<code>all0=FALSE</code>), <b>X</b> matrices are requested to be 
+free of all-zero columns. Set <code>all0</code> to TRUE for permitting aliasing 
+between blocks and factor main effects, i.e. for finding a suitable split-plot
+constructor. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>if TRUE, the message about failure is suppressed (for using the function 
+inside other functions, like <code>FrF2</code>) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>firsthit</code></td>
+<td>
+<p>if TRUE, the function does not attempt to optimize the 
+number of clear 2fis but accepts the first acceptable blocking
+(relevant for non-null <code>estimable</code> only); <br>
+per default, optimizing is suppressed for full factorials only (where it 
+is not very reasonable to use function <code>colpick</code> instead of simply
+hand-crafting an <b>X</b> matrix; function <code>FrF2</code> sets it to FALSE 
+for creation of full factorials with estimability requirements); <br>
+for large applications with estimability requirements, 
+specifying <code>firsthit</code> as TRUE may allow to inspect more candidates 
+and to then possibly deepdive some of them</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a <code class="reqn">q \times n</code> <b>X</b> matrix 
+with only 0/1 elements for block construction </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomize</code></td>
+<td>
+<p> logical. If TRUE, the design is randomized. This is the default.
+Randomization is implemented using function 
+<code>rerandomize.design</code> of package <span class="pkg">DoE.base</span> 
+as the last step in design creation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p> optional seed for the randomization process <br>
+In R version 3.6.0 and later, the default behavior of function <code>sample</code>
+has changed. If you work in a new (i.e., &gt;= 3.6.-0) R version and want to reproduce 
+a randomized design from an earlier R version (before 3.6.0), 
+you have to change the RNGkind setting by<br><code>RNGkind(sample.kind="Rounding")</code><br>
+before running function <code>FrF2</code>.<br>
+It is recommended to change the setting back to the new recommended way afterwards:<br><code>RNGkind(sample.kind="default")</code><br>
+For an example, see the documentation of the example data set <code>VSGFS</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alias.info</code></td>
+<td>
+<p>degree of effects aliased with blocks to be included in the 
+<code>design.info</code> attribute</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>profile</code></td>
+<td>
+<p>profile to use for calculation 
+(NULL or integer vector of up to <code class="reqn">2^q-1</code> elements that sum to <code class="reqn">n</code>); 
+if NULL, the maximally balanced profile is used (which yields the overall maximum
+number of clear 2fis when blocking a full factorial)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parts</code></td>
+<td>
+<p>list that provides factor partitions; list entries 
+must either be all integers from 1 to <code>n</code> or the elements
+of <code>Letters[1:n]</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>the number of generated factors (among the n factors); 
+<code class="reqn">2^{n-p}</code> is the number of runs in the experiment)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XI</code></td>
+<td>
+<p>a <code class="reqn">q \times k</code> <b>X</b>_I matrix 
+with only 0/1 elements, 
+to be extended into a <code class="reqn">q \times n</code> <b>X</b> matrix for 
+block construction, given the generators in <code>gen</code> (<code class="reqn">k=n-p</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gen</code></td>
+<td>
+<p>generators for extending <code>XI</code>: <code>gen</code> can be<br> 
+a class <code>catlg</code> object (e.g. <code>catlg["7-2.1"]</code> or 
+<code>catlg[nruns(catlg)==32 &amp; nfac(catlg)==7])</code>; each <code>nfac</code> 
+entry must be the sum of <code class="reqn">k</code> and the length of the <code>gen</code> element)<br>
+a vector of Yates column numbers (e.g. <code>c(7, 27)</code>)<br>
+a vector of defining contrasts (e.g. <code>c("ABC","ABDE")</code>)
+a list of vectors of base column numbers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num</code></td>
+<td>
+<p>if TRUE (default FALSE), Yates column numbers are returned 
+instead of their character representations</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These are the functions for the Godolphin (2021) approach to blocking; 
+most of them are user-visible. 
+This approach and its implementation are described in Groemping (2021). 
+Direct use of this functions is intended for expert use only.
+</p>
+<p>Function <code>colpick</code> is
+the main workhorse function for blocking larger situations 
+in function <code>FrF2</code> 
+(since version 2 of the package, it replaces the earlier approach 
+with function <code>blockpick.big</code>); it makes use of function 
+<code>blockgencreate</code>, and of the internal function <code>blockgengroup</code>.
+</p>
+<p>Function <code>FF_from_X</code> creates a class <code>design</code> object. 
+Design size is limited by computer memory and run time. 
+The function can use an <b>X</b> matrix that was produced by function 
+<code>colpick</code>; but note that it is quite easy to hand-craft 
+an <b>X</b> matrix for a full factorial, even with estimability requirements.
+The light-weight function does not have arguments for customization; it can 
+be post-processed, however, e.g. using function 
+<code>factor.names&lt;-</code>.
+</p>
+<p>Function <code>X_from_profile</code> creates an X matrix that corresponds to 
+the specified profile.
+</p>
+<p>Function <code>phimax</code> returns the maximum number of 2fis that can 
+be kept clear when blocking a full factorial design in <code class="reqn">n</code> factors into 
+blocks of size <code class="reqn">2^q</code>, given the specified profile.
+</p>
+<p>Function <code>blockgencreate</code> creates block generators from an <b>X</b> matrix 
+for blocking a design in <code class="reqn">2^{n-p}=2^k</code> runs into blocks of size <code class="reqn">2^q</code>, 
+where <code class="reqn">n</code> and <code class="reqn">q</code> are derived from <code>X</code> as the number of columns and rows, 
+respectively. The generators are returned as a character vector that consists of 
+strings of base factor letters.
+</p>
+<p>Function <code>Xcalc</code> extends a <code class="reqn">q\times k</code> 
+matrix <b>X</b>_I by <code class="reqn">p=n-k</code> columns 
+(<b>X</b>_II in Godolphin notatation) based 
+on the generators provided in <code>gen</code>.
+</p>
+<p>Function <code>blockgengroup</code> is internal only, 
+as are functions <code>colpickIV</code> and <code>clear2fis_from_profile</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function <code>colpick</code> returns a list of at least two elements: <br>
+if <code>all</code> is FALSE, the list consists of the matrix <code>X</code>, 
+the character vector 
+<code>clear.2fis</code> and possibly the integer vector <code>map</code>, <br>
+otherwise of list-valued elements <code>X_matrices</code>, <code>clearlist</code> and 
+<code>profiles</code> and <code>maplist</code>.
+</p>
+<p>Function <code>FF_from_X</code> returns a class design object of type <code>FrF2.blocked</code>.
+</p>
+<p>Function <code>phimax</code> returns a real number.
+</p>
+<p>Function <code>blockgencreate</code> returns a character vector of generators
+in terms of <code>Letters</code> combinations of the first $n-p$ factors.
+</p>
+<p>Function <code>Xcalc</code> returns a <code class="reqn">q\times n</code> 
+matrix (in case of a single generator) or a list of such matrices 
+(if <code>gen</code> is a class <code>catlg</code> object with more than one element).
+</p>
+<p>The internal function <code>blockgengroup</code> returns a character vector of all effects 
+(denoted as base column letter combinations) aliased with the block main effect, 
+or corresponding Yates column numbers.
+</p>
+<p>The internal function <code>colpickIV</code> returns almost the same type of results as <code>colpick</code>. 
+The difference: <br>
+if <code>all</code> is TRUE, there is an integer vector <code>map</code> instead of the 
+<code>maplist</code> element, because the <code>map</code> does not depend on the choice of X-matrix 
+(separate subgraph isomorphism checking is skipped with this function).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ulrike Groemping</p>
+
+
+<h3>References</h3>
+
+<p>Groemping, U. (2012). Creating clear designs: a graph-based algorithm and a 
+catalogue of clear compromise plans. <em>IIE Transactions</em> <b>44</b>, 988–1001. 
+Early preprint available at <a href="http://www1.bht-berlin.de/FB_II/reports/Report-2010-005.pdf">http://www1.bht-berlin.de/FB_II/reports/Report-2010-005.pdf</a>.
+</p>
+<p>Godolphin, J. (2021). Construction of Blocked Factorial Designs to Estimate 
+Main Effects and Selected Two-Factor Interactions. <em>J. Royal Statistical Society</em> <b>B 83</b>, 5-29. 
+doi: <a href="https://doi.org/10.1111/rssb.12397">10.1111/rssb.12397</a>.
+</p>
+<p>Groemping, U. (2021). An algorithm for blocking regular fractional factorial 
+2-level designs with clear two-factor interactions. <em>Computational Statistics and Data Analysis</em> 
+<b>153</b>, 1-18. doi: <a href="https://doi.org/10.1016/j.csda.2020.107059">10.1016/j.csda.2020.107059</a>. Preprint at 
+<a href="http://www1.bht-berlin.de/FB_II/reports/Report-2019-003.pdf">Report 3/2019</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.igraph</code>, <code>tkplot</code>,
+<code>plot.common</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">phimax(7, 2)  ## 16 2fis can be clear, if 128 run full factorial is blocked 
+              ## into 32 blocks of size 2^2=4
+
+## X matrices for blocking full factorials
+## do not care about which factors have which role
+X_from_profile(7, 2, c(3,2,2))
+   # X_from_profile(7, 2, c(2,2,3)) returns same matrix
+## ensure specific partition, i.e. specific requirement CIG to be accommodated
+X &lt;- X_from_parts(7, 2, parts=list(c("A","D","F"), c("B","G"), c("C","E")))
+
+## blocked full factorial
+summary(FF_from_X(X))
+
+## using colpick
+## estimable in standard letters
+requ &lt;- c("BA", "BC", "BD", "BE", "BF", "BG", "BH", "BJ")
+## estimability requirement in factor names
+fn &lt;- Letters[15:23] ## P to X
+requfn &lt;- requ
+requfn &lt;- sapply(1:8, function(obj) gsub(Letters[obj], fn[obj], requfn[obj]))
+
+## obtain X matrix for accommodating estimability requirement in 9-4.2
+(aus &lt;- colpick("9-4.2", 2, estimable=requ))
+## obtain the same matrix manually with Xcalc
+XI &lt;- aus$X[,1:5]
+## obtain the same matrix manually with Xcalc
+all(Xcalc(XI, catlg["9-4.2"])==aus$X)
+## inspect X matrices generated from XI
+Xcalc(XI, catlg[nruns(catlg)==32 &amp; nfac(catlg)==9 &amp; res(catlg)&gt;=4])
+
+## factor permutation needed
+aus$map
+## calculate block generators
+blockgencreate(aus$X, p=4)
+## automatic creation from the design 9-4.2 uses these block generators
+summary(FrF2(32, 9, blocks=8, estimable=requ, factor.names=fn, 
+    alias.block.2fis = TRUE, select.catlg = catlg["9-4.2"]), 
+    brief=TRUE)
+## can also be reproduced manually (internal function invperm does the permuting)
+summary(FrF2(design="9-4.2", blocks=blockgencreate(aus$X, p=4), 
+    factor.names=fn[FrF2:::invperm(aus$map)], 
+    alias.block.2fis = TRUE), 
+    brief=TRUE)
+</code></pre>
+
+
+</div>

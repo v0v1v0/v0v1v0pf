@@ -1,0 +1,297 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_lagged_df</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create model training and forecasting datasets with lagged, grouped, dynamic, and static features</h2>
+
+<h3>Description</h3>
+
+<p>Create a list of datasets with lagged, grouped, dynamic, and static features to (a) train forecasting models for
+specified forecast horizons and (b) forecast into the future with a trained ML model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_lagged_df(
+  data,
+  type = c("train", "forecast"),
+  method = c("direct", "multi_output"),
+  outcome_col = 1,
+  horizons,
+  lookback = NULL,
+  lookback_control = NULL,
+  dates = NULL,
+  frequency = NULL,
+  dynamic_features = NULL,
+  groups = NULL,
+  static_features = NULL,
+  predict_future = NULL,
+  use_future = FALSE,
+  keep_rows = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame with the (a) target to be forecasted and (b) features/predictors. An optional date column can be given in the
+<code>dates</code> argument (required for grouped time series). Note that '<code>orecastML</code> only works with regularly spaced date/time intervals and that missing
+rows–usually due to periods when no data was collected–will result in incorrect feature lags.
+Use <code>fill_gaps</code> to fill in any missing rows/data prior to running this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of dataset to return–(a) model training or (b) forecast prediction. The default is <code>train</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The type of modeling dataset to create. <code>direct</code> returns 1 data.frame for each forecast horizon and
+<code>multi_output</code> returns 1 data.frame for simultaneously modeling all forecast horizons. The default is <code>direct</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_col</code></td>
+<td>
+<p>The column index–an integer–of the target to be forecasted. If <code>outcome_col != 1</code>, the
+outcome column will be moved to position 1 and <code>outcome_col</code> will be set to 1 internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horizons</code></td>
+<td>
+<p>A numeric vector of one or more forecast horizons, h, measured in dataset rows.
+If <code>dates</code> are given, a horizon of 1, for example, would equal 1 * <code>frequency</code> in calendar time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lookback</code></td>
+<td>
+<p>A numeric vector giving the lags–in dataset rows–for creating the lagged features. All non-grouping,
+non-static, and non-dynamic features in the input dataset, <code>data</code>, are lagged by the same values. The outcome is
+also lagged by default. Either <code>lookback</code> or <code>lookback_control</code> need to be specified–but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lookback_control</code></td>
+<td>
+<p>A list of numeric vectors, specifying potentially unique lags for each feature. The length
+of the list should equal <code>ncol(data)</code> and be ordered the same as the columns in <code>data</code>. Lag values for any grouping,
+static, or dynamic feature columns are automatically coerced to 0 and not lagged. <code>list(NULL)</code> <code>lookback_control</code> values drop columns
+from the input dataset. Either <code>lookback</code> or <code>lookback_control</code> need to be specified–but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>A vector or 1-column data.frame of dates/times with class 'Date' or 'POSIXt'. The length
+of <code>dates</code> should equal <code>nrow(data)</code>. Required if <code>groups</code> are given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequency</code></td>
+<td>
+<p>Date/time frequency. Required if <code>dates</code> are given. A string taking the same input as <code>base::seq.Date(..., by = "frequency")</code> or
+<code>base::seq.POSIXt(..., by = "frequency")</code> e.g., '1 hour', '1 month', '7 days', '10 years' etc.
+The highest frequency supported at present is '1 sec'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dynamic_features</code></td>
+<td>
+<p>A character vector of column names that identify features that change through time but which are not lagged (e.g., weekday or year).
+If <code>type = "forecast"</code> and <code>method = "direct"</code>, these features will receive <code>NA</code> values; though, they can be filled in by the user after running this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>A character vector of column names that identify the groups/hierarchies when multiple time series are present. These columns are used as model features but
+are not lagged. Note that combining feature lags with grouped time series will result in <code>NA</code> values throughout the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>static_features</code></td>
+<td>
+<p>For grouped time series only. A character vector of column names that identify features that do not change through time.
+These columns are not lagged. If <code>type = "forecast"</code>, these features will be filled forward using the most recent value for the group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predict_future</code></td>
+<td>
+<p>When <code>type = "forecast"</code>, a function for predicting the future values of any dynamic features.
+This function takes <code>data</code> and <code>dates</code> as positional arguments and returns a data.frame with (a) one or more rows, (b) an
+"index" column of future dates, (c) group columns if needed, and (d) 1 or more columns with name(s) in <code>dynamic_features</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_future</code></td>
+<td>
+<p>Boolean. If <code>TRUE</code>, the <code>future.apply</code> package is used for creating lagged data.frames.
+<code>multisession</code> or <code>multicore</code> futures are especially useful for (a) grouped time series with many groups and
+(b) high-dimensional datasets with many lags per feature. Run <code>future::plan(future::multiprocess)</code> prior to this
+function to set up multissession or multicore parallel dataset creation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_rows</code></td>
+<td>
+<p>Boolean. For non-grouped time series, keep the <code>1:max(lookback)</code> rows at the beginning of the time series. These rows will
+contain missing values for lagged features that "look back" before the start of the dataset.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 object of class 'lagged_df' or 'grouped_lagged_df': A list of data.frames with new columns for the lagged/non-lagged features.
+For <code>method = "direct"</code>, the length of the returned list is equal to the number of forecast horizons and is in the order of
+horizons supplied to the <code>horizons</code> argument. Horizon-specific datasets can be accessed with
+<code>my_lagged_df$horizon_h</code> where 'h' gives the forecast horizon.
+For <code>method = "multi_output"</code>, the length of the returned list is 1. Horizon-specific datasets can be accessed with
+<code>my_lagged_df$horizon_1_3_5</code> where "1_3_5" represents the forecast horizons passed in <code>horizons</code>.
+</p>
+<p>The contents of the returned data.frames are as follows:
+</p>
+
+<dl>
+<dt><strong>type = 'train', non-grouped:</strong></dt>
+<dd>
+<p>A data.frame with the outcome and lagged/dynamic features.</p>
+</dd>
+<dt><strong>type = 'train', grouped:</strong></dt>
+<dd>
+<p>A data.frame with the outcome and unlagged grouping columns followed by lagged, dynamic, and static features.</p>
+</dd>
+<dt><strong>type = 'forecast', non-grouped:</strong></dt>
+<dd>
+<p>(1) An 'index' column giving the row index or date of the
+forecast periods (e.g., a 100 row non-date-based training dataset would start with an index of 101). (2) A 'horizon' column
+that indicates the forecast period from <code>1:max(horizons)</code>. (3) Lagged features identical to the
+'train', non-grouped dataset.</p>
+</dd>
+<dt><strong>type = 'forecast', grouped:</strong></dt>
+<dd>
+<p>(1) An 'index' column giving the date of the
+forecast periods. The first forecast date for each group is the maximum date from the <code>dates</code> argument
++ 1 * <code>frequency</code> which is the user-supplied date/time frequency.(2) A 'horizon' column that indicates
+the forecast period from <code>1:max(horizons)</code>. (3) Lagged, static, and dynamic features identical to the 'train', grouped dataset.</p>
+</dd>
+</dl>
+<h3>Attributes</h3>
+
+
+<ul>
+<li> <p><code>names</code>: The horizon-specific datasets that can be accessed with <code>my_lagged_df$horizon_h</code>.
+</p>
+</li>
+<li> <p><code>type</code>: Training, <code>train</code>, or forecasting, <code>forecast</code>, dataset(s).
+</p>
+</li>
+<li> <p><code>method</code>: <code>direct</code> or <code>multi_output</code>.
+</p>
+</li>
+<li> <p><code>horizons</code>: Forecast horizons measured in dataset rows.
+</p>
+</li>
+<li> <p><code>outcome_col</code>: The column index of the target being forecasted.
+</p>
+</li>
+<li> <p><code>outcome_cols</code>: If <code>method = multi_output</code>, the column indices of the multiple outputs in the transformed dataset.
+</p>
+</li>
+<li> <p><code>outcome_name</code>: The name of the target being forecasted.
+</p>
+</li>
+<li> <p><code>outcome_names</code>: If <code>method = multi_output</code>, the column names of the multiple outputs in the transformed dataset.
+The names take the form "outcome_name_h" where 'h' is a horizon passed in <code>horizons</code>.
+</p>
+</li>
+<li> <p><code>predictor_names</code>: The predictor or feature names from the input dataset.
+</p>
+</li>
+<li> <p><code>row_indices</code>: The <code>row.names()</code> of the output dataset. For non-grouped datasets, the first
+<code>lookback</code> + 1 rows are removed from the beginning of the dataset to remove <code>NA</code> values in the lagged features.
+</p>
+</li>
+<li> <p><code>date_indices</code>: If <code>dates</code> are given, the vector of <code>dates</code>.
+</p>
+</li>
+<li> <p><code>frequency</code>: If <code>dates</code> are given, the date/time frequency.
+</p>
+</li>
+<li> <p><code>data_start</code>: <code>min(row_indices)</code> or <code>min(date_indices)</code>.
+</p>
+</li>
+<li> <p><code>data_stop</code>: <code>max(row_indices)</code> or <code>max(date_indices)</code>.
+</p>
+</li>
+<li> <p><code>groups</code>: If <code>groups</code> are given, a vector of group names.
+</p>
+</li>
+<li> <p><code>class</code>: grouped_lagged_df, lagged_df, list
+</p>
+</li>
+</ul>
+<h3>Methods and related functions</h3>
+
+<p>The output of <code>create_lagged_df()</code> is passed into
+</p>
+
+<ul><li> <p><code>create_windows</code>
+</p>
+</li></ul>
+<p>and has the following generic S3 methods
+</p>
+
+<ul>
+<li> <p><code>summary</code>
+</p>
+</li>
+<li> <p><code>plot</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Sampled Seatbelts data from the R package datasets.
+data("data_seatbelts", package = "forecastML")
+#------------------------------------------------------------------------------
+# Example 1 - Training data for 2 horizon-specific models w/ common lags per predictor.
+horizons &lt;- c(1, 12)
+lookback &lt;- 1:15
+
+data &lt;- data_seatbelts
+
+data_train &lt;- create_lagged_df(data_seatbelts, type = "train", outcome_col = 1,
+                               horizons = horizons, lookback = lookback)
+head(data_train[[length(horizons)]])
+
+# Example 1 - Forecasting dataset
+# The last 'nrow(data_seatbelts) - horizon' rows are automatically used from data_seatbelts.
+data_forecast &lt;- create_lagged_df(data_seatbelts, type = "forecast", outcome_col = 1,
+                                  horizons = horizons, lookback = lookback)
+head(data_forecast[[length(horizons)]])
+
+#------------------------------------------------------------------------------
+# Example 2 - Training data for one 3-month horizon model w/ unique lags per predictor.
+horizons &lt;- 3
+lookback &lt;- list(c(3, 6, 9, 12), c(4:12), c(6:15), c(8))
+
+data_train &lt;- create_lagged_df(data_seatbelts, type = "train", outcome_col = 1,
+                               horizons = horizons, lookback_control = lookback)
+head(data_train[[length(horizons)]])
+</code></pre>
+
+
+</div>

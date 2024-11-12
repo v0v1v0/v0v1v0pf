@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fill.nuclear</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Low-Rank Completion with Nuclear Norm Optimization</h2>
+
+<h3>Description</h3>
+
+<p>In many circumstances, it is natural to assume that there exists an underlying
+low-rank structure. The assumption of <em>low-rank</em> property leads to an optimization problem
+for matrix completion problem,
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{minimize}\quad rank(X)</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\mathrm{s.t}~~ X_{ij}=A_{ij} ~~\mathrm{for}~~ A_{ij} \in E</code>
+</p>
+
+<p>where <code class="reqn">A_{ij}\in E</code> means the <code class="reqn">(i,j)</code>-th entry of data matrix <code class="reqn">A</code> is not missing. The objective
+function can be further relaxed by nuclear norm
+</p>
+<p style="text-align: center;"><code class="reqn">\|X\|_* = \sum \sigma_i(X)</code>
+</p>
+
+<p>where <code class="reqn">\sigma_i (X)</code> is <code class="reqn">i</code>-th singular value of the matrix <code class="reqn">X</code>. Note that
+for modeling purpose, we adopted closeness parameter <code>tolerance</code> for equality constraint.
+<span class="pkg">CVXR</span> package was used in implementation. Computational efficiency may not be guaranteed for large data matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fill.nuclear(A, tolerance = 0.001)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>an <code class="reqn">(n\times p)</code> partially observed matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>level of tolerance for entrywise equality condition.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list containing </p>
+
+<dl>
+<dt>X</dt>
+<dd>
+<p>an <code class="reqn">(n\times p)</code> matrix after completion.</p>
+</dd>
+<dt>norm</dt>
+<dd>
+<p>solution of the minimization problem; approximate rank.</p>
+</dd>
+<dt>cvxr.status</dt>
+<dd>
+<p>“optimal” denotes the problem was solved. See <code>psolve</code> for more details on solvability.</p>
+</dd>
+<dt>cvxr.niters</dt>
+<dd>
+<p>the number of iterations taken.</p>
+</dd>
+<dt>cvxr.solver</dt>
+<dd>
+<p>type of solver used by <span class="pkg">CVXR</span>.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Candès EJ, Recht B (2009).
+“Exact Matrix Completion via Convex Optimization.”
+<em>Foundations of Computational Mathematics</em>, <b>9</b>(6), 717–772.
+ISSN 1615-3375, 1615-3383.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## load image data of 'lena64'
+data(lena64)
+
+## transform 5% of entries into missing
+A &lt;- aux.rndmissing(lena64, x=0.05)
+
+## apply the method
+filled &lt;- fill.nuclear(A)
+
+## visualize
+opar &lt;- par(no.readonly=TRUE)
+par(mfrow=c(1,2), pty="s")
+image(A, col=gray((0:100)/100), axes=FALSE, main="5% missing")
+image(filled$X, col=gray((0:100)/100), axes=FALSE, main="processed")
+par(opar)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

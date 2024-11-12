@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ClusterNoEstimation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimates Number of Clusters using up to 26 Indicators
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculation of up to 26 indicators and the recommendations based on them for the number of clusters in data sets. 
+For a given dataset and clusterings for this dataset, key indicators mentioned in details are calculated and based on this a recommendation regarding the number of clusters is given for each indicator.
+</p>
+<p>An alternative estimation of the cluster number can be done by counting the valleys of the topographic map of the generalized U-Matrix for a specfic projection method using the <span class="pkg">ProjectionBasesdClustering</span> and <span class="pkg">GeneralizedUmatrix</span> packages on CRAN, see [Thrun/Ultsch, 2021] for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ClusterNoEstimation(DataOrDistances, ClsMatrix = NULL, MaxClusterNo, 
+
+ClusterIndex = "all", Method = NULL, MinClusterNo = 2,
+
+Silent = TRUE,PlotIt=FALSE,SelectByABC=TRUE,Colorsequence,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>DataOrDistances</code></td>
+<td>
+
+<p>Either [1:n,1:d] matrix of dataset to be clustered. It consists of n cases of d-dimensional data points. Every case has d attributes, variables or features.
+</p>
+<p>or
+</p>
+<p>Symmetric [1:n,1:n] distance matrix
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ClsMatrix</code></td>
+<td>
+
+<p>[1:n,1:(MaxClusterNo)] matrix of clusterings each columns is defined as: 
+</p>
+<p>1:n numerical vector of numbers defining the classification as the main output of the clustering algorithm for the n cases of data. It has k unique numbers representing the arbitrary labels of the clustering.
+</p>
+<p>(see also details (2) and (3)), must be specified if method = NULL
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MaxClusterNo</code></td>
+<td>
+
+<p>Highest number of clusters to be checked
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Method</code></td>
+<td>
+
+<p>Cluster procedure, with which the clusterings are created (see details (4) for possible methods), must be specified if ClsMatrix = NULL
+</p>
+</td>
+</tr>
+</table>
+<p>Optional:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ClusterIndex</code></td>
+<td>
+
+<p>String or vector of strings with the indicators to be calculated (see details (1)), default = "all
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MinClusterNo</code></td>
+<td>
+
+<p>Lowest number of clusters to be checked, default = 2
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Silent</code></td>
+<td>
+
+<p>If TRUE status messages are output, default = FALSE
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PlotIt</code></td>
+<td>
+
+<p>If TRUE plots fanplot with proposed cluster numbers
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SelectByABC</code></td>
+<td>
+
+<p>If PlotIt=TRUE, TRUE: Plots group A of ABCanalysis of the most important ones (highest overlap in indicators), FALSE: plots all indicators
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Colorsequence</code></td>
+<td>
+
+<p>Optional, character vector of sufficient length of colors for the fan plot.If the sequence is too long the first part of the sequence is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Optional, further arguents used if clustering methods if <code>Method</code> is set.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Each column of <code>ClsMatrix</code> has to have at least two unqiue clusters defined. Otherwise the function will stop.
+</p>
+<p>(1)
+</p>
+<p>The following 26 indicators can be calculated:
+"ball", "beale", "calinski", "ccc", "cindex", "db", "duda", 
+"dunn", "frey", "friedman", "hartigan", "kl", "marriot", "mcclain", 
+"pseudot2", "ptbiserial", "ratkowsky", "rubin", "scott", "sdbw", 
+"sdindex", "silhouette", "ssi", "tracew", "trcovw", "xuindex".
+</p>
+<p>These can be specified individually or as a vector via the parameter index.
+If you enter 'all', all key figures are calculated.
+</p>
+<p>(2)
+</p>
+<p>The indicators kl, duda, pseudot2, beale, frey and mcclain require a clustering for MaxClusterNo+1 clusters. If these key figures are to be calculated, this clustering must be specified in cls.
+</p>
+<p>(3)
+</p>
+<p>The indicator kl requires a clustering for MinClusterNo-1 clusters. If this key figure is to be calculated, this clustering must also be specified in cls. For the case MinClusterNo = 2 no clustering for 1 has to be given.
+</p>
+<p>(4)
+</p>
+<p>The following methods can be used to create clusterings:
+</p>
+<p>"kmeans," "DBSclustering","DivisiveAnalysisClustering","FannyClustering", "ModelBasedClustering","SpectralClustering" or all methods found in <code>HierarchicalClustering</code>.
+</p>
+<p>(5)
+</p>
+<p>The indicators duda, pseudot2, beale and frey are only intended for use in hierarchical cluster procedures.
+</p>
+<p>If a distances matrix is given, then <span class="pkg">ProjectionBasedClustering</span> is required to be accessible.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Indicators</code></td>
+<td>
+
+<p>A table of the calculated indicators except Duda, Pseudot2 and Beale
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ClusterNo</code></td>
+<td>
+
+<p>The recommended number of clusters for each calculated indicator
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ClsMatrix</code></td>
+<td>
+
+<p>[1:n,MinClusterNo:(MaxClusterNo)] Output of the clusterings used for the calculation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HierarchicalIndicators</code></td>
+<td>
+
+<p>Either NULL or the values for the indicators Duda, Pseudot2 and Beale in case of hierarchical cluster procedures, if calculated
+</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Code of "calinski", "cindex", "db", "hartigan",
+"ratkowsky", "scott", "marriot", "ball", "trcovw", "tracew", "friedman",
+"rubin", "ssi" of package cclust ist adapted for the purpose of this function.
+</p>
+<p>Colorsequence works if <span class="pkg">DataVisualizations</span> 1.1.13 is installed (currently only on github available).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Peter Nahrgang, revised by Michael Thrun (2021)
+</p>
+
+
+<h3>References</h3>
+
+<p>Charrad, Malika, et al. "Package 'NbClust', J. Stat. Soft Vol.  61, pp. 1-36, 2014.
+</p>
+<p>Dimtriadou, E. "cclust: Convex Clustering Methods and Clustering Indexes." R package version 0.6-16, URL <a href="https://CRAN.R-project.org/package=cclust">https://CRAN.R-project.org/package=cclust</a>, 2009.
+</p>
+<p>[Thrun/Ultsch, 2021]  Thrun, M. C., and Ultsch, A.: Swarm Intelligence for Self-Organized Clustering, Artificial Intelligence, Vol. 290, pp. 103237, <a href="https://doi.org/10.1016/j.artint.2020.103237">doi:10.1016/j.artint.2020.103237</a>, 2021.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Reading the iris dataset from the standard R-Package datasets
+data &lt;- as.matrix(iris[,1:4])
+MaxClusterNo = 7
+# Creating the clusterings for the data set
+#(here with method complete) for the number of clusters 2 to 8
+hc &lt;- hclust(dist(data), method = "complete")
+clsm &lt;- matrix(data = 0, nrow = dim(data)[1],
+
+ncol = MaxClusterNo)
+for (i in 2:(MaxClusterNo+1)) {
+  clsm[,i-1] &lt;- cutree(hc,i)
+}
+
+# Calculation of all indicators and recommendations for the number of clusters
+indicatorsList=ClusterNoEstimation(Data = data, 
+
+ClsMatrix = clsm, MaxClusterNo = MaxClusterNo)
+
+# Alternatively, the same calculation as above can be executed with the following call
+ClusterNoEstimation(Data = data, MaxClusterNo = 7, Method = "CompleteL")
+# In this variant, the function clusterumbers also takes over the clustering
+</code></pre>
+
+
+</div>

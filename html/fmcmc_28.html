@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mcmc-output</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Information about the last <code>MCMC</code> call</h2>
+
+<h3>Description</h3>
+
+<p>This environment holds a copy of the last call to MCMC, including the start
+and end time (to compute total elapsed time) of the call. Since the resulting
+object of <code>MCMC</code> is an object of class coda::mcmc, this is a way to capture
+more information in case the user needs it.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_(x)
+
+get_logpost()
+
+get_draws()
+
+get_elapsed()
+
+get_initial()
+
+get_fun()
+
+get_nsteps()
+
+get_seed()
+
+get_nchains()
+
+get_burnin()
+
+get_thin()
+
+get_kernel()
+
+get_multicore()
+
+get_conv_checker()
+
+get_cl()
+
+get_progress()
+
+get_chain_id()
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Character scalar. Name of an argument to retrieve. If <code>x</code> was not
+passed to the last call, the function returns with an error.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The function <code>get_logpost</code> returns the <code>logposterior</code> value at each
+iteration. The values correspond to a named numeric vector. If <code>nchains &gt; 1</code>
+then it will return a list of length <code>nchains</code> with the corresponding logpost
+values for each chain.
+</p>
+<p>The function <code>get_draws()</code> retrieves the proposed states from the
+kernel function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Getting the logpost -------------------------------------------------------
+set.seed(23133)
+x &lt;- rnorm(200)
+y &lt;- -4 + x*2 + rnorm(200)
+f &lt;- function(p) {
+  sum(dnorm(y - p[1] - x*p[2], log = TRUE))
+}
+
+# Setting a RAM kernel
+kern &lt;- kernel_am(eps = 1e-2)
+
+ans &lt;- MCMC(fun = f, initial = c(0, 1), nsteps = 2000, kernel = kern)
+plot(
+  # Plotting the logpost from the last run
+  -get_logpost(), 
+  # Getting the number of chains
+  main = paste0("nchains: ", get_nchains()),
+  
+  # And the elapsed time
+  sub  = sprintf("Run time: %.4f(s)", get_elapsed()[3]),
+  type = "l",
+  log = "y"
+) 
+
+# This also works using multiple chains
+ans &lt;- MCMC(fun = f, initial = c(0, 0), nsteps=2000, nchains = 2, kernel = kern)
+
+# In this case, just like -ans-, 
+draws &lt;- get_draws()
+
+# Plotting proposed points vs accepted
+plot(
+  draws[[1]], pch = 20,
+  col = adjustcolor("gray", alpha = .5),
+  main = "Accepted vs proposed states\n(chain 1)"
+  )
+lines(ans[[1]], pch = 20, col = "tomato", lwd = 2)
+legend(
+  "topleft", legend = c("Accepted", "Proposed"), pch = c(NA, 20),
+  col = c("tomato", "black"), lty = c(1, NA), lwd = c(2, NA)
+)
+
+</code></pre>
+
+
+</div>

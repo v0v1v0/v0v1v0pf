@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extrinsic_selection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform extrinsic, ensemble-based variable selection</h2>
+
+<h3>Description</h3>
+
+<p>Based on a fitted Super Learner ensemble, extract extrinsic
+variable importance estimates, rank them, and do variable
+selection using the specified rank threshold.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extrinsic_selection(
+  fit = NULL,
+  feature_names = "",
+  threshold = 20,
+  import_type = "all",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>the fitted Super Learner ensemble.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_names</code></td>
+<td>
+<p>the names of the features (a character vector of
+length <code>p</code> (the total number of features)); only used if the
+fitted Super Learner ensemble was fit on a <code>matrix</code> rather than on a
+<code>data.frame</code>, <code>tibble</code>, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>the threshold for selection based on ranked
+variable importance; rank 1 is the most important. Defaults
+to 20 (though this is arbitrary, and really should be
+specified for the task at hand).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>import_type</code></td>
+<td>
+<p>the type of extrinsic importance (either <code>"all"</code>,
+the default, for a weighted combination of the individual-algorithm importance;
+or <code>"best"</code>, for the importance from the algorithm with the highest
+weight in the Super Learner).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments to pass to algorithm-specific importance extractors.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a tibble with the estimated extrinsic variable importance,
+the corresponding variable importance ranks, and the selected
+variables.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SuperLearner</code> for specific usage of
+the <code>SuperLearner</code> function and package.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("biomarkers")
+# subset to complete cases for illustration
+cc &lt;- complete.cases(biomarkers)
+dat_cc &lt;- biomarkers[cc, ]
+# use only the mucinous outcome, not the high-malignancy outcome
+y &lt;- dat_cc$mucinous
+x &lt;- dat_cc[, !(names(dat_cc) %in% c("mucinous", "high_malignancy"))]
+feature_nms &lt;- names(x)
+# get the fit (using a simple library and 2 folds for illustration only)
+library("SuperLearner")
+set.seed(20231129)
+fit &lt;- SuperLearner::SuperLearner(Y = y, X = x, SL.library = c("SL.glm", "SL.mean"), 
+                                  cvControl = list(V = 2))
+# extract importance
+importance &lt;- extrinsic_selection(fit = fit, feature_names = feature_nms, threshold = 1.5, 
+                                  import_type = "all")
+importance
+
+</code></pre>
+
+
+</div>

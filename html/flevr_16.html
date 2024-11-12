@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>intrinsic_selection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform intrinsic, ensemble-based variable selection</h2>
+
+<h3>Description</h3>
+
+<p>Based on estimated SPVIM values, do variable selection using the
+specified error-controlling method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">intrinsic_selection(
+  spvim_ests = NULL,
+  sample_size = NULL,
+  feature_names = "",
+  alpha = 0.05,
+  control = list(quantity = "gFWER", base_method = "Holm", fdr_method = NULL, q = NULL, k
+    = NULL)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spvim_ests</code></td>
+<td>
+<p>the estimated SPVIM values (an object of class <code>vim</code>,
+resulting from a call to <code>vimp::sp_vim</code>). Can also be a list of
+estimated SPVIMs, if multiple imputation was used to handle missing data; in
+this case, Rubin's rules will be used to combine the estimated SPVIMs, and
+then selection will be based on the combined SPVIMs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_size</code></td>
+<td>
+<p>the number of independent observations used to estimate
+the SPVIM values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_names</code></td>
+<td>
+<p>the names of the features (a character vector of
+length <code>p</code> (the total number of features)); only used if the
+fitted Super Learner ensemble was fit on a <code>matrix</code> rather than on a
+<code>data.frame</code>, <code>tibble</code>, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the nominal generalized family-wise error rate, proportion of
+false positives, or false discovery rate level to control at (e.g., 0.05).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of parameters to control the variable selection process.
+Parameters include <code>quantity</code>, <code>base_method</code>, <code>q</code>, and
+<code>k</code>. See <code>intrinsic_control</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a tibble with the estimated intrinsic variable importance,
+the corresponding variable importance ranks, and the selected
+variables.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sp_vim</code> for specific usage of
+the <code>sp_vim</code> function and the <code>vimp</code> package for estimating
+intrinsic variable importance.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("biomarkers")
+# subset to complete cases for illustration
+cc &lt;- complete.cases(biomarkers)
+dat_cc &lt;- biomarkers[cc, ]
+# use only the mucinous outcome, not the high-malignancy outcome
+y &lt;- dat_cc$mucinous
+x &lt;- dat_cc[, !(names(dat_cc) %in% c("mucinous", "high_malignancy"))]
+feature_nms &lt;- names(x)
+# estimate SPVIMs (using simple library and V = 2 for illustration only)
+set.seed(20231129)
+library("SuperLearner")
+est &lt;- vimp::sp_vim(Y = y, X = x, V = 2, type = "auc", SL.library = "SL.glm", 
+                    cvControl = list(V = 2))
+# do intrinsic selection
+intrinsic_set &lt;- intrinsic_selection(spvim_ests = est, sample_size = nrow(dat_cc), alpha = 0.2, 
+                                     feature_names = feature_nms, 
+                                     control = list(quantity = "gFWER", base_method = "Holm", 
+                                                    k = 1))
+intrinsic_set
+
+</code></pre>
+
+
+</div>

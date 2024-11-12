@@ -1,0 +1,449 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modpar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate Values to be Used for Fixed FlexParamCurve Parameters</h2>
+
+<h3>Description</h3>
+
+<p>This function creates the object <code>pnmodelparams</code>
+</p>
+<p>which holds estimates of values for all 8 FlexParamCurve
+</p>
+<p>parameters used for fitting and solving positive-negative Richards curves with
+</p>
+<p><code>SSposnegRichards</code> and <code>posnegRichards.eqn</code>,
+</p>
+<p>respectively. </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+modpar(x,
+
+y,
+
+pn.options = NA,
+
+first.y = NA,
+
+x.at.first.y = NA,
+
+last.y = NA,
+
+x.at.last.y = NA,
+
+twocomponent.x = NA,
+
+verbose = FALSE,
+
+force8par = FALSE,
+
+force4par = FALSE,
+
+suppress.text = FALSE,
+
+taper.ends = 0.45,
+
+width.bounds = 1,
+
+bounds.error = FALSE,
+
+Envir = .GlobalEnv,
+
+force.nonmonotonic = FALSE,
+
+...)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector of primary predictor variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of response variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>first.y</code></td>
+<td>
+<p>the value of y at minimum x  when it is required to be constrained</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.at.first.y</code></td>
+<td>
+<p>the final value of x - 0 value is used if not specified when last.y is not NA</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>last.y</code></td>
+<td>
+<p>the value of y at maximum x when it is required to be constrained</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.at.last.y</code></td>
+<td>
+<p>the final value of x - must be specified if last.y is not NA</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>twocomponent.x</code></td>
+<td>
+<p>a numerical specifying the x-value (e.g. age) of intersection if a double model of 
+</p>
+<p>two separate components is to be fitted. Alternatively a logical of value
+</p>
+<p>= TRUE if the same type of model is to be fitted but the x of 
+</p>
+<p>intersection is unknown</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating whether information on successful optimization and
+</p>
+<p>parameters should be returned during when using SSposnegRichards </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force8par</code></td>
+<td>
+<p>logical specifying whether parameters of the negative Richards
+</p>
+<p>curve should be set to defaults if they cannot be estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force4par</code></td>
+<td>
+<p>logical specifying whether parameters of the negative Richards
+</p>
+<p>should be ignored - effectively using simple Richards curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pn.options</code></td>
+<td>
+<p>character string specifying name of <code>list</code> object populated with starting 
+</p>
+<p>parameter estimates, fitting options and bounds or the destination for <code>modpar</code> to write a new list</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.text</code></td>
+<td>
+<p>logical specifying whether modpar should return descriptive text to the screen during execution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taper.ends</code></td>
+<td>
+<p>numeric representing the proportion of the range of the x variable for which data are extended at 
+</p>
+<p>the two ends of the data set. This is used in initial estimation (prior to optim and nls optimizations) and can 
+</p>
+<p>speed up subsequent optimizations by imposing a more pronounced S-shape to both first and second curves. Defaults to 0.45.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width.bounds</code></td>
+<td>
+<p>a numeric indicating the proportion of the usual width of parameter bounds to be imposed during optimizations. 
+</p>
+<p>Large values may slow or terminate computations, however they could better accomodate data in which different levels exhibit very different
+</p>
+<p>parameter values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds.error</code></td>
+<td>
+<p>a logical. If true parameter estimation will terminate if initial estimation of parameters leads to
+</p>
+<p>values outside specified bounds in pn.options. If false, more appropriate bounds will be determined automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Envir</code></td>
+<td>
+<p>a valid R environment to find pn.options in and export any output to, by default this is the global environment</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force.nonmonotonic</code></td>
+<td>
+<p>if set to TRUE fixed recessional parameter estimates will be used for the two monotonic equations
+</p>
+<p>(modno #12 or #32), otherwise these two models will use RAsym = 0, Ri = 0, Rk = 1, RM = 1 to prevent non-monotonic relationships
+</p>
+<p>in these cases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional optional arguments to be passed to nlsList</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function creates a formatted <code>list</code> object as named by the argument pn.options. This list
+</p>
+<p>holds estimates of values for all 8 FlexParamCurve parameters, fitting options and parameter bounds used for
+</p>
+<p>fitting and solving double-Richards curves with <code>SSposnegRichards</code> and <code>posnegRichards.eqn</code>,
+</p>
+<p>respectively. Parameter bounds are the maximum and minimum parameters values that can be used by <code>optim</code>
+</p>
+<p>and <code>nls</code> during parameter estimation. For definitions of parameters see either <code>SSposnegRichards</code> 
+</p>
+<p>or <code>posnegRichards.eqn</code>. The list is written automatically by the function (to ".pntemplist") but it is
+</p>
+<p>also output as a return value for assignation and subsequent use in the usual way [myoptions&lt;- change.pnparameters(...)].
+</p>
+<p>Estimates are produced by fitting positive-negative or double Richards curves in
+</p>
+<p><code>nls</code> using
+</p>
+<p><code>SSposnegRichards</code> for the full 8 parameter model (R1).
+</p>
+<p>If this fails, the function <code>getInitial</code> is called to
+</p>
+<p>attempt to produce initial estimates using the same 8 parameter model.
+</p>
+<p>If this also fails, estimates are attempted in the same way using the
+</p>
+<p>4 parameter (positive only) model (R12). In this case, only the positive
+</p>
+<p>parameters are returned (NAs are substituted for negative parameters)
+</p>
+<p>unless argument force8par=TRUE, in which case negative parameters are
+</p>
+<p>defaulted to: RAsym = 0.05*Asym, Rk = K, Ri = Infl, RM = M.
+</p>
+<p>This function can now fit biphasic (and more generally
+</p>
+<p>double-Richards) curves, where the final curve is effectively either two positive curves
+</p>
+<p>or two negative curves, as well as negative-positive curves. This functionality is default 
+</p>
+<p>and does not need to be specified.
+</p>
+<p>Parameter bounds estimated here for use in <code>optim</code> and <code>nls</code>
+</p>
+<p>fits within <code>SSposnegRichards</code> are
+</p>
+<p>applicable to a wide range of curves, although user may
+</p>
+<p>change these manually in <code>list</code> object specified by <code>pn.options</code>.
+</p>
+<p>Bounds are estimated by <code>modpar</code> by adding or subtracting multiples
+</p>
+<p>of fixed parameter values to estimated mean parameter values:
+</p>
+<p>-Asym*0.5 and +Asym*2.5,
+</p>
+<p>-K*0.5 and +K*0.5,
+</p>
+<p>-Infl*2.5 and +Infl*10
+</p>
+<p>-M*2 and +M*2
+</p>
+<p>-RAsym*0.5 and +RAsym*2.5,
+</p>
+<p>-Rk*0.5 and +Rk*0.5,
+</p>
+<p>-Ri*2.5 and +Ri*5
+</p>
+<p>-RM*2 and +RM*2.
+</p>
+<p>Use force8par = TRUE if initial call to <code>modpar</code> produces estimates for
+</p>
+<p>only 4 parameters and yet an 8 parameter model is desired for <code>SSposnegRichards</code>
+</p>
+<p>or <code>posnegRichards.eqn</code>.
+</p>
+<p>Use force4par = TRUE if you desire to produces estimates only for the four parameters of
+</p>
+<p>a single Richards curves. This should also be used if you wish to fit simple logistic
+</p>
+<p>Gompertz or von Bertalanffy curves: see <code>SSposnegRichards</code> for more details. If 
+</p>
+<p>the specified model in subsequent <code class="reqn">SSposnegRichards</code>, model selection or ploting calls
+</p>
+<p>is monotonic (i.e. contains no recession parameters: modno= 12 or 32) recessional parameters
+</p>
+<p>will not be included for these two models unless "force.nonmonotonic" option is TRUE,
+</p>
+<p>in the specified pn.options list object, in which case parameters will be drawn from the specified 
+</p>
+<p>pn.options list object.
+</p>
+<p>When specified, first.y and last.y are saved in list object specified by <code>pn.options</code> to instruct
+</p>
+<p><code>SSposnegRichards</code> to add this as the first or last value of the response, respectively,
+</p>
+<p>during estimation.
+</p>
+<p>To fit two-component double-curves, in which one curve equation is used up to (and including)
+</p>
+<p>the x of intersection and a separate equation is used for x-values greater than the x of intersection
+</p>
+<p>the argument twocomponent.x should be set to the value for the x of intersection. If this argument
+</p>
+<p>is anything other than NA then a two-component model will be fitted when <code>SSposnegRichards</code>
+</p>
+<p>is called. This option will be saved in list object specified by <code>pn.options</code> and can be changed at will.
+</p>
+<p>taper.ends can be used to speed up optimization as it extends the dataset at maximum and minimum extremes 
+</p>
+<p>of x by repeatedly pasting the y values at these extremes for a specified proportion of the range of x. 
+</p>
+<p>taper.ends is a numeric value representing the proportion of the range of x values are extended for and 
+</p>
+<p>defaults to 0.45 (45
+</p>
+<p>tend towards a zero slope this is a suitable values. If tapered ends are not desirable then choose taper.ends = 0.
+</p>
+<p>If the argument verbose = TRUE then details concerning the optimization processes within 
+</p>
+<p><code>SSposnegRichards</code> are printed on screen whenever <code>SSposnegRichards</code> is called.
+</p>
+<p>These include whether optimization of the first or second parts of the curve or simultaneous optimizations
+</p>
+<p>are successful, if these have been further refined by nls, whether default parameters were used or the 
+</p>
+<p>parameterization was aborted and what parameter values were finally exported by <code>SSposnegRichards</code>. 
+</p>
+<p>This option will be saved in the list object specified  by <code>pn.options</code> and can be changed at will.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a <code>list</code> of estimated fixed values for all
+</p>
+<p>above arguments</p>
+
+
+<h3>Note</h3>
+
+<p>Version 1.5 saves many variables, and internal variables in the package environment:
+</p>
+<p>FlexParamCurve:::FPCEnv. By default, the pn.options file is copied to the environment
+</p>
+<p>specified by the functions (global environment by default). Model selection routines
+</p>
+<p>also copy from FPCenv to the global environment all nlsList models fitted during 
+</p>
+<p>model selection to provide backcompatibility with code for earlier versions. The user
+</p>
+<p>can redirect the directory to copy to by altering the Envir argument when calling the 
+</p>
+<p>function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Oswald &lt;steve.oswald@psu.edu&gt;</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# estimate fixed parameters use data object posneg.data
+
+   	 modpar(posneg.data$age, posneg.data$mass, pn.options = "myoptions")
+
+
+
+# estimate fixed parameters use data object posneg.data (only first 
+
+# 4 group levels for example's sake) and specify a fixed hatching 
+
+# mass for curve optimization using \code{\link{SSposnegRichards}}
+
+	 modpar(posneg.data$age, posneg.data$mass, pn.options = "myoptions")
+
+   	 subdata &lt;- subset(posneg.data,posneg.data$id == as.character(36)
+
+	    		| posneg.data$id == as.character(9) 
+
+	    		| posneg.data$id == as.character(32) 
+
+	    		| posneg.data$id == as.character(43))
+
+	 richardsR22.lis &lt;- nlsList(mass ~ SSposnegRichards(age, Asym = Asym, 
+
+	         K = K, Infl = Infl, RAsym = RAsym, Rk = Rk, Ri = Ri, 
+
+        	 modno = 22, pn.options = "myoptions"), data = subdata)
+
+   		 
+
+
+
+# force an 8 parameter estimate on logistic data
+
+modpar(logist.data$age,logist.data$mass,force8par=TRUE, pn.options = "myoptions")
+
+
+
+
+
+# force an 4 parameter model on logistic data
+
+modpar(logist.data$age,logist.data$mass,force4par=TRUE, pn.options = "myoptions")
+
+
+
+# troubleshoot the fit of a model 
+
+modpar(posneg.data$age,posneg.data$mass,verbose=TRUE, pn.options = "myoptions")
+
+
+
+# fit a two component model - enter your own data in place of "mydata"
+
+        # this details an approach but is not run for want of appropriate data
+
+        # if x of intersection unknown
+
+        ## Not run: 
+
+ 	modpar(mydata$x,mydata$y,twocomponent.x=TRUE, pn.options = "myoptions")
+
+        # if x of intersection = 75
+
+ 	modpar(mydata$x,mydata$y,twocomponent.x=75, pn.options = "myoptions")
+
+ 	richardsR1.nls &lt;- nls(y~ SSposnegRichards(x, Asym = Asym, K = K,
+
+                 Infl = Infl, M = M, RAsym = RAsym, Rk = Rk, Ri = Ri, RM = RM,
+
+                 modno = 1, pn.options = "myoptions")
+
+                 , data = mydata)
+## End(Not run)
+
+</code></pre>
+
+
+</div>

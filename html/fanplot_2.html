@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>boe</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Parameters for MPC CPI Inflation Projections from Q1 2004 to Q4 2013.
+</h2>
+
+<h3>Description</h3>
+
+<p>Numerical parameters for inflation report of the Bank of England used to specify the probability distributions for forecast charts of CPI inflation. Data formatted from the November 2013 Bank of England Inflation Report.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(boe)</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 512 observations on the following 5 variables.
+</p>
+
+<dl>
+<dt><code>time0</code></dt>
+<dd>
+<p>Publication time of parameters</p>
+</dd>
+<dt><code>time</code></dt>
+<dd>
+<p>Future time of projected parameter</p>
+</dd>
+<dt><code>mode</code></dt>
+<dd>
+<p>Central location parameter of split-normal distribution</p>
+</dd>
+<dt><code>uncertainty</code></dt>
+<dd>
+<p>Uncertainty parameter of split-normal distribution</p>
+</dd>
+<dt><code>skew</code></dt>
+<dd>
+<p>Skew parameter of split-normal distribution</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>mode, uncertainty and skew parameters relate to those given in <code>dsplitnorm</code>, where uncertainty is the standard deviation.
+</p>
+
+
+<h3>Source</h3>
+
+<p>Bank of England Inflation Report November 2013. Retrieved from "Parameters for MPC CPI Inflation Projections from February 2004" spreadsheet at:
+</p>
+<p>Can not find copy of speadheet on the Bank of England website anymore, but there is a copy at <a href="https://github.com/guyabel/fanplot/tree/master/data-raw/">https://github.com/guyabel/fanplot/tree/master/data-raw/</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+##Q1 2013
+##
+#extract data for Q1 2013
+y0 &lt;- 2013
+boe0&lt;-subset(boe, time0==y0)
+k &lt;- nrow(boe0)
+
+#guess work to set percentiles the boe are plotting
+p &lt;- seq(0.05, 0.95, 0.05)
+p &lt;- c(0.01, p, 0.99)
+
+#estimate percentiles for future time period
+pp &lt;- matrix(NA, nrow = length(p), ncol = k)
+for (i in 1:k)
+  pp[, i] &lt;- qsplitnorm(p, mode = boe0$mode[i], sd = boe0$uncertainty[i], skew = boe0$skew[i])
+pp
+
+#plot cpi
+par(mar=rep(2,4))
+plot(cpi, type = "l", xlim = floor(c(y0-5, y0+3)), ylim = c(-2, 7), las = 1, 
+ col="tomato", lwd=2, xaxt = "n", yaxt = "n")
+
+#backround
+rect(y0-0.25, par("usr")[3] - 1, y0+3, par("usr")[4] + 1, border = "gray90", col = "gray90")
+
+#fan
+pal &lt;- colorRampPalette(c("tomato", "gray90"))
+fan(data=pp, probs=p, sim.data=FALSE, start=y0, frequency=4, 
+ anchor=cpi[time(cpi)==y0-0.25], fan.col=pal, ln=NULL, rlab=FALSE)
+
+#aesthetics for boe axis
+axis(2, at = -2:7, las = 2, tcl = 0.5, labels = FALSE)
+axis(4, at = -2:7, las = 2, tcl = 0.5)
+axis(1, at = 2008:2016, tcl = 0.5)
+axis(1, at = seq(2008, 2016, 0.25), labels = FALSE, tcl = 0.2)
+abline(h = 2) #cpi target
+abline(v = y0 + 1.75, lty = 2) #2 year line
+
+
+##
+##Q4 2013 (coarser fan)
+##
+#extract data for Q4 2013
+y0 &lt;- 2013.75
+boe0&lt;-subset(boe, time0==y0)
+k &lt;- nrow(boe0)
+
+#guess work at which percentiles the boe are plotting
+p &lt;- seq(0.2, 0.8, 0.2)
+p &lt;- c(0.05, p, 0.95)
+pp &lt;- matrix(NA, nrow = length(p), ncol = k)
+for (i in 1:k)
+  pp[, i] &lt;- qsplitnorm(p, mode = boe0$mode[i], sd = boe0$uncertainty[i], skew = boe0$skew[i])
+pp
+
+#define prediction intervals for labels
+p.int&lt;-p[4:6]-p[3:1]
+p.int
+
+#plot cpi
+par(mar=rep(2,4))
+plot(cpi, type = "l", xlim = c(y0-5, y0+3), ylim = c(-2, 7), las = 1, 
+ col="tomato", lwd=2, xaxt = "n", yaxt = "n")
+
+#backround
+rect(y0-0.25, par("usr")[3] - 1, y0+3, par("usr")[4] + 1, border = "gray90", col = "gray90")
+
+# add fan
+pal &lt;- colorRampPalette(c("tomato", "gray90"))
+fan(data=pp, probs=p.int, sim.data=FALSE, start=y0, frequency=4,
+ anchor=cpi[time(cpi)==y0-0.25], fan.col=pal, ln=NULL, rlab=pi, nfan=4, type="interval")
+
+#aesthetics for boe axis
+axis(2, at = -2:7, las = 2, tcl = 0.5, labels = FALSE)
+axis(4, at = -2:7, las = 2, tcl = 0.5)
+axis(1, at = 2008:2016, tcl = 0.5)
+axis(1, at = seq(2008, 2016, 0.25), labels = FALSE, tcl = 0.2)
+abline(h = 2) #cpi target
+abline(v = y0 + 1.75, lty = 2) #2 year line
+</code></pre>
+
+
+</div>

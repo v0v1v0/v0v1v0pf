@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitted.FPCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitted functional data from FPCA object</h2>
+
+<h3>Description</h3>
+
+<p>Combines the zero-meaned fitted values and the interpolated mean to get the fitted values for the trajectories 
+or the derivatives of these trajectories.
+Estimates are given on the work-grid, not on the observation grid. Use ConvertSupport 
+to map the estimates to your desired domain. <code>100*(1-alpha)</code>-percentage coverage intervals, or 
+bands, for trajectory estimates (not derivatives) are provided. For details consult the example.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FPCA'
+fitted(
+  object,
+  K = NULL,
+  derOptns = list(p = 0),
+  ciOptns = list(alpha = NULL, cvgMethod = NULL),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A object of class FPCA returned by the function FPCA().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The integer number of the first K components used for the representation. (default: length(fpcaObj$lambda ))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>derOptns</code></td>
+<td>
+<p>A list of options to control the derivation parameters specified by <code>list(name=value)</code>. See ‘Details’. (default = NULL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ciOptns</code></td>
+<td>
+<p>A list of options to control the confidence interval/band specified by <code>list(name=value)</code>. See ‘Details’. (default = NULL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available derivation control options are 
+</p>
+
+<dl>
+<dt>p</dt>
+<dd>
+<p>The order of the derivatives returned (default: 0, max: 2)</p>
+</dd>
+<dt>method</dt>
+<dd>
+<p>The method used to produce the sample of derivatives ('FPC' (default) or 'QUO'). See Liu and Müller (2009) for more details</p>
+</dd>
+<dt>bw</dt>
+<dd>
+<p>Bandwidth for smoothing the derivatives (default: p * 0.10 * S)</p>
+</dd>
+<dt>kernelType</dt>
+<dd>
+<p>Smoothing kernel choice; same available types are FPCA(). default('epan')</p>
+</dd>
+</dl>
+<p>Available confidence interval/band control options are 
+</p>
+
+<dl>
+<dt>alpha</dt>
+<dd>
+<p>Significant level for confidence interval/band for trajectory coverage. default=0.05 (currently only work when p=0)</p>
+</dd>
+<dt>cvgMethod</dt>
+<dd>
+<p>Option for trajectory coverage method between 'interval' (pointwise coverage) and 'band' (simultaneous coverage). default='band'</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>If <code>alpha</code> is <code>NULL</code>, <code>p&gt;1</code> or functional observations are dense, an <code>n</code> by <code>length(workGrid)</code> matrix, each row of which contains a sample. Otherwise, it returns a list which consists of the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>workGrid</code></td>
+<td>
+<p>An evaluation grid for fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted</code></td>
+<td>
+<p>An n by length(workGrid) matrix, each row of which contains a sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvgUpper</code></td>
+<td>
+<p>An n by length(workGrid) matrix, each row of which contains the upper <code>alpha</code>-coverage limit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvgLower</code></td>
+<td>
+<p>An n by length(workGrid) matrix, each row of which contains the lower <code>alpha</code>-coverage limit</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Yao, F., Müller, H.-G. and Wang, J.-L. "Functional data analysis for sparse longitudinal data", Journal of the American Statistical Association, vol.100, No. 470 (2005): 577-590.</cite>
+</p>
+<p><cite>Liu, Bitao, and Hans-Georg Müller. "Estimating derivatives for samples of sparsely observed functions, with application to online auction dynamics." Journal of the American Statistical Association 104, no. 486 (2009): 704-717. (Sparse data FPCA)</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 100
+pts &lt;- seq(0, 1, by=0.05)
+sampWiener &lt;- Wiener(n, pts)
+sampWiener &lt;- Sparsify(sampWiener, pts, 5:10)
+res &lt;- FPCA(sampWiener$Ly, sampWiener$Lt, 
+            list(dataType='Sparse', error=FALSE, kernel='epan', verbose=TRUE))
+fittedY &lt;- fitted(res, ciOptns = list(alpha=0.05))
+
+workGrid &lt;- res$workGrid
+cvgUpper &lt;- fittedY$cvgUpper
+cvgLower &lt;- fittedY$cvgLower
+
+op &lt;- par(mfrow=c(2,3))
+ind &lt;- sample(1:n,6)
+for (i in 1:6) {
+ j &lt;- ind[i]
+ plot(workGrid,cvgUpper[j,],type='l',ylim=c(min(cvgLower[j,]),max(cvgUpper[j,])),col=4,lty=2,
+   xlab='t', ylab='X(t)', main=paste(j,'-th subject',sep=''))
+ points(workGrid,cvgLower[j,],type='l',col=4,lty=2)
+ points(res$inputData$Lt[[j]],res$inputData$Ly[[j]])
+}
+par(op)
+    
+</code></pre>
+
+
+</div>

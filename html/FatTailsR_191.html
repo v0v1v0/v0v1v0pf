@@ -1,0 +1,527 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regkienerLX</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Regression Function for Kiener Distributions</h2>
+
+<h3>Description</h3>
+
+<p>One function to estimate the parameters of Kiener distributions K1, K2,  
+K3 and K4 and display the results in a list with many data.frame 
+ready to use for plotting. This function performs an unweighted nonlinear
+regression of the logit of the empirical probabilities logit(p) on 
+the quantiles X.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regkienerLX(X, model = "K4", pdgts = c(3, 3, 1, 1, 1, 3, 2, 4, 4, 2, 2),
+  maxk = 10, mink = 0.2, app = 0, probak = pprobs2, dgts = NULL,
+  exfitk = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>vector of quantiles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>the model used for the regression: "K1", "K2", "K3", "K4".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdgts</code></td>
+<td>
+<p>vector of length 11. Control the rounding of output parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxk</code></td>
+<td>
+<p>numeric. The maximum value of tail parameter <code>k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mink</code></td>
+<td>
+<p>numeric. The minimum value of tail parameter <code>k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>app</code></td>
+<td>
+<p>numeric. The parameter "<code>a</code>" in the function <code>ppoints</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probak</code></td>
+<td>
+<p>vector of probabilities used in output regk$fitk.
+For instance <code>pprobs0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dgts</code></td>
+<td>
+<p>rounding parameter applied globally to output regk$fitk.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exfitk</code></td>
+<td>
+<p>character. A vector of parameter names to subset regk$fitk. 
+For instance <code>exfit0</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is designed to estimate the parameters of Kiener distributions
+for a given dataset. It encapsulates the four distributions described in
+this package. 
+"K1" uses model <code>lqkiener1</code>, "K2" uses model <code>lqkiener2</code>, 
+"K3" uses model <code>lqkiener3</code> and "K4" uses model <code>lqkiener4</code>. 
+</p>
+<p>A typical input is a numeric vector that describes the returns of a stock. 
+Conversion from a (possible) time series format to a sorted numeric vector 
+is done automatically and without any check of the initial format. 
+There is also no check of missing values, <code>Na</code>, <code>NaN</code>, 
+<code>-Inf</code>, <code>+Inf</code>. 
+Empirical probabilities of each point in the sorted dataset is calculated 
+with the function <code>ppoints</code>. The parameter <code>app</code> 
+corresponds to the parameter <code>a</code> in <code>ppoints</code> but has been  
+limited to the range (0, 0.5). Default value is 0 as large datasets are 
+very common in finance. 
+</p>
+<p>A nonlinear regression is performed with <code>nlsLM</code> 
+from the logit of the probabilities <code>logit(p)</code> over the quantiles X 
+with one of the functions <code>lqkiener1234</code>. 
+These functions have been selected as they
+have an explicit form in the four types (this is unfortunately not the case 
+for <code>dkiener234</code>) and return satisfactory results with ordinary least 
+squares. The median is calculated before the regression and is injected 
+as a mandatory value in the regression function. 
+</p>
+<p>Kiener distributions use the following parameters, some of them being redundant. 
+See <code>aw2k</code> and <code>pk2pk</code> for the formulas and 
+the conversion between parameters:
+</p>
+
+<ul>
+<li> <p><code>m</code> (mu) is the median of the distribution. 
+</p>
+</li>
+<li> <p><code>g</code> (gamma) is the scale parameter. 
+</p>
+</li>
+<li> <p><code>a</code> (alpha) is the left tail parameter.  
+</p>
+</li>
+<li> <p><code>k</code> (kappa) is the harmonic mean of <code>a</code> and <code>w</code> 
+and describes a global tail parameter. 
+</p>
+</li>
+<li> <p><code>w</code> (omega) is the right tail parameter.  
+</p>
+</li>
+<li> <p><code>d</code> (delta) is the distortion parameter. 
+</p>
+</li>
+<li> <p><code>e</code> (epsilon) is the eccentricity parameter. 
+</p>
+</li>
+</ul>
+<p>Where:
+</p>
+
+<ul>
+<li>
+<p>c(m, g, k) of length 3 for distribution "K1".
+</p>
+</li>
+<li>
+<p>c(m, g, a, w) of length 4 for distribution "K2".
+</p>
+</li>
+<li>
+<p>c(m, g, k, d) of length 4 for distribution "K3".
+</p>
+</li>
+<li>
+<p>c(m, g, k, e) of length 4 for distribution "K4".
+</p>
+</li>
+<li>
+<p>c(m, g, a, k, w, d, e) of length 7 extracted from object of class 
+<code>clregk</code> like <code>regkienerLX</code> (typically <code>"reg$coefk"</code>).
+</p>
+</li>
+</ul>
+<p>Model <code>"K1"</code> return results with 1+2=3 parameters and describes a 
+(assumed) symmetric distribution. Parameters <code>d</code> and <code>e</code> are set 
+to 0. Models <code>"K2"</code>, <code>"K3"</code> and <code>"K4"</code> describe asymmetric 
+distributions. They return results with 1+3=4 parameters.
+Model "K2" has a very clear parameter definition but unfortunately 
+parameters <code>a</code> and <code>w</code> are highly correlated. 
+Model <code>"K3"</code> has the least correlated parameters but the meaning of 
+the distortion parameter <code>d</code>, usually of order 1e-3, is not simple. 
+</p>
+<p>Model <code>"K4"</code> exhibits a reasonable correlation between each parameter
+and should be the preferred intermediate model between "K1" and "K2" models.
+The eccentricity parameter <code>e</code> is well defined and easy to understand:
+<code class="reqn">e=(a-w)/(a+w)</code>, <code class="reqn">a=k/(1-e)</code> and <code class="reqn">w=k/(1+e)</code>. It varies between
+<code>-1</code> and <code>+1</code> and can be understood as a percentage (if times 100)
+of eccentricty. <code>e = -1</code> corresponds to <code>w = infinity</code>,  
+<code>e = +1</code> corresponds to <code>a = infinity</code> and the model becomes a single
+log-logistic funtion with a right / left stopping point and a left / right tail.
+</p>
+<p>Tail parameter lower and upper values are controlled by <code>maxk</code> and 
+<code>mink</code>. An upper value <code class="reqn">maxk = 10</code> is appropriate for datasets
+of low and medium size, less than 50.000 points. For larger datasets, the
+upper limit can be extended up to <code class="reqn">maxk = 20</code>. Such a limit returns 
+results which are very closed to the logistic distribution, an alternate 
+distribution which could be more appropriate. The lower limit <code>mink</code> 
+is intended to avoid the value <code class="reqn">k=0</code>. Remind 
+that value <code class="reqn">k &lt; 2</code> describes distribution with no stable variance and 
+<code class="reqn">k &lt; 1</code> describes distribution with no stable mean.
+</p>
+<p>The output is an object in a flat format of class <code>clregk</code>. It can be 
+listed with the function <code>attributes</code>. 
+</p>
+
+<ul>
+<li>
+<p> First are the data.frames with the initial data and the estimated results. 
+</p>
+</li>
+<li>
+<p> Second is the result of the regression <code>regk0</code> given by 
+<code>nlsLM</code> from which a few information 
+have been extracted and listed here. 
+</p>
+</li>
+<li>
+<p> Third are the regression parameters (without the median) in plain format  
+(no rounding), the variance-covariance matrix, the variance-covariance 
+matrix times 1e+6 and the correlation matrix in a rounded format.
+Note that <code>regk0</code>, <code>coefk0</code>, <code>coefk0tt</code>, <code>vcovk0</code>, 
+<code>mcork0</code> have a polymorphic format and changing parameters that 
+depend from the selected model: "K1", "K2", "K3", "K4". They should be  
+used with care in subsequent calculations.  
+</p>
+</li>
+<li>
+<p> Fourth are the distribution parameters tailored to every model "K1", "K2", 
+"K3", "K4" plus estimated quantiles at levels: 
+c(0.001, 0.005, 0.01, 0.05, 0.5, 0.95, 0.99, 0.995, 0.999). 
+They are intended to subsequent calculations. 
+</p>
+</li>
+<li> 
+<p>Fifth are the same parameters presented in a more readable format thanks 
+to the vector <code>pdgts</code> which controls the rounding of the parameters in
+the following order: 
+</p>
+</li>
+<li> <p><code>pdgts = c("m","g","a","k","w","d","e","vcovk0","vcovk0m","mcork0","quantr")</code>. 
+</p>
+</li>
+<li>
+<p> Sixth are some probabilities and the corresponding estimated quantiles 
+and estimated Expected Shortfall stored in a data.frame format. 
+</p>
+</li>
+<li>
+<p> Last is <code>fitk</code> which returns all parameters in the same format 
+than <code>fitkienerX</code>, eventually subsetted by <code>exfitk</code>. 
+IMPORTANT : if you need to subset <code>fitk</code>, always subset it by parameter names 
+and never subset it by rank number as new items may be added in the future. 
+Use for instance <code>exfitk =</code> <code>exfit0</code>, ..., <code>exfit7</code>.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dfrXP</code></td>
+<td>
+<p>data.frame. X = initial quantiles. P = empirical probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrXL</code></td>
+<td>
+<p>data.frame. X = initial quantiles. L = logit of probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrXR</code></td>
+<td>
+<p>data.frame. X = initial quantiles. R = residuals after regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrEP</code></td>
+<td>
+<p>data.frame. E = estimated quantiles. P = probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrEL</code></td>
+<td>
+<p>data.frame. E = estimated quantiles. L = logit of probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrED</code></td>
+<td>
+<p>data.frame. E = estimated quantiles. 
+D = estimated density (from probabilities).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regk0 </code></td>
+<td>
+<p>object of class <code>nls</code> extracted from 
+the regression function <code>nlsLM</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefk0</code></td>
+<td>
+<p>the regression parameters in plain format. 
+The median is out of the regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcovk0</code></td>
+<td>
+<p>rounded variance-covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcovk0m</code></td>
+<td>
+<p>rounded 1e+6 times variance-covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcork0</code></td>
+<td>
+<p>rounded correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefk </code></td>
+<td>
+<p>all parameters in plain format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefk1</code></td>
+<td>
+<p>parameters for model "K1".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefk2</code></td>
+<td>
+<p>parameters for model "K2".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefk3</code></td>
+<td>
+<p>parameters for model "K3".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefk4</code></td>
+<td>
+<p>parameters for model "K4".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantk</code></td>
+<td>
+<p>quantiles of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefr </code></td>
+<td>
+<p>all parameters in a rounded format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefr1</code></td>
+<td>
+<p>rounded parameters for model "K1".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefr2</code></td>
+<td>
+<p>rounded parameters for model "K2".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefr3</code></td>
+<td>
+<p>rounded parameters for model "K3".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefr4</code></td>
+<td>
+<p>rounded parameters for model "K4".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantr</code></td>
+<td>
+<p>quantiles of interest in a rounded format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrQkPk</code></td>
+<td>
+<p>data.frame. Qk = Estimated quantiles of interest. 
+Pk = probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrQkLk</code></td>
+<td>
+<p>data.frame. Qk = Estimated quantiles of interest. 
+Lk = Logit of probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrESkPk</code></td>
+<td>
+<p>data.frame. ESk = Estimated Expected Shortfall. 
+Pk = probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrESkLk</code></td>
+<td>
+<p>data.frame. ESk = Estimated Expected Shortfall. 
+Lk = Logit of probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitk </code></td>
+<td>
+<p>Parameters, quantiles, moments, VaR, ES and other parameters (not rounded). 
+Length of <code>fitk</code> depends on the choice applied to probak. 
+IMPORTANT : if you need to subset <code>fitk</code>, always subset it by parameter names 
+and never subset it by rank number as new items may be added in the future. 
+Use for instance <code>exfit0</code>, ..., <code>exfit7</code>. </p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>nlsLM</code>, <code>laplacegaussnorm</code>, 
+Kiener distributions K1, K2, K3 and K4: <code>kiener1</code>
+<code>kiener2</code>, <code>kiener3</code>, <code>kiener4</code>.
+Other estimation function: <code>fitkienerX</code> and its derivatives.
+<code>fitk</code> subsetting: <code>exfit0</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    
+
+require(graphics)
+require(minpack.lm)
+require(timeSeries)
+
+### Load the datasets and select one number (1-16)
+DS     &lt;- getDSdata()
+j      &lt;- 5
+
+
+### and run this block
+X      &lt;- DS[[j]]
+nameX  &lt;- names(DS)[j]
+reg    &lt;- regkienerLX(X)
+
+## Plotting
+lleg   &lt;- c("logit(0.999) = 6.9", "logit(0.99)   = 4.6", 
+           "logit(0.95)   = 2.9", "logit(0.50)   = 0", 
+           "logit(0.05)   = -2.9", "logit(0.01)   = -4.6", 
+           "logit(0.001) = -6.9  ")
+pleg   &lt;- c( paste("m =",  reg$coefr4[1]), paste("g  =", reg$coefr4[2]), 
+             paste("k  =", reg$coefr4[3]), paste("e  =", reg$coefr4[4]) )
+op     &lt;- par(mfrow=c(2,2), mgp=c(1.5,0.8,0), mar=c(3,3,2,1))
+plot(X, type="l", main = nameX)
+plot(reg$dfrXL, main = nameX, yaxt = "n")
+axis(2, las=1, at=c(-9.2, -6.9, -4.6, -2.9, 0, 2.9, 4.6, 6.9, 9.2))
+abline(h = c(-4.6, 4.6), lty = 4)
+abline(v = c(reg$quantk[5], reg$quantk[9]), lty = 4)
+legend("topleft", legend = lleg, cex = 0.7, inset = 0.02, bg = "#FFFFFF")
+lines(reg$dfrEL, col = 2, lwd = 2)
+points(reg$dfrQkLk, pch = 3, col = 2, lwd = 2, cex = 1.5)
+plot(reg$dfrXP, main = nameX)
+legend("topleft", legend = pleg, cex = 0.9, inset = 0.02 )
+lines(reg$dfrEP, col = 2, lwd = 2)
+plot(density(X), main = nameX)
+lines(reg$dfrED, col = 2, lwd = 2)
+round(cbind("k" = kmoments(reg$coefk, lengthx = nrow(reg$dfrXL)), "X" = xmoments(X)), 2)
+
+## Attributes
+attributes(reg)
+head(reg$dfrXP)
+head(reg$dfrXL)
+head(reg$dfrXR)
+head(reg$dfrEP)
+head(reg$dfrEL)
+head(reg$dfrED)
+reg$regk0
+reg$coefk0
+reg$vcovk0
+reg$vcovk0m
+reg$mcork0
+reg$coefk
+reg$coefk1
+reg$coefk2
+reg$coefk3
+reg$coefk4
+reg$quantk
+reg$coefr
+reg$coefr1
+reg$coefr2
+reg$coefr3
+reg$coefr4
+reg$quantr
+reg$dfrQkPk
+reg$dfrQkLk
+reg$dfrESkPk
+reg$dfrESkLk
+reg$fitk
+
+## subset fitk
+names(reg$fitk)
+reg$fitk[exfit6]
+reg$fitk[c(exfit1, exfit4)]
+### End block
+
+</code></pre>
+
+
+</div>

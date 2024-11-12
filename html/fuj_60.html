@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>struct</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simple structures</h2>
+
+<h3>Description</h3>
+
+<p>Create simple structures
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">struct(x, class, ..., .keep_attr = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object; if <code>NULL</code>, coerced to <code>list()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>A vector of classes; can also be <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Named attributes to set to <code>x</code>; overwrites any attributes in <code>x</code>
+even if defined in <code>.keep_attr</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.keep_attr</code></td>
+<td>
+<p>Control for keeping attributes from <code>x</code>: <code>TRUE</code> will retain
+all attributes from <code>x</code>; a character vector will pick out specifically
+defined attributes to retain; otherwise only attributes defined in <code>...</code>
+will be used</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Unlike <code>base::structure()</code> this does not provide additional checks
+for special names, performs no <code>base::storage.mode()</code> conversions for
+<code>factors</code> (<code>x</code> therefor has to be an <code>integer</code>), <code>attributes</code> from <code>x</code> are
+not retained, and <code>class</code> is specified outside of other attributes and
+assigned after <code>base::attributes()</code> is called.
+</p>
+<p>Essentially, this is just a wrapper for calling <code>base::attributes()</code> then
+<code>base::class()</code>.
+</p>
+<p>Note that <code>base::structure()</code> provides a warning when the first argument is
+<code>NULL</code>.  <code>struct()</code> does not.  The coercion from <code>NULL</code> to <code>list()</code> is
+done, and documented, in <code>base::attributes()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with class defined as <code>class</code> and attributes <code>...</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- list(a = 1, b = 2)
+# structure() retains the $names attribute of x but struct() does not
+structure(x, class = "data.frame", row.names = 1L)
+struct(x, "data.frame", row.names = 1L)
+struct(x, "data.frame", row.names = 1L, names = names(x))
+
+# structure() corrects entries for "factor" class
+# but struct() demands the data to be an integer
+structure(1, class = "factor", levels = "a")
+try(struct(1, "factor", levels = "a"))
+struct(1L, "factor", levels = "a")
+
+# When first argument is NULL -- attributes() coerces
+try(structure(NULL))    # NULL, no call to attributes()
+struct(NULL, NULL)      # list(), without warning
+x &lt;- NULL
+attributes(x) &lt;- NULL
+x                       # NULL
+attributes(x) &lt;- list() # struct() always grabs ... into a list
+x                       # list()
+
+# Due to the use of class() to assign class, you may experience some
+# other differences between structure() and struct()
+x &lt;- structure(1, class = "integer")
+y &lt;- struct(1, "integer")
+str(x)
+str(y)
+
+all.equal(x, y)
+
+# Be careful about carrying over attributes
+x &lt;- quick_df(list(a = 1:2, b = 3:4))
+# returns empty data.frame
+struct(x, "data.frame", new = 1)
+
+# safely changing names without breaking rownames
+struct(x, "data.frame", names = c("c", "d")) # breaks
+struct(x, "data.frame", names = c("c", "d"), .keep_attr = TRUE)
+struct(x, "data.frame", names = c("c", "d"), .keep_attr = "row.names")
+
+# safely adds comments
+struct(x, "data.frame", comment = "hi", .keep_attr = TRUE)
+struct(x, "data.frame", comment = "hi", .keep_attr = c("names", "row.names"))
+
+# assignment in ... overwrites attributes
+struct(x, "data.frame", names = c("var1", "var2"), .keep_attr = TRUE)
+</code></pre>
+
+
+</div>

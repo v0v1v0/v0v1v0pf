@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FADPclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Data Clustering Using Adaptive Density Peak Detection</h2>
+
+<h3>Description</h3>
+
+<p>Clustering of univariate or multivariate functional data by finding cluster centers from estimated density peaks. FADPclust is a non-iterative procedure that incorporates KNN density estimation algorithm. The number of clusters can also be selected by the user or selected automatically through an internal clustering criterion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FADPclust(fdata, cluster = 2:10, method = "FADP1", proportion = NULL,
+  f.cut = 0.15, pve = 0.9, stats = "Avg.silhouette")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdata</code></td>
+<td>
+<p>for univariate functional data clustering: a functional data object produced by fd() function of fda package; for multivariate functional data clustering: a list of functional data objects produced by fd() function of fda package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>integer, or a vector of integers specifying the pool of the number of clusters in automatic variation. The default is 2:10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character string specifying the method used to calculate the pseudo functional k-nearest neighbor density. Valid options of are 'FADP1' and 'FADP2' (see details in references). The default is 'FADP1'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion</code></td>
+<td>
+<p>numeric, a number or numeric vector of numbers within the range [0,1], specifying to automatically select the smoothing parameter k in density estimation (see details). The default is 0.1, 0.2, ... ,1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.cut</code></td>
+<td>
+<p>numeric, a number within the range [0,1], specified to automatically select cluster centroids from the decision plot. The default is 0.15.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pve</code></td>
+<td>
+<p>numeric, a number within the range [0,1], the proportion of variance explained: used to choose the number of functional principal components. The default is 0.9. When the method is chosen to be 'FADP1', there is no need to specify parameter 'pve' for univariate functional data clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+<p>character string specifying the distance based statistics for cluster validation and determining the number of clusters. Valid options are 'Avg.silhouette', 'Dunn', and 'CH' (See the description document of the cluster.stats function in the fpc R package for more details about these statistics). The default is "Avg.silhouette".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given n functional objects or curves, FADPclust() calculates f(x) and delta(x) for each object based on the semi-metric distance (see details in references), where f(x) is the local density calculated by the functional k-nearest neighbor density estimator of curve x, and delta(x) is the shortest semi-metric distance between sample curve x and y for all samples y such that f(x) &lt;= f(y). Functional objects or curves with large f and large delta values are labeled class centroids. In other words, they appear as isolated points in the upper right corner of the f vs delta plot (the decision plot, see details in FADPplot). After cluster centroids are determined, other obejects are clustered according to their semi-metric distances to the closes centroids.
+</p>
+<p>The smoothing parameter k in functional k-nearest neighbor density estimation must be explicitly provided. Following Lauter (1988)'s idea, suggest that the optimal size of k satisfies a certain proportion, k = a*n^(4/5), where a is a parameter about the optimal proportion to be determined. Here, users enters variable 'proportion' to specify the parameter a.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An 'FADPclust' object that contains the list of the following items.
+</p>
+
+<ul>
+<li>
+<p>nclust: number of clusters. 
+</p>
+</li>
+<li>
+<p>para: smoothing parameter k selected automatically by KNN estimation.
+</p>
+</li>
+<li>
+<p>method: character string introducing the method used to calculate the smoothing parameter. 
+</p>
+</li>
+<li>
+<p>clust: cluster assignments. A vector of the same length as the number of observations. 
+</p>
+</li>
+<li>
+<p>density: final density vector f(x). 
+</p>
+</li>
+<li>
+<p>delta: final delta vector delta(x). 
+</p>
+</li>
+<li>
+<p>center: indices of the clustering centers. 
+</p>
+</li>
+<li>
+<p>Avg.silhouette: average silhouette score from the final clustering result. 
+</p>
+</li>
+<li>
+<p>Dunn: Dunn statistics from the final clustering result. 
+</p>
+</li>
+<li>
+<p>CH: CH statistics from the final clustering result. 
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Lauter, H. (1988), "Silverman, B. W.: "Density Estimation for Statistics and Data Analysis.," Biometrical Journal, 30(7), 876-877.
+</p>
+</li>
+<li>
+<p> Wang, X. F., and Xu, Y. (2016), "Fast Clustering Using Adaptive Density Peak Detection," Statistical Methods in Medical Research.
+</p>
+</li>
+<li>
+<p> Rodriguez, A., and Laio, A. (2014), "Machine learning. Clustering by fast search and find of density peaks," Science, 344(6191), 1492.
+</p>
+</li>
+<li>
+<p> Liu Y, Ma Z, and Yu F. (2017), "Adaptive density peak clustering based on K-nearest neighbors with aggregating strategy," Knowledge-Based Systems, 133(oct.1), 208-220.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>FADPsummary</code>, <code>FADPplot</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">###univariate functional data
+data("simData1")
+plot(simData1, xlab = "x", ylab = "y")
+FADP1.sil.ans &lt;- FADPclust(fdata = simData1, cluster = 2:5, method = "FADP1",
+                           proportion = seq(0.02, 0.2, 0.02), f.cut = 0.15,
+                           stats = "Avg.silhouette")
+FADPsummary(FADP1.sil.ans); FADPplot(FADP1.sil.ans)
+
+FADP1.dunn.ans &lt;- FADPclust(fdata = simData1, cluster = 2:5, method = "FADP1",
+                            proportion = seq(0.02, 0.2, 0.02), f.cut = 0.15,
+                            stats = "Dunn")
+FADPsummary(FADP1.dunn.ans); FADPplot(FADP1.dunn.ans)
+
+FADP1.ch.ans &lt;- FADPclust(fdata = simData1, cluster = 2:5, method = "FADP1",
+                          proportion = seq(0.02, 0.2, 0.02), f.cut = 0.15,
+                          stats = "CH")
+FADPsummary(FADP1.ch.ans); FADPplot(FADP1.ch.ans)
+
+FADP2.ans &lt;- FADPclust(fdata = simData1, cluster = 2:5, method = "FADP2",
+                       proportion = seq(0.02, 0.2, 0.02), f.cut = 0.15,
+                       pve = 0.9, stats = "Avg.silhouette")
+FADPsummary(FADP2.ans); FADPplot(FADP2.ans)
+
+###multivariate functional data
+data("simData2")
+FADP1.ans &lt;- FADPclust(fdata = simData2, cluster = 2:5, method = "FADP1",
+                       proportion = seq(0.02, 0.2, 0.02), f.cut = 0.15,
+                       pve = 0.9, stats = "Avg.silhouette")
+FADPsummary(FADP1.ans); FADPplot(FADP1.ans)
+
+FADP2.ans &lt;- FADPclust(fdata = simData2, cluster = 2:5, method = "FADP2",
+                       proportion = seq(0.02, 0.2, 0.02), f.cut = 0.15,
+                       pve = 0.9, stats = "Avg.silhouette")
+FADPsummary(FADP2.ans); FADPplot(FADP2.ans)
+
+</code></pre>
+
+
+</div>

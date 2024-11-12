@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>collab_learner</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Collab_learner</h2>
+
+<h3>Description</h3>
+
+<p>Create a Learner for collaborative filtering on 'dls'.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">collab_learner(
+  dls,
+  n_factors = 50,
+  use_nn = FALSE,
+  emb_szs = NULL,
+  layers = NULL,
+  config = NULL,
+  y_range = NULL,
+  loss_func = NULL,
+  opt_func = Adam(),
+  lr = 0.001,
+  splitter = trainable_params(),
+  cbs = NULL,
+  metrics = NULL,
+  path = NULL,
+  model_dir = "models",
+  wd = NULL,
+  wd_bn_bias = FALSE,
+  train_bn = TRUE,
+  moms = list(0.95, 0.85, 0.95)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dls</code></td>
+<td>
+<p>a data loader object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_factors</code></td>
+<td>
+<p>The number of factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_nn</code></td>
+<td>
+<p>use_nn</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emb_szs</code></td>
+<td>
+<p>embedding size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layers</code></td>
+<td>
+<p>list of layers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>config</code></td>
+<td>
+<p>configuration</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_range</code></td>
+<td>
+<p>y_range</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss_func</code></td>
+<td>
+<p>It can be any loss function you like. It needs to be one of fastai's if you want to use Learn.predict or Learn.get_preds, or you will have to implement special methods (see more details after the BaseLoss documentation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt_func</code></td>
+<td>
+<p>The function used to create the optimizer</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lr</code></td>
+<td>
+<p>learning rate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splitter</code></td>
+<td>
+<p>It is a function that takes self.model and returns a list of parameter groups (or just one parameter group if there are no different parameter groups).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cbs</code></td>
+<td>
+<p>Cbs is one or a list of Callbacks to pass to the Learner.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>It is an optional list of metrics, that can be either functions or Metrics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>The folder where to work</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_dir</code></td>
+<td>
+<p>Path and model_dir are used to save and/or load models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wd</code></td>
+<td>
+<p>It is the default weight decay used when training the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wd_bn_bias</code></td>
+<td>
+<p>It controls if weight decay is applied to BatchNorm layers and bias.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>train_bn</code></td>
+<td>
+<p>It controls if BatchNorm layers are trained even when they are supposed to be frozen according to the splitter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>moms</code></td>
+<td>
+<p>The default momentums used in Learner.fit_one_cycle.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>learner object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+URLs_MOVIE_LENS_ML_100k()
+c(user,item,title)  %&lt;-% list('userId','movieId','title')
+ratings = fread('ml-100k/u.data', col.names = c(user,item,'rating','timestamp'))
+movies = fread('ml-100k/u.item', col.names = c(item, 'title', 'date', 'N', 'url',
+                                               paste('g',1:19,sep = '')))
+rating_movie = ratings[movies[, .SD, .SDcols=c(item,title)], on = item]
+dls = CollabDataLoaders_from_df(rating_movie, seed = 42, valid_pct = 0.1, bs = 64,
+item_name=title, path='ml-100k')
+
+learn = collab_learner(dls, n_factors = 40, y_range=c(0, 5.5))
+
+learn %&gt;% fit_one_cycle(1, 5e-3,  wd = 1e-1)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

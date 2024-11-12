@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>make.prerun.object</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>combines data, calibration and sets up priors</h2>
+
+<h3>Description</h3>
+
+<p>This function is one step before <code>run.particle.filter</code>. It combines data, calibration, spatial extent and movement priors and estimates spatial likelihoods that used later in the particle filter.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">make.prerun.object(
+  Proc.data,
+  Grid,
+  start,
+  end = start,
+  Calibration,
+  threads = -1,
+  Decision = 0.05,
+  Direction = 0,
+  Kappa = 0,
+  M.mean = 300,
+  M.sd = 500,
+  likelihood.correction = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Proc.data</code></td>
+<td>
+<p>Processed data object created by <code>get.tags.data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Grid</code></td>
+<td>
+<p>Spatial grid created by <code>make.grid</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>release location (lat, lon).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end</code></td>
+<td>
+<p>end of the track location. Will use <code>start</code> by default. Use NA in case of unknown end point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Calibration</code></td>
+<td>
+<p>Calibration object created by <code>make.calibration</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threads</code></td>
+<td>
+<p>number of parallel threads to use. default is -1, which means FLightR will use all available threads except 1. Value 1 will force sequential evaluation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Decision</code></td>
+<td>
+<p>prior for migration probability values from 0 to 1 are allowed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Direction</code></td>
+<td>
+<p>Direction prior for direction of migration (in degrees) with 0 pointing to the North</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kappa</code></td>
+<td>
+<p>concentration parameter for vonMises distribution, 0 means uniform or even distribution. Will set some prior for direction for all the track, so is not recommended to be changed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M.mean</code></td>
+<td>
+<p>Prior for mean distance travelled between consecutive twilights, km</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M.sd</code></td>
+<td>
+<p>Prior for sd of distance travelled between consecutive twilights, the higher the value is the wider is the the distribution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>likelihood.correction</code></td>
+<td>
+<p>Should likelihood correction estimated during <code>make.calibration</code> run be used?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object to be uses in the <code>run.particle.filter</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eldar Rakhimberdiev
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">File&lt;-system.file("extdata", "Godwit_TAGS_format.csv", package = "FLightR")
+# to run example fast we will cut the real data file by 2013 Aug 20
+Proc.data&lt;-get.tags.data(File, end.date=as.POSIXct('2013-07-02', tz='GMT'))
+Calibration.periods&lt;-data.frame(
+       calibration.start=NA,
+       calibration.stop=as.POSIXct("2013-08-20", tz='GMT'),
+       lon=5.43, lat=52.93) 
+       #use c() also for the geographic coordinates, if you have more than one calibration location
+       # (e. g.,  lon=c(5.43, 6.00), lat=c(52.93,52.94))
+print(Calibration.periods)
+
+# NB Below likelihood.correction is set to FALSE for fast run! 
+# Leave it as default TRUE for real examples
+Calibration&lt;-make.calibration(Proc.data, Calibration.periods, likelihood.correction=FALSE)
+
+Grid&lt;-make.grid(left=0, bottom=50, right=10, top=56,
+  distance.from.land.allowed.to.use=c(-Inf, Inf),
+  distance.from.land.allowed.to.stay=c(-Inf, Inf))
+
+all.in&lt;-make.prerun.object(Proc.data, Grid, start=c(5.43, 52.93),
+                             Calibration=Calibration, threads=2)
+
+</code></pre>
+
+
+</div>

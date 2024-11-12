@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>set_fwb_wtype</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Set weights type</h2>
+
+<h3>Description</h3>
+
+<p>Set the default for the type of weights used in the weighted bootstrap computed by <code>fwb()</code> and <code>vcovFWB()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">set_fwb_wtype(wtype = getOption("fwb_wtype", "exp"))
+
+get_fwb_wtype(fwb)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>wtype</code></td>
+<td>
+<p>string; the type of weights to use. Allowable options include <code>"exp"</code> (the default), <code>"pois"</code>, <code>"multinom"</code>, and <code>"mammen"</code>. Abbreviations allowed. See Details for what these mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fwb</code></td>
+<td>
+<p>optional; an <code>fwb</code> objct, the output of a call to <code>fwb()</code>. If left empty, will extract the weights type from <code>options()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>set_fwb_wtype(x)</code> is equivalent to calling <code>options(fwb_wtype = x)</code>. <code>get_fwb_wtype()</code> is equivalent to calling <code>getOption("fwb_wtype")</code> when no argument is supplied and to extracting the <code>wtype</code> component of an <code>fwb</code> object when supplied.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>set_fwb_wtype()</code> returns a call to <code>options()</code> with the options set to those prior to <code>set_fwb_wtype()</code> being called. This makes it so that calling <code>options(op)</code>, where <code>op</code> is the output of <code>set_fwb_wtype()</code>, resets the <code>fwb_wtype</code> to its original value. <code>get_fwb_wtype()</code> returns a string containing the <code>fwb_wtype</code> value set globally (if no argument is supplied) or used in the supplied <code>fwb</code> object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>fwb for a definition of each types of weights; <code>vcovFWB()</code>; <code>options()</code>; <code>boot::boot()</code> for the traditional bootstrap.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Performing a Weibull analysis of the Bearing Cage
+# failure data as done in Xu et al. (2020)
+set.seed(123)
+data("bearingcage")
+
+#Set fwb type to "mammen"
+op &lt;- set_fwb_wtype("mammen")
+
+weibull_est &lt;- function(data, w) {
+  fit &lt;- survival::survreg(survival::Surv(hours, failure) ~ 1,
+                           data = data, weights = w,
+                           dist = "weibull")
+
+  c(eta = unname(exp(coef(fit))), beta = 1/fit$scale)
+}
+
+boot_est &lt;- fwb(bearingcage, statistic = weibull_est,
+                R = 199, verbose = FALSE)
+boot_est
+
+#Get the fwb type used in the bootstrap
+get_fwb_wtype(boot_est)
+get_fwb_wtype()
+
+#Restore original options
+options(op)
+
+get_fwb_wtype()
+
+</code></pre>
+
+
+</div>

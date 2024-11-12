@@ -1,0 +1,285 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>finbif_occurrence</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Download FinBIF occurrence records</h2>
+
+<h3>Description</h3>
+
+<p>Download filtered occurrence data from FinBIF as a <code>data.frame</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">finbif_occurrence(
+  ...,
+  filter = NULL,
+  select = NULL,
+  order_by = NULL,
+  aggregate = "none",
+  sample = FALSE,
+  n = 10,
+  page = 1,
+  count_only = FALSE,
+  quiet = getOption("finbif_hide_progress"),
+  cache = getOption("finbif_use_cache"),
+  dwc = FALSE,
+  date_time_method = NULL,
+  check_taxa = TRUE,
+  on_check_fail = c("warn", "error"),
+  tzone = getOption("finbif_tz"),
+  locale = getOption("finbif_locale"),
+  seed = NULL,
+  drop_na = FALSE,
+  aggregate_counts = TRUE,
+  exclude_na = FALSE,
+  unlist = FALSE,
+  facts = NULL,
+  duplicates = FALSE,
+  filter_col = NULL,
+  restricted_api = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Character vectors or list of character vectors. Taxa of records
+to download.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>List of named character vectors. Filters to apply to records.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>Character vector. Variables to return. If not specified, a
+default set of commonly used variables will be used. Use <code>"default_vars"</code>
+as a shortcut for this set. Variables can be deselected by prepending a <code>-</code>
+to the variable name. If only deselects are specified the default set of
+variables without the deselection will be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order_by</code></td>
+<td>
+<p>Character vector. Variables to order records by before they
+are returned. Most, though not all, variables can be used to order records
+before they are returned. Ordering is ascending by default. To return in
+descending order append a <code>-</code> to the front of the variable (e.g.,
+<code>"-date_start"</code>). Default order is <code>"-date_start"</code> &gt; <code>"-load_data"</code> &gt;
+<code>"reported_name"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregate</code></td>
+<td>
+<p>Character. If <code>"none"</code> (default), returns full records. If
+one or more of <code>"records"</code>, <code>"species"</code>, <code>"taxa"</code>, <code>"individuals"</code>,
+<code>"pairs"</code>, <code>"events"</code> or <code>"documents"</code>; aggregates combinations of the
+selected variables by counting records, species, taxa, individuals or
+events or documents. Aggregation by events or documents cannot be done in
+combination with any of the other aggregation types.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample</code></td>
+<td>
+<p>Logical. If <code>TRUE</code> randomly sample the records from the FinBIF
+database.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Integer. How many records to download/import.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>page</code></td>
+<td>
+<p>Integer. Which page of records to start downloading from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>count_only</code></td>
+<td>
+<p>Logical. Only return the number of records available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Logical. Suppress the progress indicator for multipage
+downloads. Defaults to value of option <code>finbif_hide_progress</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cache</code></td>
+<td>
+<p>Logical or Integer. If <code>TRUE</code> or a number greater than zero,
+then data-caching will be used. If not logical then the cache will be
+invalidated after the number of hours indicated by the argument. If a
+length one vector is used, its value will only apply to caching
+occurrence records. If the value is length two, then the second element
+will determine how metadata is cached.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dwc</code></td>
+<td>
+<p>Logical. Use Darwin Core (or Darwin Core style) variable names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_time_method</code></td>
+<td>
+<p>Character. Passed to <code>lutz::tz_lookup_coords()</code> when
+<code>date_time</code> and/or <code>duration</code> variables have been selected. Default is
+<code>"fast"</code> when  less than 100,000 records are requested and <code>"none"</code> when
+more. Using method <code>"none"</code> assumes all records are in timezone
+"Europe/Helsinki", Use <code>date_time_method = "accurate"</code> (requires package
+<code>sf</code>) for greater accuracy at the cost of slower computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_taxa</code></td>
+<td>
+<p>Logical. Check first that taxa are in the FinBIF database.
+If true only records that match known taxa (have a valid taxon ID) are
+returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>on_check_fail</code></td>
+<td>
+<p>Character. What to do if a taxon is found not valid. One
+of <code>"warn"</code> (default) or <code>"error"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tzone</code></td>
+<td>
+<p>Character. If <code>date_time</code> has been selected the timezone of the
+outputted date-time. Defaults to system timezone.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locale</code></td>
+<td>
+<p>Character. One of the supported two-letter ISO 639-1 language
+codes. Current supported languages are English, Finnish and Swedish. For
+data where more than one language is available the language denoted by
+<code>locale</code> will be preferred while falling back to the other languages in the
+order indicated above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Integer. Set a seed for randomly sampling records.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_na</code></td>
+<td>
+<p>Logical. A vector indicating which columns to check for
+missing data. Values recycled to the number of columns. Defaults to all
+columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregate_counts</code></td>
+<td>
+<p>Logical. Should count variables be returned when
+using aggregation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude_na</code></td>
+<td>
+<p>Logical. Should records where all selected variables have
+non-NA values only be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unlist</code></td>
+<td>
+<p>Logical. Should variables that contain non atomic data be
+concatenated into a string separated by ";"?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facts</code></td>
+<td>
+<p>Character vector. Extra variables to be extracted from record,
+event and document "facts".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>duplicates</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, allow duplicate records/aggregated
+records when making multi-filter set requests. If <code>FALSE</code> (default)
+duplicate records are removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_col</code></td>
+<td>
+<p>Character. The name of a column, with values derived from
+the names of the filter sets used when using multiple filters, to include
+when using multiple filter sets. If <code>NULL</code> (default), no column is included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restricted_api</code></td>
+<td>
+<p>Character. If using a restricted data API token in
+addition to a personal access token, a string indicating the name of an
+environment variable storing the restricted data API token.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code>. If <code>count_only =  TRUE</code> an integer.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# Get recent occurrence data for taxon
+finbif_occurrence("Cygnus cygnus")
+
+# Specify the number of records
+finbif_occurrence("Cygnus cygnus", n = 100)
+
+# Get multiple taxa
+finbif_occurrence("Cygnus cygnus", "Ursus arctos")
+
+# Filter the records
+finbif_occurrence(
+  species = "Cygnus cygnus",
+  filter = list(coordinate_accuracy_max = 100)
+)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

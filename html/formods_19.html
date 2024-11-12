@@ -1,0 +1,237 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DW_fetch_state</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fetch Data Wrangling State</h2>
+
+<h3>Description</h3>
+
+<p>Merges default app options with the changes made in the UI
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">DW_fetch_state(
+  id,
+  input,
+  session,
+  FM_yaml_file,
+  MOD_yaml_file,
+  id_UD,
+  react_state
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Shiny module ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Shiny input variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>session</code></td>
+<td>
+<p>Shiny session variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FM_yaml_file</code></td>
+<td>
+<p>App configuration file with FM as main section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MOD_yaml_file</code></td>
+<td>
+<p>Module configuration file with MC as main section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id_UD</code></td>
+<td>
+<p>ID string for the upload data module used to handle uploads or
+the name of the list element in react_state where the data set is stored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>react_state</code></td>
+<td>
+<p>Variable passed to server to allow reaction outside of
+module (<code>NULL</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List containing the current state of the DM module including default
+values from the yaml file as well as any changes made by the user. The
+structure of the list is defined below.
+</p>
+
+<ul>
+<li>
+<p>yaml: Contents of the yaml file.
+</p>
+</li>
+<li>
+<p>MC: Module components of the yaml file.
+</p>
+</li>
+<li>
+<p>DW: Data wrangling state
+</p>
+
+<ul>
+<li>
+<p>isgood: Boolean status of the state. FALSE if the dataset
+identified by id_UD is bad.
+</p>
+</li>
+<li>
+<p>checksum:         MD5 sum indicating if there was a change in the
+datasets within the view. Use this to trigger updates in respose to
+changes in this module.
+</p>
+</li>
+<li>
+<p>button_counters:  List of counters to detect button clicks.
+</p>
+</li>
+<li>
+<p>code_previous:    Loading code from the UD field.
+</p>
+</li>
+<li>
+<p>current_view:     View id of the current active data wrangling view.
+</p>
+</li>
+<li>
+<p>UD:               Copy of the <code>"UD"</code> field of the  <code>id_UD</code> from the <code>react_state</code> input.
+</p>
+</li>
+<li>
+<p>ui:               Current value of form elements in the UI
+</p>
+</li>
+<li>
+<p>ui_hold:          List of hold elements to disable updates before a full ui referesh is complete.
+</p>
+</li>
+<li>
+<p>view_cntr:        Counter for tracking view ids, value contains the id of the last view created.
+</p>
+</li>
+<li>
+<p>views:            List of data wrangling views. Each view has the following structure:
+</p>
+
+<ul>
+<li>
+<p>checksum:            MD5 sum of WDS
+</p>
+</li>
+<li>
+<p>code:                Code to generate WDS from start to finish
+</p>
+</li>
+<li>
+<p>code_dw_only:        Code for just the wrangling portion.
+</p>
+</li>
+<li>
+<p>code_previous:       Code to load data and assign to view object.
+</p>
+</li>
+<li>
+<p>elements_table:      Table of data wrangling elements.
+</p>
+</li>
+<li>
+<p>id:                  Character id (<code>view_idx</code>)
+</p>
+</li>
+<li>
+<p>idx:                 Numeric id (<code>1</code>)
+</p>
+</li>
+<li>
+<p>isgood:             Boolean status of the data view. False if evaluation fails
+</p>
+</li>
+<li>
+<p>key:                 User key (short description)
+</p>
+</li>
+<li>
+<p>view_ds_object_name: Object name for this data view
+</p>
+</li>
+<li>
+<p>WDS:                 Current value of the data view with all of the successful commands in elements_table evaluated.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>MOD_TYPE: Character data containing the type of module <code>"DW"</code>
+</p>
+</li>
+<li>
+<p>id: Character data containing the module id
+</p>
+</li>
+<li>
+<p>FM_yaml_file: App configuration file with FM as main section.
+</p>
+</li>
+<li>
+<p>MOD_yaml_file:  Module configuration file with MC as main section.
+module in the session variable.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Within shiny both session and input variables will exist,
+# this creates examples here for testing purposes:
+sess_res = DW_test_mksession(session=list())
+session = sess_res$session
+input   = sess_res$input
+
+# Configuration files
+FM_yaml_file  = system.file(package = "formods", "templates", "formods.yaml")
+MOD_yaml_file = system.file(package = "formods", "templates", "DW.yaml")
+
+# We need to specify both the DW module id as well as the
+# id of the UD module that feeds into it.
+id    = "DW"
+id_UD = "UD"
+
+# Creating an empty state object
+state = DW_fetch_state(id              = id,
+                       input           = input,
+                       session         = session,
+                       FM_yaml_file    = FM_yaml_file,
+                       MOD_yaml_file   = MOD_yaml_file,
+                       id_UD           = "UD",
+                       react_state     = NULL)
+
+</code></pre>
+
+
+</div>

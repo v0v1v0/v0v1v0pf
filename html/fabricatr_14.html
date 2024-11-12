@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>draw_normal_icc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Draw normal data with fixed intra-cluster correlation.</h2>
+
+<h3>Description</h3>
+
+<p>Data is generated to ensure inter-cluster correlation 0, intra-cluster
+correlation in expectation ICC. The data generating process
+used in this function is specified at the following URL:
+<a href="https://stats.stackexchange.com/questions/263451/create-synthetic-data-with-a-given-intraclass-correlation-coefficient-icc">https://stats.stackexchange.com/questions/263451/create-synthetic-data-with-a-given-intraclass-correlation-coefficient-icc</a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">draw_normal_icc(
+  mean = 0,
+  N = NULL,
+  clusters,
+  sd = NULL,
+  sd_between = NULL,
+  total_sd = NULL,
+  ICC = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>A number or vector of numbers, one mean per cluster. If none is
+provided, will default to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>(Optional) A number indicating the number of observations to be
+generated. Must be equal to length(clusters) if provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusters</code></td>
+<td>
+<p>A vector of factors or items that can be coerced to
+clusters; the length will determine the length of the generated data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd</code></td>
+<td>
+<p>A number or vector of numbers, indicating the standard deviation of
+each cluster's error terms – standard deviation within a cluster (default 1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd_between</code></td>
+<td>
+<p>A number or vector of numbers, indicating the standard deviation
+between clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total_sd</code></td>
+<td>
+<p>A number indicating the total sd of the resulting variable.
+May only be specified if ICC is specified and <code>sd</code> and <code>sd_between</code> are not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ICC</code></td>
+<td>
+<p>A number indicating the desired ICC.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The typical use for this function is for a user to provide an <code>ICC</code> and,
+optionally, a set of within-cluster standard deviations, <code>sd</code>. If the
+user does not provide <code>sd</code>, the default value is 1. These arguments
+imply a fixed between-cluster standard deviation.
+</p>
+<p>An alternate mode for the function is to provide between-cluster standard
+deviations, <code>sd_between</code>, and an <code>ICC</code>. These arguments imply
+a fixed within-cluster standard deviation.
+</p>
+<p>If users provide all three of <code>ICC</code>, <code>sd_between</code>, and
+<code>sd</code>, the function will warn the user and use the provided standard
+deviations for generating the data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of numbers corresponding to the observations from
+the supplied cluster IDs.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Divide observations into clusters
+clusters = rep(1:5, 10)
+
+# Default: unit variance within each cluster
+draw_normal_icc(clusters = clusters, ICC = 0.5)
+
+# Alternatively, you can specify characteristics:
+draw_normal_icc(mean = 10, clusters = clusters, sd = 3, ICC = 0.3)
+
+# Can specify between-cluster standard deviation instead:
+draw_normal_icc(clusters = clusters, sd_between = 4, ICC = 0.2)
+
+# Can specify total SD instead:
+total_sd_draw = draw_normal_icc(clusters = clusters, ICC = 0.5, total_sd = 3)
+sd(total_sd_draw)
+
+# Verify that ICC generated is accurate
+corr_draw = draw_normal_icc(clusters = clusters, ICC = 0.4)
+summary(lm(corr_draw ~ as.factor(clusters)))$r.squared
+
+</code></pre>
+
+
+</div>

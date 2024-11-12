@@ -1,0 +1,152 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kernel_mirror</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mirror Transition Kernels</h2>
+
+<h3>Description</h3>
+
+<p>NMirror and UMirror transition kernels described in Thawornwattana et al.
+(2018).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kernel_nmirror(
+  mu = 0,
+  scale = 1,
+  warmup = 500L,
+  nadapt = 4L,
+  arate = 0.4,
+  lb = -.Machine$double.xmax,
+  ub = .Machine$double.xmax,
+  fixed = FALSE,
+  scheme = "joint"
+)
+
+kernel_umirror(
+  mu = 0,
+  scale = 1,
+  warmup = 500L,
+  nadapt = 4L,
+  arate = 0.4,
+  lb = -.Machine$double.xmax,
+  ub = .Machine$double.xmax,
+  fixed = FALSE,
+  scheme = "joint"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu, scale</code></td>
+<td>
+<p>Either a numeric vector or a scalar. Proposal mean and scale.
+If scalar, values are recycled to match the number of parameters in the
+objective function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warmup</code></td>
+<td>
+<p>Integer. Number of steps required before starting adapting the
+chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nadapt</code></td>
+<td>
+<p>Integer. Number of times the scale is adjusted for adaptation
+during the warmup (burn-in) period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arate</code></td>
+<td>
+<p>Double. Target acceptance rate used as a reference during the
+adaptation process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb, ub</code></td>
+<td>
+<p>Either a numeric vector or a scalar. Lower and upper bounds for
+bounded kernels. When of length 1, the values are recycled to match the number
+of parameters in the objective function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed, scheme</code></td>
+<td>
+<p>For multivariate functions, sets the update plan.
+See <code>plan_update_sequence()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>kernel_nmirror</code> and <code>kernel_umirror</code> functions implement simple symmetric
+transition kernels that pivot around an approximation of the asymptotic mean.
+</p>
+<p>In the multidimensional case, this implementation just draws a vector of
+independent draws from the proposal kernel, instead of using, for example,
+a multivariate distribution of some kind. This will be implemented in the
+next update of the package.
+</p>
+<p>During the warmup period (or burnin as described in the paper), the algorithm
+adapts both the scale and the reference mean of the proposal distribution.
+While the mean is adapted continuously, the scale is updated only a handful
+of times, in particular, <code>nadapt</code> times during the warmup time. The adaptation
+is done as proposed by Yang and Rodriguez (2013) in which the
+scale is adapted four times.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class fmcmc_kernel. <code>fmcmc_kernel</code> objects are intended
+to be used with the <code>MCMC()</code> function.
+</p>
+
+
+<h3>References</h3>
+
+<p>Thawornwattana, Y., Dalquen, D., &amp; Yang, Z. (2018). Designing Simple and
+Efficient Markov Chain Monte Carlo Proposal Kernels. Bayesian Analysis, 13(4),
+1037–1063. <a href="https://doi.org/10.1214/17-BA1084">doi:10.1214/17-BA1084</a>
+</p>
+<p>Yang, Z., &amp; Rodriguez, C. E. (2013). Searching for efficient Markov chain
+Monte Carlo proposal kernels. Proceedings of the National Academy of Sciences,
+110(48), 19307–19312. <a href="https://doi.org/10.1073/pnas.1311790110">doi:10.1073/pnas.1311790110</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other kernels: 
+<code>kernel_adapt()</code>,
+<code>kernel_new()</code>,
+<code>kernel_normal()</code>,
+<code>kernel_ram()</code>,
+<code>kernel_unif()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Normal mirror kernel with 5 adaptations and 1000 steps of warmup (burnin)
+kern &lt;- kernel_nmirror(nadapt = 5, warmup = 1000)
+
+# Same as before but using a uniform mirror and choosing a target acceptance
+# rate of 24 %
+kern &lt;- kernel_umirror(nadapt = 5, warmup = 1000, arate = .24)
+</code></pre>
+
+
+</div>

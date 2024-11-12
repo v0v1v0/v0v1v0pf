@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FCVARboot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bootstrap Likelihood Ratio Test</h2>
+
+<h3>Description</h3>
+
+<p><code>FCVARboot</code> generates a distribution of a likelihood ratio
+test statistic using a wild bootstrap, following the method of
+Boswijk, Cavaliere, Rahbek, and Taylor (2016). It takes two sets
+of options as inputs to estimate the model under the null and the
+unrestricted model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FCVARboot(x, k, r, optRES, optUNR, B)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A matrix of variables to be included in the system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The number of lags in the system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>The cointegrating rank.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optRES</code></td>
+<td>
+<p>An S3 object of class <code>FCVAR_opt</code> that stores the chosen estimation options
+for the restricted model, as generated from <code>FCVARoptions()</code>,
+with adjustments as necessary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optUNR</code></td>
+<td>
+<p>An S3 object of class <code>FCVAR_opt</code> that stores the chosen estimation options
+for the unrestricted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>The number of bootstrap samples.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list <code>FCVARboot_stats</code> containing the estimation results,
+including the following parameters:
+</p>
+
+<dl>
+<dt><code>LRbs</code></dt>
+<dd>
+<p>A <code class="reqn">B x 1</code> vector of simulated likelihood ratio statistics</p>
+</dd>
+<dt><code>pv</code></dt>
+<dd>
+<p>An approximate p-value for the likelihood ratio statistic
+based on the bootstrap distribution.</p>
+</dd>
+<dt><code>H</code></dt>
+<dd>
+<p>A list containing the likelihood ratio test results.
+It is identical to the output from <code>FCVARhypoTest</code>, with one addition,
+namely <code>H$pvBS</code> which is the bootstrap p-value</p>
+</dd>
+<dt><code>mBS</code></dt>
+<dd>
+<p>The model estimates under the null hypothesis.</p>
+</dd>
+<dt><code>mUNR</code></dt>
+<dd>
+<p>The model estimates under the alternative hypothesis.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Boswijk, Cavaliere, Rahbek, and Taylor (2016)
+"Inference on co-integration parameters in heteroskedastic
+vector autoregressions," Journal of Econometrics 192, 64-85.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FCVARoptions</code> to set default estimation options.
+<code>FCVARestn</code> is called to estimate the models under the null and alternative hypotheses.
+</p>
+<p>Other FCVAR postestimation functions: 
+<code>FCVARhypoTest()</code>,
+<code>GetCharPolyRoots()</code>,
+<code>MVWNtest()</code>,
+<code>plot.FCVAR_roots()</code>,
+<code>summary.FCVAR_roots()</code>,
+<code>summary.MVWN_stats()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+opt &lt;- FCVARoptions()
+opt$gridSearch   &lt;- 0 # Disable grid search in optimization.
+opt$dbMin        &lt;- c(0.01, 0.01) # Set lower bound for d,b.
+opt$dbMax        &lt;- c(2.00, 2.00) # Set upper bound for d,b.
+opt$constrained  &lt;- 0 # Impose restriction dbMax &gt;= d &gt;= b &gt;= dbMin ? 1 &lt;- yes, 0 &lt;- no.
+x &lt;- votingJNP2014[, c("lib", "ir_can", "un_can")]
+opt$plotRoots &lt;- 0
+optUNR &lt;- opt
+optRES &lt;- opt
+optRES$R_Beta &lt;- matrix(c(1, 0, 0), nrow = 1, ncol = 3)
+set.seed(42)
+FCVARboot_stats &lt;- FCVARboot(x, k = 2, r = 1, optRES, optUNR, B = 2)
+# In practice, set the number of bootstraps so that (B+1)*alpha is an integer,
+# where alpha is the chosen level of significance.
+# For example, set B = 999 (but it takes a long time to compute).
+
+</code></pre>
+
+
+</div>

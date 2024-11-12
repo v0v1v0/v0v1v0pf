@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SparseProductFPCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Product Functional Principal Component Analysis for sparse repeated functional data.</h2>
+
+<h3>Description</h3>
+
+<p>Note: The code works for sparse functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SparseProductFPCA(
+  sSup,
+  Lt,
+  Ly,
+  fpca.op1 = list(),
+  fpca.op2 = list(),
+  pc.j = NULL,
+  pc.k = NULL,
+  bw_mu_min = NULL,
+  bw_mu_max = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sSup</code></td>
+<td>
+<p>A vector of length num.ages representing the common grid for every individual in the direction of (age) dimension 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>A list of n vectors containing the observation time points for every individual, such that the ith element of the list gives the num.years.i points in the direction of (year) dimension 1 at which the functional-valued stochastic process is observed for the ith individual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ly</code></td>
+<td>
+<p>A list of n matrices containing the observed values for every individual, such that the ith element is an num.ages by num.years.i matrix of observed values for the i-th individual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fpca.op1</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code> for FPCA in direction of (age) dimension 2; check fdapace::FPCA for available control options and default settings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fpca.op2</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code>for FPCA in direction of (year) dimension 1; check fdapace::FPCA for available control options and default settings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc.j</code></td>
+<td>
+<p>A scalar denoting the maximum number of components to consider for FPCA in direction of (age) dimension 2; default: chosen by FVE if NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc.k</code></td>
+<td>
+<p>A scalar denoting the maximum number of components to consider for FPCA in direction of (year) dimension 1; default: chosen by FVE if NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw_mu_min</code></td>
+<td>
+<p>The minimum bandwidth value considered for bandwidth selection in mean function estimation, such that the final bandwidth chosen by 5-fold cross validation is above this minimum value; default:NULL, bandwidth chosen by 5-fold cross validation over the default range.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw_mu_max</code></td>
+<td>
+<p>The maximum bandwidth value considered for bandwidth selection in mean function estimation, such that the final bandwidth chosen by 5-fold cross validation is below this value; default:NULL, bandwidth chosen by 5-fold cross validation over the default range.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This code works for sparse functional data, with the notion of sparsity defined as follows. Sparsity in the year direction (dimension 1) means that the years at which the data are observed for a country (or individual unit) are sparsely distributed. However for the ith county (or individual unit), if the data are available for a particular year (dimension 1), then it is available for all the ages (dimension 2) in sSup corresponding to that specific year. Thus along (age) dimension 2, data type is dense. The 'usergrid' control option in FPCA indicates whether to use observation grid for fitting, if false FPCA will use equidistant grid. logical - default:FALSE. Along (age) dimension 2, FPCA is done for only for sSup as observation grid. Depending on the choice of usergrid for 'fpca.op2', FPCA in (year) dimension 1 is either fitted on the observed (pooled) grid or on the internal regular grid of default length 51.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>age.grid</code></td>
+<td>
+<p>A vector of length num.ages, representing the grid used for fitting FPCA in the direction of (age) dimension 2, same as sSup.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year.grid</code></td>
+<td>
+<p>A vector of length nWorkGrid, representing the grid used for fitting FPCA in the direction of (year) dimension 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>An num.ages by nWorkGrid matrix containing the bivariate mean function estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bwMu</code></td>
+<td>
+<p>The selected bandwidth for mean function estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc.j</code></td>
+<td>
+<p>A scalar denoting the selected number of components for FPCA in direction of (age) dimension 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc.k</code></td>
+<td>
+<p>A scalar denoting the selected number of components for FPCA in direction of (year) dimension 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res.psi</code></td>
+<td>
+<p>A list containing the FPCA output for FPCA in direction of (age) dimension 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res.phi</code></td>
+<td>
+<p>A list containing the FPCA output for FPCA in direction of (year) dimension 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>A list of pc.j matrices containing the estimated scores, such that the jth element of the list is an n by pc.k matrix with its ith row comprising the estimated scores <code class="reqn">chi_{j,1}</code>,..., <code class="reqn">chi_{j,pc.k[j]}</code> for the ith individual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi</code></td>
+<td>
+<p>An num.ages by pc.j matrix containing the estimated eigenfunctions from FPCA in direction of (age) dimension 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>An nWorkGrid by pc.k matrix, containing the estimated eigenfunctions from FPCA in direction of (year) dimension 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VarOrdered</code></td>
+<td>
+<p>A list of pc.j vectors each of length pc.k, containing the variance explained by each term. The terms are ordered by <code class="reqn">var(chi_{jk})</code>. One can select the best model by truncating at a desired level of FVE, and use names(VarOrdered) to see the corresponding model terms.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<ul>
+<li> <p><cite>Chen, K., Delicado, P., &amp; Müller, H. G. (2017). Modelling function-valued stochastic processes, with applications to fertility dynamics. Journal of the Royal Statistical Society Series B: Statistical Methodology, 79(1), 177-196.</cite>
+</p>
+</li>
+<li> <p><cite>Chen, K., &amp; Müller, H. G. (2012). Modeling repeated functional observations. Journal of the American Statistical Association, 107(500), 1599-1609.</cite>
+</p>
+</li>
+<li> <p><cite>Hall, P.,  Müller, H.G. and Wang, J.L. (2006). Properties of principal component methods for functional and longitudinal data analysis. Annals of Statistics, 34(3), 1493-1517.</cite>
+</p>
+</li>
+<li> <p><cite>Yao, F., Müller, H. G., &amp; Wang, J. L. (2005). Functional data analysis for sparse longitudinal data. Journal of the American statistical association, 100(470), 577-590.</cite>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+Ly &lt;- lapply(1:20, function(i){matrix(rnorm(13*(i)), 13, i)})
+Lt &lt;- lapply(1:20, function(i){1:(i)})
+sSup &lt;- c(1:13)
+pc.j &lt;- 2
+pc.k &lt;- 3
+fpca.op1 &lt;- NULL
+fpca.op2 &lt;- NULL
+bw_mu_max &lt;- 5.625000/2
+bw_mu_min &lt;- NULL
+res &lt;- SparseProductFPCA(sSup, Lt, Ly, fpca.op1, fpca.op2, pc.j, pc.k, bw_mu_min, bw_mu_max)
+
+
+</code></pre>
+
+
+</div>

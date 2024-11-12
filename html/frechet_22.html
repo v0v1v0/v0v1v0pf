@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LocCovReg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Local Fréchet regression of covariance matrices</h2>
+
+<h3>Description</h3>
+
+<p>Local Fréchet regression of covariance matrices with Euclidean predictors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LocCovReg(x, y = NULL, M = NULL, xout, optns = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An n by p matrix of predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>An n by l matrix, each row corresponds to an observation, l is the length of time points where the responses are observed.  See 'metric' option in 'Details' for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>A q by q by n array (resp. a list of q by q matrices) where <code>M[,,i]</code> (resp. <code>M[[i]]</code>) contains the i-th covariance matrix of dimension q by q. See 'metric' option in 'Details' for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>An m by p matrix of output predictor levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code>. See ‘Details’.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available control options are
+</p>
+
+<dl>
+<dt>corrOut</dt>
+<dd>
+<p>Boolean indicating if output is shown as correlation or covariance matrix. Default is <code>FALSE</code> and corresponds to a covariance matrix.</p>
+</dd>
+<dt>metric</dt>
+<dd>
+<p>Metric type choice, <code>"frobenius"</code>, <code>"power"</code>, <code>"log_cholesky"</code>, <code>"cholesky"</code> - default: <code>"frobenius"</code> which corresponds to the power metric with <code>alpha</code> equal to 1.
+For power (and Frobenius) metrics, either <code>y</code> or <code>M</code> must be input; <code>y</code> would override <code>M</code>. For Cholesky and log-Cholesky metrics, <code>M</code> must be input and <code>y</code> does not apply.</p>
+</dd>
+<dt>alpha</dt>
+<dd>
+<p>The power parameter for the power metric. Default is 1 which corresponds to Frobenius metric.</p>
+</dd>
+<dt>bwMean</dt>
+<dd>
+<p>A vector of length p holding the bandwidths for conditional mean estimation if <code>y</code> is provided. If <code>bwMean</code> is not provided, it is chosen by cross validation.</p>
+</dd>
+<dt>bwCov</dt>
+<dd>
+<p>A vector of length p holding the bandwidths for conditional covariance estimation. If <code>bwCov</code> is not provided, it is chosen by cross validation.</p>
+</dd>
+<dt>kernel</dt>
+<dd>
+<p>Name of the kernel function to be chosen from <code>"rect"</code>, <code>"gauss"</code>, <code>"epan"</code>, <code>"gausvar"</code>, <code>"quar"</code>. Default is <code>"gauss"</code>.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A <code>covReg</code> object — a list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>An m by p matrix of output predictor levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mout</code></td>
+<td>
+<p>A list of estimated conditional covariance or correlation matrices at <code>xout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list containing the <code>optns</code> parameters utilized.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<ul>
+<li> <p><cite>Petersen, A. and Müller, H.-G. (2019). Fréchet regression for random objects with Euclidean predictors. The Annals of Statistics, 47(2), 691–719.</cite>
+</p>
+</li>
+<li> <p><cite>Petersen, A., Deoni, S. and Müller, H.-G. (2019). Fréchet estimation of time-varying covariance matrices from sparse data, with application to the regional co-evolution of myelination in the developing brain. The Annals of Applied Statistics, 13(1), 393–419.</cite>
+</p>
+</li>
+<li> <p><cite>Lin, Z. (2019). Riemannian geometry of symmetric positive definite matrices via Cholesky decomposition. Siam. J. Matrix. Anal, A. 40, 1353–1370.</cite>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#Example y input
+n=30             # sample size
+t=seq(0,1,length.out=100)       # length of data
+x = matrix(runif(n),n)
+theta1 = theta2 = array(0,n)
+for(i in 1:n){
+ theta1[i] = rnorm(1,x[i],x[i]^2)
+ theta2[i] = rnorm(1,x[i]/2,(1-x[i])^2)
+}
+y = matrix(0,n,length(t))
+phi1 = sqrt(3)*t
+phi2 = sqrt(6/5)*(1-t/2)
+y = theta1%*%t(phi1) + theta2 %*% t(phi2)
+xout = matrix(c(0.25,0.5,0.75),3)
+Cov_est=LocCovReg(x=x,y=y,xout=xout,optns=list(corrOut=FALSE,metric="power",alpha=3))
+
+#Example M input
+n=30 #sample size
+m=30 #dimension of covariance matrices
+M &lt;- array(0,c(m,m,n))
+for (i in 1:n){
+ y0=rnorm(m)
+ aux&lt;-15*diag(m)+y0%*%t(y0)
+ M[,,i]&lt;-aux
+}
+x=matrix(rnorm(n),n)
+xout = matrix(c(0.25,0.5,0.75),3) #output predictor levels
+Cov_est=LocCovReg(x=x,M=M,xout=xout,optns=list(corrOut=FALSE,metric="power",alpha=0))
+
+</code></pre>
+
+
+</div>

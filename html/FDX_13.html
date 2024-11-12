@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fast.Discrete</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast application of discrete procedures</h2>
+
+<h3>Description</h3>
+
+<p>Applies the [DLR], [DGR] or [DPB] procedures, without computing the critical
+values, to a data set of 2 x 2 contingency tables using Fisher's exact test.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fast.Discrete.LR(
+  counts,
+  alternative = "greater",
+  input = "noassoc",
+  alpha = 0.05,
+  zeta = 0.5,
+  direction = "sd",
+  adaptive = TRUE
+)
+
+fast.Discrete.PB(
+  counts,
+  alternative = "greater",
+  input = "noassoc",
+  alpha = 0.05,
+  zeta = 0.5,
+  adaptive = TRUE,
+  exact = FALSE
+)
+
+fast.Discrete.GR(
+  counts,
+  alternative = "greater",
+  input = "noassoc",
+  alpha = 0.05,
+  zeta = 0.5,
+  adaptive = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>a data frame of 2 or 4 columns and any number of lines,
+each line representing a 2 x 2 contingency table to
+test. The number of columns and what they must contain
+depend on the value of the <code>input</code> argument, see
+Details of <code>fisher.pvalues.support</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>same argument as in <code>fisher.test</code>. The three
+possible values are <code>"greater"</code> (default),
+<code>"two.sided"</code> or <code>"less"</code>; may be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>the format of the input data frame, see Details of
+<code>fisher.pvalues.support</code>. The
+three possible values are <code>"noassoc"</code> (default),
+<code>"marginal"</code> or <code>"HG2011"</code>; may be 
+abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the target FDP, a number strictly between 0 and 1. For <code>*.fast</code> kernels, it is only necessary, if <code>stepUp = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta</code></td>
+<td>
+<p>the target probability of not exceeding the desired FDP, a number strictly between 0 and 1. If <code>zeta=NULL</code> (the default), then <code>zeta</code> is chosen equal to <code>alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>direction</code></td>
+<td>
+<p>a character string specifying whether to conduct a step-up (<code>direction="su"</code>, the default) or step-down procedure (<code>direction="sd"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adaptive</code></td>
+<td>
+<p>a boolean specifying whether to conduct an adaptive procedure or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>a boolean specifying whether to compute the Poisson-Binomial distribution exactly or by a normal approximation.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>FDX</code> S3 class object whose elements are:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Rejected</code></td>
+<td>
+<p>Rejected raw p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Indices</code></td>
+<td>
+<p>Indices of rejected hypotheses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Num.rejected</code></td>
+<td>
+<p>Number of rejections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Adjusted</code></td>
+<td>
+<p>Adjusted p-values (only for step-down direction).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Method</code></td>
+<td>
+<p>A character string describing the used algorithm, e.g. 'Discrete Lehmann-Romano procedure (step-up)'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FDP.threshold</code></td>
+<td>
+<p>FDP threshold <code>alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Exceedance.probability</code></td>
+<td>
+<p>Probability <code>zeta</code> of FDP exceeding <code>alpha</code>; thus, FDP is being controlled at level <code>alpha</code> with confidence <code>1 - zeta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Adaptive</code></td>
+<td>
+<p>A boolean specifying whether an adaptive procedure was conducted or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data$raw.pvalues</code></td>
+<td>
+<p>The values of <code>raw.pvalues</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data$data.name</code></td>
+<td>
+<p>The respective variable names of <code>raw.pvalues</code> and <code>pCDFlist</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+X1 &lt;- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
+X2 &lt;- c(0, 0, 1, 3, 2, 1, 2, 2, 2)
+N1 &lt;- rep(148, 9)
+N2 &lt;- rep(132, 9)
+Y1 &lt;- N1 - X1
+Y2 &lt;- N2 - X2
+df &lt;- data.frame(X1, Y1, X2, Y2)
+df
+
+DLR.sd &lt;- fast.Discrete.LR(counts = df, input = "noassoc")
+DLR.sd$Adjusted
+summary(DLR.sd)
+DLR.su &lt;- fast.Discrete.LR(counts = df, input = "noassoc", direction = "su")
+summary(DLR.su)
+
+NDLR.sd &lt;- fast.Discrete.LR(counts = df, input = "noassoc", adaptive = FALSE)
+NDLR.sd$Adjusted
+summary(NDLR.sd)
+NDLR.su &lt;- fast.Discrete.LR(counts = df, input = "noassoc", direction = "su", adaptive = FALSE)
+summary(NDLR.su)
+
+DGR &lt;- fast.Discrete.GR(counts = df, input = "noassoc")
+DGR$Adjusted
+summary(DGR)
+
+NDGR &lt;- fast.Discrete.GR(counts = df, input = "noassoc", adaptive = FALSE)
+NDGR$Adjusted
+summary(NDGR)
+
+DPB &lt;- fast.Discrete.PB(counts = df, input = "noassoc")
+DPB$Adjusted
+summary(DPB)
+
+NDPB &lt;- fast.Discrete.PB(counts = df, input = "noassoc", adaptive = FALSE)
+NDPB$Adjusted
+summary(NDPB)
+
+</code></pre>
+
+
+</div>

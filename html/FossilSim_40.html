@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim.fossils.intervals</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate fossils under a non-uniform model of preservation for a given set of consecutive time intervals</h2>
+
+<h3>Description</h3>
+
+<p>Intervals can be specified by specifying the interval boundaries using <code>interval.ages</code> or specifying both <code>max.age</code> and <code>strata</code>.
+In the second scenario all intervals will be of equal length.
+Preservation can be specified using <code>rates</code>, which represent the rates of a Poisson process in each interval,
+or <code>probabilities</code>, which represent the probabilities of sampling per interval.
+When using <code>probabilities</code>, at most one fossil per species will be sampled per interval. <br><br>
+Fossils can be simulated for a phylo (<code>tree</code>) or taxonomy (<code>taxonomy</code>) object.
+If both are specified, the function uses taxonomy.
+If no taxonomic information is provided, the function assumes all speciation is symmetric (i.e. bifurcating, <code>beta = 1</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim.fossils.intervals(
+  tree = NULL,
+  taxonomy = NULL,
+  fossils = NULL,
+  interval.ages = NULL,
+  max.age = NULL,
+  strata = NULL,
+  probabilities = NULL,
+  rates = NULL,
+  ignore.taxonomy = FALSE,
+  root.edge = TRUE,
+  use.exact.times = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>Phylo object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxonomy</code></td>
+<td>
+<p>Taxonomy object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fossils</code></td>
+<td>
+<p>Append fossils to to an existing fossils object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval.ages</code></td>
+<td>
+<p>Vector of stratigraphic interval ages, starting with the minimum age of the youngest interval and ending with the maximum age of the oldest interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.age</code></td>
+<td>
+<p>Maximum age of the oldest stratigraphic interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>Number of stratigraphic intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probabilities</code></td>
+<td>
+<p>Probability of sampling/preservation in each interval. The number of probabilities should match the number of intervals and the first entry should correspond to youngest interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rates</code></td>
+<td>
+<p>Poisson sampling rate for each interval. The number of rates should match the number of intervals and the first entry should correspond to youngest interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore.taxonomy</code></td>
+<td>
+<p>Ignore species taxonomy (returns sp = NA). Default = FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root.edge</code></td>
+<td>
+<p>If TRUE include the root edge. Default = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.exact.times</code></td>
+<td>
+<p>If TRUE use exact sampling times. If FALSE <code>hmin</code> and <code>hmax</code> will equal the start and end times of the corresponding interval. Default = TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class fossils.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sim.fossils.poisson</code>, <code>sim.fossils.environment</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># simulate tree
+t = ape::rtree(6)
+
+# assign a max age based on tree height
+max.age = tree.max(t)
+
+# simulate fossils using max.age and strata &amp; probabilities
+strata = 4
+probability = rep(0.7, 4)
+f = sim.fossils.intervals(t, max.age = max.age, strata = strata, probabilities = probability)
+plot(f, t, strata = strata, show.strata = TRUE)
+
+# simulate fossils using interval.ages &amp; rates
+times = c(0, sort(runif(3, min = 0, max = max.age)), max.age)
+rates = c(5, 0, 5, 0)
+f = sim.fossils.intervals(t, interval.ages = times, rates = rates)
+plot(f, t, interval.ages = times, show.strata = TRUE)
+
+# simulate fossils using taxonomy
+s = sim.taxonomy(t, 0.1, 0.1, 1)
+f = sim.fossils.intervals(taxonomy = s, interval.ages = times, rates = rates)
+plot(f, t, interval.ages = times, show.strata = TRUE)
+
+# append fossils to an existing fossils object
+new.rates = rates * 2
+f2 = sim.fossils.intervals(taxonomy = s, fossils = f, interval.ages = times, rates = new.rates)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,300 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>to_flowdef</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flow Definition defines how to stitch steps into a (work)flow.</h2>
+
+<h3>Description</h3>
+
+<p>This function enables creation of a skeleton flow definition with several default values, using a 
+flowmat.
+To customize the flowdef, one may supply parameters such as sub_type and dep_type upfront.
+As such, these params must be of the same length as number of unique jobs using in the flowmat.
+</p>
+
+<p>Each row in this table refers to one step of the pipeline. 
+It describes the resources used by the step and also its relationship with other steps, 
+especially, the step immediately prior to it.
+ &lt;br&gt;&lt;br&gt;
+</p>
+<p><strong>Submission types:</strong> 
+<em>This refers to the sub_type column in flow definition.</em>&lt;br&gt;
+</p>
+<p>Consider an example with three steps A, B and C. 
+A has 10 commands from A1 to A10, similarly B has 10 commands B1 through B10 and 
+C has a single command, C1.
+Consider another step D (with D1-D3), which comes after C.
+</p>
+<p>step (number of sub-processes)
+A (10)   —-&gt; B (10)  —–&gt; C (1) —–&gt; D (3)
+</p>
+
+<ul>
+<li> <p><code>scatter</code>: submit all commands as parallel, independent jobs. 
+</p>
+<p><em>Submit A1 through A10 as independent jobs</em>
+</p>
+</li>
+<li> <p><code>serial</code>: run these commands sequentially one after the other. 
+</p>
+<p>- <em>Wrap A1 through A10, into a single job.</em>
+</p>
+</li>
+</ul>
+<p><strong>Dependency types</strong>
+</p>
+<p><em>This refers to the dep_type column in flow definition.</em>
+</p>
+
+<ul>
+<li> <p><code>none</code>: independent job.
+</p>
+<ul><li> <p><em>Initial step A has no dependency</em></p>
+</li></ul>
+</li>
+<li> <p><code>serial</code>: <em>one to one</em> relationship with previous job. 
+</p>
+ <ul><li> <p><em>B1 can start as soon as A1 completes, and B2 starts just after A2 and so on.</em></p>
+</li></ul>
+</li>
+<li> <p><code>gather</code>: <em>many to one</em>, wait for <strong>all</strong> commands in the previous job to finish then start the  current step. 
+</p>
+<ul><li> <p><em>All jobs of B (1-10), need to complete before C1 starts</em></p>
+</li></ul>
+</li>
+<li> <p><code>burst</code>: <em>one to many</em> wait for the previous step which has one job and start processing all cmds in the current step. 
+</p>
+<p>- <em>D1 to D3 are started as soon as C1 finishes.</em>
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">to_flowdef(x, ...)
+
+## S3 method for class 'flowmat'
+to_flowdef(
+  x,
+  sub_type,
+  dep_type,
+  prev_jobs,
+  queue = "short",
+  platform = "torque",
+  memory_reserved = "2000",
+  cpu_reserved = "1",
+  nodes = "1",
+  walltime = "1:00",
+  guess = FALSE,
+  verbose = opts_flow$get("verbose"),
+  ...
+)
+
+## S3 method for class 'flow'
+to_flowdef(x, ...)
+
+## S3 method for class 'character'
+to_flowdef(x, ...)
+
+as.flowdef(x, ...)
+
+is.flowdef(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>can a path to a flowmat, flowmat or flow object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub_type</code></td>
+<td>
+<p>submission type, one of: scatter, serial. Character, of length one or same as the number of jobnames</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dep_type</code></td>
+<td>
+<p>dependency type, one of: gather, serial or burst. Character, of length one or same as the number of jobnames</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prev_jobs</code></td>
+<td>
+<p>previous job name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>queue</code></td>
+<td>
+<p>Cluster queue to be used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>platform</code></td>
+<td>
+<p>platform of the cluster: lsf, sge, moab, torque, slurm etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory_reserved</code></td>
+<td>
+<p>amount of memory required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpu_reserved</code></td>
+<td>
+<p>number of cpu's required. [1]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes</code></td>
+<td>
+<p>if you tool can use multiple nodes, you may reserve multiple nodes for it. [1]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>walltime</code></td>
+<td>
+<p>amount of walltime required</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>guess</code></td>
+<td>
+<p>should the function, guess submission and dependency types. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A numeric value indicating the amount of messages to produce.
+Values are integers varying from 0, 1, 2, 3, .... Please refer to the verbose page for more details.
+<code>opts_flow$get("verbose")</code></p>
+</td>
+</tr>
+</table>
+<h3>Format</h3>
+
+<p>This is a tab separated file, with a minimum of 4 columns:&lt;br&gt;
+</p>
+<p><em>required columns</em>:&lt;br&gt;
+</p>
+
+<ul>
+<li>
+<p><code>jobname</code>: Name of the step
+</p>
+</li>
+<li>
+<p><code>sub_type</code>: Short for submission type, 
+refers to, how should multiple commands of this step be submitted. Possible values are 'serial' or 'scatter'. 
+</p>
+</li>
+<li>
+<p><code>prev_jobs</code>: Short for previous job, this would be the jobname of the previous job. 
+This can be NA/./none if this is a independent/initial step, and no previous step is required for this to start. 
+Additionally, one may use comma(s) to define multiple previous jobs (A,B).
+</p>
+</li>
+<li>
+<p><code>dep_type</code>: Short for dependency type, 
+refers to the relationship of this job with the one defined in 'prev_jobs'. 
+This can take values 'none', 'gather', 'serial' or 'burst'.
+</p>
+</li>
+</ul>
+<p><em>resource columns</em> (recommended):&lt;br&gt;
+</p>
+<p>Additionally, one may customize resource requirements used by each step.
+The format used varies and depends to the computing platform. Thus its best to refer to 
+your institutions guide to specify these.
+</p>
+
+<ul>
+<li>
+<p><code>cpu_reserved</code> integer, specifying number of cores to reserve [1]
+</p>
+</li>
+<li>
+<p><code>memory_reserved</code> Usually in KB [2000]
+</p>
+</li>
+<li>
+<p><code>nodes</code> number of server nodes to reserve, most tools can only use multiple cores on
+a <strong>single</strong> node [1]
+</p>
+</li>
+<li>
+<p><code>walltime</code> maximum time allowed for a step, usually in a HH:MM or HH:MM:SS format. [1:00]
+</p>
+</li>
+<li>
+<p><code>queue</code> the queue to use for job submission [short]
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p><strong>NOTE:</strong> Guessing is an experimental feature, please check the definition carefully. 
+it is provided to help but not replace your best judgement. &lt;br&gt;
+</p>
+<p>Optionally, one may provide the previous jobs and flowr can try guessing the appropriate 
+submission and dependency types. If there are multiple commands, default is submitting them as 
+scatter, else as serial. Further, if previous job has multiple commands and current job has single;
+its assumed that all of the previous need to complete, suggesting a gather type dependency.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># see ?to_flow for more examples
+
+# read in a tsv; check and confirm format
+ex = file.path(system.file(package = "flowr"), "pipelines")
+
+# read in a flowdef from file
+flowdef = as.flowdef(file.path(ex, "sleep_pipe.def"))
+
+# check if this a flowdef
+is.flowdef(flowdef)
+
+# use a flowmat, to create a sample flowdef
+flowmat = as.flowmat(file.path(ex, "sleep_pipe.tsv"))
+to_flowdef(flowmat)
+
+# change the platform
+to_flowdef(flowmat, platform = "lsf")
+
+# change the queue name
+def = to_flowdef(flowmat, 
+ platform = "lsf", 
+ queue = "long")
+plot_flow(def)
+
+# guess submission and dependency types
+def2 = to_flowdef(flowmat, 
+ platform = "lsf", 
+ queue = "long", 
+ guess = TRUE)
+plot_flow(def2)
+
+
+
+</code></pre>
+
+
+</div>

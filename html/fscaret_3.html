@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dataPreprocess</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+dataPreprocess
+</h2>
+
+<h3>Description</h3>
+
+<p>The functionality is realized in two main steps:
+</p>
+
+<ol>
+<li>
+<p> Check for near zero variance predictors and flag as near zero if:
+</p>
+
+<ol>
+<li>
+<p> the percentage of unique values is less than 20
+</p>
+</li>
+<li>
+<p> the ratio of the most frequent to the second most frequent value is greater than 20,
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Check for susceptibility to multicollinearity
+</p>
+
+<ol>
+<li>
+<p> Calculate correlation matrix
+</p>
+</li>
+<li>
+<p> Find variables with correlation 0.9 or more and delete them
+</p>
+</li>
+</ol>
+</li>
+</ol>
+<h3>Usage</h3>
+
+<pre><code class="language-R">dataPreprocess(trainMatryca_nr, testMatryca_nr, labelsFrame, lk_col, lk_row, with.labels)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trainMatryca_nr</code></td>
+<td>
+
+<p>Input training data matrix
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testMatryca_nr</code></td>
+<td>
+
+<p>Input testing data matrix
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labelsFrame</code></td>
+<td>
+
+<p>Transposed data frame of column names
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lk_col</code></td>
+<td>
+
+<p>Number of columns 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lk_row</code></td>
+<td>
+
+<p>Number of rows
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>with.labels</code></td>
+<td>
+
+<p>If with.labels=TRUE, additional data frame with preprocessed inputs corresponding to original data set column numbers as output is generated
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jakub Szlek and Aleksander Mendyk
+</p>
+
+
+<h3>References</h3>
+
+<p>Kuhn M. (2008) Building Predictive Models in R Using the caret Package <em>Journal of Statistical Software</em> <b>28(5)</b> <a href="http://www.jstatsoft.org/">http://www.jstatsoft.org/</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+library(fscaret)
+
+# Create data sets and labels data frame
+trainMatrix &lt;- matrix(rnorm(150*120,mean=10,sd=1), 150, 120)
+
+# Adding some near-zero variance attributes
+
+temp1 &lt;- matrix(runif(150,0.0001,0.0005), 150, 12)
+
+# Adding some highly correlated attributes
+
+sampleColIndex &lt;- sample(ncol(trainMatrix), size=10)
+
+temp2 &lt;- matrix(trainMatrix[,sampleColIndex]*2, 150, 10)
+
+# Output variable
+
+output &lt;- matrix(rnorm(150,mean=10,sd=1), 150, 1)
+
+trainMatrix &lt;- cbind(trainMatrix,temp1,temp2, output)
+
+colnames(trainMatrix) &lt;- paste("X",c(1:ncol(trainMatrix)),sep="")
+
+# Subset test data set
+
+testMatrix &lt;- trainMatrix[sample(round(0.1*nrow(trainMatrix))),]
+
+labelsDF &lt;- data.frame("Labels"=paste("X",c(1:(ncol(trainMatrix)-1)),sep=""))
+
+lk_col &lt;- ncol(trainMatrix)
+lk_row &lt;- nrow(trainMatrix)
+
+with.labels = TRUE
+
+testRes &lt;- dataPreprocess(trainMatrix, testMatrix,
+			  labelsDF, lk_col, lk_row, with.labels)
+			  
+summary(testRes)
+
+# Selected attributes after data set preprocessing
+testRes$labelsDF
+
+# Training and testing data sets after preprocessing
+testRes$trainMatryca
+testRes$testMatryca
+
+</code></pre>
+
+
+</div>

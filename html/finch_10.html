@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dwca_read</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parse Darwin Core Archive</h2>
+
+<h3>Description</h3>
+
+<p>Parse Darwin Core Archive
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dwca_read(input, read = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>(character) Path to local zip file, directory, or a url.
+If a URL it must be for a zip file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>read</code></td>
+<td>
+<p>(logical) Whether or not to read in data files. If <code>FALSE</code>,
+we give back paths to files only. Default: <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further args passed on to <code>data.table::fread()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that sometimes file reads fail. We use <code>data.table::fread()</code>
+internally, which is very fast, but can fail sometimes. If so, try reading
+in the data manually.
+</p>
+<p>When you pass in a URL, we use <span class="pkg">rappdirs</span> to determine cache path, and
+if you pass the same URL again, and your cache is not cleared, we'll
+pull from the cache. Passing a file or directory on your local system
+won't invoke the caching route, but will go directly to the file/directory.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# set up a temporary directory for the example
+dwca_cache$cache_path_set(path = "finch", type = "tempdir")
+
+dir &lt;- system.file("examples", "0000154-150116162929234", package = "finch")
+
+# Don't read data in
+(x &lt;- dwca_read(dir, read=FALSE))
+x$files
+x$highmeta
+x$dataset_meta[[1]]
+x$data
+
+# Read data
+(x &lt;- dwca_read(dir, read=TRUE))
+head(x$data[[1]])
+
+# Can pass in a zip file
+zip &lt;- system.file("examples", "0000154-150116162929234.zip",
+  package = "finch")
+(out &lt;- dwca_read(zip))
+out$files
+out$highmeta
+out$emlmeta
+out$dataset_meta
+
+# Can pass in zip file as a url
+url &lt;-
+"https://github.com/ropensci/finch/blob/master/inst/examples/0000154-150116162929234.zip?raw=true"
+(out &lt;- dwca_read(url))
+
+# another url
+url &lt;- "http://ipt.jbrj.gov.br/jbrj/archive.do?r=redlist_2013_taxons&amp;v=3.12"
+(out &lt;- dwca_read(url))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

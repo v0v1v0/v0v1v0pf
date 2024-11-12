@@ -1,0 +1,239 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>i</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create, or interact variables with, factors</h2>
+
+<h3>Description</h3>
+
+<p>Treat a variable as a factor, or interacts a variable with a factor. Values to
+be dropped/kept from the factor can be easily set. Note that to interact
+fixed-effects, this function should not be used: instead use directly the syntax <code>fe1^fe2</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">i(factor_var, var, ref, keep, bin, ref2, keep2, bin2, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>factor_var</code></td>
+<td>
+<p>A vector (of any type) that will be treated as a factor.
+You can set references (i.e. exclude values for which to create dummies) with
+the <code>ref</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>A variable of the same length as <code>factor_var</code>. This variable will be
+interacted with the factor in <code>factor_var</code>. It can be numeric or factor-like.
+To force a numeric variable to be treated as a factor, you can add the <code>i.</code>
+prefix to a variable name. For instance take a numeric variable <code>x_num</code>:
+<code>i(x_fact, x_num)</code> will treat <code>x_num</code> as numeric while <code>i(x_fact, i.x_num)</code>
+will treat <code>x_num</code> as a factor (it's a shortcut to <code>as.factor(x_num)</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref</code></td>
+<td>
+<p>A vector of values to be taken as references from <code>factor_var</code>.
+Can also be a logical: if <code>TRUE</code>, then the first value of <code>factor_var</code> will be removed.
+If <code>ref</code> is a character vector, partial matching is applied to values;
+use "@" as the first character to enable regular expression matching. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep</code></td>
+<td>
+<p>A vector of values to be kept from <code>factor_var</code> (all others are dropped).
+By default they should be values from <code>factor_var</code> and if <code>keep</code> is a
+character vector partial matching is applied. Use "@" as the first character
+to enable regular expression matching instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin</code></td>
+<td>
+<p>A list of values to be grouped, a vector, a formula, or the special
+values <code>"bin::digit"</code> or <code>"cut::values"</code>. To create a new value from old values,
+use <code>bin = list("new_value"=old_values)</code> with <code>old_values</code> a vector of existing values.
+You can use <code>.()</code> for <code>list()</code>.
+It accepts regular expressions, but they must start with an <code>"@"</code>, like in
+<code>bin="@Aug|Dec"</code>. It accepts one-sided formulas which must contain the variable <code>x</code>,
+e.g. <code>bin=list("&lt;2" = ~x &lt; 2)</code>.
+The names of the list are the new names. If the new name is missing, the first
+value matched becomes the new name. In the name, adding <code>"@d"</code>, with <code>d</code> a digit,
+will relocate the value in position <code>d</code>: useful to change the position of factors.
+Use <code>"@"</code> as first item to make subsequent items be located first in the factor.
+Feeding in a vector is like using a list without name and only a single element.
+If the vector is numeric, you can use the special value <code>"bin::digit"</code> to group
+every <code>digit</code> element.
+For example if <code>x</code> represents years, using <code>bin="bin::2"</code> creates bins of two years.
+With any data, using <code>"!bin::digit"</code> groups every digit consecutive values starting
+from the first value.
+Using <code>"!!bin::digit"</code> is the same but starting from the last value.
+With numeric vectors you can: a) use <code>"cut::n"</code> to cut the vector into <code>n</code> equal parts,
+b) use <code>"cut::a]b["</code> to create the following bins: <code style="white-space: pre;">⁠[min, a]⁠</code>, <code style="white-space: pre;">⁠]a, b[⁠</code>, <code style="white-space: pre;">⁠[b, max]⁠</code>.
+The latter syntax is a sequence of number/quartile (q0 to q4)/percentile (p0 to p100)
+followed by an open or closed square bracket. You can add custom bin names by
+adding them in the character vector after <code>'cut::values'</code>. See details and examples.
+Dot square bracket expansion (see <code>dsb</code>) is enabled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref2</code></td>
+<td>
+<p>A vector of values to be dropped from <code>var</code>. By default they
+should be values from <code>var</code> and if <code>ref2</code> is a character vector partial matching is applied.
+Use "@" as the first character to enable regular expression matching instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep2</code></td>
+<td>
+<p>A vector of values to be kept from <code>var</code> (all others are dropped).
+By default they should be values from <code>var</code> and if <code>keep2</code> is a character vector
+partial matching is applied. Use "@" as the first character
+to enable regular expression matching instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin2</code></td>
+<td>
+<p>A list or vector defining the binning of the second variable.
+See help for the argument <code>bin</code> for details (or look at the help of the function <code>bin</code>).
+You can use <code>.()</code> for <code>list()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not currently used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To interact fixed-effects, this function should not be used: instead use directly the syntax
+<code>fe1^fe2</code> in the fixed-effects part of the formula. Please see the details and
+examples in the help page of <code>feols</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns a matrix with number of rows the length of <code>factor_var</code>. If there is no interacted
+variable or it is interacted with a numeric variable, the number of columns is equal to the
+number of cases contained in <code>factor_var</code> minus the reference(s). If the interacted variable is
+a factor, the number of columns is the number of combined cases between <code>factor_var</code> and <code>var</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>iplot</code> to plot interactions or factors created with <code>i()</code>, <code>feols</code> for
+OLS estimation with multiple fixed-effects.
+</p>
+<p>See the function <code>bin</code> for binning variables.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#
+# Simple illustration
+#
+
+x = rep(letters[1:4], 3)[1:10]
+y = rep(1:4, c(1, 2, 3, 4))
+
+# interaction
+data.frame(x, y, i(x, y, ref = TRUE))
+
+# without interaction
+data.frame(x, i(x, "b"))
+
+# you can interact factors too
+z = rep(c("e", "f", "g"), c(5, 3, 2))
+data.frame(x, z, i(x, z))
+
+# to force a numeric variable to be treated as a factor: use i.
+data.frame(x, y, i(x, i.y))
+
+# Binning
+data.frame(x, i(x, bin = list(ab = c("a", "b"))))
+
+# Same as before but using .() for list() and a regular expression
+# note that to trigger a regex, you need to use an @ first
+data.frame(x, i(x, bin = .(ab = "@a|b")))
+
+#
+# In fixest estimations
+#
+
+data(base_did)
+# We interact the variable 'period' with the variable 'treat'
+est_did = feols(y ~ x1 + i(period, treat, 5) | id + period, base_did)
+
+# =&gt; plot only interactions with iplot
+iplot(est_did)
+
+# Using i() for factors
+est_bis = feols(y ~ x1 + i(period, keep = 3:6) + i(period, treat, 5) | id, base_did)
+
+# we plot the second set of variables created with i()
+# =&gt; we need to use keep (otherwise only the first one is represented)
+coefplot(est_bis, keep = "trea")
+
+# =&gt; special treatment in etable
+etable(est_bis, dict = c("6" = "six"))
+
+#
+# Interact two factors
+#
+
+# We use the i. prefix to consider week as a factor
+data(airquality)
+aq = airquality
+aq$week = aq$Day %/% 7 + 1
+
+# Interacting Month and week:
+res_2F = feols(Ozone ~ Solar.R + i(Month, i.week), aq)
+
+# Same but dropping the 5th Month and 1st week
+res_2F_bis = feols(Ozone ~ Solar.R + i(Month, i.week, ref = 5, ref2 = 1), aq)
+
+etable(res_2F, res_2F_bis)
+
+#
+# Binning
+#
+
+data(airquality)
+
+feols(Ozone ~ i(Month, bin = "bin::2"), airquality)
+
+feols(Ozone ~ i(Month, bin = list(summer = 7:9)), airquality)
+
+
+
+</code></pre>
+
+
+</div>

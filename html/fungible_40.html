@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fareg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Regularized Factor Analysis</h2>
+
+<h3>Description</h3>
+
+<p>This function applies the regularized factoring method to extract an unrotated factor structure matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fareg(R, numFactors = 1, facMethod = "rls")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>(Matrix) A correlation matrix to be analyzed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFactors</code></td>
+<td>
+<p>(Integer) The number of factors to extract. Default: numFactors = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facMethod</code></td>
+<td>
+<p>(Character) "rls" for regularized least squares estimation or 
+"rml" for regularized maximum likelihood estimation. Default: facMethod = "rls".</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The main output is the matrix of unrotated factor loadings.
+</p>
+
+<ul>
+<li> <p><strong>loadings</strong>: (Matrix) A matrix of unrotated factor loadings.
+</p>
+</li>
+<li> <p><strong>h2</strong>: (Vector) A vector of estimated communality values.
+</p>
+</li>
+<li> <p><strong>L</strong>: (Numeric) Value of the estimated penality parameter.
+</p>
+</li>
+<li> <p><strong>Heywood</strong> (Logical) TRUE if a Heywood case is detected 
+(this should never happen).
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Niels G. Waller (nwaller@umn.edu)
+</p>
+
+
+<h3>References</h3>
+
+<p>Jung, S. &amp; Takane, Y.  (2008).  Regularized common factor analysis.  
+New trends in psychometrics, 141-149.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("HW")
+
+# load first HW data set
+
+RHW &lt;- cor(x = HW$HW6)
+
+# Compute principal axis factor analysis
+fapaOut &lt;- faMain(R = RHW, 
+                 numFactors = 3, 
+                 facMethod = "fapa", 
+                 rotate = "oblimin",
+                 faControl = list(treatHeywood = FALSE))
+
+
+fapaOut$faFit$Heywood
+round(fapaOut$h2, 2)
+
+ # Conduct a regularized factor analysis
+regOut &lt;- fareg(R = RHW, 
+               numFactors = 3,
+               facMethod = "rls")
+regOut$L
+regOut$Heywood
+
+
+# rotate regularized loadings and align with 
+# population structure
+regOutRot &lt;- faMain(urLoadings = regOut$loadings,
+                   rotate = "oblimin")
+
+# ALign
+FHW  &lt;- faAlign(HW$popLoadings, fapaOut$loadings)$F2
+Freg &lt;- faAlign(HW$popLoadings, regOutRot$loadings)$F2
+
+AllSolutions &lt;- round(cbind(HW$popLoadings, Freg, FHW),2) 
+colnames(AllSolutions) &lt;- c("F1", "F2", "F3", "Fr1", "Fr2", "Fr3", 
+                           "Fhw1", "Fhw2", "Fhw3")
+AllSolutions
+
+
+rmsdHW &lt;- rmsd(HW$popLoadings, FHW, 
+              IncludeDiag = FALSE, 
+              Symmetric = FALSE)
+
+rmsdReg &lt;- rmsd(HW$popLoadings, Freg, 
+               IncludeDiag = FALSE, 
+               Symmetric = FALSE)
+
+cat("\nrmsd HW =  ", round(rmsdHW,3),
+    "\nrmsd reg = ", round(rmsdReg,3))
+
+
+
+</code></pre>
+
+
+</div>

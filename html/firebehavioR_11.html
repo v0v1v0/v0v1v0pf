@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fireIndexKBDI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fire weather indices based on cumulative weather observations</h2>
+
+<h3>Description</h3>
+
+<p>Methods to estimate daily fire weather indices using dynamic weather observations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fireIndexKBDI(temp, precip, map, rh, u)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>temp</code></td>
+<td>
+<p>a numeric vector of daily air temperatures (C)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>precip</code></td>
+<td>
+<p>a numeric vector of daily precipitations (mm)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>a single numeric value of mean annual precipitation (mm)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rh</code></td>
+<td>
+<p>a numeric vector of relative humidities (%)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>a numeric vector of daily wind speeds (km/hr)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function computes up to 8 methods to estimate dynamic fire weather indices. These methods are dynamic in that they take prior days'
+weather into consideration. Therefore the inputs must be ordered by day
+(i.e., weather observations for a given day are followed by weather observations for the next day.)  
+The number of computed methods depends on the supplied arguments.
+If requisite arguments for specific methods are not supplied, <code>fireIndexKBDI</code>
+will not output results for those specific methods (i.e., there will be fewer than 8 columns).
+The requisite arguments for each method:
+</p>
+
+<dl>
+<dt>kbdi</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'map'</code></p>
+</dd>
+<dt>drought factor</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'map'</code></p>
+</dd>
+<dt>forestMark5</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'map'</code>,<code>'u'</code>, <code>'rh'</code></p>
+</dd>
+<dt>fosbergKBDI</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'map'</code>,<code>'u'</code>, <code>'rh'</code></p>
+</dd>
+<dt>fuelMoistureKBDI</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'map'</code>,<code>'u'</code>, <code>'rh'</code></p>
+</dd>
+<dt>nesterov</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'rh'</code></p>
+</dd>
+<dt>nesterovMod</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'rh'</code></p>
+</dd>
+<dt>zdenko</dt>
+<dd>
+<p><code>'temp'</code>, <code>'precip'</code>, <code>'rh'</code></p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>a data frame of fire weather index values with a column for each valid method
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Justin P Ziegler, <a href="mailto:justin.ziegler@colostate.edu">justin.ziegler@colostate.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Sharples, J.J., McRae, R.H.D., Weber, R.O. and Gill, A.M., 2009. A simple index for assessing fuel moisture content.
+<em>Environmental Modelling &amp; Software</em>, <strong>24</strong>(5):637-646.<br>
+Goodrick, S.L., 2002. Modification of the Fosberg fire weather index to include drought. <em>International Journal of Wildland Fire</em>, <strong>11</strong>(4), pp.205-211.<br>
+Sharples, J.J., McRae, R.H.D., Weber, R.O. and Gill, A.M., 2009. A simple index for assessing fire danger rating.
+<em>Environmental Modelling &amp; Software</em>. <strong>24</strong>(6):764-774.<br>
+Keetch, J.J., Byram, G.M., 1968. A drought index for forest fire control. <em>RP-SE-68</em>, US Department of Agriculture, Forest Service, Southeastern Forest Experiment Station.<br>
+Groisman, P.Y., Sherstyukov, B.G., Razuvaev, V.N., Knight, R.W., Enloe, J.G., Stroumentova, N.S., Whitfield, P.H., Førland, E., Hannsen-Bauer, I., Tuomenvirta, H. and Aleksandersson, H., 2007. Potential forest fire danger over Northern Eurasia: changes during the 20th century. <em>Global and Planetary Change</em>, <strong>56</strong>(3-4):371-386.<br>
+Skvarenina, J., Mindas, J., Holecy, J. and Tucek, J., 2003, May. Analysis of the natural and meteorological conditions during two largest forest fire events in the Slovak Paradise National Park. <em>In Proceedings of the International Scientific Workshop on Forest Fires in the Wildland–Urban Interface and Rural Areas in Europe: an integral planning and management challenge</em>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Example using RAWS meteorological station data
+data(rrRAWS)
+ff = rbind(
+data.frame(ffm = ffm('simard', rrRAWS$rh, rrRAWS$temp_c)$fm1hr, method = 'simard'),
+data.frame(ffm = ffm('wagner', rrRAWS$rh, rrRAWS$temp_c)$fm1hr, method = 'wagner'),
+data.frame(ffm = ffm('anderson', rrRAWS$rh, rrRAWS$temp_c)$fm1hr, method = 'anderson')
+)
+ff$dateTime = rep(rrRAWS$dateTime, 3)
+
+#NOT RUN
+
+#par(mfrow=c(3,1))
+#hist(ff$ffm[ff$method=="simard"])
+#hist(ff$ffm[ff$method=="wagner"])
+#hist(ff$ffm[ff$method=="anderson"])
+</code></pre>
+
+
+</div>

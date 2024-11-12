@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fcs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fluorescence Correlation Spectroscopy</h2>
+
+<h3>Description</h3>
+
+<p>Calculates either the auto-correlation or cross-correlation between vectors x and y, returning a correlation function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fcs(x , y = NULL, nPoints, pcf = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Numeric vector of length N.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Numeric vector of length N.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nPoints</code></td>
+<td>
+<p>The size of the sub-vectors in which the input vectors will be divided. This number must be less than N/2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pcf</code></td>
+<td>
+<p>A boolean parameter to determine if an alternate version of the correlation function is used for the calculation of de pCF and pComb functions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Fluorescence correlation spectroscopy (FCS) is a technique with high spatial and temporal resolution used to analyze the kinetics of particles diffusing at low concentrations. The detected fluorescence intensity as a function of time is: F(t).
+</p>
+<p>The correlation function is computed as the normalized autocorrelation function, G(tau) = &lt;deltaF(t)deltaF(t+tau)&gt;/(&lt;F(t)&gt;*&lt;F(t)&gt;), to the collected data set, where t refers to a time point of flourescence acquisition, and tau refers to the temporal delay between acquisitions and &lt;...&gt; indicates average. 
+</p>
+<p>The correlation between deltaF(t) = F(t) - &lt;F(t)&gt; and deltaF(t+tau) = F(t+tau) - &lt;F(t)&gt; is calculated for a range of delay times.
+For temporal acquisitions as FCS point, x takes the value of F(t) and y = NULL.
+For cross-correlation experiments between two fluorescent signals x = F1(t) and y = F2(t), as channels, the correlation function is: G(tau) = &lt;deltaF1(t) deltaF2(t+tau)&gt; / (&lt;F1(t)&gt; &lt;F2(t)&gt;).
+</p>
+<p>The function separate the original vector in sub-vectors of same length (n-points), then calculate an autocorrelation function form each sub-vector. The final result will be an average of all the autocorrelation functions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric vector G containing either the autocorrelation for the input vector x, or the cross-correlation between x and y vectors, with a length of nPoints.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The argument nPoints must be smaller than the total number of temporal observations N, it is recommended to set nPoints = 2^n, with n = 2, ..., infinity.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Raúl Pinto Cámara, Adan O. Guerrero
+</p>
+
+
+<h3>References</h3>
+
+<p>R.A. Migueles-Ramirez, A.G. Velasco-Felix, R. Pinto-Cámara, C.D. Wood, A. Guerrero. Fluorescence fluctuation spectroscopy in living cells.
+Microscopy and imaging science: practical approaches to applied research and education, 138-151,2017.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gcf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+### Load the FCSlib package
+
+library(FCSlib)
+
+# As an example, we will use data from experiment adquisition
+# of free Cy5 molecules diffusing in water at a concentration of 100 nM.
+# Use readFileTiff() function to read the fcs data in TIFF format.
+
+f&lt;-readFileTiff("Cy5_100nM.tif")
+
+### Note that $f$ is a matrix of 2048 x 5000 x 1 dimentions.
+# This is due to the fact that this single-point FCS experimen twas collected
+# at intervals of 2048 points each, with an acquisition time of 2 mu s.
+# Let's now create a dataframe with the FCS data wich here-and-after will be called Cy5.
+
+acqTime = 2E-6
+f&lt;-as.vector(f)
+time &lt;- (1:length(f))*acqTime
+Cy5&lt;-data.frame(t = time, f)
+
+### The first 100 ms of the time series are:
+
+plot(Cy5[1:5000,], type ="l", xlab = "t(s)", ylab ="Fluorescence Intensity", main = "Cy5")
+
+# The fcs() function receives three parameters: 'x' (mandatory),
+# 'y'(optional) and 'nPoints' (optional), where x is the main signal to analyze,
+#  y is a secondary signal (for the case of cross-correlation instead of autocorrelation)
+# and nPoints is the final length of the calculated correlation curve.
+# This function divides the original N-size signal into sub-vectors with a size of nPoints*2.
+# Once all the sub-vectors are analyzed, these are then averaged.
+# To use the fcs() function type
+
+g &lt;- fcs(x = Cy5$f, nPoints = length(Cy5$f)/2)
+
+# The result of the function is assigned to the variable 'g',
+# which contains the autocorrelation curve
+
+length &lt;- 1:length(g)
+tau &lt;-Cy5$t[length]
+G&lt;-data.frame(tau,g)
+plot(G, log = "x", type = "l", xlab = expression(tau(s)), ylab = expression(G(tau)), main = "Cy5")
+
+# It is important to remove the first point from the data,
+# where G(\tau=0) it is not properly computed
+
+G&lt;-G[-1,]
+plot(G, log = "x", type = "l", xlab = expression(tau(s)), ylab = expression(G(tau)), main = "Cy5")
+
+# The variable 'nPoints' can be adjusted to better assess the transport phenomena
+# in study (i.e. free diffusion in three dimensions in the case of this example) and
+# for better understanding of the diffusive nature of the molecules.
+# In this example 'nPoints' will be set to 2048.
+
+g &lt;- fcs(x = Cy5$f,nPoints = 2048)
+length &lt;- 1:length(g)
+tau &lt;-Cy5$t[length]
+G&lt;-data.frame(tau,g)
+G&lt;-G[-1,]
+plot(G, log = "x", type = "l", xlab = expression(tau(s)), ylab = expression(G(tau)), main = "Cy5")
+
+</code></pre>
+
+
+</div>

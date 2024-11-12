@@ -1,0 +1,71 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>general_confusion_results</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>General Confusion Table and Errors</h2>
+
+<h3>Description</h3>
+
+<p>Provides a confusion table and error metrics for general factor vectors.
+There is no need for the same levels in the two vectors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">general_confusion_results(yhat, yfac, proportions_scaled_by_column = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>yhat</code></td>
+<td>
+<p>The factor predictions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yfac</code></td>
+<td>
+<p>The true factor responses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportions_scaled_by_column</code></td>
+<td>
+<p>When returning the proportion table, scale by column? Default is <code>FALSE</code> to keep the probabilities 
+unconditional to provide the same values as the function <code>confusion_results</code>. Set to <code>TRUE</code>
+to understand error probabilities by prediction bucket.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of raw results
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(MASS); data(Pima.te)
+ybin = as.numeric(Pima.te$type == "Yes")
+flr = fast_logistic_regression(
+  Xmm = model.matrix(~ . - type, Pima.te), 
+  ybin = ybin
+)
+phat = predict(flr, model.matrix(~ . - type, Pima.te))
+yhat = array(NA, length(ybin))
+yhat[phat &lt;= 1/3] = "no"
+yhat[phat &gt;= 2/3] = "yes"
+yhat[is.na(yhat)] = "maybe"
+general_confusion_results(factor(yhat, levels = c("no", "yes", "maybe")), factor(ybin)) 
+#you want the "no" to align with 0, the "yes" to align with 1 and the "maybe" to be 
+#last to align with nothing
+</code></pre>
+
+
+</div>

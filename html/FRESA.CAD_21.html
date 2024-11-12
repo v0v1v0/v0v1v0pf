@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ClustClass</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Hybrid Hierarchical Modeling</h2>
+
+<h3>Description</h3>
+
+<p>This function returns the outcome associated features and the supervised-classifier present at each one of the unsupervised data clusters
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	ClustClass(formula = formula,
+	            data=NULL,
+	            filtermethod=univariate_KS,
+	            clustermethod=GMVECluster,
+	            classmethod=LASSO_1SE,
+	            filtermethod.control=list(pvalue=0.1,limit=21),
+	            clustermethod.control= list(p.threshold = 0.95, 
+	                                   p.samplingthreshold = 0.5),
+	            classmethod.control=list(family = "binomial"),
+	            pca=TRUE,
+	            normalize=TRUE
+	            )
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>An object of class <code>formula</code> with the formula to be fitted
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame where all variables are stored in different columns
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filtermethod</code></td>
+<td>
+
+<p>The function name that will return the relevant features
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustermethod</code></td>
+<td>
+
+<p>The function name that will cluster the data points
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classmethod</code></td>
+<td>
+
+<p>The function name of the binary classification method
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filtermethod.control</code></td>
+<td>
+
+<p>A list with the parameters to be passed to the filter function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustermethod.control</code></td>
+<td>
+
+<p>A list with the parameters to be passed to the clustering function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classmethod.control</code></td>
+<td>
+
+<p>A list with the parameters to be passed to the classification function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pca</code></td>
+<td>
+
+<p>if TRUE it will compute the PCA transform
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+
+<p>if pca=TRUE and normalize=TRUE it will normalize all the data.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function will first call the filter function that should return the relevant a named vector with the p-value of the features associated with the outcome. 
+Then it will call user-supplied clustering algorithm that must return a relevant data partition based on the discovered features.
+The returned object of the clustering function must contain a $classification object indicates the class label of each data point. 
+Finally, the function will call the classification function on each cluster returned by the clustering function.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>features</code></td>
+<td>
+
+<p>The named vector of FDR adjusted p-values returned by the filtering function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+
+<p>The clustering function output
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+
+<p>The list of classification objects per data cluster
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	## Not run: 	
+      library(mlbench) # Location of the Sonar data set
+	  library(mclust) # The cluster library
+      data(Sonar)
+      Sonar$Class &lt;- 1*(Sonar$Class == "M")
+	  #Train hierachical classifier
+      mc &lt;- ClustClass(Class~.,Sonar,clustermethod=Mclust,clustermethod.control=list(G = 1:4))
+	  #report the classification
+      pb &lt;- predict(mc,Sonar)
+      print(table(1*(pb&gt;0.0),Sonar$Class))
+	
+## End(Not run)
+</code></pre>
+
+
+</div>

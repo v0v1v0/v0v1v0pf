@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>chung_lu</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an undirected Chung-Lu object</h2>
+
+<h3>Description</h3>
+
+<p>To specify a Chung-Lu graph, you must specify
+the degree-heterogeneity parameters (via <code>n</code> or <code>theta</code>).
+We provide reasonable defaults to enable rapid exploration
+or you can invest the effort
+for more control over the model parameters. We <strong>strongly recommend</strong>
+setting the <code>expected_degree</code> or <code>expected_density</code> argument
+to avoid large memory allocations associated with
+sampling large, dense graphs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">chung_lu(
+  n = NULL,
+  theta = NULL,
+  ...,
+  sort_nodes = TRUE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE,
+  force_identifiability = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>(degree heterogeneity) The number of nodes in the graph.
+Use when you don't want to specify the degree-heterogeneity
+parameters <code>theta</code> by hand. When <code>n</code> is specified, <code>theta</code>
+is randomly generated from a <code>LogNormal(2, 1)</code> distribution.
+This is subject to change, and may not be reproducible.
+<code>n</code> defaults to <code>NULL</code>. You must specify either <code>n</code>
+or <code>theta</code>, but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>(degree heterogeneity) A numeric vector
+explicitly specifying the degree heterogeneity
+parameters. This implicitly determines the number of nodes
+in the resulting graph, i.e. it will have <code>length(theta)</code> nodes.
+Must be positive. Setting to a vector of ones recovers
+an erdos renyi graph.
+Defaults to <code>NULL</code>. You must specify either <code>n</code> or <code>theta</code>,
+but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>undirected_factor_model</code>
+</p>
+
+<dl>
+<dt><code>expected_degree</code></dt>
+<dd>
+<p>If specified, the desired expected degree
+of the graph. Specifying <code>expected_degree</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Do not specify both
+<code>expected_degree</code> and <code>expected_density</code> at the same time.</p>
+</dd>
+<dt><code>expected_density</code></dt>
+<dd>
+<p>If specified, the desired expected density
+of the graph. Specifying <code>expected_density</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Do not specify both
+<code>expected_degree</code> and <code>expected_density</code> at the same time.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort_nodes</code></td>
+<td>
+<p>Logical indicating whether or not to sort the nodes
+so that they are grouped by block and by <code>theta</code>. Useful for plotting.
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poisson_edges</code></td>
+<td>
+<p>Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when <code>FALSE</code>, we assume that <code>S</code> specifies a desired between-factor
+connection probability, and back-transform this <code>S</code> to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_self_loops</code></td>
+<td>
+<p>Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds allowing
+self-loops, and these are then removed after the fact.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force_identifiability</code></td>
+<td>
+<p>Logical indicating whether or not to
+normalize <code>theta</code> such that it sums to one within each block. Defaults
+to <code>FALSE</code>, since this behavior can be surprise when <code>theta</code> is set
+to a vector of all ones to recover the DC-SBM case.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>undirected_chung_lu</code> S3 object, a subclass of <code>dcsbm()</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other undirected graphs: 
+<code>dcsbm()</code>,
+<code>erdos_renyi()</code>,
+<code>mmsbm()</code>,
+<code>overlapping_sbm()</code>,
+<code>planted_partition()</code>,
+<code>sbm()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(27)
+
+cl &lt;- chung_lu(n = 1000, expected_density = 0.01)
+cl
+
+theta &lt;- round(stats::rlnorm(100, 2))
+
+cl2 &lt;- chung_lu(
+  theta = theta,
+  expected_degree = 5
+)
+
+cl2
+
+edgelist &lt;- sample_edgelist(cl)
+edgelist
+
+</code></pre>
+
+
+</div>

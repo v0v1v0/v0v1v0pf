@@ -1,0 +1,384 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>de_analysis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Differential Expression Analysis using a Topic Model</h2>
+
+<h3>Description</h3>
+
+<p>Implements methods for differential expression
+analysis using a topic model. These methods are motivated by gene
+expression studies, but could have other uses, such as identifying
+“key words” for topics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">de_analysis(
+  fit,
+  X,
+  s = rowSums(X),
+  pseudocount = 0.01,
+  fit.method = c("scd", "em", "mu", "ccd", "glm"),
+  shrink.method = c("ash", "none"),
+  lfc.stat = "le",
+  control = list(),
+  verbose = TRUE,
+  ...
+)
+
+de_analysis_control_default()
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>An object of class “poisson_nmf_fit” or
+“multinom_topic_model_fit”, or an n x k matrix of topic
+proportions, where k is the number of topics. (The elements in each
+row of this matrix should sum to 1.) If a Poisson NMF fit is
+provided as input, the corresponding multinomial topic model fit is
+automatically recovered using <code>poisson2multinom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The n x m counts matrix. It can be a sparse matrix (class
+<code>"dgCMatrix"</code>) or dense matrix (class <code>"matrix"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>A numeric vector of length n determining how the rates are
+scaled in the Poisson models. See “Details” for guidance on
+the choice of <code>s</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pseudocount</code></td>
+<td>
+<p>Observations with this value are added to the
+counts matrix to stabilize maximum-likelihood estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.method</code></td>
+<td>
+<p>Method used to fit the Poisson models. Note that
+<code>fit.method = "glm"</code> is the slowest method, and is mainly used
+for testing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrink.method</code></td>
+<td>
+<p>Method used to stabilize the posterior mean
+LFC estimates.  When <code>shrink.method = "ash"</code>, the "adaptive
+shrinkage" method implemented in the ‘ashr’ package is used to
+compute posterior. When <code>shrink.method = "none"</code>, no
+stabilization is performed, and the “raw” posterior mean LFC
+estimates are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lfc.stat</code></td>
+<td>
+<p>The log-fold change statistics returned:
+<code>lfc.stat = "vsnull"</code>, the log-fold change relative to the
+null; <code>lfc.stat = "le"</code>, the “least extreme” LFC; or a
+topic name or number, in which case the LFC is defined relative to
+the selected topic. See “Details” for more detailed
+explanations of these choices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list of parameters controlling behaviour of
+the optimization and Monte Carlo algorithms. See ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>When <code>verbose = TRUE</code>, progress information is
+printed to the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>When <code>shrink.method = "ash"</code>, these are
+additional arguments passed to <code>ash</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The methods are based on the Poisson model
+</p>
+<p style="text-align: center;"><code class="reqn">x_i ~ Poisson(\lambda_i),</code>
+</p>
+<p> in which the Poisson rates are
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_i = \sum_{j=1}^k s_i l_{ij} f_j,</code>
+</p>
+<p> the <code class="reqn">l_{ik}</code>
+are the topic proportions and the <code class="reqn">f_j</code> are the unknowns to be
+estimated. This model is applied separately to each column of
+<code>X</code>. When <code class="reqn">s_i</code> (specified by input argument <code>s</code>) is
+equal the total count in row i (this is the default), the Poisson
+model will closely approximate a binomial model of the count data,
+and the unknowns <code class="reqn">f_j</code> will approximate binomial
+probabilities. (The Poisson approximation to the binomial is most
+accurate when the total counts <code>rowSums(X)</code> are large and the
+unknowns <code class="reqn">f_j</code> are small.) Other choices for <code>s</code> are
+possible, and implement different normalization schemes.
+</p>
+<p>To allow for some flexibility, <code>de_analysis</code> allows for the
+log-fold change to be measured in several ways.
+</p>
+<p>One option is to compare against the probability under the null
+model: <code class="reqn">LFC(j) = log2(f_j/f_0)</code>, where <code class="reqn">f_0</code> is the single
+parameter in the Poisson model <code class="reqn">x_i ~ Poisson(\lambda_i)</code> with
+rates <code class="reqn">\lambda_i = s_i f_0</code>. This LFC definition is chosen with
+<code>lfc.stat = "vsnull"</code>.
+</p>
+<p>Another option is to compare against a chosen topic, k: <code class="reqn">LFC(j)
+= log2(f_j/f_k)</code>. By definition, <code class="reqn">LFC(k)</code> is zero, and
+statistics such as z-scores and p-values for topic k are set to
+<code>NA</code>. This LFC definition is selected by setting
+<code>lfc.stat = k</code>.
+</p>
+<p>A final option (which is the default) computes the “least
+extreme” LFC, defined as <code class="reqn">LFC(j) = log2(f_j/f_k)</code> such that
+<code class="reqn">k</code> is the topic other than <code class="reqn">j</code> that gives the ratio
+<code class="reqn">f_j/f_k</code> closest to 1. This option is chosen with
+<code>lfc.stat = "le"</code>.
+</p>
+<p>We recommend setting <code>shrink.method = "ash"</code>, which uses the
+“adaptive shrinkage” method (Stephens, 2016) to improve
+accuracy of the posterior mean estimates and z-scores. We follow
+the settings used in <code>lfcShrink</code> from the ‘DESeq2’
+package, with <code>type = "ashr"</code>.
+</p>
+<p>Note that all LFC statistics are defined using the base-2 logarithm
+following the conventioned used in differential expression
+analysis.
+</p>
+<p>The <code>control</code> argument is a list in which any of the
+following named components will override the default optimization
+algorithm settings (as they are defined by
+<code>de_analysis_control_default</code>):
+</p>
+
+<dl>
+<dt><code>numiter</code></dt>
+<dd>
+<p>Maximum number of iterations performed in
+fitting the Poisson models. When <code>fit.method = "glm"</code>, this is
+passed as argument <code>maxit</code> to the <code>glm</code> function.</p>
+</dd>
+<dt><code>minval</code></dt>
+<dd>
+<p>A small, positive number. All topic
+proportions less than this value and greater than <code>1 - minval</code>
+are set to this value.</p>
+</dd>
+<dt><code>tol</code></dt>
+<dd>
+<p>Controls the convergence tolerance for fitting
+the Poisson models. When <code>fit.method = "glm"</code>, this is passed
+as argument <code>epsilon</code> to function <code>glm</code>.</p>
+</dd>
+<dt><code>conf.level</code></dt>
+<dd>
+<p>The size of the highest posterior density
+(HPD) intervals. Should be a number greater than 0 and less than 1.</p>
+</dd>
+<dt><code>ns</code></dt>
+<dd>
+<p>Number of Monte Carlo samples simulated by
+random-walk MCMC for estimating posterior LFC quantities.</p>
+</dd>
+<dt><code>rw</code></dt>
+<dd>
+<p>The standard deviation of the normal density used
+to propose new states in the random-walk MCMC.</p>
+</dd>
+<dt><code>eps</code></dt>
+<dd>
+<p>A small, non-negative number added to the terms
+inside the logarithms to avoid computing logarithms of zero.</p>
+</dd>
+<dt><code>nc</code></dt>
+<dd>
+<p>Number of threads used in the multithreaded
+computations. Note that the multithreading relies on forking hence
+is not available on Windows; will return an error on Windows unless
+<code>nc = 1</code>. See <code>mclapply</code> for
+details. Also note that if R is installed with a multithreading
+numerical linear algebra library (e.g., OpenBLAS), for best
+performance the number of threads used by the linear algebra
+library should be set to 1 (i.e., no multithreading). This can be
+controlled for example using the RhpcBLASctl package.</p>
+</dd>
+<dt><code>nsplit</code></dt>
+<dd>
+<p>The number of data splits used in the
+multithreaded computations (only relevant when <code>nc &gt; 1</code>). More
+splits increase the granularity of the progress bar, but can also
+slow down the mutithreaded computations by introducing more
+overhead in the call to <code>pblapply</code>.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list with the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>The log-fold change maximum-likelihood estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>postmean</code></td>
+<td>
+<p>Posterior mean LFC estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>Lower limits of estimated HPD intervals. Note that
+these are not updated by the shrinkage step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>Upper limits of estimated HPD intervals. Note that
+these are not updated by the shrinkage step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>z-scores for posterior mean LFC estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lpval</code></td>
+<td>
+<p>-log10 two-tailed p-values obtained from the
+z-scores. When <code>shrink.method = "ash"</code>, this is <code>NA</code>, and
+the s-values are returned instead (see below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svalue</code></td>
+<td>
+<p>s-values returned by
+<code>ash</code>. s-values are analogous to q-values, but
+based on the local false sign rate; see Stephens (2016).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lfsr</code></td>
+<td>
+<p>When <code>shrink.method = "ash"</code> only, this output
+contains the estimated local false sign rates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ash</code></td>
+<td>
+<p>When <code>shrink.method = "ash"</code> only, this output
+contains the <code>ash</code> return value (after removing
+the <code>"data"</code>, <code>"result"</code> and <code>"call"</code> list
+elements).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>Maximum-likelihood estimates of the Poisson model
+parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f0</code></td>
+<td>
+<p>Maximum-likelihood estimates of the null model
+parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ar</code></td>
+<td>
+<p>A vector containing the Metropolis acceptance ratios
+from each MCMC run.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Stephens, M. (2016). False discovery rates: a new deal.
+<em>Biostatistics</em> <b>18</b>(2), kxw041.
+doi: <a href="https://doi.org/10.1093/biostatistics/kxw041">10.1093/biostatistics/kxw041</a>
+</p>
+<p>Zhu, A., Ibrahim, J. G. and Love, M. I. (2019). Heavy-tailed prior
+distributions for sequence count data: removing the noise and
+preserving large differences. <em>Bioinformatics</em> <b>35</b>(12),
+2084–2092.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Perform a differential expression (DE) analysis using the previously
+# fitted multinomial topic model. Note that the de_analysis call could
+# take several minutes to complete.
+
+set.seed(1)
+data(pbmc_facs)
+de &lt;- de_analysis(pbmc_facs$fit,pbmc_facs$counts)
+
+# Compile the DE analysis results for topic 4 into a table, and
+# rank the genes by the posterior mean log-fold change, limiting to
+# DE genes identified with low lfsr ("local false sign rate").
+k &lt;- 4
+dat &lt;- data.frame(postmean = de$postmean[,k],
+                  z        = de$z[,k],
+                  lfsr     = de$lfsr[,k])
+rownames(dat) &lt;- with(pbmc_facs$genes,paste(symbol,ensembl,sep = "_"))
+dat &lt;- subset(dat,lfsr &lt; 0.01)
+dat &lt;- dat[order(dat$postmean,decreasing = TRUE),]
+
+# Genes at the top of this ranking are genes that are much more
+# highly expressed in the topic compared to other topics.
+head(dat,n = 10)
+
+# The genes at the bottom of the ranking are genes that are much less
+# expressed in the topic.
+tail(dat,n = 10)
+
+# Create a volcano plot from the DE results for topic 4.
+volcano_plot(de,k = k,ymax = 50,labels = pbmc_facs$genes$symbol)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>WFDA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Time-Warping in Functional Data Analysis:
+Pairwise curve synchronization for functional data</h2>
+
+<h3>Description</h3>
+
+<p>Time-Warping in Functional Data Analysis:
+Pairwise curve synchronization for functional data
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">WFDA(Ly, Lt, optns = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ly</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual corresponding to y. Each vector should be sorted in ascending order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code>. See 'Details'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>WFDA uses a pairwise warping method to obtain the desired alignment (registration) of the random trajectories. 
+The data has to be regular. The routine returns the aligned curves and the associated warping function. 
+</p>
+<p>Available control options are 
+</p>
+
+<dl>
+<dt>choice</dt>
+<dd>
+<p>Choice of estimating the warping functions ('weighted' or 'truncated'). If 'weighted' then weighted averages of pairwise warping functions are computed; the weighting is based on the inverse pairwise distances. If 'truncated' the pairs with the top 10% largest distances are truncated and the simple average of the remaining pairwise distances are used - default: 'truncated'</p>
+</dd>
+<dt>subsetProp</dt>
+<dd>
+<p>Pairwise warping functions are determined by using a subset of the whole sample; numeric (0,1] - default: 0.50</p>
+</dd>
+<dt>lambda</dt>
+<dd>
+<p>Penalty parameter used for estimating pairwise warping functions; numeric - default : V*10^-4, where V is the average L2 norm of y-mean(y).</p>
+</dd>
+<dt>nknots</dt>
+<dd>
+<p>Number of knots used for estimating the piece-wise linear pairwise warping functions; numeric - default: 2</p>
+</dd> 
+<dt>isPWL</dt>
+<dd>
+<p>Indicator if the resulting warping functions should piece-wise linear, if FALSE 'nknots' is ignored and the resulting warping functions are simply monotonic; logical - default: TRUE (significantly larger computation time.)</p>
+</dd> 
+<dt>seed</dt>
+<dd>
+<p>Random seed for the selection of the subset of warping functions; numeric - default: 666</p>
+</dd>
+<dt>verbose</dt>
+<dd>
+<p>Indicator if the progress of the pairwise warping procedure should be displayed; logical - default: FALSE</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>Control options used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Penalty parameter used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aligned</code></td>
+<td>
+<p>Aligned curves evaluated at time 't'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Warping functions for 't'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hInv</code></td>
+<td>
+<p>Inverse warping functions evaluated at 't'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>costs</code></td>
+<td>
+<p>The mean cost associated with each curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timing</code></td>
+<td>
+<p>The time required by time-warping.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Tang, R. and Müller, H.G. (2008). "Pairwise curve synchronization for functional data." Biometrika 95, 875-889</cite>
+</p>
+<p><cite>Tang, R. and Müller, H.G. (2009) "Time-synchronized clustering of gene expression trajectories." Biostatistics 10, 32-45</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">N = 44;
+eps = 0.123;
+M = 41;
+set.seed(123) 
+Tfinal = 3
+me &lt;- function(t) exp(-Tfinal*(((t/Tfinal^2)-0.5))^2);
+T = seq(0,Tfinal,length.out = M) 
+recondingTimesMat = matrix(nrow = N, ncol = M)
+yMat = matrix(nrow = N, ncol = M)
+
+for (i in 1:N){
+  peak = runif(min = 0.2,max =  0.8,1) * Tfinal 
+  recondingTimesMat[i,] = sort( unique(c( seq(0.0 , peak, length.out = round((M+1)/2)),
+                            seq( peak, Tfinal, length.out = round((M+1)/2))))) * Tfinal
+  yMat[i,] = me(recondingTimesMat[i,]) * rnorm(1, mean=4.0, sd=  eps)
+                                       + rnorm(M, mean=0.0, sd=  eps) 
+}
+
+Y = as.list(as.data.frame(t(yMat)))
+X = rep(list(T),N)
+ 
+sss =  WFDA(Ly = Y, Lt = X, list( choice = 'weighted' ))
+op &lt;- par(mfrow=c(1,2))
+matplot(x= T, t(yMat), t='l', main = 'Raw', ylab = 'Y'); grid()
+matplot(x= T, t(sss$aligned), t='l', main = 'Aligned', ylab='Y'); grid() 
+par(op)
+</code></pre>
+
+
+</div>

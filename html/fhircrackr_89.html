@@ -1,0 +1,278 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_search</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Download FHIR search result</h2>
+
+<h3>Description</h3>
+
+<p>Downloads all FHIR bundles of a FHIR search request from a FHIR server by iterating through the bundles. Search via GET
+and POST is possible, see Details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_search(
+  request = fhir_current_request(),
+  body = NULL,
+  username = NULL,
+  password = NULL,
+  token = NULL,
+  add_headers = NULL,
+  max_bundles = Inf,
+  verbose = 1,
+  delay_between_attempts = c(1, 3, 9, 27, 81),
+  log_errors = NULL,
+  save_to_disc = NULL,
+  delay_between_bundles = 0,
+  rm_tag = "div",
+  max_attempts = deprecated()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>request</code></td>
+<td>
+<p>An object of class fhir_url or a character vector of length one containing the full FHIR search request. It is
+recommended to explicitly create the request via <code>fhir_url()</code> as this will do some validity checks and format the url properly.
+Defaults to <code>fhir_current_request()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>body</code></td>
+<td>
+<p>A character vector of length one or object of class <code>fhir_body</code> with type <code>"application/x-www-form-urlencoded"</code>. A body should be provided
+when the FHIR search request is too long and might exceed the maximal allowed length of the URL when send to the server. In this case
+a search via POST (see https://www.hl7.org/fhir/search.html#Introduction) can be used. The body should contain all the parameters that
+follow after the <code style="white-space: pre;">⁠?⁠</code> in the FHIR search request. When a body is provided, the required <code style="white-space: pre;">⁠_search⁠</code> is automatically added
+to the url in <code>request</code>. See examples and <code>?fhir_body</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>username</code></td>
+<td>
+<p>A character vector of length one containing the username for basic authentication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>password</code></td>
+<td>
+<p>A character vector of length one containing the password for basic authentication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>A character vector of length one or object of class httr::Token, for bearer token authentication (e.g. OAuth2). See <code>fhir_authenticate()</code>
+for how to create this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_headers</code></td>
+<td>
+<p>A named character vector of custom headers to add to the HTTP request, e.g. <code>c(myHeader = "somevalue")</code> or
+<code>c(firstHeader = "value1", secondHeader = "value2")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_bundles</code></td>
+<td>
+<p>Maximal number of bundles to get. Defaults to Inf meaning all available bundles are downloaded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>An integer vector of length one. If 0, nothing is printed, if 1, only finishing message is printed, if &gt; 1,
+downloading progress will be printed. Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delay_between_attempts</code></td>
+<td>
+<p>A numeric vector specifying the delay in seconds between attempts of reaching the server
+that <code>fhir_search()</code> will make. The length of this vector determines the number of attempts that will be made before stopping with an error.
+Defaults to <code>c(1,3,9,27,81)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_errors</code></td>
+<td>
+<p>Either <code>NULL</code> or a character vector of length one indicating the name of a file in which to save the http errors.
+<code>NULL</code> means no error logging. When a file name is provided, the errors are saved in the specified file. Defaults to <code>NULL</code>.
+Regardless of the value of <code>log_errors</code> the most recent http error message within the current R session is saved internally and can
+be accessed with <code>fhir_recent_http_error()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save_to_disc</code></td>
+<td>
+<p>Either <code>NULL</code> or a character vector of length one indicating the name of a directory in which to save the bundles.
+If a directory name is provided, the bundles are saved as numerated xml-files into the directory specified
+and not returned as a bundle list in the R session. This is useful when a lot of bundles are to be downloaded and keeping them all
+in one R session might overburden working memory. When the download is complete, the bundles can be loaded into R using <code>fhir_load()</code>.
+Defaults to <code>NULL</code>, i.e. bundles are returned as a list within the R session.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delay_between_bundles</code></td>
+<td>
+<p>A numeric scalar specifying a time in seconds to wait between pages of the search result,
+i.e. between downloading the current bundle and the next bundle. This can be used to avoid choking a weak server with
+too many requests to quickly. Defaults to zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm_tag</code></td>
+<td>
+<p>Character vector of length 1 defining an xml tag of elements that will removed from the bundle automatically.
+Defaults to <code>"div"</code>,leading to the removal of all html parts (see Details). Set to <code>NULL</code> to keep the bundles untouched.
+See <code>fhir_rm_div()</code> and <code>fhir_rm_tag()</code> for more info.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_attempts</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> The number of maximal attempts is now determined by the length of <code>delay_between_attempts</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+
+<h4>Request type</h4>
+
+<p><code>fhir_search</code> allows for two types of search request:
+</p>
+
+<ol>
+<li>
+<p> FHIR search via GET:
+This is the more common approach. All information on which resources to download is contained in the URL
+that is send to the server (<code>request</code> argument). This encompasses the base url of the server, the resource type and possible
+search parameters to further qualify the search (see <code>fhir_url()</code>). The search via GET is the default and performed whenever
+the argument <code>body</code> is NULL.
+</p>
+</li>
+<li>
+<p> FHIR search via POST:
+This option should only be used when the parameters make the search URL so long the server might deny it
+because it exceeds the allowed length. In this case the search parameters (everything that would usually follow the resource type
+after the <code style="white-space: pre;">⁠?⁠</code>) can be transferred to a body of type <code>"application/x-www-form-urlencoded"</code> and send via POST. If you provide a body in
+<code>fhir_search()</code>, the url in <code>request</code> should only contain the base URL and the resource type.
+The function will automatically amend it with <code style="white-space: pre;">⁠_search⁠</code> and perform a POST.
+</p>
+</li>
+</ol>
+<h4>Authentication</h4>
+
+<p>There are several ways of authentication implemented in <code>fhir_search()</code>. If you don't need any authentication,
+just leave the arguments described in the following at their default values of <code>NULL</code>.
+</p>
+
+<ol>
+<li>
+<p> Basic Authentication: Provide the <code>username</code> and the <code>password</code> for basic authentication in the respective arguments.
+</p>
+</li>
+<li>
+<p> Token Authentication: Provide a token in the argument <code>token</code>, either as a character vector of length one or as as an object of class
+httr::Token. You can use the function <code>fhir_authenticate()</code> to create this object.
+</p>
+</li>
+</ol>
+<h4>Additional headers</h4>
+
+<p>Per default, the underlying HTTP requests are equipped with <em>Accept</em> and <em>Authorization</em> headers. If you need to pass additional headers,
+e.g. cookies for authentication or other custom headers, you can add these to the request as a named character vector using the
+<code>add_headers</code> argument.
+</p>
+
+
+
+<h4>HTML removal</h4>
+
+<p>FHIR resources can contain a considerable amount of html code (e.g. in a <a href="https://www.hl7.org/fhir/narrative.html#xhtml">narrative</a> object),
+which is often created by the server for example to provide a human-readable summary of the resource.
+This data is usually not the aim of structured statistical analysis, so in the default setting <code>fhir_search()</code> will remove the html
+parts immediately after download to reduce memory usage (on a hapi server typically by around 30%, see <code>fhir_rm_div()</code>).
+The memory gain is payed with a runtime increase of 10%-20%. The html removal can be disabled by setting <code>rm_tag = NULL</code>
+to increase speed at the cost of increased memory usage.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A fhir_bundle_list when <code>save_to_disc = NULL</code> (the default),  else <code>NULL</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p> Creating a FHIR search request: <code>fhir_url()</code> and <code>fhir_body()</code> (for POST based search)
+</p>
+</li>
+<li>
+<p> OAuth2 Authentication: <code>fhir_authenticate()</code>
+</p>
+</li>
+<li>
+<p> Saving/reading bundles from disc: <code>fhir_save()</code> and <code>fhir_load()</code>
+</p>
+</li>
+<li>
+<p> Flattening the bundles: <code>fhir_crack()</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#the try({}, silent = TRUE) statement is only there to catch errors when the server is down
+#you can skip it when the server is reachable
+
+try({
+
+### Search with GET
+
+#create fhir search url
+
+request &lt;- fhir_url(url = "https://server.fire.ly",
+                    resource = "Patient",
+                    parameters = c(gender="female"))
+
+#download bundles
+bundles &lt;- fhir_search(request, max_bundles = 5)
+
+
+
+### Search with POST (should actually be used for longer requests)
+
+request &lt;- fhir_url(url = "https://server.fire.ly",
+                    resource = "Patient")
+
+body &lt;- fhir_body(content = list(gender = "female"))
+
+bundles &lt;- fhir_search(request = request,
+                       body = body,
+                       max_bundles = 5)
+
+
+ }, silent = TRUE)
+ 
+</code></pre>
+
+
+</div>

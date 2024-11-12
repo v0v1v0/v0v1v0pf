@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash_fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract a flash_fit object</h2>
+
+<h3>Description</h3>
+
+<p><code>flash_fit</code> objects are the "internal" objects used by <code>flash</code>
+functions to fit an EBMF model. Whereas <code>flash</code> objects
+(the end results of the fitting process) include user-friendly fields and
+methods, <code>flash_fit</code> objects were not designed for public
+consumption and can be unwieldy. Nonetheless, some advanced
+<code>flash</code> functionality requires the wielding of
+<code>flash_fit</code> objects. In particular, initialization, convergence,
+and "verbose" display functions all take one or more <code>flash_fit</code>
+objects as input (see parameter <code>init_fn</code> in function
+<code>flash_greedy</code>; parameter <code>fn</code> in
+<code>flash_set_conv_crit</code>;
+and parameter <code>fns</code> in <code>flash_set_verbose</code>).
+For users who would like to write custom functions, the accessor functions
+and methods enumerated below may prove useful. See
+<code>flash_set_verbose</code> for an example.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash_fit(flash)
+
+flash_fit_get_pm(f, n)
+
+flash_fit_get_p2m(f, n)
+
+flash_fit_get_est_tau(f)
+
+flash_fit_get_fixed_tau(f)
+
+flash_fit_get_tau(f)
+
+flash_fit_get_elbo(f)
+
+flash_fit_get_KL(f, n)
+
+flash_fit_get_g(f, n)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>flash</code></td>
+<td>
+<p>A <code>flash</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>A <code>flash_fit</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Set <code>n = 1</code> to access loadings <code class="reqn">L</code> and <code>n = 2</code> to
+access factors <code class="reqn">F</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The following S3 methods are available for <code>flash_fit</code> objects at all
+times except while optimizing new factor/loadings pairs as part of a
+"greedy" fit:
+</p>
+
+<dl>
+<dt><code>fitted.flash_fit</code></dt>
+<dd>
+<p>Returns the "fitted values"
+<code class="reqn">E(LF') = E(L) E(F)'</code>.</p>
+</dd>
+<dt><code>residuals.flash_fit</code></dt>
+<dd>
+<p>Returns the expected residuals
+<code class="reqn">Y - E(LF') = Y - E(L) E(F)'</code>.</p>
+</dd>
+<dt><code>ldf.flash_fit</code></dt>
+<dd>
+<p>Returns an <code class="reqn">LDF</code> decomposition,
+with columns of <code class="reqn">L</code> and <code class="reqn">F</code> scaled as specified by the user.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>See function descriptions below.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>flash_fit_get_pm()</code>: The posterior means for the loadings matrix <code class="reqn">L</code>
+(when parameter <code>n</code> is equal to <code>1</code>) or factor matrix <code class="reqn">F</code>
+(when <code>n = 2</code>). While optimizing new factor/loadings pairs as part of
+a "greedy" fit, only the posterior means for the new loadings
+<code class="reqn">\ell_{\cdot k}</code> or factor <code class="reqn">f_{\cdot k}</code> will be returned.
+</p>
+</li>
+<li> <p><code>flash_fit_get_p2m()</code>: The posterior second moments for the loadings matrix
+<code class="reqn">L</code> (when parameter <code>n</code> is equal to <code>1</code>) or factor matrix
+<code class="reqn">F</code> (when <code>n = 2</code>). While optimizing new factor/loadings pairs,
+only the posterior second moments for the new loadings <code class="reqn">\ell_{\cdot k}</code>
+or factor <code class="reqn">f_{\cdot k}</code> will be returned.
+</p>
+</li>
+<li> <p><code>flash_fit_get_est_tau()</code>: Equal to <code class="reqn">1 / \sigma^2</code>, where <code class="reqn">\sigma^2</code>
+is the estimated portion of the residual variance (total, by row, or
+by column, depending on the variance type).
+</p>
+</li>
+<li> <p><code>flash_fit_get_fixed_tau()</code>: Equal to <code class="reqn">1 / s^2</code>, where <code class="reqn">s^2</code> is the
+fixed portion of the residual variance (total, by row, or by column).
+</p>
+</li>
+<li> <p><code>flash_fit_get_tau()</code>: The overall precision <code class="reqn">1 / (\sigma^2 + s^2)</code>.
+</p>
+</li>
+<li> <p><code>flash_fit_get_elbo()</code>: The variational lower bound (ELBO).
+</p>
+</li>
+<li> <p><code>flash_fit_get_KL()</code>: A vector containing the KL-divergence portions of
+the ELBO, with one value for each factor (when <code>n = 2</code>) or set of
+loadings (when <code>n = 1</code>). While optimizing new factor/loadings pairs,
+only the KL-divergence for the new factor or loadings will be returned.
+</p>
+</li>
+<li> <p><code>flash_fit_get_g()</code>: A list containing estimated priors on loadings
+<code class="reqn">\hat{g}_\ell</code> (when <code>n = 1</code>) or factors <code class="reqn">\hat{g}_f</code> (when
+<code>n = 2</code>). While optimizing new factor/loadings pairs, only the
+estimated prior on the new factor or loadings will be returned.
+</p>
+</li>
+</ul>
+</div>

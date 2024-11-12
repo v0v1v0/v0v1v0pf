@@ -1,0 +1,89 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_importance_SL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract extrinsic importance from a Super Learner object</h2>
+
+<h3>Description</h3>
+
+<p>Extract the individual-algorithm extrinsic importance from each fitted
+algorithm within the Super Learner; compute the average weighted rank of the
+importance scores, with weights specified by each algorithm's weight in the
+Super Learner.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_importance_SL(fit, feature_names, import_type = "all", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>the fitted Super Learner ensemble</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_names</code></td>
+<td>
+<p>the names of the features</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>import_type</code></td>
+<td>
+<p>the level of granularity for importance: <code>"all"</code> is the
+importance based on the weighted average of ranks across algorithmrithms
+(weights are SL coefs); <code>"best"</code> is the importance based on the algorithmrithm
+with highest weight. Defaults to <code>"all"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments to pass to individual-algorithm extractors.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a tibble, with columns <code>feature</code> (the feature) and
+<code>rank</code> (the weighted feature importance rank, with 1 indicating the
+most important feature).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("biomarkers")
+# subset to complete cases for illustration
+cc &lt;- complete.cases(biomarkers)
+dat_cc &lt;- biomarkers[cc, ]
+# use only the mucinous outcome, not the high-malignancy outcome
+y &lt;- dat_cc$mucinous
+x &lt;- dat_cc[, !(names(dat_cc) %in% c("mucinous", "high_malignancy"))]
+feature_nms &lt;- names(x)
+# get the fit (using a simple library and 2 folds for illustration only)
+set.seed(20231129)
+library("SuperLearner")
+fit &lt;- SuperLearner::SuperLearner(Y = y, X = x, SL.library = c("SL.glm", "SL.mean"), 
+                                  cvControl = list(V = 2))
+# extract importance using all learners
+importance &lt;- extract_importance_SL(fit = fit, feature_names = feature_nms)
+importance
+# extract importance of best learner
+best_importance &lt;- extract_importance_SL(fit = fit, feature_names = feature_nms, 
+                                         import_type = "best")
+best_importance
+
+</code></pre>
+
+
+</div>

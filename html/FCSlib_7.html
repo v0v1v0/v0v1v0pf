@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitFCS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting FCS Data</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the parameters based on a given equation, on the data generated with the fcs() function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitFCS(data = parent.frame(), start, low = -Inf, up = Inf,
+              type = "D3D", model = NULL, trace = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame in which to evaluate the variables in formula and weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>a named list or named numeric vector of starting estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>low, up</code></td>
+<td>
+<p>a named list or named numeric vector of lower and upper bounds, replicated to be as long as start. If unspecified, all parameters are assumed to be -Inf and Inf.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>specification for the equation to model, is a character string. The default value is "D3D" equation for three-dimensional free diffusion.
+Another possibles values are: "D2D" for two-dimensional free diffusion,  "D2DT" for two-dimensional free diffusion with triplet exited state, and "D3DT" for three-dimensional free diffusion with triplet exited state
+and D3D2S for two species in three-dimensional free diffusion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a character type variable, that must contain the custom equation if needed, NULL by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>logical value that indicates whether the progress of the non-linear regression (nls) should be printed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A transport model, containing physical information about the diffusive nature of the fluorophores, can be fitted to the autocorrelation data to obtain parameters such as the diffusion coeficient D and the number of molecules within the observation volume N.
+</p>
+<p>The fitFCS() function uses the 'Non-linear Least Squares' function to fit a physical model into a data set. There are four possible models to be fit:
+</p>
+<p>"D2D" for two-dimensional diffusion
+</p>
+<p>"D2DT" for two-dimensional diffusion with triplet state
+</p>
+<p>"D3D" for three-dimensional diffusion
+</p>
+<p>"D3DT" for three-dimensional diffusion with triplet state
+</p>
+<p>Inside the equations for each model, gamma a geometric factor that depends on the illumination profile. For confocal excitation its magnitude approaches gamma = 1/sqrt8 ??? 0.35 fl. The diffusion time is defined as tau_D = s^2/4D, where s and u are the radius and the half-length of the focal volume, respectively. The parameter u is usually expressed as u = ks, with k being the eccentricity of the focal volume; for confocal excitation k ??? 3. The fraction of molecules in the triplet state is B, and tau_B is a time constant for the triplet state.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A nls object (from nls).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Raúl Pinto Cámara.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>nls</code>, <code>fcs</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load the FCSlib package
+
+library(FCSlib)
+
+g &lt;- fcs(x = Cy5$f,nPoints = 2048)
+len &lt;- 1:length(g)
+tau &lt;-Cy5_100nM$t[len]
+G&lt;-data.frame(tau,g)
+G&lt;-G[-1,]
+
+# Once the correlation curve 'g' has been generated,
+# a data frame containing known parameters must be then defined
+
+df&lt;-data.frame(G, s = 0.27, k = 3)
+head(df)
+
+# The radius of the focal volume must computed experimentally.
+# For this example, we choose a s = 0.27~ mu m
+# Then, three lists that contain the initial values of the data,
+# as well as the upper and lower limits of these values, must be defined.
+# The input values here are the expected values for the real experimental data
+# to be very similar or close to, so that the function calculates them accurately.
+# Initial values:
+
+start &lt;- list(D = 100, G0 = 0.1)
+up &lt;- list(D = 1E3, G0 = 10)
+low &lt;- list(D = 1E-1, G0 = 1E-2)
+
+# Once the known parameters are defined, we now proceed to use the fitFCS() function.
+# The result will be a nls object
+
+modelFCS &lt;- fitFCS(df, start, low, up, type = "D3D", trace = F)
+# summary(modelFCS)
+
+# By using the predict() function, the object generated in the previous step
+# is transformed into a vector that contains the curve fitted by the desired model.
+
+fit &lt;- predict(modelFCS, tau)
+
+# Finally, use the following command to obtain the resulting graph,
+# where the blue line corresponds to the fitted data and the black surface
+# corresponds to the unfitted
+
+plot (G, log = "x", type = "l", xlab = expression(tau(s)),
+      ylab = expression(G(tau)), main = "Cy5")
+lines(fit~G$tau, col = "blue")
+
+# To acquire access to the physical coefficients of the model type
+
+s&lt;-summary(modelFCS)
+s$coefficients[,1]
+
+</code></pre>
+
+
+</div>

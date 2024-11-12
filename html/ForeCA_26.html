@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>initialize_weightvector</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Initialize weightvector for iterative ForeCA algorithms</h2>
+
+<h3>Description</h3>
+
+<p><code>initialize_weightvector</code> returns a unit norm (in <code class="reqn">\ell^2</code>)
+vector <code class="reqn">\mathbf{w}_0 \in R^K</code> that can be used as the starting
+point for any iterative ForeCA algorithm, e.g., 
+<code>foreca.EM.one_weightvector</code>. Several 
+quickly computable heuristics are available via the <code>method</code> argument.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">initialize_weightvector(
+  U = NULL,
+  f.U = NULL,
+  num.series = ncol(U),
+  method = c("rnorm", "max", "SFA", "PCA", "rcauchy", "runif", "SFA.slow", "SFA.fast",
+    "PCA.large", "PCA.small"),
+  seed = sample(1e+06, 1),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>a <code class="reqn">T \times K</code> array with <code>T</code> observations from the 
+<code class="reqn">K</code>-dimensional <strong>whitened</strong> (<code>whiten</code>) 
+time series <code class="reqn">\mathbf{U}_t</code>. Can be a <code>matrix</code>, <code>data.frame</code>, or a 
+multivariate <code>ts</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.U</code></td>
+<td>
+<p>multivariate spectrum of class <code>'mvspectrum'</code> with 
+<code>normalize = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.series</code></td>
+<td>
+<p>positive integer; number of time series <code class="reqn">K</code> (determines the length 
+of the weightvector). If <code>num.series = 1</code> it simply returns
+a 1 <code class="reqn">\times</code> 1 array equal to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>string; which heuristics should be used to generate a good starting <code class="reqn">\mathbf{w}_0</code>?
+Default: <code>"rnorm"</code>; see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>non-negative integer; seed for random initialization which will be 
+returned for reproducibility. By default it sets a random seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>method</code> argument specifies the heuristics that is used to get a good
+starting vector <code class="reqn">\mathbf{w}_0</code>:
+</p>
+
+<ul>
+<li>
+<p><code>"max"</code> vector with all <code class="reqn">0</code>s, but a <code class="reqn">1</code> at the position
+of the maximum forecastable series in <code>U</code>.
+</p>
+</li>
+<li>
+<p><code>"rcauchy"</code> random start using <code>rcauchy(k)</code>.
+</p>
+</li>
+<li>
+<p><code>"rnorm"</code> random start using <code>rnorm(k, 0, 1)</code>.
+</p>
+</li>
+<li>
+<p><code>"runif"</code> random start using <code>runif(k, -1, 1)</code>.
+</p>
+</li>
+<li>
+<p><code>"PCA.large"</code> first eigenvector of PCA (largest variance signal).
+</p>
+</li>
+<li>
+<p><code>"PCA.small"</code> last eigenvector of PCA (smallest variance signal).
+</p>
+</li>
+<li>
+<p><code>"PCA"</code> checks both small and large, and chooses the one with higher
+forecastability as computed by <code>Omega</code>..
+</p>
+</li>
+<li>
+<p><code>"SFA.fast"</code> last eigenvector of SFA (fastest signal).
+</p>
+</li>
+<li>
+<p><code>"SFA.slow"</code> first eigenvector of SFA (slowest signal).
+</p>
+</li>
+<li>
+<p><code>"SFA"</code> checks both slow and fast, and chooses the one with higher
+forecastability as computed by <code>Omega</code>.
+</p>
+</li>
+</ul>
+<p>Each vector has length K and is automatically normalized to have unit norm 
+in <code class="reqn">\ell^2</code>.
+</p>
+<p>For the <code>'SFA*'</code> methods see <code>sfa</code>. 
+Note that maximizing (or minimizing) the lag <code class="reqn">1</code> auto-correlation does 
+not necessarily yield the most forecastable signal, but it's a good start.
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric; a vector of length <code class="reqn">K</code> with unit norm in <code class="reqn">\ell^2</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">XX &lt;- diff(log(EuStockMarkets))
+## Not run: 
+initialize_weightvector(U = XX, method = "SFA")
+
+## End(Not run)
+initialize_weightvector(num.series = ncol(XX), method = "rnorm")
+</code></pre>
+
+
+</div>

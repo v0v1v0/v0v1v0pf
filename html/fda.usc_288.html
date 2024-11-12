@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rproc2fdata</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate several random processes.</h2>
+
+<h3>Description</h3>
+
+<p>Simulate Functional Data from different processes: Ornstein Uhlenbeck,
+Brownian, Fractional Brownian, Gaussian or Exponential variogram.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rproc2fdata(
+  n,
+  t = NULL,
+  mu = rep(0, length(t)),
+  sigma = 1,
+  par.list = list(scale = 1, theta = 0.2 * diff(rtt), H = 0.5),
+  norm = FALSE,
+  verbose = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Number of functional curves to be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>Discretization points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p><code>vector</code> which specifies the trend values at the
+discretization points, by default <code>mu</code>=<code class="reqn">\mu(t)=0</code>.  If <code>mu</code> is
+a <code>fdata</code> class object, <code>t</code><code class="reqn">=</code><code>argvals(mu)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>A positive-definite symmetric matrix,
+<code class="reqn">\Sigma_{s,t}</code>, specifying the covariance matrix among grid
+points.  If <code>sigma</code> is a <code>scalar</code>, creates a random Gaussian
+process with <code class="reqn">\Sigma_{s,t}=</code><code>sigmaI</code> (by default
+<code>sigma=1</code>).<br> If <code>sigma</code> is a <code>vector</code>, creates a random
+Gaussian process with <code class="reqn">\Sigma_{s,t}=</code><code>diag(sigma)</code>.<br> If
+<code>sigma</code> is a character: create a random process using the covariance
+matrix <code class="reqn">\Sigma_{s,t}</code> indicated in the argument, </p>
+ <ul>
+<li>
+<p><code>"OU"</code> or <code>"OrnsteinUhlenbeck"</code>, creates a random Ornstein
+Uhlenbeck process with
+<code class="reqn">\Sigma_{s,t}=\frac{\sigma^2}{2\theta}e^{-\theta\left(s+t\right)}
+\left(e^{2\theta\left(s+t\right)}-1\right)</code>, by default
+<code class="reqn">\theta=1/(3range(t))</code>,
+<code class="reqn">\sigma^2={1}</code>.  </p>
+</li>
+<li> <p><code>"brownian"</code> or <code>"wiener"</code>,
+creates a random Wiener process with <code class="reqn">\Sigma_{s,t}=\sigma^2
+min(s,t)</code>, by default
+<code class="reqn">\sigma^2=1</code>. </p>
+</li>
+<li> <p><code>"fbrownian"</code>, creates a random
+fractional brownian process with
+<code class="reqn">\Sigma_{s,t}=\sigma^{2H}/2{|s|^{2H}+|t|^{2H}-|s-t|^{2H}}</code>,
+by default <code class="reqn">\sigma^2=1</code> and <code class="reqn">H=0.5</code> (brownian
+process).  </p>
+</li>
+<li> <p><code>"vexponential"</code>, creates a random gaussian process
+with exponential variogram <code class="reqn">\Sigma_{s,t}=\sigma^2
+e^{\left(-\frac{\left|s-t\right|}{\theta}\right)}</code>, by default <code class="reqn">\theta={0.2
+range(t)}</code>, <code class="reqn">\sigma^2={1}</code>. </p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.list</code></td>
+<td>
+<p>List of parameter to process, by default <code>"scale"</code>
+<code class="reqn">\sigma^2=1</code>, <code>"theta"</code> <code class="reqn">\theta=0.2
+range(t)</code> and <code>"H"</code>=0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norm</code></td>
+<td>
+<p>If <code>TRUE</code> the norm of random projection is 1. Default is
+<code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code>, information about procedure is printed.
+Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Return the functional random processes as a <code>fdata</code> class
+object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+par(mfrow=c(3,2))
+lent&lt;-30
+tt&lt;-seq(0,1,len=lent)
+mu&lt;-fdata(rep(0,lent),tt)
+plot(rproc2fdata(200,t=tt,sigma="OU",par.list=list("scale"=1)))
+plot(rproc2fdata(200,mu=mu,sigma="OU",par.list=list("scale"=1)))
+plot(rproc2fdata(200,t=tt,sigma="vexponential"))
+plot(rproc2fdata(200,t=tt,sigma=1:lent))
+plot(rproc2fdata(200,t=tt,sigma="brownian"))
+plot(rproc2fdata(200,t=tt,sigma="wiener"))
+#plot(rproc2fdata(200,seq(0,1,len=30),sigma="oo")) # this is an error 
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

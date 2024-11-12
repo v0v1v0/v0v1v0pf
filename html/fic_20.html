@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit_submodels</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit submodels of a general linear wide model, defined by a matrix of indicators
+for inclusion of covariates</h2>
+
+<h3>Description</h3>
+
+<p>Fit the submodels of a wide model <code>wide</code> which are defined by
+<code>inds</code>.  This can only be used for covariate selection
+problems, where the submodels contain different subsets of
+covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_submodels(wide, inds, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>wide</code></td>
+<td>
+<p>Fitted model object containing the wide model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inds</code></td>
+<td>
+<p>Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+</p>
+<p>A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in <code>inds0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to the focus function can be supplied here.
+</p>
+<p>The built-in focus functions <code>prob_logistic</code> and <code>mean_normal</code> take an argument <code>X</code> giving covariate values defining the focus. This can either be a matrix or a vector, or a list or data frame that can be coerced into a matrix. 
+</p>
+<p>If just one focus is needed, then <code>X</code> can be a vector of length equal to the number of parameters in the wide model.
+</p>
+<p>To compute focused model comparison statistics for multiple focuses defined by the same focus function evaluated at multiple covariate values, <code>X</code> should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative focuses.
+</p>
+<p>For a typical regression model, the first parameter will denote an intercept, so the first value of <code>X</code> should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+</p>
+<p>Arguments to the focus function other than <code>X</code> can also be supplied as a matrix, vector, list or data frame in the same way. An exception is when the argument is supplied as a vector, this is assumed to refer to multiple focuses.   For example, suppose the focus function defines the quantile of a distribution, and takes an argument <code>focus_p</code>, then calling <code>fic(...,focus_p=c(0.1, 0.9))</code> indicates two alternative focuses defined by the 0.1 and 0.9 quantiles.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Requires <code>wide</code> to have a component named
+<code>call</code> giving the function call used to produce <code>wide</code>.
+This call should include a <code>formula</code> component, which this
+function updates in order to define and fit the submodel.  This
+should work for most standard linear-type models in common R packages.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List of all fitted submodel objects.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">bwt.glm &lt;- glm(low ~ lwtkg + age + smoke,
+               data=birthwt, family="binomial")
+inds &lt;- rbind(c(1,1,1,0), c(1,1,0,0))
+fit_submodels(bwt.glm, inds=inds)
+
+</code></pre>
+
+
+</div>

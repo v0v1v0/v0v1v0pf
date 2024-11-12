@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as_filearray</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create or load existing file arrays</h2>
+
+<h3>Description</h3>
+
+<p>Create or load existing file arrays
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as_filearray(x, ...)
+
+as_filearrayproxy(x, ...)
+
+filearray_create(
+  filebase,
+  dimension,
+  type = c("double", "float", "integer", "logical", "raw", "complex"),
+  partition_size = NA,
+  initialize = FALSE,
+  ...
+)
+
+filearray_load(filebase, mode = c("readwrite", "readonly"))
+
+filearray_checkload(
+  filebase,
+  mode = c("readonly", "readwrite"),
+  ...,
+  symlink_ok = TRUE
+)
+
+filearray_load_or_create(
+  filebase,
+  dimension,
+  on_missing = NULL,
+  type = NA,
+  ...,
+  mode = c("readonly", "readwrite"),
+  symlink_ok = TRUE,
+  initialize = FALSE,
+  partition_size = NA,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>R object such as array, file array proxy, or character that can be 
+transformed into file array</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional headers to check used by <code>filearray_checkload</code>
+(see 'Details'). This argument is ignored by <code>filearray_create</code>, 
+reserved for future compatibility.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filebase</code></td>
+<td>
+<p>a directory path to store arrays in the local file 
+system. When creating an array, the path must not exist.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dimension</code></td>
+<td>
+<p>dimension of the array, at least length of 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>storage type of the array; default is <code>'double'</code>. Other
+options include <code>'integer'</code>, <code>'logical'</code>, and <code>'raw'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partition_size</code></td>
+<td>
+<p>positive partition size for the last margin, or
+<code>NA</code> to automatically guess; see 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initialize</code></td>
+<td>
+<p>whether to initialize partition files; default is false
+for performance considerations. However, if the array is dense, it is 
+recommended to set to true</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>whether allows writing to the file; choices are 
+<code>'readwrite'</code> and <code>'readonly'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symlink_ok</code></td>
+<td>
+<p>whether arrays with symbolic-link partitions can pass 
+the test; this is usually used on bound arrays with symbolic-links; see 
+<code>filearray_bind</code>;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>on_missing</code></td>
+<td>
+<p>function to handle file array (such as initialization)
+when a new array is created; must take only one argument, the array object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether to print out some debug messages</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The file arrays partition out-of-memory array objects and store them 
+separately in local file systems. Since R stores matrices/arrays 
+in column-major style, file array uses the slowest margin (the 
+last margin) to slice the partitions. This helps to align the elements
+within the files with the corresponding memory order. An array with 
+dimension <code>100x200x300x400</code> has 4 margins. The length of the 
+last margin is 400, which is also the maximum number of potential
+partitions. The number of partitions are determined by the last margin
+size divided by <code>partition_size</code>. For example, if the partition
+size is 1, then there will be 400 partitions. If the partition size 
+if 3, there will be 134 partitions. The default partition sizes 
+are determined internally following these priorities:
+</p>
+
+<dl>
+<dt>1. </dt>
+<dd>
+<p>the file size of each partition does not exceed <code>1GB</code></p>
+</dd>
+<dt>2. </dt>
+<dd>
+<p>the number of partitions do not exceed 100</p>
+</dd>
+</dl>
+<p>These two rules are not hard requirements. The goal is to reduce the
+numbers of partitions as much as possible. 
+</p>
+<p>The arguments <code>...</code> in <code>filearray_checkload</code> should be named
+arguments that provide additional checks for the header information. 
+The check will fail if at least one header is not identical. For example,
+if an array contains header key-signature pair, one can use 
+<code>filearray_checkload(..., key = signature)</code> to validate the signature.
+Note the comparison will be rigid, meaning the storage type of the headers 
+will be considered as well. If the signature stored in the array is an 
+integer while provided is a double, then the check will result in failure.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>FileArray-class</code> instance.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Zhengjia Wang
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# Prepare
+library(filearray)
+filebase &lt;- tempfile()
+if(file.exists(filebase)){ unlink(filebase, TRUE) }
+
+# create array
+x &lt;- filearray_create(filebase, dimension = c(200, 30, 8))
+print(x)
+
+# Assign values
+x[] &lt;- rnorm(48000)
+
+# Subset
+x[1,2,]
+
+# load existing array
+filearray_load(filebase)
+
+x$set_header("signature", "tom")
+filearray_checkload(filebase, signature = "tom")
+
+## Not run: 
+# Trying to load with wrong signature
+filearray_checkload(filebase, signature = "jerry")
+
+## End(Not run)
+
+
+# check-load, and create a new array if fail
+x &lt;- filearray_load_or_create(
+    filebase = filebase, dimension = c(200, 30, 8),
+    verbose = FALSE, signature = "henry"
+)
+x$get_header("signature")
+
+# check-load with initialization
+x &lt;- filearray_load_or_create(
+    filebase = filebase,
+    dimension = c(3, 4, 5),
+    verbose = FALSE, mode = "readonly",
+    on_missing = function(array) {
+        array[] &lt;- seq_len(60)
+    }
+)
+
+x[1:3,1,1]
+
+# Clean up
+unlink(filebase, recursive = TRUE)
+
+</code></pre>
+
+
+</div>

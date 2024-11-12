@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_mfd_list</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get Multivariate Functional Data from a list of matrices</h2>
+
+<h3>Description</h3>
+
+<p>Get Multivariate Functional Data from a list of matrices
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_mfd_list(
+  data_list,
+  grid = NULL,
+  n_basis = 30,
+  n_order = 4,
+  basisobj = NULL,
+  Lfdobj = 2,
+  lambda = NULL,
+  lambda_grid = 10^seq(-10, 1, length.out = 10),
+  ncores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_list</code></td>
+<td>
+<p>A named list of matrices.
+Names of the elements in the list denote the functional variable names.
+Each matrix in the list corresponds to a functional variable.
+All matrices must have the same dimension, where
+the number of rows corresponds to replications, while
+the number of columns corresponds to the argument values at which
+functions are evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>A numeric vector, containing the argument values at which
+functions are evaluated.
+Its length must be equal to the number of columns
+in each matrix in data_list.
+Default is NULL, in this case a vector equally spaced numbers
+between 0 and 1 is created,
+with as many numbers as the number of columns in each matrix in data_list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_basis</code></td>
+<td>
+<p>An integer variable specifying the number of basis functions;
+default value is 30.
+See details on basis functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_order</code></td>
+<td>
+<p>An integer specifying the order of B-splines,
+which is one higher than their degree.
+The default of 4 gives cubic splines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basisobj</code></td>
+<td>
+<p>An object of class <code>basisfd</code> defining the
+B-spline basis function expansion.
+Default is <code>NULL</code>, which means that
+a <code>basisfd</code> object is created by doing
+<code>create.bspline.basis(rangeval = domain,
+nbasis = n_basis,  norder = n_order)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj</code></td>
+<td>
+<p>An object of class <code>Lfd</code> defining a linear
+differential operator of order m.
+It is used to specify a roughness penalty through <code>fdPar</code>.
+Alternatively, a nonnegative integer specifying
+the order m can be given and is
+passed as <code>Lfdobj</code> argument to the function <code>fdPar</code>,
+which indicates that the derivative of order m is penalized.
+Default value is 2, which means that the integrated
+squared second derivative is penalized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A non-negative real number.
+If you want to use a single specified smoothing parameter
+for all functional data objects in the dataset,
+this argument is passed to the function <code>fda::fdPar</code>.
+Default value is NULL, in this case the smoothing parameter is chosen
+by minimizing the generalized cross-validation (GCV) criterion
+over the grid of values given by the argument.
+See details on how smoothing parameters work.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda_grid</code></td>
+<td>
+<p>A vector of non-negative real numbers.
+If <code>lambda</code> is provided as a single number, this argument is ignored.
+If <code>lambda</code> is NULL, then this provides
+the grid of values over which the optimal smoothing parameter is
+searched. Default value is <code>10^seq(-10,1,l=20)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>Deprecated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Basis functions are created with
+<code>fda::create.bspline.basis(domain, n_basis)</code>, i.e.
+B-spline basis functions of order 4 with equally spaced knots
+are used to create <code>mfd</code> objects.
+</p>
+<p>The smoothing penalty lambda is provided as
+<code>fda::fdPar(bs, 2, lambda)</code>,
+where bs is the basis object and 2 indicates that
+the integrated squared second derivative is penalized.
+</p>
+<p>Rather than having a list of matrices,
+you may have a data frame with long format,
+i.e. with all functional observations in a single column
+for each functional variable.
+In this case, see <code>get_mfd_df</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>mfd</code>.
+See also <code>mfd</code> for additional details
+on the multivariate functional data class.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mfd</code>,
+<code>get_mfd_list</code>,
+<code>get_mfd_array</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+# Only take first 5 multivariate functional observations
+# and only two variables from air
+air_small &lt;- lapply(air[c("NO2", "CO")], function(x) x[1:5, ])
+mfdobj &lt;- get_mfd_list(data_list = air_small)
+
+</code></pre>
+
+
+</div>

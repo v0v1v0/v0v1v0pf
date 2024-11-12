@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FM_generate_report</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate Report</h2>
+
+<h3>Description</h3>
+
+<p>Generates a report from the states of the different modules.
+The type of report is based on the file extension of file_name.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FM_generate_report(
+  state,
+  session,
+  file_dir,
+  file_name,
+  ph = list(),
+  gen_code_only = FALSE,
+  rpterrors = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>state</code></td>
+<td>
+<p>Module state requesting the report generation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>session</code></td>
+<td>
+<p>Shiny session variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_dir</code></td>
+<td>
+<p>path to the location where the file should be written.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_name</code></td>
+<td>
+<p>base_filename (acceptable extensions are xlsx, docx, or pptx).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ph</code></td>
+<td>
+<p>List containing placeholders used when generating Word documents
+(e.g., <code>ph = list(HEADERRIGHT = "My text"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gen_code_only</code></td>
+<td>
+<p>Boolean value indicating that only code should be
+generated (<code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rpterrors</code></td>
+<td>
+<p>Boolean variable to generate reports with errors.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function will look through the loaded modules and find those with
+reporting enabbled. If reporting is enabled it will look for reporting functions
+for that module. Reporting functions should be of the following format
+(name and arguments):
+</p>
+<p><code>XX_append_report(state, rpt, rpttype)</code>
+</p>
+<p>Where <code>XX</code> is the module short name. The state is the current state of the
+module. The rpt contains the current content of the report. This will
+vary based on the report type:
+</p>
+
+<ul>
+<li>
+<p>xlsx: List with two elements. The first is <code>summary</code> a data
+frame with two columns. The first column is called <code>Sheet_Name</code> and
+the second column is called <code>Description</code>. This is a catalog of
+sheets added to the report by the user and can be appended to using rbind.
+The second element in xlsx rpt is another list with element names
+corresponding to the report sheet names and the values corresponding to
+dataframes to be exported in the report.
+</p>
+</li>
+<li>
+<p>pptx or docx: Corresponding onbrand reporting object.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>List with the following elements
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Within shiny both session and input variables will exist,
+# this creates examples here for testing purposes:
+if(interactive()){
+sess_res = FG_test_mksession(session=list(), full_session=FALSE)
+session = sess_res$session
+input   = sess_res$input
+
+# This will create a populated FG state object:
+state   = sess_res$state
+
+
+# This is the directory to write the report:
+file_dir = tempdir()
+
+# This is the file name that determines the type of report to write:
+file_name = "my_report.pptx"
+#file_name = "my_report.docx"
+
+rpt_res =
+FM_generate_report(state         = state,
+                   session       = session,
+                   file_dir      = file_dir,
+                   file_name     = file_name,
+                   gen_code_only = TRUE, 
+                   rpterrors     = TRUE)
+
+# This contains the exit status of the report generation
+rpt_res$isgood
+
+# This is the underlying code that was used to generate the report
+cat(paste0(rpt_res$code, collapse="\n"))
+}
+</code></pre>
+
+
+</div>

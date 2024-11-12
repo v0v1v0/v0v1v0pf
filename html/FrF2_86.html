@@ -1,0 +1,400 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FrF2Large</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Function to provide large (at least 8192 runs) regular Fractional Factorial designs 
+that are not necessarily optimal, especially large resolution V designs.</h2>
+
+<h3>Description</h3>
+
+<p>Large regular fractional factorial 2-level designs in 8192 or more runs are provided: 
+Resolution V designs in 8096 to 32768 runs with up to 120 factors according to the suggestion by Sanchez and Sanchez 2005 
+are automatically created (these are not necessarily optimal). Furthermore, manual generation 
+of large regular fractional factorial designs via specification of generators is possible.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FrF2Large(nruns, nfactors = NULL, factor.names = if (!is.null(nfactors)){ 
+    if (nfactors &lt;= 50) 
+        Letters[1:nfactors]
+    else paste("F", 1:nfactors, sep = "")
+    } else NULL, 
+    default.levels = c(-1, 1), ncenter = 0, center.distribute = NULL, 
+    generators = NULL, 
+    replications = 1, repeat.only = FALSE, 
+    randomize = TRUE, seed = NULL, alias.info = 2, ...) 
+nrunsV(nfactors)    
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nruns</code></td>
+<td>
+<p> Number of runs, must be a power of 2 (8192 to 32768). 
+</p>
+<p>The number of runs must match the number of factors. Function <code>nrunsV</code> 
+can be used for determining the number of runs needed for a resolution V design, 
+and for advice on the function to be used.<br>
+For more detail on specification of the number of runs, see the Details section.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfactors</code></td>
+<td>
+<p> is the number of 2-level factors to be investigated. 
+It can be omitted, if it is obvious from options <code>factor.names</code> or 
+<code>generators</code>.<br> 
+The number of factors must match the length of <code>generators</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.names</code></td>
+<td>
+<p> a character vector of <code>nfactors</code> factor names 
+or a list with <code>nfactors</code> elements;<br> 
+if the list is named, list names represent factor names, otherwise default factor names are used;<br> 
+the elements of the list are <br>
+EITHER vectors of length 2 with factor levels for the respective factor<br>
+OR empty strings. 
+For each factor with an empty string in factor.names, the levels given in 
+<code>default.levels</code> are used;<br>
+Default factor names are the first elements of the character vector <code>Letters</code>, 
+or the factors position numbers preceded by capital F in case of more than 50 factors. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default.levels</code></td>
+<td>
+<p> default levels (vector of length 2) for all factors for 
+which no specific levels are given </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncenter</code></td>
+<td>
+<p> number of center points per block; <code>ncenter &gt; 0</code> 
+is permitted, if all factors are quantitative and the design is not a split-plot design </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center.distribute</code></td>
+<td>
+<p> the number of positions over which the center points 
+are to be distributed for each block; if NULL (default), center points are 
+distributed over end, beginning, and middle (in that order, if there are fewer than three center points) 
+for randomized designs, and appended to the end for non-randomized designs. 
+for more detail, see function <code>add.center</code>, which does the work.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generators</code></td>
+<td>
+<p> There are <code>log2(nruns)</code> base factors the full factorial 
+of which spans the design (e.g. 10 for 1024 runs). 
+The generators specify how the remaining factors 
+are to be allocated to interactions of these. <br>
+WARNING: Of course, with manual 
+specification of generators, the structure of the design is in the users 
+responsibility; the function only prevents confounding of two main effects with each 
+other.
+</p>
+<p><code>generators</code> can be 
+</p>
+<p>a list of vectors with position numbers of base factors (e.g. c(1,3,4) 
+stands for the interaction between first, third and fourth base factor) 
+</p>
+<p>a vector of character representations of these interactions, 
+e.g. “ACD” stands for the same interaction as above
+</p>
+<p>a vector of columns numbers in Yates order (e.g. 13 stands for ACD). 
+Note that the columns 1, 2, 4, 8, etc., i.e. all powers of 2, are reserved 
+for the base factors and cannot be used for assigning additional factors, 
+because the design would become a resolution II design. For looking up 
+which column number stands for which interaction, type e.g. 
+<code>names(Yates)[1:15]</code> for a 16 run design.
+</p>
+<p>WARNING: Contrary to function <code>FrF2</code>, it is not possible to 
+precede generator entries with a minus sign for reversing column levels; 
+instead, the levels must be swapped.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replications</code></td>
+<td>
+<p> positive integer number. Default 1 (i.e. each row just once). 
+If larger, each design run is executed replication times. 
+If <code>repeat.only</code>, repeated measurements 
+are carried out directly in sequence, i.e. no true replication takes place, 
+and all the repeat runs are conducted together. It is likely that the error 
+variation generated by such a procedure will be too small, so that average values 
+should be analyzed for an unreplicated design. 
+</p>
+<p>Otherwise (default), the full experiment is first carried out once, then 
+for the second replication and so forth. In case of randomization, 
+each such blocks is randomized separately. In this case, replication variance is 
+more likely suitable for usage as error variance 
+(unless e.g. the same parts are used for replication runs although build 
+variation is important).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repeat.only</code></td>
+<td>
+<p> logical, relevant only if replications &gt; 1. If TRUE, 
+replications of each run are grouped together 
+(repeated measurement rather than true replication). The default is 
+<code>repeat.only=FALSE</code>, i.e. the complete experiment 
+is conducted in <code>replications</code> blocks, and each run occurs in each block.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomize</code></td>
+<td>
+<p> logical. If TRUE, the design is randomized. This is the default. 
+In case of replications, the nature of randomization depends on the setting of 
+option <code>repeat.only</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p> optional seed for the randomization process <br>
+In R version 3.6.0 and later, the default behavior of function <code>sample</code>
+has changed. If you work in a new (i.e., &gt;= 3.6.-0) R version and want to reproduce 
+a randomized design from an earlier R version (before 3.6.0), 
+you have to change the RNGkind setting by<br><code>RNGkind(sample.kind="Rounding")</code><br>
+before running function <code>FrF2Large</code>.<br>
+It is recommended to change the setting back to the new recommended way afterwards:<br><code>RNGkind(sample.kind="default")</code><br>
+For an example, see the documentation of the example data set <code>VSGFS</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alias.info</code></td>
+<td>
+<p> can be 2 or 3, gives the order of interaction effects for which 
+alias information is to be included in the <code>aliased</code> component of the 
+<code>design.info</code> element of the output object. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> currently not used </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If generators are not explicitly specified, function <code>FrF2Large</code> creates a 
+resolution V design according to the 
+rules by Sanchez and Sanchez (2005) for the specified number of factors in 
+the specified number of runs. The Sanchez and Sanchez article offers designs with <br>
+at least 1024 runs for 25 to 29 factors (1024 up to 33 factors with <code>FrF2</code>),<br>
+at least 2048 runs for 30 to 38 factors (2048 up to 47 factors with <code>FrF2</code>),<br>
+at least 4096 runs for 39 to 52 factors (4096 up to 65 factors with <code>FrF2</code>),<br>
+at least 8192 runs for 53 to 69 factors (up to 65 factors in half the run size with <code>FrF2</code>),<br>
+at least 16384 runs for 70 to 92 factors, (<br>
+at least 32768 runs for 93 to 120 factors.<br>
+For designs with up to 4096 runs, function <code>FrF2</code> 
+creates better automatic designs. 
+Therefore, function <code>FrF2Large</code> is restricted to usage for larger designs. 
+</p>
+<p>Users can explicitly specify a design through specifying 
+generators via the <code>generators</code> option. For up to 4096 runs, this is also possible 
+with function <code>FrF2</code>, even with more flexibility. Therefore, manual design generation 
+with function <code>FrF2Large</code> is also restricted to designs of at least 8192 runs.
+</p>
+<p>Manual generation of large designs with the option <code>generators</code> is limited by 
+computer memory only. <code>nruns</code> must be at least large enough to accomodate the 
+rightmost generator column; for example, if generators contains an element <code>ABEP</code>, 
+<code>P</code> is the 15th base factor (15th letter in <code>Letters</code>), 
+i.e. <code>nruns</code> must be at least <code>2^15</code>=32768;
+if the largest generator column number in Yates column notation is 4201, 
+<code>nruns</code> must be at least <code>2^ceiling(log2(4201))</code>=8192. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function <code>nrunsV</code> invisibly returns the number of runs requested and 
+prints a message with the number of runs and the appropriate function.
+</p>
+<p>Function <code>FrF2Large</code> returns a data frame of S3 class 
+<code>design</code> 
+and has attached attributes that can be accessed 
+by functions <code>desnum</code>, 
+<code>run.order</code> and 
+<code>design.info</code>. 
+</p>
+<p>The data frame itself contains the design with levels coded as requested. 
+If no center points have been requested, the design columns are factors with 
+contrasts <code>-1</code> and <code>+1</code> (cf. also <code>contr.FrF2</code>); in case 
+of center points, the design columns are numeric.
+</p>
+<p>The following attributes are attached to it: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>desnum</code></td>
+<td>
+<p>Design matrix in -1/1 coding</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run.order</code></td>
+<td>
+<p>three column data frame, first column contains the run number in 
+standard order, second column the run number as randomized, third column the 
+run number with replication number as postfix;
+useful for switching back and forth between actual and standard run 
+number</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design.info</code></td>
+<td>
+<p>list with the entries 
+</p>
+
+<dl>
+<dt>type</dt>
+<dd>
+<p> character string “FrF2.large”</p>
+</dd>
+<dt>nruns</dt>
+<dd>
+<p> number of runs (replications are not counted) </p>
+</dd>
+<dt>nfactors</dt>
+<dd>
+<p> number of factors</p>
+</dd>
+<dt>factor.names </dt>
+<dd>
+<p> list named with (treatment) factor names and containing as 
+entries vectors of length two each with coded factor levels </p>
+</dd>
+<dt>generators </dt>
+<dd>
+<p> for designs of type <code>FrF2.generators</code> only; <br>
+character vector of generators in the form D=ABC etc.</p>
+</dd>
+<dt>aliased </dt>
+<dd>
+<p> alias structure of main effects, 2fis and possibly 3fis,
+depending on the choice of <code>alias.info</code>; 
+For non-blocked and non-split-plot designs, <code>aliased</code> is 
+itself a list of the two or three components main, fi2, and optionally fi3, given 
+in terms of factor letters from <code>Letters</code> (up to 50~factors) 
+or <code>F1</code>, <code>F2</code>, and so forth (more than 50~factors). 
+For blocked and split-plot designs, <code>aliased</code> is a single list 
+with an entry for each column of the Yates matrix that accomodates 
+aliased low-order effects, and entries are in terms of factor names.)</p>
+</dd>
+<dt>replications </dt>
+<dd>
+<p> option setting in call to <code>FrF2</code> </p>
+</dd>
+<dt>repeat.only </dt>
+<dd>
+<p> option setting in call to <code>FrF2</code> </p>
+</dd>
+<dt>randomize </dt>
+<dd>
+<p> option setting in call to <code>FrF2</code> </p>
+</dd>
+<dt>seed </dt>
+<dd>
+<p> option setting in call to <code>FrF2</code> </p>
+</dd>
+<dt>creator </dt>
+<dd>
+<p> call to function FrF2Large; 
+(in future, may also contain stored menu settings from R commander plugin 
+<span class="pkg">RcmdrPlugin.DoE</span>, once the function has been implemented in that package) 
+</p>
+</dd>
+<dt>FrF2.version </dt>
+<dd>
+<p> version number of package FrF2, 
+supporting correct usage of <code>FrF2</code>-specific functionality in 
+functions <code>summary</code> and <code>generators</code> 
+methods for class <code>design</code></p>
+</dd>
+<dt>ncube </dt>
+<dd>
+<p> number of cube points per block, in case center points have been requested </p>
+</dd>
+<dt>ncenter </dt>
+<dd>
+<p> number of center points per block, in case center points have been requested </p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Warning</h3>
+
+<p>Since R version 3.6.0, the behavior of function <code>sample</code> has changed 
+(correction of a biased previous behavior that might be relevant for the randomization 
+of very large designs). 
+For reproducing a randomized design that was produced with an earlier R version, 
+please follow the steps described with the argument <code>seed</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Ulrike Groemping </p>
+
+
+<h3>References</h3>
+
+<p>Mee, R. (2009). <em>A Comprehensive Guide to Factorial Two-Level Experimentation</em>. 
+New York: Springer.
+</p>
+<p>Sanchez, S.M. and Sanchez, P.J. (2005). Very Large Fractional Factorial 
+and Central Composite Designs. 
+<em>ACM Transactions on Modeling and Computer Simulation</em> 
+<b>15</b>, 362-377.
+</p>
+
+
+<h3>See Also</h3>
+
+<p> See also <code>FrF2</code> for smaller regular fractional factorials and 
+<code>oacat</code> for two non-regular resolution V fractional factorials (reported e.g. by 
+Mee 2009) for up to 19 factors in 256 runs or up to 63 factors in 2048 runs </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## numbers of runs needed for resolution V designs in different numbers of factors 
+nrunsV(8)
+nrunsV(18)
+needed &lt;- nrunsV(27)
+needed
+nrunsV(65)
+nrunsV(71)
+
+## Not run: 
+plan &lt;- FrF2Large(nrunsV(75),75)
+summary(plan)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

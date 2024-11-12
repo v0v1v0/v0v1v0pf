@@ -1,0 +1,757 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fRegress</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Functional Regression Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>This function carries out a functional regression analysis, where
+either the dependent variable or one or more independent variables are
+functional.  Non-functional variables may be used on either side
+of the equation.  In a simple problem where there is a single scalar
+independent covariate with values <code class="reqn">z_i, i=1,\ldots,N</code> and a single
+functional covariate with values <code class="reqn">x_i(t)</code>, the two versions of the
+model fit by <code>fRegress</code> are the <em>scalar</em> dependent variable
+model
+</p>
+<p style="text-align: center;"><code class="reqn">y_i = \beta_1 z_i + \int x_i(t) \beta_2(t) \, dt + e_i</code>
+</p>
+
+<p>and the <em>concurrent</em> functional dependent variable model
+</p>
+<p style="text-align: center;"><code class="reqn">y_i(t) = \beta_1(t) z_i + \beta_2(t) x_i(t) + e_i(t).</code>
+</p>
+
+<p>In these models, the final term <code class="reqn">e_i</code> or <code class="reqn">e_i(t)</code> is a
+residual, lack of fit or error term.
+</p>
+<p>In the concurrent functional linear model for a functional dependent
+variable, all functional   variables are all evaluated at a common
+time or argument value <code class="reqn">t</code>.  That is, the fit is defined in terms of
+the behavior of all variables at a fixed time, or in terms of "now"
+behavior.
+</p>
+<p>All regression coefficient functions <code class="reqn">\beta_j(t)</code> are considered
+to be functional.  In the case of a scalar dependent variable, the
+regression coefficient for a scalar covariate is converted to a
+functional variable with a constant basis.   All regression
+coefficient functions can be forced to be <em>smooth</em> through the
+use of roughness penalties, and consequently are specified in the
+argument list as functional parameter objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fRegress(y, ...)
+## S3 method for class 'fd'
+fRegress(y, xfdlist, betalist, wt=NULL,
+                     y2cMap=NULL, SigmaE=NULL, returnMatrix=FALSE, 
+                        method=c('fRegress', 'model'), sep='.', ...)
+## S3 method for class 'double'
+fRegress(y, xfdlist, betalist, wt=NULL,
+                     y2cMap=NULL, SigmaE=NULL, returnMatrix=FALSE, ...)
+## S3 method for class 'formula'
+fRegress(y, data=NULL, betalist=NULL, wt=NULL,
+                 y2cMap=NULL, SigmaE=NULL,
+                 method='fRegress', sep='.', ...)
+## S3 method for class 'character'
+fRegress(y, data=NULL, betalist=NULL, wt=NULL,
+                 y2cMap=NULL, SigmaE=NULL,
+                 method='fRegress', sep='.', ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>the dependent variable object.  It may be an object of five
+possible classes or attributes:
+</p>
+
+<dl>
+<dt>character or formula</dt>
+<dd>
+<p>a <code>formula</code> object or a <code>character</code> object that can be
+coerced into a <code>formula</code> providing a symbolic description
+of the model to be fitted satisfying the following rules:
+</p>
+<p>The left hand side, <code>formula</code> <code>y</code>, must be either a
+numeric vector or a univariate object of class <code>fd</code>.  
+</p>
+<p>All objects named on the right hand side must be either
+<code>numeric</code> or <code>fd</code> (functional data).
+The number of replications of <code>fd</code> 
+object(s) must match each other and the number of observations
+of <code>numeric</code> objects named, as well as the number of
+replications of the dependent variable object.  The right hand
+side of this <code>formula</code> is translated into <code>xfdlist</code>,
+then passed to another method for fitting (unless <code>method</code>
+= 'model'). Multivariate independent variables are allowed in a
+<code>formula</code> and are split into univariate independent
+variables in the resulting <code>xfdlist</code>.  Similarly,
+categorical independent variables with <code class="reqn">k</code> levels are
+translated into <code class="reqn">k-1</code> contrasts in <code>xfdlist</code>.  Any
+smoothing information is passed to the corresponding component
+of <code>betalist</code>.
+</p>
+</dd>
+<dt>numeric</dt>
+<dd>
+<p>a numeric vector object or a matrix object if the dependent variable 
+is numeric or a matrix.
+</p>
+</dd>
+<dt>fd</dt>
+<dd>
+<p>a functional data object or an fdPar object if the dependent variable is
+functional.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>an optional <code>list</code> or <code>data.frame</code> containing names of
+objects identified in the <code>formula</code> or <code>character</code>
+<code>y</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xfdlist</code></td>
+<td>
+
+<p>a list of length equal to the number of independent
+variables (including any intercept). Members of this list are the
+independent variables.  They can be objects of either of these two
+classes:
+</p>
+
+<dl>
+<dt>scalar</dt>
+<dd>
+<p>a numeric vector if the independent variable is scalar.
+</p>
+</dd>
+<dt>fd</dt>
+<dd>
+<p>a (univariate) functional data object.
+</p>
+</dd>
+</dl>
+<p>In either case, the object must have the same number of replications
+as the dependent variable object.  That is, if it is a scalar, it
+must be of the same length as the dependent variable, and if it is
+functional, it must have the same number of replications as the
+dependent variable.  (Only univariate independent variables are
+currently allowed in <code>xfdlist</code>.)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betalist</code></td>
+<td>
+
+<p>For the <code>fd</code>, <code>fdPar</code>, and <code>numeric</code> methods,
+<code>betalist</code> must be a list of length equal to
+<code>length(xfdlist)</code>.  Members of this list are functional
+parameter objects (class <code>fdPar</code>) defining the regression
+functions to be estimated.  Even if a corresponding independent
+variable is scalar, its regression coefficient must be functional if
+the dependent variable is functional.  (If the dependent variable is
+a scalar, the coefficients of scalar independent variables,
+including the intercept, must be constants, but the coefficients of
+functional independent variables must be functional.)  Each of these
+functional parameter objects defines a single functional data
+object, that is, with only one replication.
+</p>
+<p>For the <code>formula</code> and <code>character</code> methods, <code>betalist</code>
+can be either a <code>list</code>, as for the other methods, or
+<code>NULL</code>, in which case a list is created.  If <code>betalist</code> is
+created, it will use the bases from the corresponding component of
+<code>xfdlist</code> if it is function or from the response variable.
+Smoothing information (arguments <code>Lfdobj</code>, <code>lambda</code>,
+<code>estimate</code>, and <code>penmat</code> of function <code>fdPar</code>) will
+come from the corresponding component of <code>xfdlist</code> if it is of
+class <code>fdPar</code> (or for scalar independent variables from the
+response variable if it is of class <code>fdPar</code>) or from optional
+<code>...</code> arguments if the reference variable is not of class
+<code>fdPar</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wt</code></td>
+<td>
+
+<p>weights for weighted least squares
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y2cMap</code></td>
+<td>
+
+<p>the matrix mapping from the vector of observed values to the
+coefficients for the dependent variable.  This is output by function
+<code>smooth.basis</code>.  If this is supplied, confidence limits are
+computed, otherwise not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SigmaE</code></td>
+<td>
+
+<p>Estimate of the covariances among the residuals.  This can only be
+estimated after a preliminary analysis with <code>fRegress</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>a character string matching either <code>fRegress</code> for functional
+regression estimation or <code>mode</code> without running it.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+
+<p>separator for creating names for multiple variables for
+<code>fRegress.fdPar</code> or <code>fRegress.numeric</code> created from single
+variables on the right hand side of the <code>formula</code> <code>y</code>.
+This happens with multidimensional <code>fd</code> objects as well as with
+categorical variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnMatrix</code></td>
+<td>
+
+<p>logical:  If TRUE,  a two-dimensional is returned using a
+special class from the Matrix package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> optional arguments </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Alternative forms of functional regression can be categorized with
+traditional least squares using the following 2 x 2 table:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> explanatory </td>
+<td style="text-align: center;"> variable </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    response </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> scalar </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> function </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    scalar </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> lm </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> fRegress.numeric </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    function </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> fRegress.fd or </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> fRegress.fd
+    or </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> fRegress.fdPar </td>
+<td style="text-align: center;"> | </td>
+<td style="text-align: center;"> fRegress.fdPar or linmod </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  </td>
+</tr>
+</table>
+<p>For <code>fRegress.numeric</code>, the numeric response is assumed to be the
+sum of integrals of xfd * beta for all functional xfd terms.
+</p>
+<p><code>fRegress.fd or .fdPar</code> produces a concurrent regression with
+each <code>beta</code> being also a (univariate) function.
+</p>
+<p><code>linmod</code> predicts a functional response from a convolution
+integral, estimating a bivariate regression function.
+</p>
+<p>In the computation of regression function estimates in
+<code>fRegress</code>, all independent variables are treated as if they are
+functional.  If argument <code>xfdlist</code> contains one or more vectors,
+these are converted to functional data objects having the constant
+basis with coefficients equal to the elements of the vector.
+</p>
+<p>Needless to say, if all the variables in the model are scalar, do NOT
+use this function.  Instead, use either <code>lm</code> or <code>lsfit</code>.
+</p>
+<p>These functions provide a partial implementation of Ramsay and
+Silverman (2005, chapters 12-20).
+</p>
+
+
+<h3>Value</h3>
+
+<p>These functions return either a standard <code>fRegress</code> fit object or
+or a model specification:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>The <code>fRegress</code> fit object case:</code></td>
+<td>
+<p>A list of class 
+<code>fRegress</code> with the following components:
+</p>
+
+<dl>
+<dt>y:</dt>
+<dd>
+<p>The first argument in the call to <code>fRegress</code>. 
+This argument is coerced to	<code>class</code> <code>fd</code> in fda version 5.1.9.  
+Prior versions of the package converted it to an <code>fdPar</code>, but the 
+extra structures in that class were not used in any of the 
+<code>fRegress</code> codes.</p>
+</dd>
+<dt>xfdlist:</dt>
+<dd>
+<p>The second argument in the call to <code>fRegress</code>.</p>
+</dd>
+<dt>betalist:</dt>
+<dd>
+<p>The third argument in the call to <code>fRegress</code>.</p>
+</dd>
+<dt>betaestlist:</dt>
+<dd>
+<p>A list of length equal to the number of independent
+variables and with members having the same functional parameter 
+structure as the corresponding members of <code>betalist</code>.  These are the
+estimated regression coefficient functions.</p>
+</dd>
+<dt>yhatfdobj:</dt>
+<dd>
+<p>A functional parameter object (class <code>fdPar</code>) 
+if the dependent variable is functional or a vector if the dependent
+variable is scalar.  This is the set of predicted by the
+functional regression model for the dependent variable.</p>
+</dd>
+<dt>Cmatinv:</dt>
+<dd>
+<p>A matrix containing the inverse of the coefficient 
+matrix for the  linear equations that define the solution to the 
+regression problem.  This matrix is required for function 
+<code>fRegress.stderr</code> that estimates confidence regions
+for the regression coefficient function estimates.</p>
+</dd>
+<dt>wt:</dt>
+<dd>
+<p>The vector of weights input or inferred.</p>
+</dd>
+</dl>
+<p>If <code>class(y)</code> is numeric, the <code>fRegress</code> object also includes:
+</p>
+
+<dl>
+<dt>df:</dt>
+<dd>
+<p>The equivalent degrees of freedom for the fit.</p>
+</dd>
+<dt>OCV</dt>
+<dd>
+<p>the leave-one-out cross validation score for the model.</p>
+</dd>
+<dt>gcv:</dt>
+<dd>
+<p>The generalized cross validation score.</p>
+</dd>
+</dl>
+<p>If <code>class(y)</code> is <code>fd</code> or <code>fdPar</code>, the <code>fRegress</code> 
+object returned also includes 5 other components:
+</p>
+
+<dl>
+<dt>y2cMap:</dt>
+<dd>
+<p>An input <code>y2cMap</code>.</p>
+</dd>
+<dt>SigmaE:</dt>
+<dd>
+<p>An input <code>SigmaE</code>.</p>
+</dd>
+<dt>betastderrlist:</dt>
+<dd>
+<p>An <code>fd</code> object estimating the standard 
+errors of <code>betaestlist</code>.</p>
+</dd>
+<dt>bvar:</dt>
+<dd>
+<p>A covariance matrix for regression coefficient estimates.</p>
+</dd>
+<dt>c2bMap:</dt>
+<dd>
+<p>A mapping matrix that maps variation in Cmat to variation 
+in regression coefficients.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>The model specification object case:</code></td>
+<td>
+<p>The 
+<code>fRegress.formula</code> and <code>fRegress.character</code> functions translate 
+the <code>formula</code> into the argument list required by <code>fRegress.fdPar</code> 
+or <code>fRegress.numeric</code>.  With the default value 'fRegress' for the 
+argument <code>method</code>, this list is then used to call the appropriate 
+other <code>fRegress</code> function.
+Alternatively, to see how the <code>formula</code> is translated, use
+the alternative 'model' value for the argument <code>method</code>.  In
+that case, the function returns a list with the arguments
+otherwise passed to these other functions plus the following
+additional components:
+</p>
+
+<dl>
+<dt>xfdlist0:</dt>
+<dd>
+<p>A list of the objects named on the right hand side of
+<code>formula</code>.  This will differ from <code>xfdlist</code> for
+any categorical or multivariate right hand side object.</p>
+</dd>
+<dt>type:</dt>
+<dd>
+<p>the <code>type</code> component of any <code>fd</code> object on the 
+right hand side of <code>formula</code>.</p>
+</dd>
+<dt>nbasis:</dt>
+<dd>
+<p>A vector containing the <code>nbasis</code> components of 
+variables named in <code>formula</code> having such components.</p>
+</dd>
+<dt>xVars:</dt>
+<dd>
+<p>An integer vector with all the variable names on the right
+hand side of <code>formula</code> containing the corresponding
+number of variables in <code>xfdlist</code>.  This can exceed 1 for
+any multivariate object on the right hand side of class either
+<code>numeric</code> or <code>fd</code> as well as any categorical variable.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>J. O. Ramsay, Giles Hooker, and Spencer Graves
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fRegress.stderr</code>,
+<code>fRegress.CV</code>,
+<code>Fperm.fd</code>,
+<code>Fstat.fd</code>,
+<code>linmod</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+oldpar &lt;- par(no.readonly=TRUE)
+###
+###
+###   vector response with functional explanatory variable  
+###
+###
+
+#  data are in Canadian Weather object
+#  print the names of the data
+print(names(CanadianWeather))
+#  set up log10 of annual precipitation for 35 weather stations
+annualprec &lt;- 
+    log10(apply(CanadianWeather$dailyAv[,,"Precipitation.mm"], 2,sum))
+# The simplest 'fRegress' call is singular with more bases
+# than observations, so we use only 25 basis functions, for this example
+smallbasis  &lt;- create.fourier.basis(c(0, 365), 25)
+# The covariate is the temperature curve for each station.
+tempfd &lt;- 
+ smooth.basis(day.5, CanadianWeather$dailyAv[,,"Temperature.C"], smallbasis)$fd
+##
+## formula interface:  specify the model by a formula, the method
+## fRegress.formula automatically sets up the regression coefficient functions,
+## a constant function for the intercept, 
+## and a higher dimensional function
+## for the inner product with temperature
+##
+
+precip.Temp1 &lt;- fRegress(annualprec ~ tempfd, method="fRegress")
+
+#  the output is a list with class name fRegress, display names
+names(precip.Temp1)
+#[c1] "yvec"           "xfdlist"        "betalist"       "betaestlist"    "yhatfdobj"     
+# [6] "Cmat"           "Dmat"           "Cmatinv"        "wt"             "df"            
+#[11] "GCV"            "OCV"            "y2cMap"         "SigmaE"         "betastderrlist"
+#[16] "bvar"           "c2bMap"       
+
+#  the vector of fits to the data is object  precip.Temp1$yfdPar,
+#  but since the dependent variable is a vector, so is the fit
+annualprec.fit1 &lt;- precip.Temp1$yhatfdobj
+#  plot the data and the fit
+plot(annualprec.fit1, annualprec, type="p", pch="o")
+lines(annualprec.fit1, annualprec.fit1, lty=2)
+#  print root mean squared error
+RMSE &lt;- round(sqrt(mean((annualprec-annualprec.fit1)^2)),3)
+print(paste("RMSE =",RMSE))
+#  plot the estimated regression function
+plot(precip.Temp1$betaestlist[[2]])
+#  This isn't helpful either, the coefficient function is too
+#  complicated to interpret.
+#  display the number of basis functions used:
+print(precip.Temp1$betaestlist[[2]]$fd$basis$nbasis)
+#  25 basis functions to fit 35 values, no wonder we over-fit the data
+
+##
+## Get the default setup and modify it
+## the "model" value of the method argument causes the analysis
+## to produce a list vector of arguments for calling the
+## fRegress function
+##
+
+precip.Temp.mdl1 &lt;- fRegress(annualprec ~ tempfd, method="model")
+# First confirm we get the same answer as above by calling
+# function fRegress() with these arguments:
+precip.Temp.m &lt;- do.call('fRegress', precip.Temp.mdl1)
+
+all.equal(precip.Temp.m, precip.Temp1)
+
+
+#  set up a smaller basis for beta2 than for temperature so that we
+#  get a more parsimonious fit to the data
+
+nbetabasis2 &lt;- 21  #  not much less, but we add some roughness penalization
+betabasis2  &lt;- create.fourier.basis(c(0, 365), nbetabasis2)
+betafd2     &lt;- fd(rep(0, nbetabasis2), betabasis2)
+# add smoothing
+betafdPar2  &lt;- fdPar(betafd2, lambda=10)
+
+# replace the regress coefficient function with this fdPar object
+
+precip.Temp.mdl2 &lt;- precip.Temp.mdl1
+precip.Temp.mdl2[['betalist']][['tempfd']] &lt;- betafdPar2
+
+# Now do re-fit the data
+
+precip.Temp2 &lt;- do.call('fRegress', precip.Temp.mdl2)
+
+# Compare the two fits:
+#  degrees of freedom
+precip.Temp1[['df']] # 26
+precip.Temp2[['df']] # 22
+#  root-mean-squared errors:
+RMSE1 &lt;- round(sqrt(mean(with(precip.Temp1, (yhatfdobj-yvec)^2))),3)
+RMSE2 &lt;- round(sqrt(mean(with(precip.Temp2, (yhatfdobj-yvec)^2))),3)
+print(c(RMSE1, RMSE2))
+#  display further results for the more parsimonious model
+annualprec.fit2 &lt;- precip.Temp2$yhatfdobj
+plot(annualprec.fit2, annualprec, type="p", pch="o")
+lines(annualprec.fit2, annualprec.fit2, lty=2)
+#  plot the estimated regression function
+plot(precip.Temp2$betaestlist[[2]])
+#  now we see that it is primarily the temperatures in the
+#  early winter that provide the fit to log precipitation by temperature
+
+##
+## Manual construction of xfdlist and betalist
+##
+
+xfdlist &lt;- list(const=rep(1, 35), tempfd=tempfd)
+
+# The intercept must be constant for a scalar response
+betabasis1 &lt;- create.constant.basis(c(0, 365))
+betafd1    &lt;- fd(0, betabasis1)
+betafdPar1 &lt;- fdPar(betafd1)
+
+betafd2     &lt;- fd(matrix(0,7,1), create.bspline.basis(c(0, 365),7))
+# convert to an fdPar object
+betafdPar2  &lt;- fdPar(betafd2)
+
+betalist &lt;- list(const=betafdPar1, tempfd=betafdPar2)
+
+precip.Temp3   &lt;- fRegress(annualprec, xfdlist, betalist)
+annualprec.fit3 &lt;- precip.Temp3$yhatfdobj
+#  plot the data and the fit
+plot(annualprec.fit3, annualprec, type="p", pch="o")
+lines(annualprec.fit3, annualprec.fit3)
+plot(precip.Temp3$betaestlist[[2]])
+
+###
+###
+###  functional response with vector explanatory variables  
+###
+###
+
+##
+## simplest:  formula interface
+##
+
+daybasis65 &lt;- create.fourier.basis(rangeval=c(0, 365), nbasis=65,
+                  axes=list('axesIntervals'))
+Temp.fd &lt;- with(CanadianWeather, smooth.basisPar(day.5,
+                dailyAv[,,'Temperature.C'], daybasis65)$fd)
+TempRgn.f &lt;- fRegress(Temp.fd ~ region, CanadianWeather)
+
+##
+## Get the default setup and possibly modify it
+##
+
+TempRgn.mdl &lt;- fRegress(Temp.fd ~ region, CanadianWeather, method='model')
+
+# make desired modifications here
+# then run
+
+TempRgn.m &lt;- do.call('fRegress', TempRgn.mdl)
+
+# no change, so match the first run
+
+all.equal(TempRgn.m, TempRgn.f)
+
+
+##
+## More detailed set up
+##
+
+region.contrasts &lt;- model.matrix(~factor(CanadianWeather$region))
+rgnContr3 &lt;- region.contrasts
+dim(rgnContr3) &lt;- c(1, 35, 4)
+dimnames(rgnContr3) &lt;- list('', CanadianWeather$place, c('const',
+   paste('region', c('Atlantic', 'Continental', 'Pacific'), sep='.')) )
+
+const365 &lt;- create.constant.basis(c(0, 365))
+region.fd.Atlantic &lt;- fd(matrix(rgnContr3[,,2], 1), const365)
+# str(region.fd.Atlantic)
+region.fd.Continental &lt;- fd(matrix(rgnContr3[,,3], 1), const365)
+region.fd.Pacific &lt;- fd(matrix(rgnContr3[,,4], 1), const365)
+region.fdlist &lt;- list(const=rep(1, 35),
+     region.Atlantic=region.fd.Atlantic,
+     region.Continental=region.fd.Continental,
+     region.Pacific=region.fd.Pacific)
+# str(TempRgn.mdl$betalist)
+
+###
+###
+###  functional response with functional explanatory variable  
+###
+###
+
+##
+##  predict knee angle from hip angle;  
+##     from demo('gait', package='fda')
+
+##
+## formula interface
+##
+gaittime   &lt;- as.matrix((1:20)/21)
+gaitrange  &lt;- c(0,20)
+gaitbasis  &lt;- create.fourier.basis(gaitrange, nbasis=21)
+gaitnbasis &lt;- gaitbasis$nbasis
+gaitcoef   &lt;- matrix(0,gaitnbasis,dim(gait)[2])
+harmaccelLfd &lt;- vec2Lfd(c(0, (2*pi/20)^2, 0), rangeval=gaitrange)
+gaitfd     &lt;- smooth.basisPar(gaittime, gait, gaitbasis, 
+                          Lfdobj=harmaccelLfd, lambda=1e-2)$fd
+hipfd  &lt;- gaitfd[,1]
+kneefd &lt;- gaitfd[,2]
+
+knee.hip.f &lt;- fRegress(kneefd ~ hipfd)
+
+##
+## manual set-up
+##
+
+#  set up the list of covariate objects
+const  &lt;- rep(1, dim(kneefd$coef)[2])
+xfdlist  &lt;- list(const=const, hipfd=hipfd)
+
+beta0 &lt;- with(kneefd, fd(gaitcoef, gaitbasis, fdnames))
+beta1 &lt;- with(hipfd,  fd(gaitcoef, gaitbasis, fdnames))
+
+betalist  &lt;- list(const=fdPar(beta0), hipfd=fdPar(beta1))
+
+fRegressout &lt;- fRegress(kneefd, xfdlist, betalist)
+par(oldpar)
+</code></pre>
+
+
+</div>

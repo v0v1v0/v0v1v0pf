@@ -1,0 +1,248 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>forecast.ftsm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forecast functional time series</h2>
+
+<h3>Description</h3>
+
+<p>The coefficients from the fitted object are forecasted
+using either an ARIMA model (<code>method = "arima"</code>), an AR model (<code>method = "ar"</code>), 
+an exponential smoothing method (<code>method = "ets"</code>), a linear exponential smoothing 
+method allowing missing values (<code>method = "ets.na"</code>), or a random walk with drift model 
+(<code>method = "rwdrift"</code>). The forecast coefficients are then multiplied by the principal 
+components to obtain a forecast curve.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ftsm'
+forecast(object, h = 10, method = c("ets", "arima", "ar", "ets.na", 
+ "rwdrift", "rw", "struct", "arfima"), level = 80, jumpchoice = c("fit", 
+  "actual"), pimethod = c("parametric", "nonparametric"), B = 100, 
+   usedata = nrow(object$coeff), adjust = TRUE, model = NULL,
+    damped = NULL, stationary = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Output from <code>ftsm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Forecast horizon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Univariate time series forecasting methods. Current possibilities are “ets”, “arima”, “ets.na”, “rwdrift” and “rw”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Coverage probability of prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jumpchoice</code></td>
+<td>
+<p>Jump-off point for forecasts. Possibilities are “actual” and “fit”.
+If “actual”, the forecasts are bias-adjusted by the difference between the fit and the last year of observed data.
+Otherwise, no adjustment is used. See Booth et al. (2006) for the detail on jump-off point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pimethod</code></td>
+<td>
+<p>Indicates if parametric method is used to construct prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of bootstrap samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>usedata</code></td>
+<td>
+<p>Number of time periods to use in forecasts. Default is to use all.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust</code></td>
+<td>
+<p>If <code>adjust = TRUE</code>, adjusts the variance so that the one-step forecast variance matches the empirical one-step forecast variance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>If the <code>ets</code> method is used, <code>model</code> allows a model specification to be passed to <code>ets()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>damped</code></td>
+<td>
+<p>If the <code>ets</code> method is used, <code>damped</code> allows the damping specification to be passed to <code>ets()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stationary</code></td>
+<td>
+<p>If <code>stationary = TRUE</code>, <code>method</code> is set to <code>method = "ar"</code> and only stationary AR models are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to forecast routine.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>1. Obtain a smooth curve <code class="reqn">f_t(x)</code> for each <code class="reqn">t</code> using a nonparametric smoothing technique.
+</p>
+<p>2. Decompose the smooth curves via a functional principal component analysis.
+</p>
+<p>3. Fit a univariate time series model to each of the principal component scores.
+</p>
+<p>4. Forecast the principal component scores using the fitted time series models.
+</p>
+<p>5. Multiply the forecast principal component scores by fixed principal components to obtain forecasts of <code class="reqn">f_{n+h}(x)</code>.
+</p>
+<p>6. The estimated variances of the error terms (smoothing error and model residual error) are used to compute prediction intervals for the forecasts.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>An object of class <code>fts</code> containing point forecasts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>An object of class <code>fts</code> containing lower bound for prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>An object of class <code>fts</code> containing upper bound for prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted</code></td>
+<td>
+<p>An object of class <code>fts</code> of one-step-ahead forecasts for historical data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error</code></td>
+<td>
+<p>An object of class <code>fts</code> of one-step-ahead errors for historical data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>List of objects of type <code>forecast</code> containing the coefficients and their forecasts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff.error</code></td>
+<td>
+<p>One-step-ahead forecast errors for each of the coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>List containing the various components of variance: model, error, mean, total and coeff.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Fitted <code>ftsm</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootsamp</code></td>
+<td>
+<p>An array of <code class="reqn">dimension = c(p, B, h)</code> containing the bootstrapped point forecasts. 
+<code class="reqn">p</code> is the number of variables. <code class="reqn">B</code> is the number of bootstrap samples.
+<code class="reqn">h</code> is the forecast horizon.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Rob J Hyndman</p>
+
+
+<h3>References</h3>
+
+<p>H. Booth and R. J. Hyndman and L. Tickle and P. D. Jong (2006) "Lee-Carter mortality forecasting: A multi-country comparison of variants and extensions", <em>Demographic Research</em>, <b>15</b>, 289-310.
+</p>
+<p>B. Erbas and R. J. Hyndman and D. M. Gertig (2007) "Forecasting age-specific breast cancer mortality using functional data model", <em>Statistics in Medicine</em>, <b>26</b>(2), 458-470.
+</p>
+<p>R. J. Hyndman and M. S. Ullah (2007) "Robust forecasting of mortality and fertility rates: A functional data approach", <em>Computational Statistics and Data Analysis</em>, <b>51</b>(10), 4942-4956.
+</p>
+<p>R. J. Hyndman and H. Booth (2008) "Stochastic population forecasts using functional data models for mortality, fertility and migration", <em>International Journal of Forecasting</em>, <b>24</b>(3), 323-342.
+</p>
+<p>R. J. Hyndman and H. L. Shang (2009) "Forecasting functional time series" (with discussion), <em>Journal of the Korean Statistical Society</em>, <b>38</b>(3), 199-221.
+</p>
+<p>H. L. Shang (2012) "Functional time series approach for forecasting very short-term electricity demand", <em>Journal of Applied Statistics</em>, <b>40</b>(1), 152-168.
+</p>
+<p>H. L. Shang (2013) "ftsa: An R package for analyzing functional time series", <em>The R Journal</em>, <b>5</b>(1), 64-72.
+</p>
+<p>H. L. Shang, A. Wisniowski, J. Bijak, P. W. F. Smith and J. Raymer (2014) "Bayesian functional models for population forecasting", in M. Marsili and G. Capacci (eds), Proceedings of the Sixth Eurostat/UNECE Work Session on Demographic Projections, Istituto nazionale di statistica, Rome, pp. 313-325.
+</p>
+<p>H. L. Shang (2015) "Selection of the optimal Box-Cox transformation parameter for modelling and forecasting age-specific fertility", <em>Journal of Population Research</em>, <b>32</b>(1), 69-79.
+</p>
+<p>H. L. Shang (2015) "Forecast accuracy comparison of age-specific mortality and life expectancy: Statistical tests of the results", <em>Population Studies</em>, <b>69</b>(3), 317-335.
+</p>
+<p>H. L. Shang, P. W. F. Smith, J. Bijak, A. Wisniowski (2016) "A multilevel functional data method for forecasting population, with an application to the United Kingdom", <em>International Journal of Forecasting</em>, <b>32</b>(3), 629-649.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ftsm</code>, <code>forecastfplsr</code>, <code>plot.ftsf</code>, <code>plot.fm</code>, <code>residuals.fm</code>, <code>summary.fm</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># ElNino is an object of class sliced functional time series.
+# Via functional principal component decomposition, the dynamic was captured 
+# by a few principal components and principal component scores. 
+# By using an exponential smoothing method, 
+# the principal component scores are forecasted.
+# The forecasted curves are constructed by forecasted principal components 
+# times fixed principal components plus the mean function.	
+forecast(object = ftsm(ElNino_ERSST_region_1and2), h = 10, method = "ets")              
+forecast(object = ftsm(ElNino_ERSST_region_1and2, weight = TRUE))
+</code></pre>
+
+
+</div>

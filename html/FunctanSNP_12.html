@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SNPlm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Revised functional linear regression analysis for the sequence (genotypes) data</h2>
+
+<h3>Description</h3>
+
+<p>This function models the genetic effect of genetic variants by relating the genetic variant function to the phenotype adjusting for covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SNPlm(y, z, location, X, type1, type2, nbasis1, nbasis2, params1, params2,
+  intercept = FALSE, Plot = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector specifying the response variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>a matrix specifying the scalar covariates, with the number of rows equal to the number of samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>location</code></td>
+<td>
+<p>a numeric vector defining the sampling sites of the sequence data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a matrix specifying the sequence data, with the number of rows equal to the number of samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type1</code></td>
+<td>
+<p>a character specifying the type of the basis functions that constitutes the genetic variation function. The options are "Bspline", "Exponential", "Fourier", "Monomial", and "Power".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type2</code></td>
+<td>
+<p>a character specifying the type of the basis functions that constitutes the genetic effect function. The options are "Bspline", "Exponential", "Fourier", "Monomial", and "Power".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbasis1</code></td>
+<td>
+<p>an integer specifying the number of basis functions that constitutes the genetic variation function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbasis2</code></td>
+<td>
+<p>an integer specifying the number of basis functions that constitutes the genetic effect function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params1</code></td>
+<td>
+<p>in addition to rangeval1 (a vector of length 2 giving the lower and upper limits of the range of permissible values for the genetic variation function) and nbasis1, all bases have one or two parameters unique to that basis type or shared with one other;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params2</code></td>
+<td>
+<p>in addition to rangeval1 (a vector of length 2 giving the lower and upper limits of the range of permissible values for the genetic effect function) and nbasis1, all bases have one or two parameters unique to that basis type or shared with one other;
+</p>
+
+<ul>
+<li>
+<p>bspline: Argument norder = the order of the spline, which is one more than the degree of the polynomials used. This defaults to 4, which gives cubic splines.
+</p>
+</li>
+<li>
+<p>exponential: Argument ratevec. In fda_2.0.2, this defaulted to 1. In fda_2.0.3, it will default to 0:1.
+</p>
+</li>
+<li>
+<p>fourier: Argument period defaults to diff(rangeval).
+</p>
+</li>
+<li>
+<p>monomial/power: Argument exponents. Default = 0:(nbasis-1). For monomial bases, exponents must be distinct nonnegative integers. For power bases, they must be distinct real numbers.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>should intercept(s) be fitted (TRUE) or set to zero (default = FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Plot</code></td>
+<td>
+<p>should the estimated genetic effect function beta(t) be plotted (TRUE) or not (default = FALSE).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An "SNPlm" object that contains the list of the following items.
+</p>
+
+<ul>
+<li>
+<p>alpha: estimated intercept value.
+</p>
+</li>
+<li>
+<p>gamma: estimated coefficients of the scalar covariates.
+</p>
+</li>
+<li>
+<p>b: estimated coefficients of the chosen basis functions for the genetic effect function beta(t).
+</p>
+</li>
+<li>
+<p>betat: an "fd" object, representing the estimated genetic effect function beta(t).
+</p>
+</li>
+<li>
+<p>residuals: the residuals, that is response minus fitted values.
+</p>
+</li>
+<li>
+<p>fitted.values:  the fitted mean values.
+</p>
+</li>
+<li>
+<p>terms: the terms object used.
+</p>
+</li>
+<li>
+<p>model: if requested (the default), the model frame used.
+</p>
+</li>
+<li>
+<p>para: some relevant parameters of "SNPlm" model.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>See Also as <code>SNPgvf</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(FunctanSNP)
+n &lt;- 300
+m &lt;- 30
+simdata1 &lt;- simData1(n, m, seed = 123)
+y &lt;- simdata1$y
+z &lt;- simdata1$z
+location &lt;- simdata1$location
+X &lt;- simdata1$X
+SNPlmres &lt;- SNPlm(y, z, location, X, type1 = "Bspline", type2 = "Bspline", nbasis1 = 5,
+                  nbasis2 = 5, params1 = 4, params2 = 4, intercept = FALSE, Plot = TRUE)
+SNPlmres$alpha
+SNPlmres$gamma
+SNPlmres$b
+</code></pre>
+
+
+</div>

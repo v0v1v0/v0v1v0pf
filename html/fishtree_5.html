@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fishtree_phylogeny</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get a phylogeny from the Fish Tree of Life</h2>
+
+<h3>Description</h3>
+
+<p>Retrieves a phylogeny via the Fish Tree of Life API. If neither 'species' nor 'rank' are specified, returns the entire phylogeny.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fishtree_phylogeny(
+  species,
+  rank,
+  type = c("chronogram", "phylogram", "chronogram_mrca", "phylogram_mrca")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>species</code></td>
+<td>
+<p>(Optionally) subset the results based on a vector of species names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>(Optionally) subset the results based on the supplied taxonomic rank.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Either '"chronogram"' or '"phylogram"'. A chronogram has branch lengths proportional to units of time, while a phylogram has branch lengths proportional to the amount of character change. When retrieving a phylogeny by rank, and that rank is not recovered as monophyletic, acceptable types also include '"chronogram_mrca"' and '"phylogram_mrca"', which returns a tree with *all* species descending from the common ancestor of species in the specified rank.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For maximum interoperability, 'species' considers spaces and underscores equivalently. Internally, the phylogenies use underscores.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class '"phylo"'.
+</p>
+
+
+<h3>References</h3>
+
+<p>Rabosky, D. L., Chang, J., Title, P. O., Cowman, P. F., Sallan, L., Friedman, M., Kashner, K., Garilao, C., Near, T. J., Coll, M., Alfaro, M. E. (2018). An inverse latitudinal gradient in speciation rate for marine fishes. Nature, 559(7714), 392–395. doi:10.1038/s41586-018-0273-1
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fishtree_rogues</code>, <code>read.tree</code>, <code>force.ultrametric</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Get a phylogeny for a taxonomic rank
+surgeons &lt;- fishtree_phylogeny(rank = "Acanthuridae")
+
+# Get a phylogeny for only certain species
+genomic_fish &lt;- c("Oryzias latipes", "Tetraodon nigroviridis",
+                  "Gasterosteus aculeatus", "Danio rerio")
+fishtree_phylogeny(species = genomic_fish)
+
+# Chronograms may not be ultrametric due to numerical precision issues
+# Consider using phytools::force.ultrametric
+ape::is.ultrametric(surgeons)
+ape::is.ultrametric(surgeons, tol = 0.00001)
+
+# Difference between MRCA trees and regular trees
+gobies_mrca &lt;- fishtree_phylogeny(rank = "Gobiidae", type = "chronogram_mrca")
+gobies &lt;- fishtree_phylogeny(rank = "Gobiidae", type = "chronogram")
+# MRCA trees will have more tips for non-monophyletic groups
+length(gobies_mrca$tip.label) &gt; length(gobies$tip.label)
+# Drop rogue tips in the MRCA tree
+rogue_gobies &lt;- fishtree_rogues("Gobiidae")
+pruned_gobies &lt;- ape::drop.tip(gobies_mrca, rogue_gobies)
+# Now the trees are identical
+setequal(gobies$tip.label, pruned_gobies$tip.label)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

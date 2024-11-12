@@ -1,0 +1,73 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>TensorP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tensor product of basis functions</h2>
+
+<h3>Description</h3>
+
+<p>Constructs a new set of basis functions by finding the tensor product of two sets of basis functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">TensorP(Basis1, Basis2)
+
+## S4 method for signature 'Basis,Basis'
+TensorP(Basis1, Basis2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Basis1</code></td>
+<td>
+<p>first set of basis functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Basis2</code></td>
+<td>
+<p>second set of basis functions</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>auto_basis</code> for automatically constructing basis functions and <code>show_basis</code> for visualising basis functions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(spacetime)
+library(sp)
+library(dplyr)
+sim_data &lt;- data.frame(lon = runif(20,-180,180),
+                       lat = runif(20,-90,90),
+                       t = 1:20,
+                       z = rnorm(20),
+                       std = 0.1)
+time &lt;- as.POSIXct("2003-05-01",tz="") + 3600*24*(sim_data$t-1)
+space &lt;- sim_data[,c("lon","lat")]
+coordinates(space) = ~lon+lat # change into an sp object
+slot(space, "proj4string") = CRS("+proj=longlat +ellps=sphere")
+STobj &lt;- STIDF(space,time,data=sim_data)
+G_spatial &lt;- auto_basis(manifold = sphere(),
+                        data=as(STobj,"Spatial"),
+                        nres = 1,
+                        type = "bisquare",
+                        subsamp = 20000)
+G_temporal &lt;- local_basis(manifold=real_line(),loc = matrix(c(1,3)),scale = rep(1,2))
+G &lt;- TensorP(G_spatial,G_temporal)
+# show_basis(G_spatial)
+# show_basis(G_temporal)
+</code></pre>
+
+
+</div>

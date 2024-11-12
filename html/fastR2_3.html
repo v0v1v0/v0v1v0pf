@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AirlineArrival</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Airline On-Time Arrival Data</h2>
+
+<h3>Description</h3>
+
+<p>Flights categorized by destination city, airline, and whether or not the
+flight was on time.
+</p>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 11000 observations on the following 3 variables.
+</p>
+ 
+<dl>
+<dt>airport</dt>
+<dd>
+<p> a factor with levels <code>LosAngeles</code>,
+<code>Phoenix</code>, <code>SanDiego</code>, <code>SanFrancisco</code>, <code>Seattle</code></p>
+</dd>
+<dt>result</dt>
+<dd>
+<p> a factor with levels <code>Delayed</code>, <code>OnTime</code></p>
+</dd>
+<dt>airline</dt>
+<dd>
+<p> a factor with levels <code>Alaska</code>, <code>AmericaWest</code></p>
+</dd> </dl>
+<h3>Source</h3>
+
+<p>Barnett, Arnold. 1994. “How numbers can trick you.”
+<em>Technology Review</em>, vol. 97, no. 7, pp. 38–45.
+</p>
+
+
+<h3>References</h3>
+
+<p>These and similar data appear in many text books under the topic
+of Simpson's paradox.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+tally(
+  airline ~ result, data = AirlineArrival, 
+  format = "perc", margins = TRUE)
+tally(
+  result ~ airline + airport, 
+  data = AirlineArrival, format = "perc", margins = TRUE)
+AirlineArrival2 &lt;- 
+  AirlineArrival %&gt;% 
+  group_by(airport, airline, result) %&gt;% 
+  summarise(count = n()) %&gt;%
+  group_by(airport, airline) %&gt;%
+  mutate(total = sum(count), percent = count/total * 100) %&gt;% 
+  filter(result == "Delayed") 
+AirlineArrival3 &lt;- 
+  AirlineArrival %&gt;% 
+  group_by(airline, result) %&gt;% 
+  summarise(count = n()) %&gt;%
+  group_by(airline) %&gt;%
+  mutate(total = sum(count), percent = count/total * 100) %&gt;% 
+  filter(result == "Delayed") 
+  gf_line(percent ~ airport, color = ~ airline, group = ~ airline, 
+          data = AirlineArrival2) %&gt;%
+    gf_point(percent ~ airport, color = ~ airline, size = ~total, 
+             data = AirlineArrival2) %&gt;%
+    gf_hline(yintercept = ~ percent, color = ~airline, 
+             data = AirlineArrival3, linetype = "dashed") %&gt;%
+    gf_labs(y = "percent delayed") 
+</code></pre>
+
+
+</div>

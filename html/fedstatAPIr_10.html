@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fedstat_post_data_ids_filtered</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Post data filters ids to fedstat.ru and download specified subset of data</h2>
+
+<h3>Description</h3>
+
+<p>Creates a request body from <code>data_ids</code> and sends it to
+https://www.fedstat.ru/indicator/data.do?format=<code>data_format</code>.
+Gets an sdmx or excel with data in binary format.
+</p>
+<p>sdmx raw bytes can be passed to <code>fedstat_parse_sdmx_to_table</code> to create a
+data.frame or to <code>rawToChar</code> and <code>writeLines</code> to create an xml file
+</p>
+<p>excel raw bytes can be passed to <code>writeBin</code> to create an xls file
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fedstat_post_data_ids_filtered(
+  data_ids,
+  ...,
+  data_format = c("sdmx", "excel"),
+  timeout_seconds = 180,
+  retry_max_times = 3,
+  httr_verbose = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_ids</code></td>
+<td>
+<p>data.frame, can be a result of <code>fedstat_get_data_ids</code> or
+<code>fedstat_get_data_ids_special_cases_handle</code> to download all available data,
+or a result of <code>fedstat_data_ids_filter</code> to download subset of available data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to httr::POST</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_format</code></td>
+<td>
+<p>string, one of sdmx, excel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeout_seconds</code></td>
+<td>
+<p>numeric, maximum time before a new POST request is tried</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retry_max_times</code></td>
+<td>
+<p>numeric, maximum number of tries to POST <code>data_ids</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>httr_verbose</code></td>
+<td>
+<p><code>httr::verbose()</code> or NULL, outputs messages to the console
+about the processing of the request</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>raw bytes (sdmx or excel)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fedstat_parse_sdmx_to_table</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Get data filters identificators for CPI
+# filter the data_ids to get data for january of 2023
+# for all goods and services for Russian Federation
+# POST filters and download data in sdmx format
+data &lt;- fedstat_get_data_ids("31074") %&gt;%
+  fedstat_data_ids_filter(
+    filters = list(
+      "Territory" = "Russian Federation",
+      "Year" = "2023",
+      "Period" = "January",
+      "Types of goods and services" = "*"
+    )
+  ) %&gt;%
+  fedstat_post_data_ids_filtered()
+
+# Not actual filter field titles and filter values titles because of ASCII requirement for CRAN
+
+## End(Not run)
+</code></pre>
+
+
+</div>

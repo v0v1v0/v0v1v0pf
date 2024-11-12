@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FBF_RS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Moment Fractional Bayes Factor Stochastic Search for Regression Models</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the edge inclusion probabilities for a regression model (Y(q) on Y(q-1),...,Y(1)) with q variables from observational data, using the moment fractional Bayes factor approach.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FBF_RS(Corr, nobs, G_base, h, C, n_tot_mod, n_hpp)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Corr</code></td>
+<td>
+<p>qxq correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>Number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G_base</code></td>
+<td>
+<p>Base model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Parameter prior.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>Costant who keeps the probability of all local moves bounded away from 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_tot_mod</code></td>
+<td>
+<p>Maximum number of different models which will be visited by the algorithm, for each equation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_hpp</code></td>
+<td>
+<p>Number of the highest posterior probability models which will be returned by the procedure.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of <code>class</code> <code>list</code> with:
+</p>
+
+<dl>
+<dt><code>M_q</code></dt>
+<dd>
+<p>Matrix (qxq) with the estimated edge inclusion probabilities.
+</p>
+</dd>
+<dt><code>M_G</code></dt>
+<dd>
+<p>Matrix (n*n_hpp)xq with the n_hpp highest posterior probability models returned by the procedure.
+</p>
+</dd>
+<dt><code>M_P</code></dt>
+<dd>
+<p>Vector (n_hpp) with the n_hpp posterior probabilities of the models in M_G.
+</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Davide Altomare (<a href="mailto:davide.altomare@gmail.com">davide.altomare@gmail.com</a>).
+</p>
+
+
+<h3>References</h3>
+
+<p>D. Altomare, G. Consonni and L. LaRocca (2012). Objective Bayesian search of Gaussian directed acyclic graphical models for ordered variables with non-local priors. <em>Article submitted to Biometric Methodology</em>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(SimDag6) 
+
+Corr=dataSim6$SimCorr[[1]]
+nobs=50
+q=ncol(Corr)
+Gt=dataSim6$TDag
+
+Res_search=FBF_RS(Corr, nobs, matrix(0,1,(q-1)), 1, 0.01, 1000, 10)
+M_q=Res_search$M_q
+M_G=Res_search$M_G
+M_P=Res_search$M_P
+
+
+Mt=rev(matrix(Gt[1:(q-1),q],1,(q-1))) #True Model
+
+M_med=M_q
+M_med[M_q&gt;=0.5]=1
+M_med[M_q&lt;0.5]=0 #median probability model
+
+#Structural Hamming Distance between the true DAG and the median probability DAG
+sum(sum(abs(M_med-Mt))) 
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hybridModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Hybrid time series modeling</h2>
+
+<h3>Description</h3>
+
+<p>Create a hybrid time series model with two to five component models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hybridModel(
+  y,
+  models = "aefnst",
+  lambda = NULL,
+  a.args = NULL,
+  e.args = NULL,
+  n.args = NULL,
+  s.args = NULL,
+  t.args = NULL,
+  z.args = NULL,
+  weights = c("equal", "insample.errors", "cv.errors"),
+  errorMethod = c("RMSE", "MAE", "MASE"),
+  rolling = FALSE,
+  cvHorizon = frequency(y),
+  windowSize = 84,
+  horizonAverage = FALSE,
+  parallel = FALSE,
+  num.cores = 2L,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric vector or time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>A character string of up to seven characters indicating which contributing
+models to use:
+a (<code>auto.arima</code>), e (<code>ets</code>),
+f (<code>thetam</code>), n (<code>nnetar</code>),
+s (<code>stlm</code>), t (<code>tbats</code>),
+and z (<code>snaive</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Box-Cox transformation parameter.
+Ignored if NULL. Otherwise, data transformed before model is estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a.args</code></td>
+<td>
+<p>an optional <code>list</code> of arguments to pass to <code>auto.arima</code>.
+See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e.args</code></td>
+<td>
+<p>an optional <code>list</code> of arguments to pass to <code>ets</code>.
+See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.args</code></td>
+<td>
+<p>an optional <code>list</code> of arguments to pass to <code>nnetar</code>.
+See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s.args</code></td>
+<td>
+<p>an optional <code>list</code> of arguments to pass to <code>stlm</code>.
+See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.args</code></td>
+<td>
+<p>an optional <code>list</code> of arguments to pass to <code>tbats</code>.
+See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z.args</code></td>
+<td>
+<p>an optional <code>list</code> of arguments to pass to <code>snaive</code>.
+See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>method for weighting the forecasts of the various contributing
+models.  Defaults to <code>equal</code>, which has shown to be robust and better
+in many cases than giving more weight to models with better in-sample performance.
+Cross validated errors–implemented with <code>link{cvts}</code>
+should produce the best forecast, but the model estimation is also the slowest. Note that
+extra arguments
+passed in <code>a.args</code>, <code>e.args</code>, <code>n.args</code>, <code>s.args</code>, and <code>t.args</code> are
+not used during cross validation. See further explanation in <code>cvts</code>.
+Weights utilizing in-sample errors are also available but not recommended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>errorMethod</code></td>
+<td>
+<p>method of measuring accuracy to use if weights are not
+to be equal.
+Root mean square error (<code>RMSE</code>), mean absolute error (<code>MAE</code>)
+and mean absolute scaled error (<code>MASE</code>)
+are supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rolling</code></td>
+<td>
+<p>If <code>weights = "cv.errors"</code>, this controls the use of rolling cross validation
+in <code>cvts()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvHorizon</code></td>
+<td>
+<p>If <code>weights = "cv.errors"</code>, this controls which forecast to horizon to use
+for the error calculations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windowSize</code></td>
+<td>
+<p>length of the window to build each model, only used when
+<code>weights = "cv.errors"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horizonAverage</code></td>
+<td>
+<p>If <code>weights = "cv.errors"</code>, setting this to <code>TRUE</code> will average
+all forecast horizons up to <code>cvHorizon</code> for calculating the errors instead of using
+the single horizon given in <code>cvHorizon</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>a boolean indicating if parallel processing should be used between models.
+Parallelization will still occur within individual models that support it and can be controlled
+using <code>a.args</code> and <code>t.args</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.cores</code></td>
+<td>
+<p>If <code>parallel=TRUE</code>, how many cores to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Should the status of which model is being fit/cross validated be printed
+to the terminal?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>hybridModel</code> function fits multiple individual model specifications
+to allow easy creation of ensemble forecasts. While default settings for the individual
+component models work quite well in most cases, fine control can be exerted by passing detailed
+arguments to the component models in the
+<code>a.args</code>, <code>e.args</code>, <code>n.args</code>, <code>s.args</code>, and <code>t.args</code> lists.
+Note that if <code>xreg</code> is passed to the <code>a.args</code>, <code>n.args</code>, or
+<code>s.args</code> component models it must now be passed as a matrix. In "forecastHybrid"
+versions earlier than 4.0.15 it would instead be passed in as a dataframe, but for consistency
+with "forecast" v8.5 we now require a matrix with colnames
+<br><br>
+Characteristics of the input series can cause problems for certain types of models
+and parameters. For example, <code>stlm</code> models require that the input
+series be seasonal; furthermore, the data must include at least two seasons
+of data (i.e. <code>length(y) &gt;= 2 * frequency(y)</code>) for the decomposition to succeed.
+If this is not the case, <code>hybridModel()</code>
+will remove the <code>stlm</code> model so an error does not occur.
+Similarly, <code>nnetar</code> models require that
+<code>length(y) &gt;= 2 * frequency(y)</code>, so these models will be removed if the condition
+is not satisfied. The <code>ets</code> model does not handle
+a series well with a seasonal period longer than 24 and will ignore the seasonality.
+In this case, <code>hybridModel()</code> will also drop the <code>ets</code> model from the ensemble.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class hybridModel.
+The individual component models are stored inside of the object
+and can be accessed for all the regular manipulations available in the forecast package.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Shaub
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>forecast.hybridModel</code>, <code>auto.arima</code>,
+<code>ets</code>, <code>thetam</code>, <code>nnetar</code>,
+<code>stlm</code>, <code>tbats</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# Fit an auto.arima, ets, thetam, nnetar, stlm, and tbats model
+# on the time series with equal weights
+mod1 &lt;- hybridModel(AirPassengers)
+plot(forecast(mod1))
+
+# Use an auto.arima, ets, and tbats model with weights
+# set by the MASE in-sample errors
+mod2 &lt;- hybridModel(AirPassengers, models = "aet",
+weights = "insample.errors", errorMethod = "MASE")
+
+# Pass additional arguments to auto.arima() to control its fit
+mod3 &lt;- hybridModel(AirPassengers, models = "aens",
+a.args = list(max.p = 7, max.q = 7, approximation = FALSE))
+
+# View the component auto.arima() and stlm() models
+mod3$auto.arima
+mod3$stlm
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

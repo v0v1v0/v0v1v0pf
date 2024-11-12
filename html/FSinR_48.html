@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wrapperEvaluator</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wrapper measure generator</h2>
+
+<h3>Description</h3>
+
+<p>Generates a wrapper function to be used as an evaluator (Kohavi and John 1997) in the feature selection proccess, given a learner algorithm and related customizable parameters (from Jed Wing et al. 2018). More specifically, the result of calling this function is another function that is passed on as a parameter to the <code>featureSelection</code> function. However, you can also run this function directly to generate an evaluation measure.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">wrapperEvaluator(learner, resamplingParams = list(), fittingParams = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>learner</code></td>
+<td>
+<p>Learner to be used. The models available are the models available in caret: http://topepo.github.io/caret/available-models.html</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resamplingParams</code></td>
+<td>
+<p>Control parameters for evaluating the impact of model tuning parameters. The arguments are the same as those of the caret trainControl function. By default an empty list. In this case the default caret values are used for resampling and fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fittingParams</code></td>
+<td>
+<p>Control parameters for choose the best model across the parameters. The arguments are the same as those of the caret train function (minus the parameters: x, y, form, data, method and trainControl). By default an empty list. In this case the default caret values are used for resampling and fitting.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>generaWrapper
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a wrapper function that is used to generate an evaluation measure
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Alfonso Jiménez-Vílchez
+</p>
+<p>Francisco Aragón Royón
+</p>
+
+
+<h3>References</h3>
+
+<p>Kohavi R, John GH (1997).
+“Wrappers for feature subset selection.”
+<em>Artificial intelligence</em>, <b>97</b>, 273–324.<br><br> from Jed Wing MKC, Weston S, Williams A, Keefer C, Engelhardt A, Cooper T, Mayer Z, Kenkel B, the R Core Team, Benesty M, Lescarbeau R, Ziem A, Scrucca L, Tang Y, Candan C, Hunt. T (2018).
+<em>caret: Classification and Regression Training</em>.
+R package version 6.0-80, <a href="https://CRAN.R-project.org/package=caret">https://CRAN.R-project.org/package=caret</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:  
+
+## Examples of a wrapper evaluator generation
+
+wrapper_evaluator_1 &lt;- wrapperEvaluator('knn')
+wrapper_evaluator_2 &lt;- wrapperEvaluator('mlp')
+wrapper_evaluator_3 &lt;- wrapperEvaluator('randomForest')
+
+
+## Examples of a wrapper evaluator generation (with parameters)
+
+# Values for the caret trainControl function (resampling parameters)
+resamplingParams &lt;- list(method = "repeatedcv", repeats = 3)
+# Values for the caret train function (fitting parameters)
+fittingParams &lt;- list(preProc = c("center", "scale"), metric="Accuracy",
+                      tuneGrid = expand.grid(k = c(1:12)))
+                      
+wrapper_evaluator &lt;- wrapperEvaluator('knn', resamplingParams, fittingParams)
+
+
+## The direct application of this function is an advanced use that consists of using this 
+# function directly to evaluate a set of features
+## Classification problem
+
+# Generates the wrapper evaluation function
+wrapper_evaluator &lt;- wrapperEvaluator('knn')
+# Evaluates features directly (parameters: dataset, target variable and features)
+wrapper_evaluator(iris,'Species',c('Sepal.Length','Sepal.Width','Petal.Length','Petal.Width'))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

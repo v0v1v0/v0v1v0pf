@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flux.calib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Determine calibration measurement ranges according to the dates of real measurements
+</h2>
+
+<h3>Description</h3>
+
+<p>The function basically takes calibration gas measurements and extracts the calibration gas measurements that have been carried out temporally close to a real data measurement and calculates the standard deviation of the calibration gas measurements. The obtained range limits can be used in <code>flux</code> as a quality parameter (via <code>range.lim</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flux.calib(dat, columns, calib, format = "%Y-%m-%d %H:%M:%S", 
+window = 3, buffer = 1000, n.cg = 4, rl.backup = 20, attach = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+
+<p>Object returned by <code>chop</code> containing gas concentration measurements for several chamber measurements.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>columns</code></td>
+<td>
+
+<p>Character vector giving the names of the two columns that shall be taken from <code>dat</code> and from <code>calib</code> for extracting the calibration measurements. Typically one date and one concentration column. This also implies that they carry the same names in <code>dat</code> and <code>calib</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calib</code></td>
+<td>
+
+<p><code>data.frame</code> with concentration measurements of calibration gases that have been carried out at least in part during the time the concentration measurements in <code>dat</code> have been achieved.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+
+<p>Character string specifying the format of dates in <code>dat</code> as well as in <code>calib</code>. Internally dates are converted to a date format R can handle (see <code>strptime</code> for details and format options).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window</code></td>
+<td>
+
+<p>Integer value. Hours. Window around the date and time (if available) of measurement of the field greenhouse gas concentrations at the measurement device (e.g. a GC) that shall be considered for the inclusion of calibration gas measurements. If no times are given <code>window</code>s = 48 includes the day after the measurement date and <code>window</code>s &gt;48 include the day before and the day after the measurement date.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffer</code></td>
+<td>
+
+<p>Numeric. Concentration buffer around the range of concentration measurements in <code>dat</code> in which the function searches for calibration gas measurements. Defaults to 1000 (ppm or ppb, depends on gas). When only the closest calibration gas concentration shall be considered one can decrease the buffer. When real concentrations are far different from available calibration gas concentrations one might need to increase the buffer to have enough data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cg</code></td>
+<td>
+
+<p>Integer. Number of calibration gas concentrations in <code>calib</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rl.backup</code></td>
+<td>
+
+<p>Numeric value. Range limit backup value that is used in situations where no range limit can be derived from the calibration measurements. See details. Defaults to a quite reasonable 20. Deprecated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attach</code></td>
+<td>
+
+<p>Logical. If TRUE the range limits are attached to the original data.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function automatically detects the single species of calibration gases that have been measured. It calculates the standard deviations of the measurements per calibration gas species and than gives back an average of the calculated range limit values if there are more than one calibration gas concentrations covered by the range within the field concentration measurements per chamber placement. However, this is rather academic because a chamber measurement for which concentrations develop over the range of two or more calibration concentrations will typically not have a range limit problem.
+</p>
+<p>In its actual form it is possible that there are no valid calibration measurements found for certain chamber data because the range of the chamber data (even with range extension) does not cover any of the calibration gas concentrations. In this case, the minimum range limit is assigned if <code>rl.backup</code> = NULL.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a named vector with the range limits of the measurement device (as needed within <code>flux</code>) per chamber measurement or attaches the range limits to the original data tables that are in <code>x</code> and returns the altered <code>x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gerald Jurasinski &lt;gerald.jurasinski@uni-rostock.de&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>chop</code>, <code>flux</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load example data
+data(tt.pre)
+
+## extract field concentration measurements
+gcd &lt;- tt.pre[tt.pre$sampletype_a=="P",]
+
+## partition the data into data tables per chamber measurement
+gcd.parts &lt;- chop(gcd, factors = c("date", "spot", "veg"), 
+nmes = c("date", "veg", "spot"))
+
+## calculate range limits according to the data and the accompanying 
+## calibration gas measurements
+# extract and prepare calibration measurements
+cal &lt;- tt.pre[tt.pre$sampletype_a=="E",c("date_gc", "CH4ppb", "CH4Code", 
+"CO2ppm", "CO2Code", "N2Oppb", "N2OCode")]
+names(cal)[1] &lt;- "date"
+cal$date &lt;- "2011-03-16"
+# calculate the range limits per gas (makes no real sense with such
+# a small dataset).
+# CH4 range limits 
+CH4.lims &lt;- flux.calib(gcd.parts, columns = c("date", "CH4ppb"), 
+calib = cal, format="%Y-%m-%d", window=48, attach=FALSE, buffer=1100)
+# N2O range limits 
+N2O.lims &lt;- flux.calib(gcd.parts, columns = c("date", "N2Oppb"), 
+calib = cal, format="%Y-%m-%d", window=48, attach=FALSE, buffer=1100)
+# CO2 range limits 
+CO2.lims &lt;- flux.calib(gcd.parts, columns = c("date", "CO2ppm"), 
+calib = cal, format="%Y-%m-%d", window=48, attach=FALSE, buffer=1100)
+
+## attach the range limits to the original data
+gcd.parts.cal &lt;- flux.calib(gcd.parts, columns = c("date", "CH4ppb"), 
+calib = cal, format = "%Y-%m-%d", attach = TRUE, window=48, buffer=1100)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dimGB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Assess the latent dimensionality using Guttman bounds
+</h2>
+
+<h3>Description</h3>
+
+<p><code>dimGB</code> is a function that calculates the first, second, and third Guttman (lower-)bounds to the dimensionality of the latent vector.
+These can be used to choose the number of latent factors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dimGB(R, graph = TRUE, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>(Regularized) correlation <code>matrix</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the results should be visualized.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the function should run silently.<br>
+Runs silently when <code>verbose = FALSE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The communality in factor analysis refers to the amount of variance (of feature <code class="reqn">j</code>) explained by the latent features.
+The correlation of any feature with itself can then be decomposed into common variance (the communality) and unique variance.
+This implies that unity (1) minus the unique variance for feature <code class="reqn">j</code> equals the communality for feature <code class="reqn">j</code>.
+From the matrix perspective one can then construct a reduced correlation matrix: the correlation matrix with communalities in the diagonal.
+This reduced correlation matrix is, by the assumptions on the factor model, Gramian and of rank <code class="reqn">m</code>, with <code class="reqn">m</code> indicating the intrinsic dimensionality of the latent vector.
+The dimension of the latent vector (i.e., the number of common factors) can then be assessed by evaluating the rank of the sample correlation matrix in which the diagonal elements are replaced with appropriate communality estimates.
+</p>
+<p>In our case, which is often high-dimensional, we use the regularized correlation matrix as our sample-representation of the population correlation matrix.
+The diagonal elements are then replaced with Guttman's lower-bound estimates for the communalities (Guttman, 1956).
+Guttman (1956) gives 3 (ordered) lower-bound estimates.
+The first estimate is the most conservative, using 0 as a lower-bound estimate of the communalities.
+From this perspective, every positive eigenvalue of the reduced sample correlation matrix is indicative of a latent factor whose contribution to variance-explanation is above and beyond mere unique variance. 
+The decisonal approach would then be to retain all such factors.
+See Peeters <em>et al.</em> (2019) for additional detail.
+</p>
+<p>The Guttman approach has historically been used as a lower-bound estimate of the latent dimensionality.
+We consider the decisional approach stated above to give an upper-bound.
+Peeters <em>et al.</em> (2019) contains an extensive simulation study showing that in high-dimensional situations this decisional approach provides a reliable upper-bound.
+The choice of the number of factors can be further assessed with the <code>SMC</code> and <code>dimVAR</code> functions.
+Assessments provided by these latter functions may inform if the result of the decisional rule above should be accepted or be treated as an upper-bound.
+</p>
+<p>When <code>graph = TRUE</code> the Guttman bounds are visualized. 
+It plots the consecutive eigenvalues for each of the reduced correlation matrices.
+The number of positive eigenvalues for each respective reduced correlation matrix then corresponds to each of the respective Guttman bounds.
+The visualization may be of limited value when the feature-dimension gets (very) large.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>table</code>.
+The entries correspond to the first, second, and third Guttman bounds.
+</p>
+
+
+<h3>Note</h3>
+
+
+<ul>
+<li>
+<p> Again, from a historical perspective, the decisional rule would have been used as a lower-bound to the question of the number of latent common factors. In high-dimensional situations we recommend to use it as an upper-bound.
+</p>
+</li>
+<li>
+<p> Other functions for factor analytic dimensionality assessment are <code>dimIC</code> and <code>dimLRT</code>. In high-dimensional situations usage of <code>dimGB</code> is recommended over these other functions.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Carel F.W. Peeters &lt;cf.peeters@vumc.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Guttman, L. (1956). Best possible systematic estimates of communalities. Psychometrika, 21:273–285.
+</p>
+<p>Peeters, C.F.W. <em>et al.</em> (2019). Stable prediction with radiomics data.
+<a href="https://arxiv.org/abs/1903.11696">arXiv:1903.11696 [stat.ML]</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SMC</code>, <code>dimVAR</code>, <code>FAsim</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate some data according to a factor model with 5 latent factors
+## $cormatrix gives the correlation matrix on the generated data
+simDAT &lt;- FAsim(p = 50, m = 5, n = 100)
+simDAT$cormatrix
+
+## Evaluate the Guttman bounds
+## First Guttman bound indicates to retain 5 latent factors
+GB &lt;- dimGB(simDAT$cormatrix)
+print(GB)
+</code></pre>
+
+
+</div>

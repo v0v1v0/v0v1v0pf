@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>T.L2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Test the equality of nonparametric curves or surfaces based on L2 distance
+</h2>
+
+<h3>Description</h3>
+
+<p>Test the equality of nonparametric curves or surfaces based on L2 distance. The specific model considered here is
+</p>
+<p>y_ij= m_i(x_ij) + e_ij,
+</p>
+<p>where m_i(.), are nonparametric smooth functions; e_ij are independent identically distributed errors. The errors e_ij do not have to be independent N(0, sigma^2) errors. The errors can be heteroscedastic, i.e., e_ij = sigma_i(x_ij) * u_ij, where u_ij are independent identically distributed errors with mean 0 and variance 1.
+</p>
+<p>We are interested in the problem of testing the equality of the regression curves (when x is one-dimensional) or surfaces (when x is two-dimensional),
+</p>
+<p>H_0: m_1(.) = m_2(.) = ...
+v.s.
+H_1: otherwise
+</p>
+<p>The problem can also be viewed as the test of the equality in the one-sample problem for functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">T.L2(x, ...)
+## Default S3 method:
+T.L2(x, y, group, B = 200, degree = 1, criterion = c("aicc", "gcv"),
+		family = c("gaussian", "symmetric"), m = 225, user.span = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>a vector or two-column matrix of covariate values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>a vector of response values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+
+<p>a vector of group indicators that has the same length as y.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+
+<p>the number of bootstrap replicates. Usually this will be a single positive integer.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+
+<p>the degree of the local polynomials to be used. It can ben 0, 1 or 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+
+<p>the criterion for automatic smoothing parameter selection: “aicc” denotes bias-corrected AIC criterion, “gcv” denotes generalized cross-validation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>if “gaussian” fitting is by least-squares, and if “symmetric” a re-descending M estimator is used with Tukey's biweight function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+
+<p>the number of the sampling points for the Monte-Carlo integration.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>user.span</code></td>
+<td>
+
+<p>the user-defined parameter which controls the degree of smoothing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>some control parameters can also be supplied directly.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A wild bootstrap algorithm is applied to test the equality of nonparametric curves or surfaces based on L2 distance.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class “fANCOVA”.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>X.F. Wang <a href="mailto:wangx6@ccf.org">wangx6@ccf.org</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Dette, H., Neumeyer, N. (2001). Nonparametric analysis of covariance. <em>Annals of Statistics</em>. 29, 1361–1400.
+</p>
+<p>Wang. X.F. and Ye, D. (2010). On nonparametric comparison of images and regression surfaces. <em>Journal of Statistical Planning and Inference</em>. 140, 2875–2884.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>T.aov</code>, <code>T.var</code>, <code>loess.as</code>, <code>loess.ancova</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Nonparametric test the equality of multiple regression curves
+## Simulate data sets
+
+n1 &lt;- 100
+x1 &lt;- runif(n1,min=0, max=3)
+sd1 &lt;- 0.2
+e1 &lt;- rnorm(n1,sd=sd1)
+y1 &lt;- sin(2*x1) + e1
+
+n2 &lt;- 100
+x2 &lt;- runif(n2, min=0, max=3)
+sd2 &lt;- 0.25
+e2 &lt;- rnorm(n2, sd=sd2)
+y2 &lt;- sin(2*x2) + 1 + e2
+
+n3 &lt;- 120
+x3 &lt;- runif(n3, min=0, max=3)
+sd3 &lt;- 0.25
+e3 &lt;- rnorm(n3, sd=sd3)
+y3 &lt;- sin(2*x3)  + e3
+
+data.bind &lt;- rbind(cbind(x1,y1,1), cbind(x2,y2,2),cbind(x3,y3,3))
+data.bind &lt;- data.frame(data.bind)
+colnames(data.bind)=c('x','y','group')
+
+
+t1 &lt;- T.L2(data.bind$x, data.bind$y, data.bind$group, degree=2)
+t1
+plot(t1)
+plot(t1, test.statistic=FALSE)
+
+########
+## Nonparametric test the equality for regression surfaces
+## Simulate data sets
+
+n1 &lt;- 100
+x11 &lt;- runif(n1,min=0, max=3)
+x12 &lt;- runif(n1,min=0, max=3)
+sd1 &lt;- 0.2
+e1 &lt;- rnorm(n1,sd=sd1)
+y1 &lt;- sin(2*x11) + sin(2*x12)  + e1
+
+n2 &lt;- 100
+x21 &lt;- runif(n2, min=0, max=3)
+x22 &lt;- runif(n2, min=0, max=3)
+sd2 &lt;- 0.25
+e2 &lt;- rnorm(n2, sd=sd2)
+y2 &lt;- sin(2*x21) + sin(2*x22) + 1 + e2
+
+n3 &lt;- 120
+x31 &lt;- runif(n3, min=0, max=3)
+x32 &lt;- runif(n3, min=0, max=3)
+sd3 &lt;- 0.25
+e3 &lt;- rnorm(n3, sd=sd3)
+y3 &lt;- sin(2*x31) + sin(2*x32) + e3
+
+data.bind &lt;- rbind(cbind(x11, x12 ,y1,1), cbind(x21, x22, y2,2),cbind(x31, x32,y3,3))
+data.bind &lt;- data.frame(data.bind)
+colnames(data.bind)=c('x1','x2', 'y','group')
+
+T.L2(data.bind[,c(1,2)], data.bind$y, data.bind$group, degree=2)
+</code></pre>
+
+
+</div>

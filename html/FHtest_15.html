@@ -1,0 +1,242 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FHtestrcp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Fleming-Harrington test for right-censored data based on permutations</h2>
+
+<h3>Description</h3>
+
+<p>The <code>FHtestrcp</code> function performs a test for right-censored data based on a permutation distribution. It uses the G-<code class="reqn">\rho,\lambda</code> family of statistics for testing the differences of two or more survival curves.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+FHtestrcp(L, R, group, rho = 0, lambda = 0, alternative, method = NULL,
+          methodRule = methodRuleIC1, exact = NULL, permcontrol = permControl(), ...)
+## S3 method for class 'formula'
+FHtestrcp(formula, data, subset, na.action, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>Numeric vector of the left endpoints of the censoring intervals (exact and right-censored data are represented as intervals of [a,a] and (a, infinity) respectively).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>Numeric vector of the right endpoints of the censoring intervals (exact and right-censored data are represented as intervals of [a,a] and (a, infinity) respectively).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>A vector denoting the group variable for which the test is desired. If <code>group</code> is a factor or character, then a k-sample test is performed, where k is the number of unique values of <code>group</code>. If <code>group</code> is numeric, then a trend ("correlation" type) test is performed. If there are only two groups, both methods give the same results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>A scalar parameter that controls the type of test (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A scalar parameter that controls the type of test (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>Character giving the type of alternative hypothesis for two-sample and trend tests: <code>"different"</code>, <code>"increasing"</code> or <code>"decreasing"</code> survival functions. For the k-sample case, <code>"different"</code> should be chosen.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character value, one of <code>"pclt"</code>, <code>"exact.network"</code>, <code>"exact.ce"</code>, <code>"exact.mc"</code>. If no value is specified, function <code>methodRule</code> chooses the value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methodRule</code></td>
+<td>
+<p>A function used to choose the method. Default value is <code>methodRuleIC1</code> (see details in perm).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>A logical value, where <code>TRUE</code> denotes exact test. Ignored if <code>method</code> is not <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permcontrol</code></td>
+<td>
+<p>List of arguments for controlling permutation tests. Default value is <code>permControl</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula with a numeric vector as response (which assumes no censoring) or <code>Surv</code> object. The right side of the formula is the group variable. No <code>strata()</code> is allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame for variables in <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>An optional vector specifying a subset of observations to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>A function that indicates what should happen if the data contain <code>NA</code>s. Default value is set to <code>getOption("na.action")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The appropriate selection of the parameters <code>rho</code> and <code>lambda</code> gives emphasis to early, middle or late hazard differences. For instance, in a given clinical trial, if one would like to assess whether the effect of a treatment or therapy on the survival is stronger at the earlier phases of the therapy, we should choose <code>lambda = 0</code>, with increasing values of <code>rho</code> emphasizing stronger early differences. If there were a clinical reason to believe that the effect of the therapy would be more pronounced towards the middle or the end of the follow-up period, it would make sense to choose <code>rho = lambda &gt; 0</code> or <code>rho = 0</code> respectively, with increasing values of <code>lambda</code> emphasizing stronger middle or late differences. The choice of the weights has to be made prior to the examination of the data and taking into account that they should provide the greatest statistical power, which in turns depends on how it is believed the null is violated.
+</p>
+<p>Many standard statistical tests may be put into the form of the permutation test (see Graubard and Korn, 1987). There is a choice of four different methods to calculate the <em>p</em>-values (the last two are only available for the two-sample test): (1) <code>pclt</code>: using permutational central limit theorem (see, e.g., Sen, 1985). (2) <code>exact.mc</code>: exact method using Monte Carlo. (3) <code>exact.network</code>: exact method using a network algorithm (see, e.g., Agresti, Mehta, and Patel, 1990). Currently, the network method does not implement many of the time saving suggestions such as clubbing. (4) <code>exact.ce</code>: exact method using complete enumeration. This is good for very small sample sizes and when doing simulations, since the complete enumeration matrix need only be calculated once for the simulation.
+</p>
+<p>There are several ways to perform the permutation test, and the function <code>methodRuleIC1</code> chooses which of these ways will be used. The choice is basically between using a permutational central limit theorem (<code>method = "pclt"</code>) or using an exact method. There are several algorithms for the exact method. Note that there are two exact two-sided methods for calculating p-values (see <code>permControl</code> and the <code>tsmethod</code> option).</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>information</code></td>
+<td>
+<p>Full description of the test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>Description of data variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Number of observations in each group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff</code></td>
+<td>
+<p>The weighted observed minus expected number of events in each group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>Vector with the same length as <code>L</code> and <code>R</code>, containing the rank scores (see Kalbfleisch and Prentice, 2003).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>Either the chi-square or Z statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>The variance matrix of the test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alt.phrase</code></td>
+<td>
+<p>Phrase used to describe the alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+<p><em>p</em>-value associated with the alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.conf.int</code></td>
+<td>
+<p>Confidence interval of <em>p</em>-value. For <code>method = "exact.mc"</code> only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>R. Oller and K. Langohr</p>
+
+
+<h3>References</h3>
+
+<p>Abd-Elfattah, E. F. and Butler, R. W. (2007). The weighted log-rank class of permutation tests: P-values and confidence intervals using saddlepoint methods. Biometrika <b>94</b>, 543–551.
+</p>
+<p>Fleming, T. R. and Harrington, D. P. (2005). <em>Counting Processes and Survival Analysis</em> New York: Wiley.
+</p>
+<p>Harrington, D. P. and Fleming, T. R. (1982). A class of rank test procedures for censored survival data. Biometrika <b>69</b>, 553–566.
+</p>
+<p>Kalbfleisch, J. D. and Prentice, R. L. (2002). <em>The Statistical Analysis of Failure Time Data.</em> New York: Wiley, 2nd Edition.
+</p>
+<p>Lawless, J. F. (2003). <em>Statistical Models and Methods for Lifetime Data.</em> New York: Wiley, 2nd Edition.
+</p>
+<p>Oller, R. and Langohr, K. (2017). FHtest: An R Package for the Comparison of Survival Curves with Censored Data. Journal of Statistical Software <b>81</b>, 1–25.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>FHtestrcc</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Two-sample tests	
+FHtestrcp(Surv(futime, fustat) ~ rx, data = ovarian)
+FHtestrcp(Surv(futime, fustat) ~ rx, data = ovarian, method = "exact.network")
+FHtestrcp(Surv(futime, fustat) ~ rx, data = ovarian, rho = 1)
+
+## Trend tests
+library(KMsurv)
+data(bmt)
+FHtestrcp(Surv(t2, d3) ~ group, data = bmt, rho = 1, alternative = "decreasing")
+FHtestrcp(Surv(t2, d3) ~ group, data = bmt, rho = 1, alternative = "decreasing", 
+          exact = TRUE)
+
+## K-sample test
+FHtestrcp(Surv(t2, d3) ~ as.character(group), data = bmt, rho = 1, lambda = 1)
+</code></pre>
+
+
+</div>

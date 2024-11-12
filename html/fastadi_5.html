@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adaptive_impute</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AdaptiveImpute</h2>
+
+<h3>Description</h3>
+
+<p>An implementation of the <code>AdaptiveImpute</code> algorithm for matrix completion
+for sparse matrices.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adaptive_impute(
+  X,
+  rank,
+  ...,
+  initialization = c("svd", "adaptive-initialize", "approximate"),
+  max_iter = 200L,
+  check_interval = 1L,
+  epsilon = 1e-07,
+  additional = NULL
+)
+
+## S3 method for class 'sparseMatrix'
+adaptive_impute(
+  X,
+  rank,
+  ...,
+  initialization = c("svd", "adaptive-initialize", "approximate"),
+  additional = NULL
+)
+
+## S3 method for class 'LRMF'
+adaptive_impute(
+  X,
+  rank,
+  ...,
+  epsilon = 1e-07,
+  max_iter = 200L,
+  check_interval = 1L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A sparse matrix of <code>Matrix::sparseMatrix()</code> class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>Desired rank (integer) to use in the low rank approximation.
+Must be at least <code>2L</code> and at most the rank of <code>X</code>. Note that the rank
+of <code>X</code> is typically unobserved and computations may be unstable or
+even fail when <code>rank</code> is near or exceeds this threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Unused additional arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initialization</code></td>
+<td>
+<p>How to initialize the low rank approximation.
+Options are:
+</p>
+
+<ul>
+<li> <p><code>"svd"</code> (default). In the initialization step, this treats
+unobserved values as zeroes.
+</p>
+</li>
+<li> <p><code>"adaptive-initialize"</code>. In the initialization step, this treats
+unobserved values as actually unobserved. However, the current
+<code>AdaptiveInitialize</code> implementation relies on dense matrix
+computations that are only suitable for relatively small matrices.
+</p>
+</li>
+<li> <p><code>"approximate"</code>. An approximate variant of <code>AdaptiveInitialize</code>
+that is less computationally expensive. See <code>adaptive_initialize</code>
+for details.
+</p>
+</li>
+</ul>
+<p>Note that initialization matters as <code>AdaptiveImpute</code> optimizes
+a non-convex objective. The current theory shows that initializing
+with <code>AdaptiveInitialize</code> leads to a consistent estimator, but it
+isn't know if this is the case for SVD initialization. Empirically
+we have found that SVD initialization works well nonetheless.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iter</code></td>
+<td>
+<p>Maximum number of iterations to perform (integer). Defaults
+to <code>200L</code>. In practice 10 or so iterations will get you a decent
+approximation to use in exploratory analysis, and and 50-100 will get
+you most of the way to convergence. Must be at least <code>1L</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_interval</code></td>
+<td>
+<p>Integer specifying how often to perform convergence
+checks. Defaults to <code>1L</code>. In practice, check for convergence requires
+a norm calculation that is expensive for large matrices and decreasing
+the frequency of convergence checks will reduce computation time. Can
+also be set to <code>NULL</code>, which case <code>max_iter</code> iterations of the algorithm
+will occur with no possibility of stopping due to small relative change
+in the imputed matrix. In this case <code>delta</code> will be reported as <code>Inf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>Convergence criteria, measured in terms of relative change
+in Frobenius norm of the full imputed matrix. Defaults to <code>1e-7</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>additional</code></td>
+<td>
+<p>Ignored except when <code>alpha_method = "approximate"</code>
+in which case it controls the precise of the approximation to <code>alpha</code>.
+The approximate computation of <code>alpha</code> will always understand <code>alpha</code>,
+but the approximation will be better for larger values of <code>additional</code>.
+We recommend making <code>additional</code> as large as computationally tolerable.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A low rank matrix factorization represented by an
+<code>adaptive_imputation()</code> object.
+</p>
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> Cho, Juhee, Donggyu Kim, and Karl Rohe. “Asymptotic Theory for
+Estimating the Singular Vectors and Values of a Partially-Observed
+Low Rank Matrix with Noise.” Statistica Sinica, 2018.
+https://doi.org/10.5705/ss.202016.0205.
+</p>
+</li>
+<li>
+<p> ———. “Intelligent Initialization and Adaptive Thresholding for
+Iterative Matrix Completion: Some Statistical and Algorithmic Theory for
+Adaptive-Impute.” Journal of Computational and Graphical Statistics 28,
+no. 2 (April 3, 2019): 323–33.
+https://doi.org/10.1080/10618600.2018.1518238.
+</p>
+</li>
+</ol>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+mf &lt;- adaptive_impute(ml100k, rank = 3L, max_iter = 5L, check_interval = NULL)
+mf
+
+</code></pre>
+
+
+</div>

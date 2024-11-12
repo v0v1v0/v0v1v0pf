@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.FLLat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predicted Values and Weights based on the Fused Lasso Latent
+Feature Model</h2>
+
+<h3>Description</h3>
+
+<p>Calculates predicted values and weights for a new set of
+samples using the estimated features from a fitted Fused Lasso Latent
+Feature (FLLat) model.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FLLat'
+predict(object, newY=NULL, thresh=10^(-4), maxiter.T=100, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A fitted FLLat model.  That is, an object of class
+<code>FLLat</code>, as returned by <code>FLLat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newY</code></td>
+<td>
+<p>A matrix of new data from an aCGH experiment (usually in
+the form of log intensity ratios) or some other type of copy number
+data.  Rows correspond to the probes and columns correspond to the
+samples.  The number of probes must match the number of probes in the
+data used to produce the fitted FLLat model.  Note that if
+<code>newY</code> is not specified, the fitted values from the fitted FLLat
+model are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>The threshold for determining when the predicted weights
+have converged.  The default is <code class="reqn">10^{-4}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter.T</code></td>
+<td>
+<p>The maximum number of iterations for the algorithm
+for calculating the predicted weights.  The default is <code class="reqn">100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Based on the estimated features <code class="reqn">\hat{B}</code> from a fitted
+FLLat model, this function predicts the new weights that need to be
+applied to each feature for predicting a new set of samples
+<code class="reqn">Y^*</code>.  The predicted weights
+<code class="reqn">\hat{\Theta}^*</code> are calculated by minimizing the
+residual sum of squares: 
+</p>
+<p style="text-align: center;"><code class="reqn">RSS = \left\|Y^* - \hat{B}\Theta^*\right\|_F^2</code>
+</p>
+<p>  where the <code class="reqn">L_2</code> norm of each row of
+<code class="reqn">\hat{\Theta}^*</code> is still constrained to be less
+than or equal to <code class="reqn">1</code>.  From these predicted weights, the predicted
+values for the new set of samples are calculated as
+<code class="reqn">\hat{Y}^*=\hat{B}\hat{\Theta}^*</code>.
+These predicted values can useful when performing model validation.
+</p>
+<p>Note that for the predictions to be meaningful and useful, the new set
+of samples <code class="reqn">Y^*</code> must be similar in scale/magnitude to the
+original data used in producing the fitted FLLat model.  If a
+new set of samples <code class="reqn">Y^*</code> are not specified, the function
+returns the fitted values <code class="reqn">\hat{Y}</code> and estimated weights
+<code class="reqn">\hat{\Theta}</code> from the fitted FLLat model.
+</p>
+<p>For more details, please see Nowak and others (2011) and the package
+vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pred.Y</code></td>
+<td>
+<p>The predicted values <code class="reqn">\hat{Y}^*</code> for the
+new set of samples, or the fitted values <code class="reqn">\hat{Y}</code> from the fitted
+FLLat model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Theta</code></td>
+<td>
+<p>The predicted weights <code class="reqn">\hat{\Theta}^*</code>
+for the new set of samples, or the estimated weights <code class="reqn">\hat{\Theta}</code> from the
+fitted FLLat model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>The number of iterations taken by the algorithm for
+calculating the predicted weights, or the number of iterations taken
+by the algorithm for producing the fitted FLLat model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rss</code></td>
+<td>
+<p>The residual sum of squares based on the new set of samples, or based
+on the original data used in producing the fitted FLLat model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gen Nowak <a href="mailto:gen.nowak@gmail.com">gen.nowak@gmail.com</a>, Trevor Hastie, Jonathan
+R. Pollack, Robert Tibshirani and Nicholas Johnson.</p>
+
+
+<h3>References</h3>
+
+<p>G. Nowak, T. Hastie, J. R. Pollack and R. Tibshirani.  A
+Fused Lasso Latent Feature Model for Analyzing Multi-Sample aCGH
+Data. <em>Biostatistics</em>, 2011, doi: 10.1093/biostatistics/kxr012</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FLLat</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load simulated aCGH data.
+data(simaCGH)
+
+## Divide the data into a training and test set.
+tr.dat &lt;- simaCGH[,1:15]
+tst.dat &lt;- simaCGH[,16:20]
+
+## Run FLLat for J = 5, lam1 = 1 and lam2 = 9 on the training set.
+result.tr &lt;- FLLat(tr.dat,J=5,lam1=1,lam2=9)
+
+## Calculate fitted values on the training set.
+tr.pred &lt;- predict(result.tr)
+
+## Calculate predicted values and weights on the test set using the FLLat
+## model (i.e., the features) fitted on the training set.
+tst.pred &lt;- predict(result.tr,newY=tst.dat)
+
+## Plotting predicted values and data for the first sample in the test set.
+plot(tst.dat[,1],xlab="Probe",ylab="Y")
+lines(tst.pred$pred.Y[,1],col="red",lwd=3)
+</code></pre>
+
+
+</div>

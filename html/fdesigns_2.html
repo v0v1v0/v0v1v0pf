@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fdesigns-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Optimal Experimental Designs for Functional/Dynamic Models
+</h2>
+
+<h3>Description</h3>
+
+<p>Optimal experimental designs for functional linear and functional generalised linear models, for scalar responses and profile/dynamic factors. The designs are optimised using the coordinate exchange algorithm. The methods are discussed by Michaelides (2023) &lt;https://eprints.soton.ac.uk/474982/1/Thesis_DamianosMichaelides_Final_pdfa_1_.pdf&gt;.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The DESCRIPTION file:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+Package: </td>
+<td style="text-align: left;"> fdesigns</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Type: </td>
+<td style="text-align: left;"> Package</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Title: </td>
+<td style="text-align: left;"> Optimal Experimental Designs for Functional/Dynamic Models</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Version: </td>
+<td style="text-align: left;"> 1.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Date: </td>
+<td style="text-align: left;"> 2024-08-10</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Authors@R: </td>
+<td style="text-align: left;"> c(person(given = "Damianos",
+                      family = "Michaelides",
+                      role = c("aut", "cre"),
+                      email = "dm3g15@soton.ac.uk"),
+               person(given = "Antony",
+                      family = "Overstall",
+                      role = "aut"),
+               person(given = "Dave",
+                      family = "Woods",
+                      role = "aut"))</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Maintainer: </td>
+<td style="text-align: left;"> Damianos Michaelides &lt;dm3g15@soton.ac.uk&gt;</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Description: </td>
+<td style="text-align: left;"> Optimal experimental designs for functional linear and functional generalised linear models, for scalar responses and profile/dynamic factors. The designs are optimised using the coordinate exchange algorithm. The methods are discussed by Michaelides (2023) &lt;https://eprints.soton.ac.uk/474982/1/Thesis_DamianosMichaelides_Final_pdfa_1_.pdf&gt;.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+License: </td>
+<td style="text-align: left;"> GPL-2</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Imports: </td>
+<td style="text-align: left;"> Rcpp, Matrix, parallel, mvQuad, mvtnorm, stats, graphics</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+LinkingTo: </td>
+<td style="text-align: left;"> Rcpp, RcppArmadillo</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Author: </td>
+<td style="text-align: left;"> Damianos Michaelides [aut, cre],
+  Antony Overstall [aut],
+  Dave Woods [aut]</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>The most important functions are pflm and pfglm which can be used to identify optimal designs for functional linear and generalised linear models, respectively, using the coordinate exchange algorithm.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Damianos Michaelides [aut, cre],
+  Antony Overstall [aut],
+  Dave Woods [aut]
+</p>
+<p>Maintainer: Damianos Michaelides &lt;dm3g15@soton.ac.uk&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Michaelides, D. (2023). Design of experiments for models involving profile factors (Doctoral dissertation, University of Southampton).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1:
+## This example involves finding an A-optimal design for a functional linear model of 4 runs
+## depending on one profile factor. The settings of the profile factor are represented by a 
+## B-spline basis of degree zero and a single knot at (0.5). The single functional parameter 
+## is represented with a linear power series basis. Five random starts are chosen.
+
+example1 &lt;- pflm(formula = ~ x1, nsd = 5, mc.cores = 1, npf = 1,
+  tbounds = c(0, 1), nruns = 4, startd = NULL,  dx = c(0), 
+  knotsx = list(c(0.5)), pars = c("power"), db = c(1), 
+  knotsb = list(c()), criterion = "A", lambda = 0, 
+  dlbound = -1, dubound = 1, tol = 0.0001, progress = FALSE)
+
+print(example1) ##  prints the output of example1.
+##
+## The number of profile factors is: 1
+##
+## The number of runs is: 4
+##
+## The objective criterion is: A-optimality
+##
+## The objective value is: 8.75
+##
+## The number of iterations is: 6
+##
+## The computing elapsed time is: 00:00:00
+
+
+## Example 2:
+## This example involves finding an A-optimal design for a functional logistic
+## model of 12 runs depending on one profile factor. The settings of the profile 
+## factor are represented by a B-spline basis of degree zero and a three interior knots 
+## at (0.25, 0.50, 0.75). The single functional parameter is represented with a linear 
+## power series basis. The method of approximation is Monte Carlo with the prior 
+## specified by the function prmc. Three random starts are chosen.
+
+set.seed(100) ## Set seed to achieve reproducibility.
+
+prmc &lt;- function(B,Q) {
+  matrix(rnorm(B*Q, mean=0, sd=sqrt(2)), nrow=B, ncol=Q)
+}
+## A function which specifies the prior. This function returns a 
+## B by Q matrix of randomly generated values from the prior 
+## distribution for the model parameters.
+
+
+example2 &lt;- pfglm(formula = ~ 1 + x1, nsd = 3, mc.cores = 1, npf = 1, 
+             tbounds = c(0,1), nruns = 12, startd = NULL, 
+             dx = c(0), knotsx = list(c(0.25,0.50,0.75)), 
+             pars = c("power"), db = c(1), knotsb = list(c()), 
+             lambda = 0, criterion = "A", family = binomial,
+             method=c("MC"), level = 6, B = 10000, prior = prmc,
+             dlbound = -1, dubound = 1, tol = 0.0001, progress = TRUE)
+
+print(example2) ##  prints the output of example1.
+##
+## The number of profile factors is: 1
+##
+## The number of runs is: 12
+##
+## The objective criterion is: A-optimality
+##
+## The objective value is: 20.23283
+##
+## The number of iterations is: 5
+##
+## The method of approximation is: MC
+##
+## The family distribution and the link function are: binomial and logit
+##
+## The computing elapsed time is: 00:00:12
+
+</code></pre>
+
+
+</div>

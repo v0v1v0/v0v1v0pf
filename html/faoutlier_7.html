@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Likelihood Distance</h2>
+
+<h3>Description</h3>
+
+<p>Compute likelihood distances between models when removing the <code class="reqn">i_{th}</code> case. If there are no
+missing data then the <code>GOF</code> will often provide equivalent results. If mirt is used,
+then the values will be associated with the unique response patterns instead.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LD(data, model, progress = TRUE, ...)
+
+## S3 method for class 'LD'
+print(x, ncases = 10, digits = 5, ...)
+
+## S3 method for class 'LD'
+plot(
+  x,
+  y = NULL,
+  main = "Likelihood Distance",
+  type = c("p", "h"),
+  ylab = "LD",
+  absolute = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>matrix or data.frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>if a single numeric number declares number of factors to extract in
+exploratory factor analysis (requires complete dataset, i.e., no missing).
+If <code>class(model)</code> is a sem (semmod), or lavaan (character),
+then a confirmatory approach is performed instead. Finally, if the model is defined with
+<code>mirt::mirt.model()</code> then distances will be computed for categorical data with the
+mirt package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>logical; display the progress of the computations in the console?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional parameters to be passed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>LD</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncases</code></td>
+<td>
+<p>number of extreme cases to display</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>number of digits to round in the printed result</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a <code>NULL</code> value ignored by the plotting function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>the main title of the plot</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of plot to use, default displays points and lines</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab</code></td>
+<td>
+<p>the y label of the plot</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absolute</code></td>
+<td>
+<p>logical; use absolute values instead of deviations?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that <code>LD</code> is not limited to confirmatory factor analysis and
+can apply to nearly any model being studied
+where detection of influential observations is important.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Phil Chalmers <a href="mailto:rphilip.chalmers@gmail.com">rphilip.chalmers@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Chalmers, R. P. &amp; Flora, D. B. (2015). faoutlier: An R Package for Detecting
+Influential Cases in Exploratory and Confirmatory Factor Analysis.
+<em>Applied Psychological Measurement, 39</em>, 573-574. doi: <a href="https://doi.org/10.1177/0146621615597894">10.1177/0146621615597894</a>
+</p>
+<p>Flora, D. B., LaBrish, C. &amp; Chalmers, R. P. (2012). Old and new ideas for data
+screening and assumption testing for exploratory and confirmatory factor analysis.
+<em>Frontiers in Psychology, 3</em>, 1-21. doi: <a href="https://doi.org/10.3389/fpsyg.2012.00055">10.3389/fpsyg.2012.00055</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gCD</code>, <code>GOF</code>, <code>obs.resid</code>,
+<code>robustMD</code>, <code>setCluster</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+#run all LD functions using multiple cores
+setCluster()
+
+#Exploratory
+nfact &lt;- 3
+(LDresult &lt;- LD(holzinger, nfact))
+(LDresult.outlier &lt;- LD(holzinger.outlier, nfact))
+plot(LDresult)
+plot(LDresult.outlier)
+
+## add a progress meter
+LDresult &lt;- LD(holzinger, nfact, progress = TRUE)
+
+#-------------------------------------------------------------------
+#Confirmatory with sem
+model &lt;- sem::specifyModel()
+  F1 -&gt; Remndrs,    lam11
+	  F1 -&gt; SntComp,    lam21
+	  F1 -&gt; WrdMean,    lam31
+	  F2 -&gt; MissNum,    lam42
+	  F2 -&gt; MxdArit,    lam52
+	  F2 -&gt; OddWrds,    lam62
+	  F3 -&gt; Boots,      lam73
+  F3 -&gt; Gloves,     lam83
+	  F3 -&gt; Hatchts,    lam93
+	  F1 &lt;-&gt; F1,   NA,     1
+	  F2 &lt;-&gt; F2,   NA,     1
+	  F3 &lt;-&gt; F3,   NA,     1
+
+(LDresult &lt;- LD(holzinger, model))
+(LDresult.outlier &lt;- LD(holzinger.outlier, model))
+plot(LDresult)
+plot(LDresult.outlier)
+
+#-------------------------------------------------------------------
+#Confirmatory with lavaan
+model &lt;- 'F1 =~  Remndrs + SntComp + WrdMean
+F2 =~ MissNum + MxdArit + OddWrds
+F3 =~ Boots + Gloves + Hatchts'
+
+(LDresult &lt;- LD(holzinger, model, orthogonal=TRUE))
+(LDresult.outlier &lt;- LD(holzinger.outlier, model, orthogonal=TRUE))
+plot(LDresult)
+plot(LDresult.outlier)
+
+# categorical data with mirt
+library(mirt)
+data(LSAT7)
+dat &lt;- expand.table(LSAT7)
+model &lt;- mirt.model('F = 1-5')
+LDresult &lt;- LD(dat, model)
+plot(LDresult)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

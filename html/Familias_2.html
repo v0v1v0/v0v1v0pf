@@ -1,0 +1,90 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Familias-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Familias: Inferring paternity and identification based on DNA data
+</h2>
+
+<h3>Description</h3>
+
+<p>This package provides an R interface to the Windows program Familias 
+(<a href="https://familias.no">https://familias.no</a>), for calculating probabilities in forensic family 
+genetics. The core source code (in C++) of the Windows program is contained in 
+the package.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The main purpose of this package is to provide an R interface to the calculation 
+of likelihood ratios (LRs) in Familias. For other forensic pedigree analyses and 
+visualisations we recommend the 'pedsuite' packages: 
+<a href="https://magnusdv.github.io/pedsuite/">https://magnusdv.github.io/pedsuite/</a>. In particular the package 
+'pedFamilias' facilitates conversion of .fam files into the 'pedsuite' format.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Petter Mostad &lt;mostad@chalmers.se&gt; and Thore Egeland &lt;Thore.Egeland@nmbu.no&gt;.
+</p>
+
+
+<h3>References</h3>
+
+<p>For more information, see <a href="https://familias.name/">https://familias.name/</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">persons &lt;- c("mother", "daughter", "AF")
+
+# Pedigrees
+ped1 &lt;- FamiliasPedigree(id = persons, 
+                         dadid = c(NA, "AF", NA), 
+                         momid = c(NA, "mother", NA), 
+                         sex = c("female", "female", "male"))
+                         
+ped2 &lt;- FamiliasPedigree(id = c(persons, "TF"), 
+                         dadid = c(NA, "TF", NA, NA), 
+                         momid = c(NA, "mother", NA, NA), 
+                         sex = c("female", "female", "male", "male"))
+                         
+ped3 &lt;- FamiliasPedigree(id = c(persons, "TF", "gf", "gm"), 
+                         dadid = c(NA, "TF", "gf", "gf", NA, NA), 
+                         momid = c(NA, "mother", "gm", "gm", NA, NA), 
+                         sex = c("female", "female", "male", "male", "male", "female"))
+op &lt;- par(mfrow = c(1,3))
+plot(ped1); title("ped1: AF is father")
+plot(ped2); title("ped2: AF is unrelated")
+plot(ped3); title("ped3: AF is uncle")
+par(op)
+
+mypedigrees &lt;- list(isFather = ped1, unrelated=ped2, isUncle = ped3)
+
+# Loci
+locus1 &lt;- FamiliasLocus(frequencies = c(0.1, 0.2, 0.3, 0.4), 
+                        allelenames = c("A", "B", "C", "D"), 
+                        name = "locus1")
+locus2 &lt;- FamiliasLocus(c(0.2, 0.3, 0.5), 
+                        c(17, 18, 19), 
+                        "loc2",
+                        femaleMutationRate = 0.05)
+myloci &lt;- list(locus1, locus2)
+
+# Genotype data
+datamatrix &lt;- data.frame(locus1.1 = c("A", "A", "A"), 
+                         locus1.2 = c("B", "B", "C"), 
+                         locus2.1 = c(17, 19, 19), 
+                         locus2.2 = c(18, 18, 18), 
+                         row.names = persons)
+
+# Calculate LR
+FamiliasPosterior(mypedigrees, myloci, datamatrix)
+</code></pre>
+
+
+</div>

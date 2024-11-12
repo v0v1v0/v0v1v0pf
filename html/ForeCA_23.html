@@ -1,0 +1,268 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>foreca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forecastable Component Analysis</h2>
+
+<h3>Description</h3>
+
+<p><code>foreca</code> performs Forecastable Component Analysis (ForeCA) on
+<code class="reqn">\mathbf{X}_t</code> – a <code class="reqn">K</code>-dimensional time series with <code class="reqn">T</code>
+observations. Users should only call
+<code>foreca</code>, rather than <code>foreca.one_weightvector</code> or
+<code>foreca.multiple_weightvectors</code>.
+</p>
+<p><code>foreca.one_weightvector</code> is a wrapper around several algorithms that
+solve the ForeCA optimization problem for a single weightvector <code class="reqn">\mathbf{w}_i</code>
+and whitened time series <code class="reqn">\mathbf{U}_t</code>.
+</p>
+<p><code>foreca.multiple_weightvectors</code> applies <code>foreca.one_weightvector</code>
+iteratively to <code class="reqn">\mathbf{U}_t</code> in order to obtain multiple weightvectors
+that yield most forecastable, uncorrelated signals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">foreca(series, n.comp = 2, algorithm.control = list(type = "EM"), ...)
+
+foreca.one_weightvector(
+  U,
+  f.U = NULL,
+  spectrum.control = list(),
+  entropy.control = list(),
+  algorithm.control = list(),
+  keep.all.optima = FALSE,
+  dewhitening = NULL,
+  ...
+)
+
+foreca.multiple_weightvectors(
+  U,
+  spectrum.control = list(),
+  entropy.control = list(),
+  algorithm.control = list(),
+  n.comp = 2,
+  plot = FALSE,
+  dewhitening = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>series</code></td>
+<td>
+<p>a <code class="reqn">T \times K</code> array with <code>T</code> observations from the 
+<code class="reqn">K</code>-dimensional time series <code class="reqn">\mathbf{X}_t</code>. Can be a <code>matrix</code>, <code>data.frame</code>, 
+or a multivariate <code>ts</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.comp</code></td>
+<td>
+<p>positive integer; number of components to be extracted.
+Default: <code>2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm.control</code></td>
+<td>
+<p>list; control settings for any <em>iterative</em> ForeCA 
+algorithm. See <code>complete_algorithm_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to available ForeCA algorithms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>a <code class="reqn">T \times K</code> array with <code>T</code> observations from the 
+<code class="reqn">K</code>-dimensional <strong>whitened</strong> (<code>whiten</code>) 
+time series <code class="reqn">\mathbf{U}_t</code>. Can be a <code>matrix</code>, <code>data.frame</code>, or a 
+multivariate <code>ts</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.U</code></td>
+<td>
+<p>multivariate spectrum of class <code>'mvspectrum'</code> with 
+<code>normalize = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spectrum.control</code></td>
+<td>
+<p>list; control settings for spectrum estimation. 
+See <code>complete_spectrum_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy.control</code></td>
+<td>
+<p>list; control settings for entropy estimation.
+See <code>complete_entropy_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.all.optima</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, it keeps the optimal
+solutions of each random start. Default: <code>FALSE</code> (only returns the best solution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dewhitening</code></td>
+<td>
+<p>optional; if provided (returned by <code>whiten</code>)
+then it uses the dewhitening transformation to obtain the original
+series <code class="reqn">\mathbf{X}_t</code> and it uses that vector (normalized) as the initial
+weightvector which corresponds to the series <code class="reqn">\mathbf{X}_{t,i}</code>
+with larges <code>Omega</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>logical; if <code>TRUE</code> a plot of the current optimal
+solution <code class="reqn">\mathbf{w}_i^*</code> will be shown and updated for each iteration
+<code class="reqn">i = 1, ..., </code> <code>n.comp</code> of any iterative algorithm. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>foreca</code>, which is similar to the output from <code>princomp</code>,
+with the following components (amongst others):
+</p>
+
+<ul>
+<li>
+<p><code>center</code>: sample mean <code class="reqn">\widehat{\mu}_X</code> of each <code>series</code>,
+</p>
+</li>
+<li>
+<p><code>whitening</code>: whitening matrix of size <code class="reqn">K \times K</code>
+from <code>whiten</code>: <code class="reqn">\mathbf{U}_t = (\mathbf{X}_t - \widehat{\mu}_X) \cdot whitening</code>;
+note that <code class="reqn">\mathbf{X}_t</code> is centered prior to the whitening transformation,
+</p>
+</li>
+<li>
+<p><code>weightvectors</code>: orthonormal matrix of size <code class="reqn">K \times n.comp</code>,
+which converts whitened data to <code>n.comp</code> forecastable components (ForeCs)
+<code class="reqn">\mathbf{F}_t = \mathbf{U}_t \cdot weightvectors</code>, 
+</p>
+</li>
+<li>
+<p><code>loadings</code>: combination of whitening <code class="reqn">\times</code> weightvectors to obtain the final
+loadings for the original data:
+<code class="reqn">\mathbf{F}_t = (\mathbf{X}_t - \widehat{\mu}_X) \cdot whitening \cdot
+weightvectors</code>; again, it centers <code class="reqn">\mathbf{X}_t</code> first,
+</p>
+</li>
+<li>
+<p><code>loadings.normalized</code>: normalized loadings (unit norm).  Note
+though that if you use these normalized loadings the resulting
+signals do not have variance 1 anymore.
+</p>
+</li>
+<li>
+<p><code>scores</code>: <code>n.comp</code> forecastable components <code class="reqn">\mathbf{F}_t</code>.
+They have mean 0, variance 1, and are uncorrelated.
+</p>
+</li>
+<li>
+<p><code>Omega</code>: forecastability score of each ForeC of <code class="reqn">\mathbf{F}_t</code>.
+</p>
+</li>
+</ul>
+<p>ForeCs are ordered from most to least forecastable (according to
+<code>Omega</code>).
+</p>
+
+
+<h3>Warning</h3>
+
+<p>Estimating Omega directly from the ForeCs <code class="reqn">\mathbf{F}_t</code> can be different
+to the reported <code>$Omega</code> estimates from <code>foreca</code>.  Here is why:
+</p>
+<p>In theory <code class="reqn">f_y(\lambda)</code> of a linear combination
+<code class="reqn">y_t = \mathbf{X}_t \mathbf{w}</code> can be analytically computed from
+the multivariate spectrum <code class="reqn">f_{\mathbf{X}}(\lambda)</code> by the
+quadratic form
+<code class="reqn">f_y(\lambda) = \mathbf{w}' f_{\mathbf{X}}(\lambda) \mathbf{w}</code> for all
+<code class="reqn">\lambda</code> (see <code>spectrum_of_linear_combination</code>).
+</p>
+<p>In practice, however, this identity does not hold always exactly since
+(often data-driven) control setting for spectrum estimation are not identical
+for the high-dimensional, noisy
+<code class="reqn">\mathbf{X}_t</code> and the combined univariate time series <code class="reqn">y_t</code>
+(which is usually more smooth, less variable). Thus estimating
+<code class="reqn">\widehat{f}_y</code> directly  from <code class="reqn">y_t</code> can give slightly different
+estimates to computing it as <code class="reqn">\mathbf{w}'\widehat{f}_{\mathbf{X}}\mathbf{w}</code>.  Consequently also <code>Omega</code> estimates
+can be different.
+</p>
+<p>In general, these differences are small and have no relevant implications
+for estimating ForeCs.  However, in rare occasions the obtained ForeCs can have
+smaller <code>Omega</code> than the maximum <code>Omega</code> across all original series.
+In such a case users should not re-estimate <code class="reqn">\Omega</code> from the resulting
+ForeCs <code class="reqn">\mathbf{F}_t</code>, but access them via <code>$Omega</code> provided
+by <code>'foreca'</code> output (the univariate estimates are stored in <code>$Omega.univ</code>).
+</p>
+
+
+<h3>References</h3>
+
+<p>Goerg, G. M. (2013). “Forecastable Component Analysis”.
+Journal of Machine Learning Research (JMLR) W&amp;CP 28 (2): 64-72, 2013.
+Available at <a href="http://jmlr.org/proceedings/papers/v28/goerg13.html">http://jmlr.org/proceedings/papers/v28/goerg13.html</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">XX &lt;- diff(log(EuStockMarkets)) * 100
+plot(ts(XX))
+## Not run: 
+ff &lt;- foreca(XX[,1:4], n.comp = 4, plot = TRUE, spectrum.control=list(method="pspectrum"))
+ff
+summary(ff)
+plot(ff)
+
+## End(Not run)
+
+
+## Not run: 
+PW &lt;- whiten(XX)
+one.weight.em &lt;- foreca.one_weightvector(U = PW$U,
+                                        dewhitening = PW$dewhitening,
+                                        algorithm.control =
+                                          list(num.starts = 2,
+                                               type = "EM"),
+                                        spectrum.control =
+                                          list(method = "mvspec"))
+plot(one.weight.em)
+
+## End(Not run)
+## Not run: 
+
+PW &lt;- whiten(XX)
+ff &lt;- foreca.multiple_weightvectors(PW$U, n.comp = 2,
+                                    dewhitening = PW$dewhitening)
+ff
+plot(ff$scores)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

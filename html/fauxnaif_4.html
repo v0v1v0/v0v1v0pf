@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>na_if_in</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert values to NA</h2>
+
+<h3>Description</h3>
+
+<p>This is a replacement for <code>dplyr::na_if()</code>.
+It is useful if you want to convert annoying values to <code>NA</code>.
+Unlike <code>dplyr::na_if()</code>, this function allows you to specify multiple values
+to be replaced with <code>NA</code> at the same time.
+</p>
+
+<ul>
+<li> <p><code>na_if_in()</code> replaces values that match its arguments with <code>NA</code>.
+</p>
+</li>
+<li> <p><code>na_if_not()</code> replaces values that <em>do not</em> match its arguments with <code>NA</code>.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">na_if_in(x, ...)
+
+na_if_not(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Vector to modify</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Values to replace with <code>NA</code>, specified as either:
+</p>
+
+<ul>
+<li>
+<p> An object, vector of objects, or list of objects.
+</p>
+</li>
+<li>
+<p> A function (including a purrr-style lambda function)
+that returns a logical vector of the same length as <code>x</code>.
+See section "Formulas" for more details.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A modified version of <code>x</code> with selected values replaced with
+<code>NA</code>.
+</p>
+
+
+<h3>Formulas</h3>
+
+<p>These functions accept one-sided formulas that can evaluate to logical
+vectors of the same length as <code>x</code>.
+The input is represented in these conditional statements as "<code>.</code>".
+Valid formulas take the form <code>~ . &lt; 0</code>.
+See examples.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dplyr::na_if()</code> to replace a single value with <code>NA</code>.
+</p>
+<p><code>dplyr::coalesce()</code> to replace missing values with a specified value.
+</p>
+<p><code>tidyr::replace_na()</code> to replace <code>NA</code> with a value.
+</p>
+<p><code>dplyr::recode()</code> and <code>dplyr::case_when()</code> to more generally replace
+values.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- sample(c(1:5, 99))
+# We can replace 99...
+# ... explicitly
+na_if_in(x, 99)
+# ... by specifying values to keep
+na_if_not(x, 1:5)
+# ... or by using a formula
+na_if_in(x, ~ . &gt; 5)
+
+messy_string &lt;- c("abc", "", "def", "NA", "ghi", 42, "jkl", "NULL", "mno")
+# We can replace unwanted values...
+# ... one at a time
+clean_string &lt;- na_if_in(messy_string, "")
+clean_string &lt;- na_if_in(clean_string, "NA")
+clean_string &lt;- na_if_in(clean_string, 42)
+clean_string &lt;- na_if_in(clean_string, "NULL")
+clean_string
+# ... or all at once
+na_if_in(messy_string, "", "NA", "NULL", 1:100)
+na_if_in(messy_string, c("", "NA", "NULL", 1:100))
+na_if_in(messy_string, list("", "NA", "NULL", 1:100))
+# ... or using a clever formula
+grepl("[a-z]{3,}", messy_string)
+na_if_not(messy_string, ~ grepl("[a-z]{3,}", .))
+
+# na_if_in() is particularly useful inside dplyr::mutate
+library(dplyr)
+faux_census %&gt;%
+  mutate(
+    state = na_if_in(state, "Canada"),
+    age   = na_if_in(age, ~ . &lt; 18, ~ . &gt; 120)
+  )
+
+# This function handles vector values differently than dplyr,
+# and returns a different result with vector replacement values:
+na_if_in(1:5, 5:1)
+dplyr::na_if(1:5, 5:1)
+</code></pre>
+
+
+</div>

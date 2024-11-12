@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as_figma_document</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert a <code>httr</code> response object to a Figma Document object</h2>
+
+<h3>Description</h3>
+
+<p>This function receives a <code>httr::response()</code> object, and outputs a
+<code>figma_document</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as_figma_document(response, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>a <code>response</code> object produced by a <code>httr</code> HTTP method
+(e.g. <code>httr::GET()</code>, <code>httr::POST()</code>, etc.);</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed by the caller. Currently ignored by the
+function;</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A Figma Document is a just a R list with a more organized structure than the
+raw content of the HTTP request in <code>httr::response()</code>. You can access
+each part of this list with <code>`$`</code> and <code>`[[`</code> operators. See Value section to
+understand what is in each element of this list.
+</p>
+<p><code>as_figma_document()</code> will call different parsers depending on what kind
+of elements are present in the content of the <code>response</code> object it receives
+as input. These elements define what kind of data is present in the <code>response</code>
+object, and how it is structured.
+</p>
+<p>If this input object have a <code>document</code> element in the top-level of
+the content, is likely that this input object was produced by <code>figma::get_figma_file()</code>.
+In this case, <code>as_figma_document()</code> will call <code>figma:::parse_figma_file()</code> to parse
+the contents of the HTTP request.
+</p>
+<p>In the other hand, if this input object have a <code>nodes</code> element in the top-level of
+the content, is likely that this input object was produced by <code>figma::get_figma_page()</code>.
+In this case, <code>as_figma_document()</code> will call <code>figma:::parse_figma_page()</code> to parse
+the contents of the HTTP request.
+</p>
+<p>If none of these key elements ("document" or "nodes") are found in the top-level of the
+content of the <code>response</code> object, <code>as_figma_document()</code> will issue an error
+to the user, telling it could not recognize the source of the <code>response</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>figma_document</code>, which is a R list with these elements:
+</p>
+
+<ul>
+<li> <p><strong>document</strong>: a R list with all of the document metadata of your Figma file;
+</p>
+</li>
+<li> <p><strong>canvas</strong>: a R list with all of the canvas and objects data of your Figma file;
+</p>
+</li>
+<li> <p><strong>n_canvas</strong>: a integer with the number of canvas/pages in your Figma file;
+</p>
+</li>
+<li> <p><strong>n_objects</strong>: a vector of integers with the number of objects in each canvas/page of your Figma file;
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+file_key &lt;- "hch8YlkgaUIZ9raDzjPvCz"
+token &lt;- "my figma token secret ... "
+# Returns a `response` object:
+r &lt;- figma::get_figma_file(file_key, token)
+result &lt;- figma::as_figma_document(r)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

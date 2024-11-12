@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsglmm.discrete</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting Projection Based Laplace Approximation for Spatial Generalized Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p><code>fsglmm.discrete</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsglmm.discrete(
+  formula,
+  inits,
+  data,
+  family,
+  ntrial = 1,
+  method.optim,
+  method.integrate,
+  rank = NULL,
+  A,
+  offset = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class "formula."</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inits</code></td>
+<td>
+<p>starting values for the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>a character string of the error distribution and link function to be used in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntrial</code></td>
+<td>
+<p>a numeric vector for binomial model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.optim</code></td>
+<td>
+<p>the method to be used for outer optimization. "CG" for Conjugate Gradient Method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.integrate</code></td>
+<td>
+<p>the method to be used for inner optimization. "NR" for Newton Raphson Method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>an integer of 'rank' to be used for projections. Default is 5 percent of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>an adjacency matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>this is used to specify an a priori a known component to be included in the linear predictor during fitting.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list containing the following components:
+</p>
+<p><code>summary</code> a summary of the fitted model
+</p>
+<p><code>mle2</code> an object of class "mle2"
+</p>
+<p><code>Delta</code> a matrix containing the estimated random effects of the reduced dimensional model.
+</p>
+<p><code>M</code> the projection matrix used.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(requireNamespace("ngspatial")&amp;
+requireNamespace("mgcv")){
+n = 30
+A = ngspatial::adjacency.matrix(n)
+Q = diag(rowSums(A),n^2) - A
+x = rep(0:(n - 1) / (n - 1), times = n)
+y = rep(0:(n - 1) / (n - 1), each = n)
+X = cbind(x, y)
+beta = c(1, 1)
+P.perp = diag(1,n^2) - X%*%solve(t(X)%*%X)%*%t(X)
+eig = eigen(P.perp %*% A %*% P.perp)
+eigenvalues = eig$values
+q = 400
+M = eig$vectors[,c(1:q)]
+Q.s = t(M) %*% Q %*% M
+tau = 6
+Sigma = solve(tau*Q.s)
+set.seed(1)
+delta.s = mgcv::rmvn(1, rep(0,q), Sigma)
+lambda = exp( X%*%beta + M%*%delta.s )
+Z = c()
+for(j in 1:n^2){Z[j] = rpois(1,lambda[j])}
+Y = as.matrix(Z,ncol=1)
+data = data.frame("Y"=Y,"X"=X)
+colnames(data) = c("Y","X1","X2")
+linmod &lt;- glm(Y~-1+X1+X2,data=data,family="poisson") # Find starting values
+linmod$coefficients
+starting &lt;- c(linmod$coefficients,"logtau"=log(1/var(linmod$residuals)) )
+
+result.pois.disc &lt;- fsglmm.discrete(Y~-1+X1+X2, inits = starting, data=data,
+family="poisson",ntrial=1, method.optim="BFGS", method.integrate="NR",rank=50, A=A)
+}
+
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spa_eval</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate the membership degree of a point in a <code>pgeometry</code> object</h2>
+
+<h3>Description</h3>
+
+<p><code>spa_eval()</code> evaluates the membership degree of a given point in a spatial plateau object of any type.
+It returns a value in [0, 1] that indicates to which extent the point belongs to the <code>pgeometry</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spa_eval(pgo, point)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pgo</code></td>
+<td>
+<p>A <code>pgeometry</code> object of any type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>point</code></td>
+<td>
+<p>An <code>sfg</code> object of the type <code>POINT</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>spa_eval()</code> returns the membership degree of a simple point object (i.e., <code>sfg</code> object) in a given spatial plateau object (i.e., <code>pgeometry</code> object).
+This evaluation depends on the following basic cases:
+</p>
+
+<ul>
+<li>
+<p> if the simple point object belongs to the interior or boundary of <em>one</em> component of the spatial plateau object, it returns the membership degree of that component.
+</p>
+</li>
+<li>
+<p> if the simple point object intersects more components (e.g., boundaries of region components, or different line components), it returns the maximum membership degree of all intersected components.
+</p>
+</li>
+<li>
+<p> if the simple point object is disjoint to the support of the spatial plateau object, it returns 0.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A numeric value between 0 and 1 that indicates the membership degree of a point (i.e., <code>sfg</code> object) in a spatial plateau object (i.e., <code>pgeometry</code> object).
+</p>
+
+
+<h3>References</h3>
+
+<p>Formal definitions of this function are described in:
+</p>
+
+<ul>
+<li> <p><a href="https://ieeexplore.ieee.org/document/9882658">Carniel, A. C.; Galdino, F.; Schneider, M. Evaluating Region Inference Methods by Using Fuzzy Spatial Inference Models. In Proceedings of the 2022 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2022), pp. 1-8, 2022.</a>
+</p>
+</li>
+<li> <p><a href="https://ieeexplore.ieee.org/document/8491565">Carniel, A. C.; Schneider, M. Spatial Plateau Algebra: An Executable Type System for Fuzzy Spatial Data Types. In Proceedings of the 2018 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2018), pp. 1-8, 2018.</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(sf)
+
+# Point components
+pcp1 &lt;- create_component("POINT(0 0)", 0.3)
+pcp2 &lt;- create_component("MULTIPOINT((2 2), (2 4), (2 0))", 0.5)
+pcp3 &lt;- create_component("MULTIPOINT((1 1), (3 1), (1 3), (3 3))", 0.9)
+pcp4 &lt;- create_component("MULTIPOINT((1 2), (2 1), (3 2))", 1)
+pcp5 &lt;- create_component("MULTIPOINT((0 0.5), (2 3))", 0.7)
+pcp6 &lt;- create_component("MULTIPOINT((0 1), (3 3.5))", 0.85)
+pcp7 &lt;- create_component("MULTIPOINT((1 0), (4 2))", 0.4)
+# Line components
+lcp1 &lt;- create_component("LINESTRING(0 0, 1 1.5)", 0.2)
+lcp2 &lt;- create_component("LINESTRING(1 3, 1 2, 2 0.5)", 0.5)
+lcp3 &lt;- create_component("LINESTRING(2 1.2, 3 1.6, 4 4)", 0.7)
+lcp4 &lt;- create_component("LINESTRING(1 1.5, 2 1.2)", 1.0)
+lcp5 &lt;- create_component("LINESTRING(-1 1, 2 2)", 0.9)
+# Polygon components
+rcp1 &lt;- create_component("POLYGON((0 0, 1 4, 2 2, 0 0))", 0.4)
+rcp2 &lt;- create_component("POLYGON((2 0.5, 4 1, 4 0, 2 0.5))", 0.8)
+
+# Creating spatial plateau objects
+ppoint &lt;- create_pgeometry(list(pcp1, pcp2, pcp3, pcp4, pcp5), "PLATEAUPOINT")
+pline &lt;- create_pgeometry(list(lcp1, lcp2, lcp3), "PLATEAULINE")
+pregion &lt;- create_pgeometry(list(rcp1, rcp2), "PLATEAUREGION")
+pcomp &lt;- create_pgeometry(list(pcp6, pcp7, lcp4, lcp5), "PLATEAUCOMPOSITION")
+pcol &lt;- create_pgeometry(list(ppoint, pline, pregion, pcomp), "PLATEAUCOLLECTION")
+
+point &lt;- st_point(c(0, 0))
+
+spa_eval(ppoint, point)
+spa_eval(pline, point)
+spa_eval(pregion, point)
+spa_eval(pcomp, point)
+spa_eval(pcol, point)
+</code></pre>
+
+
+</div>

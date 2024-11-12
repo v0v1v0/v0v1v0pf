@@ -1,0 +1,405 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fgpm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gaussian process models for scalar and functional inputs</h2>
+
+<h3>Description</h3>
+
+<p>This function enables fitting of Gaussian process regression models. The inputs can be
+either scalar, functional or a combination of both types.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fgpm(
+  sIn = NULL,
+  fIn = NULL,
+  sOut,
+  kerType = "matern5_2",
+  f_disType = "L2_bygroup",
+  f_pdims = 3,
+  f_basType = "B-splines",
+  var.hyp = NULL,
+  ls_s.hyp = NULL,
+  ls_f.hyp = NULL,
+  nugget = 1e-08,
+  n.starts = 1,
+  n.presample = 20,
+  par.clust = NULL,
+  trace = TRUE,
+  pbars = TRUE,
+  control.optim = list(trace = TRUE),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sIn</code></td>
+<td>
+<p>An optional matrix of scalar input values to train the model. Each column must match an input
+variable and each row a training point. Either scalar input coordinates (sIn), functional input
+coordinates (fIn), or both must be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fIn</code></td>
+<td>
+<p>An optional list of functional input values to train the model. Each element of the list must
+be a matrix containing the set of curves corresponding to one functional input. Either scalar input
+coordinates (sIn), functional input coordinates (fIn), or both must be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sOut</code></td>
+<td>
+<p>A vector (or 1-column matrix) containing the values of the scalar output at the specified
+input points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kerType</code></td>
+<td>
+<p>An optional character string specifying the covariance structure to be used. To be chosen
+between "gauss", "matern5_2" and "matern3_2". Default is "matern5_2".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f_disType</code></td>
+<td>
+<p>An optional array of character strings specifying the distance function to be used for
+each functional coordinates within the covariance function of the Gaussian process. To be chosen between
+"L2_bygroup" and "L2_byindex". The L2_bygroup distance considers each curve as a whole and uses a single
+length-scale parameter per functional input variable. The L2_byindex distance uses as many length-scale
+parameters per functional input as discretization points it has. For instance an input discretized as
+a vector of size 8 will use 8 length-scale parameters when using L2_byindex. If dimension reduction of
+a functional input is requested, then L2_byindex uses as many length scale parameters as effective
+dimensions used to represent the input. A single character string can also be passed as a general
+selection for all the functional inputs of the model. More details in the reference article
+(<a href="https://doi.org/10.1016/j.ress.2020.106870">doi:10.1016/j.ress.2020.106870</a>) and the in-depth package manual
+(<a href="https://doi.org/10.18637/jss.v109.i05">doi:10.18637/jss.v109.i05</a>). Default is "L2_bygroup".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f_pdims</code></td>
+<td>
+<p>An optional array with the projection dimension for each functional input. For each input,
+the projection dimension should be an integer between 0 and its original dimension, with 0 denoting
+no projection. A single character string can also be passed as a general selection for all the functional
+inputs of the model. Default is 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f_basType</code></td>
+<td>
+<p>An optional array of character strings specifying the family of basis functions to be used
+in the projection of each functional input. To be chosen between "B-splines" and "PCA". A single character
+string can also be passed as a general selection for all the functional inputs of the model. This argument
+will be ignored for those inputs for which no projection was requested (i.e., for which f_pdims = 0).
+Default is "B-splines".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.hyp</code></td>
+<td>
+<p>An optional number indicating the value that should be used as the variance parameter of the
+model. If not provided, it is estimated through likelihood maximization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ls_s.hyp</code></td>
+<td>
+<p>An optional numeric array indicating the values that should be used as length-scale parameters
+for the scalar inputs. If provided, the size of the array should match the number of scalar inputs. If not
+provided, these parameters are estimated through likelihood maximization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ls_f.hyp</code></td>
+<td>
+<p>An optional numeric array indicating the values that should be used as length-scale parameters
+for the functional inputs. If provided, the size of the array should match the number of effective dimensions.
+Each input using the "L2_bygroup" distance will count 1 effective dimension, and each input using the
+"L2_byindex" distance will count as many effective dimensions as specified by the corresponding element of
+the f_pdims argument. For instance, two functional inputs of original dimensions 10 and 22, the first one
+projected onto a space of dimension 5 with "L2_byindex" distance, and the second one not projected with
+"L2_bygroup" distance will make up a total of 6 effective dimensions; five for the first functional input and
+one for second one. If this argument is not provided, the functional length-scale parameters are estimated
+through likelihood maximization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nugget</code></td>
+<td>
+<p>An optional variance value standing for the homogeneous nugget effect. A tiny nugget might help
+to overcome numerical problems related to the ill-conditioning of the covariance matrix. Default is 1e-8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.starts</code></td>
+<td>
+<p>An optional integer indicating the number of initial points to use for the optimization of the
+hyperparameters. A parallel processing cluster can be exploited in order to speed up the evaluation of
+multiple initial points. More details in the description of the argument par.clust below. Default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.presample</code></td>
+<td>
+<p>An optional integer indicating the number of points to be tested in order to select the
+n.starts initial points. The n.presample points will be randomly sampled from the hyper-rectangle defined by: <br><br>
+1e-10 <code class="reqn">\le</code> <code>ls_s.hyp[i]</code> <code class="reqn">\le</code> 2*max(<code>sMs[[i]]</code>), for i in 1 to the number of scalar inputs, <br>
+1e-10 <code class="reqn">\le</code> <code>ls_f.hyp[i]</code> <code class="reqn">\le</code> 2*max(<code>fMs[[i]]</code>), for i in 1 to the number of functional inputs, <br><br>
+with  sMs and fMs the lists of distance matrices for the scalar and functional inputs, respectively. The value of
+n.starts will be assigned to n.presample if this last is smaller. Default is 20.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.clust</code></td>
+<td>
+<p>An optional parallel processing cluster created with the <code>makeCluster</code> function
+of the parallel package. If not provided, multistart optimizations are done in sequence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>An optional boolean indicating if control messages native of the funGp package should be printed to
+console. Default is TRUE. For complementary control on the display of funGp-native progress bars and
+<code>optim</code> trace about the hyperparameter optimization process, have a look at the <code>pbars</code> and
+<code>control.optim</code> arguments, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pbars</code></td>
+<td>
+<p>An optional boolean indicating if progress bars should be displayed. Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.optim</code></td>
+<td>
+<p>An optional list to be passed as the <code>control</code> argument to <code>optim</code>, the function
+in charge of the non-linear optimization of the hyperparameters. Default is <code>list(trace = TRUE)</code>, equivalent to
+<code>list(trace = 1)</code>, which enables the printing of tracing information on the progress of the optimization. Before
+interacting with the <code>fgpm()</code> <code>control.optim</code> argument, please carefully check the documentation about
+the <code>control</code> argument provided in <code>optim</code> to ensure a coherent behavior and sound results. Note
+that: (i) at this time, only the <code>"L-BFGS-B"</code> method (Byrd et. al., 1995) is enabled in <code>fgpm()</code>;
+(ii) <code>control.optim$fnscale</code> should not be used since our optimization problem is strictly of minimization, not maximization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra control parameters. Currently only used internally for some <code>update()</code> calls.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class fgpm containing the data structures representing the fitted funGp model.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>José Betancourt, François Bachoc, Thierry Klein and Jérémy Rohmer
+</p>
+
+
+<h3>References</h3>
+
+<p>Betancourt, J., Bachoc, F., Klein, T., Idier, D., Rohmer, J., and Deville, Y. (2024),
+"funGp: An R Package for Gaussian Process Regression with Scalar and Functional Inputs".
+<em>Journal of Statistical Software</em>, <strong>109</strong>, 5, 1–51.
+(<a href="https://doi.org/10.18637/jss.v109.i05">doi:10.18637/jss.v109.i05</a>)
+</p>
+<p>Betancourt, J., Bachoc, F., Klein, T., Idier, D., Pedreros, R., and Rohmer, J. (2020),
+"Gaussian process metamodeling of functional-input code for coastal flood hazard assessment".
+<em>Reliability Engineering &amp; System Safety</em>, <strong>198</strong>, 106870.
+(<a href="https://doi.org/10.1016/j.ress.2020.106870">doi:10.1016/j.ress.2020.106870</a>)
+<a href="https://hal.science/hal-01998724">[HAL]</a>
+</p>
+<p>Betancourt, J., Bachoc, F., Klein, T., and Gamboa, F. (2020),
+Technical Report: "Ant Colony Based Model Selection for Functional-Input Gaussian Process Regression. Ref. D3.b (WP3.2)".
+<em>RISCOPE project</em>.
+<a href="https://hal.science/hal-02532713">[HAL]</a>
+</p>
+<p>Betancourt, J., Bachoc, F., and Klein, T. (2020),
+R Package Manual: "Gaussian Process Regression for Scalar and Functional Inputs with funGp - The in-depth tour".
+<em>RISCOPE project</em>.
+<a href="https://hal.science/hal-02536624">[HAL]</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><strong>*</strong> plot,fgpm-method: validation plot for a <code>fgpm</code> model;
+</p>
+<p><strong>*</strong> predict,fgpm-method for predictions based on a <code>fgpm</code> model;
+</p>
+<p><strong>*</strong> simulate,fgpm-method for simulations based on a <code>fgpm</code> model;
+</p>
+<p><strong>*</strong> update,fgpm-method for post-creation updates on a <code>fgpm</code> model;
+</p>
+<p><strong>*</strong> fgpm_factory for funGp heuristic model selection.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># creating funGp model using default fgpm arguments________________________________________
+# generating input data for training
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+
+# generating output data for training
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+
+# building a scalar-input funGp model
+ms &lt;- fgpm(sIn = sIn, sOut = sOut)
+
+# building a functional-input funGp model
+mf &lt;- fgpm(fIn = fIn, sOut = sOut)
+
+# building a hybrid-input funGp model
+msf &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# plotting the three models
+plot(ms)
+plot(mf)
+plot(msf)
+
+# printing the three models
+summary(ms) # equivalent to show(ms)
+summary(mf) # equivalent to show(mf)
+summary(msf) # equivalent to show(msf)
+
+
+# recovering useful information from a funGp model_________________________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# recovering data from model slots
+m1@f_proj@coefs # list of projection coefficients for the functional inputs
+m1@f_proj@basis # list of projection basis functions for the functional inputs
+Map(function(a, b) a %*% t(b), m1@f_proj@coefs, m1@f_proj@basis) # list of projected
+                                                                 # functional inputs
+tcrossprod(m1@preMats$L) # training auto-covariance matrix
+
+
+# making predictions based on a funGp model________________________________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# generating input data for prediction
+n.pr &lt;- 100
+sIn.pr &lt;- as.matrix(expand.grid(x1 = seq(0,1,length = sqrt(n.pr)),
+                                x2 = seq(0,1,length = sqrt(n.pr))))
+fIn.pr &lt;- list(f1 = matrix(runif(n.pr*10), ncol = 10), matrix(runif(n.pr*22), ncol = 22))
+
+# making predictions
+m1.preds &lt;- predict(m1, sIn.pr = sIn.pr, fIn.pr = fIn.pr)
+
+# plotting predictions
+plot(m1.preds)
+
+
+# simulating from a funGp model____________________________________________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# generating input data for simulation
+n.sm &lt;- 100
+sIn.sm &lt;- as.matrix(expand.grid(x1 = seq(0,1,length = sqrt(n.sm)),
+                                x2 = seq(0,1,length = sqrt(n.sm))))
+fIn.sm &lt;- list(f1 = matrix(runif(n.sm*10), ncol = 10), matrix(runif(n.sm*22), ncol = 22))
+
+# making simulations
+m1.sims &lt;- simulate(m1, nsim = 10, sIn.sm = sIn.sm, fIn.sm = fIn.sm)
+
+# plotting simulations
+plot(m1.sims)
+
+
+# creating funGp model using custom fgpm arguments_________________________________________
+# generating input and output data
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+
+# original dimensions
+# f1: 10
+# f2: 22
+
+# building a the model with the following structure
+#    - Kernel: Gaussian
+#    - f1: L2_byindex distance, no projection -&gt; 10 length-scale parameters
+#    - f2: L2_bygroup distance, B-spline basis of dimension 5 -&gt; 1 length-scale parameter
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut,
+           kerType = "gauss", f_disType = c("L2_byindex", "L2_bygroup"),
+           f_pdims = c(0,5), f_basType = c(NA, "B-splines"))
+
+# plotting the model
+plot(m1)
+
+# printing the model
+m1 # equivalent to show(m1)
+
+## Not run: 
+# multistart and parallelization in fgpm___________________________________________________
+# generating input and output data
+set.seed(100)
+n.tr &lt;- 243
+sIn &lt;- expand.grid(x1 = seq(0,1,length = n.tr^(1/5)), x2 = seq(0,1,length = n.tr^(1/5)),
+                   x3 = seq(0,1,length = n.tr^(1/5)), x4 = seq(0,1,length = n.tr^(1/5)),
+                   x5 = seq(0,1,length = n.tr^(1/5)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB7(sIn, fIn, n.tr)
+
+# calling fgpm with multistart in parallel
+cl &lt;- parallel::makeCluster(2)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut, n.starts = 10, par.clust = cl) # (~14 seconds)
+parallel::stopCluster(cl)
+
+# NOTE: in order to provide progress bars for the monitoring of time consuming processes
+#       ran in parallel, funGp relies on the doFuture and future packages. Parallel processes
+#       suddenly interrupted by the user tend to leave corrupt connections. This problem is
+#       originated outside funGp, which limits our control over it. In the initial (unpublished)
+#       version of the funGp manual, we provide a temporary solution to the issue and we remain
+#       attentive in case it appears a more elegant way to handle it or a manner to suppress it.
+#
+#       funGp original (unpublished) manual: https://hal.science/hal-02536624
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

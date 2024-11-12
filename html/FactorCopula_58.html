@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Vuong.StructuredFactor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Vuong's test for the comparison of bi-factor and second-order copula models</h2>
+
+<h3>Description</h3>
+
+<p>The Vuong's test (Vuong,1989) is the sample version of the difference in Kullback-Leibler divergence between two models and can be used to differentiate two  parametric models which could be non-nested. 
+For the Vuong's test we provide the 95% confidence interval of the Vuong's test statistic (Joe, 2014, page 258). If the interval does not contain  0, then the best fitted model according to the AICs is better if the interval is completely above 0.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vuong_structured(models, cpar.m1, copnames.m1, cpar.m2, 
+copnames.m2, y, grpsize)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>choose a number from (1,2,3,4). <b>1</b>: Model1 is bifactor, Model2 is bifactor. <b>2</b>: Model1 is second-order, Model2 is second-order. <b>3</b>: Model1 is second-order, Model2 is bifactor. <b>4</b>: Model1 is bifactor, Model2 is nested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpar.m1</code></td>
+<td>
+<p>vector of copula paramters for model 1, starting with copula parameters that link the items with common factor (bifactor), or group factors with common factor (second-order).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpar.m2</code></td>
+<td>
+<p>vector of copula paramters for model 2, starting with copula parameters that link the items with common factor (bifactor), or group factors with common factor (second-order).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>copnames.m1</code></td>
+<td>
+<p>vector of names of copula families for model 1, starting with copulas that link the items with common factor (bifactor), or group factors with common factor (second-order).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>copnames.m2</code></td>
+<td>
+<p>vector of names of copula families for model 2, starting with copulas that link the items with common factor (bifactor), or group factors with common factor (second-order).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>matrix of ordinal data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grpsize</code></td>
+<td>
+<p>vector indicating the size for each group, e.g., c(4,4,4) indicating four items in all three groups.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>the test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p> the <code class="reqn">p</code>-value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI.left</code></td>
+<td>
+<p> lower/left endpoint of 95% confidence interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI.right</code></td>
+<td>
+<p> upper/right endpoint of 95% confidence interval.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sayed H. Kadhem <a href="mailto:s.kadhem@uea.ac.uk">s.kadhem@uea.ac.uk</a><br>
+Aristidis K. Nikoloulopoulos <a href="mailto:a.nikoloulopoulos@uea.ac.uk">a.nikoloulopoulos@uea.ac.uk</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Joe, H. (2014).
+<em>Dependence Modelling with Copulas</em>. Chapman and Hall/CRC.
+</p>
+<p>Kadhem, S.H. and Nikoloulopoulos, A.K. (2023)
+Bi-factor and second-order copula models for item response data.
+<em>Psychometrika</em>, <b>88</b>, 132–157. <a href="https://doi.org/10.1007/s11336-022-09894-2">doi:10.1007/s11336-022-09894-2</a>.
+</p>
+<p>Vuong, Q.H. (1989).
+Likelihood ratio tests for model selection and non-nested hypotheses.
+<em>Econometrica</em>, <b>57</b>, 307–333. 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#------------------------------------------------
+# Setting quadreture points
+nq &lt;- 25
+gl &lt;- gauss.quad.prob(nq)
+#------------------------------------------------
+#                     TAS Data
+#------------------             -----------------
+data(TAS)
+grp1=c(1,3,6,7,9,13,14)
+grp2=c(2,4,11,12,17)
+grp3=c(5,8,10,15,16,18,19,20)
+ydat=TAS[,c(grp1,grp2,grp3)]
+
+d=ncol(ydat);d
+n=nrow(ydat);n
+
+#Rearrange items within testlets
+g1=length(grp1)
+g2=length(grp2)
+g3=length(grp3)
+
+grpsize=c(g1,g2,g3)#group size
+#number of groups
+ngrp=length(grpsize)
+#------------------------------------------------
+# M1 bifactor - M2 bifactor
+cpar.m1 = rep(0.6,d*2)
+copnames.m1 = rep("bvn",d*2)
+cpar.m2 = rep(1.6,d*2)
+copnames.m2 = rep("rgum",d*2)
+vuong.bifactor = vuong_structured(models=1, cpar.m1, copnames.m1, 
+                 cpar.m2, copnames.m2, 
+                 y=ydat, grpsize)
+
+# M1 seconod-order - M2 seconod-order
+cpar.m1 = rep(0.6,d+ngrp)
+copnames.m1 = rep("bvn",d+ngrp)
+cpar.m2 = rep(1.6,d+ngrp)
+copnames.m2 = rep("rgum",d+ngrp)
+vuong.second_order = vuong_structured(models=2, cpar.m1, 
+    copnames.m1, cpar.m2, copnames.m2, y=ydat, grpsize)
+ 
+# M1 seconod-order - M2 bifactor
+cpar.m1 = rep(0.6,d+ngrp)
+copnames.m1 = rep("bvn",d+ngrp)
+cpar.m2 = rep(1.6,d*2)
+copnames.m2 = rep("rgum",d*2)
+vuong.2ndO_bif = vuong_structured(models=3, cpar.m1, copnames.m1, 
+                 cpar.m2, copnames.m2, 
+                 y=ydat, grpsize)     
+                 
+# M1 bifactor - M2 seconod-order
+cpar.m1 = rep(0.6,d*2)
+copnames.m1 = rep("bvn",d*2)
+cpar.m2 = rep(1.6,d+ngrp)
+copnames.m2 = rep("rgum",d+ngrp)
+vuong.bif_2ndO = vuong_structured(models=4, cpar.m1, copnames.m1, 
+                 cpar.m2, copnames.m2, 
+                 y=ydat, grpsize)
+
+</code></pre>
+
+
+</div>

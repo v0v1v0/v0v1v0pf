@@ -1,0 +1,725 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>faMain</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic Factor Rotation from Random Configurations with Bootstrap Standard Errors</h2>
+
+<h3>Description</h3>
+
+<p>This function conducts factor rotations (using the <span class="pkg">GPArotation</span> package) 
+from a user-specified number of random (orthogonal) starting configurations. 
+Based on the resulting complexity function value, the function determines the 
+number of local minima and, among these local solutions, will find the 
+"global minimum" (i.e., the minimized complexity value from the finite 
+number of solutions). See Details below for an elaboration on the global 
+minimum. This function can also return bootstrap standard errors of the factor solution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">faMain(
+  X = NULL,
+  R = NULL,
+  n = NULL,
+  numFactors = NULL,
+  facMethod = "fals",
+  urLoadings = NULL,
+  rotate = "oblimin",
+  targetMatrix = NULL,
+  bootstrapSE = FALSE,
+  numBoot = 1000,
+  CILevel = 0.95,
+  Seed = 1,
+  digits = NULL,
+  faControl = NULL,
+  rotateControl = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>(Matrix) A raw data matrix (or data frame).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>(Matrix) A correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>(Numeric) Sample size associated with the correlation matrix. Defaults to n = NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFactors</code></td>
+<td>
+<p>(Numeric) The number of factors to extract for subsequent rotation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facMethod</code></td>
+<td>
+<p>(Character) The method used for factor extraction 
+(<code>faX</code>). The supported options are "fals" for unweighted least 
+squares, "faml" for maximum likelihood, "fapa" for iterated principal axis 
+factoring, "faregLS" for regularized least squares,
+"faregML" for regularized maximum likelihood, and "pca" for principal components 
+analysis. The default method  is "fals". 
+</p>
+
+<ul>
+<li> <p><strong>"fals"</strong>: Factors are extracted using the unweighted least 
+squares estimation procedure using the <code>fals</code> function.
+</p>
+</li>
+<li> <p><strong>"faml"</strong>: Factors are extracted using the maximum likelihood 
+estimation procedure using the <code>factanal</code> function.
+</p>
+</li>
+<li> <p><strong>"fapa"</strong>: Factors are extracted using the iterated principal 
+axis factoring estimation procedure using the <code>fapa</code> function.
+</p>
+</li>
+<li> <p><strong>"faregLS"</strong>: Factors are extracted using regularized 
+least squares factor analysis using the <code>fareg</code> function. 
+</p>
+</li>
+<li> <p><strong>"faregML"</strong>: Factors are extracted using regularized 
+maximum likelihood factor using the <code>fareg</code> function. 
+</p>
+</li>
+<li> <p><strong>"pca"</strong>: Principal components are extracted. 
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>urLoadings</code></td>
+<td>
+<p>(Matrix) An unrotated factor-structure matrix to be rotated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotate</code></td>
+<td>
+<p>(Character) Designate which rotation algorithm to apply. The 
+following are available rotation options: "oblimin", "quartimin", "targetT", 
+"targetQ", "oblimax", "entropy", "quartimax", "varimax", "simplimax", 
+"bentlerT", "bentlerQ", "tandemI", "tandemII", "geominT", "geominQ", "cfT", 
+"cfQ", "infomaxT", "infomaxQ", "mccammon", "bifactorT", "bifactorQ", and 
+"none". Defaults to rotate = "oblimin". See <span class="pkg">GPArotation</span> package for more 
+details. Note that rotations ending in "T" and "Q" represent orthogonal and 
+oblique rotations, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetMatrix</code></td>
+<td>
+<p>(Matrix) This argument serves two functions. First, if a 
+user has requested either a "targetT" or "targetQ' rotation, then 
+the target matrix is used to conduct a fully or partially
+specified target rotation. In the latter case,  freely estimated factor 
+loadings are designated by "NA" values and rotation will be conducted using  
+Browne's (1972a, 1972b, 2001) method for a partially-specified 
+target rotation. Second, if any other rotation option is chosen then all 
+rotated loadings matrices (and assorted output) will be aligned 
+(but not rotated) with the target solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrapSE</code></td>
+<td>
+<p>(Logical) Computes bootstrap standard errors. All bootstrap 
+samples are aligned to the global minimum solution. Defaults to 
+bootstrapSE = FALSE (no standard errors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numBoot</code></td>
+<td>
+<p>(Numeric) The number bootstraps. Defaults to numBoot = 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CILevel</code></td>
+<td>
+<p>(Numeric) The confidence level (between 0 and 1) of the bootstrap 
+confidence interval. Defaults to CILevel = .95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Seed</code></td>
+<td>
+<p>(Numeric) Starting seed for reproducible bootstrap results and factor rotations. 
+Defaults to Seed = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>(Numeric) Rounds the values to the specified number of decimal 
+places. Defaults to digits = NULL (no rounding).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>faControl</code></td>
+<td>
+<p>(List) A list of optional parameters passed to the factor 
+extraction (<code>faX</code>) function.
+</p>
+
+<ul>
+<li> <p><strong>treatHeywood</strong>: (Logical) In <code>fals</code>, if treatHeywood is 
+true, a penalized least squares function is used to bound the communality 
+estimates below 1.0. Defaults to treatHeywood = TRUE.
+</p>
+</li>
+<li> <p><strong>nStart</strong>: (Numeric) The number of starting values to be tried 
+in <code>faml</code>. Defaults to nStart = 10.
+</p>
+</li>
+<li> <p><strong>start</strong>: (Matrix) NULL or a matrix of starting values, each column 
+giving an initial set of uniquenesses. Defaults to start = NULL. 
+</p>
+</li>
+<li> <p><strong>maxCommunality</strong>: (Numeric) In <code>faml</code>, set the maximum 
+communality value for the estimated solution. Defaults to maxCommunality = .995.
+</p>
+</li>
+<li> <p><strong>epsilon</strong>: (Numeric) In <code>fapa</code>, the numeric threshold 
+designating when the algorithm has converged. Defaults to epsilon = 1e-4.
+</p>
+</li>
+<li> <p><strong>communality</strong>: (Character) The method used to estimate the 
+initial communality values in <code>fapa</code>. Defaults to communality = 'SMC'.
+</p>
+
+<ul>
+<li> <p><strong>"SMC"</strong>: Initial communalities are estimated by taking the 
+squared multiple correlations of each indicator after regressing the 
+indicator on the remaining variables.
+</p>
+</li>
+<li> <p><strong>"maxr"</strong>: Initial communalities equal the largest 
+(absolute value) correlation in each column of the correlation matrix.
+</p>
+</li>
+<li> <p><strong>"unity"</strong>: Initial communalities equal 1.0 for all variables.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>maxItr</strong>: (Numeric) In <code>fapa</code>, the maximum number of 
+iterations to reach convergence. Defaults to maxItr = 15,000.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotateControl</code></td>
+<td>
+<p>(List) A list of control values to pass to the factor rotation algorithms.
+</p>
+
+<ul>
+<li> <p><strong>numberStarts</strong>: (Numeric) The number of random (orthogonal) 
+starting configurations for the chosen rotation method (e.g., oblimin). The first
+rotation will always commence from the unrotated factors orientation.
+Defaults to numberStarts = 10. 
+</p>
+</li>
+<li> <p><strong>gamma</strong>: (Numeric) This is a tuning parameter (between 0 
+and 1, inclusive) for an oblimin rotation.  See the <span class="pkg">GPArotation</span> 
+library's oblimin documentation for more details. Defaults to gamma = 0 
+(i.e., a quartimin rotation).
+</p>
+</li>
+<li> <p><strong>delta</strong>: (Numeric) This is a tuning parameter for the geomin
+rotation. It adds a small number (default = .01) to the squared factor 
+loadings before computing the geometric means in the discrepancy function.
+</p>
+</li>
+<li> <p><strong>kappa</strong>: (Numeric) The main parameterization of the 
+Crawford-Ferguson (CF) rotations (i.e., "cfT" and "cfQ" for orthogonal and 
+oblique CF rotation, respectively). Defaults to kappa = 0. 
+</p>
+</li>
+<li> <p><strong>k</strong>: (Numeric) A specific parameter of the simplimax rotation. 
+Defaults to k = the number of observed variables.
+</p>
+</li>
+<li> <p><strong>standardize</strong>: (Character) The standardization routine used 
+on the unrotated factor structure. The three options are "none", "Kaiser", 
+and "CM". Defaults to standardize = "none". 
+</p>
+
+<ul>
+<li> <p><strong>"none"</strong>: No standardization is applied to the unrotated 
+factor structure. 
+</p>
+</li>
+<li> <p><strong>"Kaiser"</strong>: Use a factor structure matrix that has been 
+normed by Kaiser's method (i.e., normalize all rows to have a unit length).
+</p>
+</li>
+<li> <p><strong>"CM"</strong>: Use a factor structure matrix that has been normed
+by the Cureton-Mulaik method.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>epsilon</strong>: (Numeric) The rotational convergence criterion to 
+use. Defaults to epsilon = 1e-5.
+</p>
+</li>
+<li> <p><strong>power</strong>: (Numeric) Raise factor loadings the the n-th power 
+in the <code>promaxQ</code> rotation. Defaults to power = 4.
+</p>
+</li>
+<li> <p><strong>maxItr</strong>: (Numeric) The maximum number of iterations for the 
+rotation algorithm. Defaults to maxItr = 15000.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Values to be passed to the <code>cor</code> function.
+</p>
+
+<ul>
+<li> <p><strong>use</strong>: (Character) A character string giving a method for 
+computing correlations in the presence of missing values: "everything" 
+(the default), "all.obs", "complete.obs", "na.or.complete", or 
+"pairwise.complete.obs".
+</p>
+</li>
+<li> <p><strong>method</strong>: (Character) A character string indicating which 
+correlation coefficient is to be computed: "pearson" (the default), 
+"kendall", or "spearman". 
+</p>
+</li>
+<li> <p><strong>na.rm</strong>: (Logical) Should missing values be removed (TRUE) 
+or not (FALSE)?
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li> <p><strong>Global Minimum</strong>: This function uses several random starting 
+configurations for factor rotations in an attempt to find the global 
+minimum solution. However, this function is not guaranteed to find the 
+global minimum. Furthermore, the global minimum solution need not be 
+more psychologically interpretable than any of the local solutions (cf. 
+Rozeboom, 1992). As is recommended, our function returns all local 
+solutions so users can make their own judgements.
+</p>
+</li>
+<li> <p><strong>Finding clusters of local minima</strong>: We find local-solution sets by sorting the rounded 
+rotation complexity values (to the number of  digits specified in the <code>epsilon</code> 
+argument of the <code>rotateControl</code> list) into sets with equivalent values. For example, 
+by default <code>epsilon = 1e-5.</code> will only evaluate the complexity 
+values to five significant digits. Any differences beyond that value will not effect the final sorting. 
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The <code>faMain</code> function will produce a lot of output in addition 
+to the rotated factor pattern matrix and the factor correlations.
+</p>
+
+<ul>
+<li> <p><strong>R</strong>: (Matrix) Returns the correlation matrix, useful when raw data are supplied.
+</p>
+</li>
+<li> <p><strong>loadings</strong>: (Matrix) The rotated factor solution with the 
+lowest evaluated discrepancy function. This solution has the lowest 
+discrepancy function <em>of the examined random starting configurations</em>. 
+It is not guaranteed to find the "true" global minimum. Note that multiple
+(or even all) local solutions can have the same discrepancy functions.
+</p>
+</li>
+<li> <p><strong>Phi</strong>: (Matrix) The factor correlations of the rotated factor 
+solution with the lowest evaluated discrepancy function (see Details).
+</p>
+</li>
+<li> <p><strong>facIndeterminacy</strong>: (Vector) A vector (with length equal to the number of factors)
+containing Guttman's (1955) index of factor indeterminacy for each factor. 
+</p>
+</li>
+<li> <p><strong>h2</strong>: (Vector) The vector of final communality estimates. 
+</p>
+</li>
+<li> <p><strong>loadingsSE</strong>: (Matrix) The matrix of factor-loading standard 
+errors across the bootstrapped factor solutions. Each matrix element is 
+the standard deviation of all bootstrapped factor loadings for that element position.
+</p>
+</li>
+<li> <p><strong>CILevel</strong> (Numeric) The user-defined confidence level (between 0 and 1) of the bootstrap 
+confidence interval. Defaults to CILevel = .95.
+</p>
+</li>
+<li> <p><strong>loadingsCIupper</strong>: (Matrix) Contains the upper confidence 
+interval of the bootstrapped factor loadings matrix. The confidence 
+interval width is specified by the user.
+</p>
+</li>
+<li> <p><strong>loadingsCIlower</strong>: (Matrix) Contains the lower confidence 
+interval of the bootstrapped factor loadings matrix. The confidence 
+interval width is specified by the user.
+</p>
+</li>
+<li> <p><strong>PhiSE</strong>: (Matrix) The matrix of factor correlation standard 
+errors across the bootstrapped factor solutions. Each matrix element is 
+the standard deviation of all bootstrapped factor correlations for that element position.
+</p>
+</li>
+<li> <p><strong>PhiCIupper</strong>: (Matrix) Contains the upper confidence interval 
+of the bootstrapped factor correlation matrix. The confidence interval 
+width is specified by the user.
+</p>
+</li>
+<li> <p><strong>PhiCIlower</strong>: (Matrix) Contains the lower confidence interval 
+of the bootstrapped factor correlation matrix. The confidence interval 
+width is specified by the user.
+</p>
+</li>
+<li> <p><strong>facIndeterminacySE</strong>: (Matrix) A row vector containing the 
+standard errors of Guttman's (1955) factor indeterminacy indices across the 
+bootstrap factor solutions. 
+</p>
+</li>
+<li> <p><strong>localSolutions</strong>: (List) A list containing all local solutions 
+in ascending order of their factor loadings, rotation complexity values (i.e., the first solution 
+is the "global" minimum). Each solution returns the 
+</p>
+
+<ul>
+<li> <p><strong>loadings</strong>: (Matrix) the factor loadings, 
+</p>
+</li>
+<li> <p><strong>Phi</strong>: (Matrix) factor correlations, 
+</p>
+</li>
+<li> <p><strong>RotationComplexityValue</strong>: (Numeric) the complexity value of the rotation algorithm, 
+</p>
+</li>
+<li> <p><strong>facIndeterminacy</strong>: (Vector) A vector of factor indeterminacy indices for each common factor, and 
+</p>
+</li>
+<li> <p><strong>RotationConverged</strong>: (Logical) convergence status of the rotation algorithm. 
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>numLocalSets</strong> (Numeric) How many sets of local solutions
+with the same discrepancy value were obtained. 
+</p>
+</li>
+<li> <p><strong>localSolutionSets</strong>: (List) A list containing the sets of 
+unique local minima solutions. There is one list element for every unique 
+local solution that includes (a) the factor loadings matrix, (b) the factor 
+correlation matrix (if estimated), and (c) the discrepancy value of the rotation algorithm. 
+</p>
+</li>
+<li> <p><strong>loadingsArray</strong>: (Array) Contains an array of all bootstrapped 
+factor loadings. The dimensions are factor indicators, factors, and the 
+number of bootstrapped samples (representing the row, column, and depth, respectively).
+</p>
+</li>
+<li> <p><strong>PhiArray</strong>: (Array) Contains an array of all bootstrapped 
+factor correlations. The dimension are the number of factors, the number 
+of factors, and the number of bootstrapped samples (representing the row,
+column, and depth, respectively).
+</p>
+</li>
+<li> <p><strong>facIndeterminacyArray</strong>: (Array) Contains an array of all 
+bootstrap factor indeterminacy indices. The dimensions are 1, the number 
+of factors, and the number of bootstrap samples (representing the row, 
+column, and depth order, respectively).
+</p>
+</li>
+<li> <p><strong>faControl</strong>: (List) A list of the control parameters passed 
+to the factor extraction (<code>faX</code>) function.
+</p>
+</li>
+<li> <p><strong>faFit</strong>: (List) A list of additional output from the factor
+extraction routines. 
+</p>
+
+<ul>
+<li> <p><strong>facMethod</strong>: (Character) The factor extraction routine.
+</p>
+</li>
+<li> <p><strong>df</strong>: (Numeric) Degrees of Freedom from the maximum 
+likelihood factor extraction routine.
+</p>
+</li>
+<li> <p><strong>n</strong>: (Numeric) Sample size associated with the correlation matrix.
+</p>
+</li>
+<li> <p><strong>objectiveFunc</strong>: (Numeric) The evaluated objective function for the 
+maximum likelihood factor extraction routine. 
+</p>
+</li>
+<li> <p><strong>RMSEA</strong>: (Numeric) Root mean squared error of approximation 
+from Steiger &amp; Lind (1980). Note that bias correction is computed if the 
+sample size is provided.
+</p>
+</li>
+<li> <p><strong>testStat</strong>: (Numeric) The significance test statistic for the maximum 
+likelihood procedure. Cannot be computed unless a sample size is provided. 
+</p>
+</li>
+<li> <p><strong>pValue</strong>: (Numeric) The p value associated with the significance test 
+statistic for the maximum likelihood procedure. Cannot be computed unless 
+a sample size is provided. 
+</p>
+</li>
+<li> <p><strong>gradient</strong>: (Matrix) The solution gradient for the least squares factor 
+extraction routine. 
+</p>
+</li>
+<li> <p><strong>maxAbsGradient</strong>: (Numeric) The maximum absolute value of the 
+gradient at the least squares solution. 
+</p>
+</li>
+<li> <p><strong>Heywood</strong>: (Logical) TRUE if a Heywood case was produced.
+</p>
+</li>
+<li> <p><strong>convergedX</strong>: (Logical) TRUE if the factor 
+<strong>extraction</strong> routine converged. 
+</p>
+</li>
+<li> <p><strong>convergedR</strong>: (Logical) TRUE if the factor <strong>rotation</strong> 
+routine converged (for the local solution with the minimum discrepancy 
+value).
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>rotateControl</strong>: (List) A list of the control parameters 
+passed to the rotation algorithm.
+</p>
+</li>
+<li> <p><strong>unSpunSolution</strong>: (List) A list of output parameters (e.g., loadings, Phi, etc) from 
+the rotated solution that was obtained by rotating directly from the unrotated (i.e., unspun) common factor orientation. 
+</p>
+</li>
+<li> <p><strong>targetMatrix</strong> (Matrix) The input target matrix if supplied by the user.
+</p>
+</li>
+<li> <p><strong>Call</strong>: (call) A copy of the function call.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+
+<ul>
+<li>
+<p> Niels G. Waller (nwaller@umn.edu)
+</p>
+</li>
+<li>
+<p> Casey Giordano (Giord023@umn.edu)
+</p>
+</li>
+<li>
+<p> The authors thank Allie Cooperman and Hoang
+Nguyen for their help implementing the standard error estimation and the 
+Cureton-Mulaik standardization procedure.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Browne, M. W.  (1972).  Oblique rotation to a partially specified 
+target.  <em>British Journal of Mathematical and Statistical Psychology, 25</em>,(1), 
+207-212.
+</p>
+<p>Browne, M. W. (1972b). Orthogonal rotation to a partially specifed
+target. <em>British Journal of Statistical Psychology, 25</em>,(1), 115-120.
+</p>
+<p>Browne, M. W. (2001). An overview of analytic rotation in 
+exploratory factor analysis. <em>Multivariate Behavioral Research, 36</em>(1), 111-150.
+</p>
+<p>Cureton, E. E., &amp; Mulaik, S. A. (1975). The weighted varimax 
+rotation and the promax rotation. <em>Psychometrika, 40</em>(2), 183-195.
+</p>
+<p>Guttman, L. (1955). The determinacy of factor score matrices with 
+implications for five other basic problems of common factor theory. 
+<em>British Journal of Statistical Psychology, 8</em>(2), 65-81.
+</p>
+<p>Jung, S. &amp; Takane, Y.  (2008).  Regularized common factor analysis.  
+<em>New Trends in Psychometrics</em>, 141-149.
+</p>
+<p>Mansolf, M., &amp; Reise, S. P. (2016). Exploratory bifactor 
+analysis: The Schmid-Leiman orthogonalization and Jennrich-Bentler 
+analytic rotations. <em>Multivariate Behavioral Research, 51</em>(5), 698-717.
+</p>
+<p>Rozeboom, W. W. (1992). The glory of suboptimal factor rotation: 
+Why local minima in analytic optimization of simple structure are more 
+blessing than curse. <em>Multivariate Behavioral Research, 27</em>(4), 585-599.
+</p>
+<p>Zhang, G. (2014). Estimating standard errors in exploratory factor 
+analysis. <em>Multivariate Behavioral Research, 49</em>(4), 339-353.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1
+
+## Generate an oblique factor model
+lambda &lt;- matrix(c(.41, .00, .00,
+                   .45, .00, .00,
+                   .53, .00, .00,
+                   .00, .66, .00,
+                   .00, .38, .00,
+                   .00, .66, .00,
+                   .00, .00, .68,
+                   .00, .00, .56,
+                   .00, .00, .55),
+                 nrow = 9, ncol = 3, byrow = TRUE)
+
+## Generate factor correlation matrix
+Phi &lt;- matrix(.50, nrow = 3, ncol = 3)
+diag(Phi) &lt;- 1
+
+## Model-implied correlation matrix
+R &lt;- lambda %*% Phi %*% t(lambda)
+diag(R) &lt;- 1
+
+## Load the MASS package to create multivariate normal data
+library(MASS)
+
+## Generate raw data to perfectly reproduce R
+X &lt;- mvrnorm(Sigma = R, mu = rep(0, nrow(R)), empirical = TRUE, n = 300)
+
+## Not run: 
+## Execute 50 promax rotations from a least squares factor extraction
+## Compute 100 bootstrap samples to compute standard errors and 
+## 80 percent confidence intervals
+Out1 &lt;- faMain(X             = X,
+               numFactors    = 3,
+               facMethod     = "fals",
+               rotate        = "promaxQ",
+               bootstrapSE   = TRUE,
+               numBoot       = 100,
+               CILevel       = .80,
+               faControl     = list(treatHeywood = TRUE),
+               rotateControl = list(numberStarts = 2,  
+                                    power        = 4,
+                                    standardize  = "Kaiser"),
+               digits        = 2)
+Out1[c("loadings", "Phi")] 
+
+## End(Not run)
+
+## Example 2
+
+## Load Thurstone's (in)famous box data
+data(Thurstone, package = "GPArotation")
+
+## Execute 5 oblimin rotations with Cureton-Mulaik standardization 
+Out2 &lt;- faMain(urLoadings    = box26,
+               rotate        = "oblimin",
+               bootstrapSE   = FALSE,
+               rotateControl = list(numberStarts = 5,
+                                    standardize  = "CM",
+                                    gamma        = 0,
+                                    epsilon      = 1e-6),
+               digits        = 2)
+               
+Out2[c("loadings", "Phi")]     
+
+## Example 3
+
+## Factor matrix from Browne 1972
+lambda &lt;- matrix(c(.664,  .322, -.075,
+                   .688,  .248,  .192,
+                   .492,  .304,  .224,
+                   .837, -.291,  .037,
+                   .705, -.314,  .155,
+                   .820, -.377, -.104,
+                   .661,  .397,  .077,
+                   .457,  .294, -.488,
+                   .765,  .428,  .009), 
+                 nrow = 9, ncol = 3, byrow = TRUE)   
+                 
+## Create partially-specified target matrix
+Targ &lt;- matrix(c(NA, 0,  NA,
+                 NA, 0,  0,
+                 NA, 0,  0,
+                 NA, NA, NA,
+                 NA, NA, 0,
+                 NA, NA, NA,
+                 .7, NA, NA,
+                 0,  NA, NA,
+                 .7, NA, NA), 
+               nrow = 9, ncol = 3, byrow = TRUE)  
+               
+## Perform target rotation              
+Out3 &lt;- faMain(urLoadings   = lambda,
+               rotate       = "targetT",
+               targetMatrix = Targ,
+               digits       = 3)$loadings
+Out3
+</code></pre>
+
+
+</div>

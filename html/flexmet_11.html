@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>transform_b</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transform FMP Item Parameters</h2>
+
+<h3>Description</h3>
+
+<p>Given FMP item parameters for a single item and the polynomial coefficients
+defining a latent trait transformation, find the transformed FMP
+item parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">transform_b(bvec, tvec, ncat = 2)
+
+inv_transform_b(bstarvec, tvec, ncat = 2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bvec</code></td>
+<td>
+<p>Vector of item parameters on the <code class="reqn">\theta</code> metric: (b0,
+b1, b2, b3, ...).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvec</code></td>
+<td>
+<p>Vector of theta transformation polynomial coefficients: (t0, t1,
+t2, t3, ...)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncat</code></td>
+<td>
+<p>Number of response categories (first ncat - 1 elements of bvec
+and bstarvec are intercepts)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bstarvec</code></td>
+<td>
+<p>Vector of item parameters on the
+<code class="reqn">\theta^{\star}</code> metric: (b*0, b*1, b*2, b*3, ...)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Equivalent item response models can be written
+</p>
+<p style="text-align: center;"><code class="reqn">P(\theta) = b_0 + b_1\theta + b_2\theta^2 + \cdots +
+b_{2k+1}\theta^{2k+1}</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">P(\theta^\star) = b^\star_0 + b^\star_1\theta^\star +
+b^\star_2\theta^{\star2}+\cdots + b^\star_{2k^\star+1}\theta^{2k^\star+1}</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">\theta = t_0 + t_1\theta^\star + t_2\theta^{\star 2} + \cdots +
+t_{2k_\theta+1}\theta^{\star2k_\theta+1}</code>
+</p>
+
+<p>When using inv_transform_b, be aware that multiple tvec/bstarvec pairings 
+will lead to the same bvec. Users are advised not to use the 
+inv_transform_b function unless bstarvec has first been calculated by a call
+to transform_b.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Vector of transformed FMP item parameters.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## example parameters from Table 7 of Reise &amp; Waller (2003)
+## goal: transform IRT model to sum score metric
+
+a &lt;- c(0.57, 0.68, 0.76, 0.72, 0.69, 0.57, 0.53, 0.64,
+       0.45, 1.01, 1.05, 0.50, 0.58, 0.58, 0.60, 0.59,
+       1.03, 0.52, 0.59, 0.99, 0.95, 0.39, 0.50)
+b &lt;- c(0.87, 1.02, 0.87, 0.81, 0.75, -0.22, 0.14, 0.56,
+       1.69, 0.37, 0.68, 0.56, 1.70, 1.20, 1.04, 1.69,
+       0.76, 1.51, 1.89, 1.77, 0.39, 0.08, 2.02)
+
+## convert from difficulties and discriminations to FMP parameters
+
+b1 &lt;- 1.702 * a
+b0 &lt;- - 1.702 * a * b
+bmat &lt;- cbind(b0, b1)
+
+## theta transformation vector (k_theta = 3)
+##  see vignette for details about how to find tvec
+
+tvec &lt;- c(-3.80789e+00, 2.14164e+00, -6.47773e-01, 1.17182e-01,
+          -1.20807e-02, 7.02295e-04, -2.13809e-05, 2.65177e-07)
+
+## transform bmat
+bstarmat &lt;- t(apply(bmat, 1, transform_b, tvec = tvec))
+
+## inspect transformed parameters
+signif(head(bstarmat), 2)
+
+## plot test response function
+##  should be a straight line if transformation worked
+
+curve(rowSums(irf_fmp(x, bmat = bstarmat)), xlim = c(0, 23),
+      ylim = c(0, 23), xlab = expression(paste(theta,"*")),
+      ylab = "Expected Sum Score")
+abline(0, 1, col = 2)
+
+</code></pre>
+
+
+</div>

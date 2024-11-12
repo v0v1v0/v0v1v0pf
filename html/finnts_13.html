@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>train_models</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Train Individual Models</h2>
+
+<h3>Description</h3>
+
+<p>Train Individual Models
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">train_models(
+  run_info,
+  run_global_models = FALSE,
+  run_local_models = TRUE,
+  global_model_recipes = c("R1"),
+  feature_selection = FALSE,
+  negative_forecast = FALSE,
+  parallel_processing = NULL,
+  inner_parallel = FALSE,
+  num_cores = NULL,
+  seed = 123
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>run_info</code></td>
+<td>
+<p>run info using the <code>set_run_info()</code> function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run_global_models</code></td>
+<td>
+<p>If TRUE, run multivariate models on the entire data
+set (across all time series) as a global model. Can be override by
+models_not_to_run. Default of NULL runs global models for all date types
+except week and day.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run_local_models</code></td>
+<td>
+<p>If TRUE, run models by individual time series as
+local models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>global_model_recipes</code></td>
+<td>
+<p>Recipes to use in global models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_selection</code></td>
+<td>
+<p>Implement feature selection before model training</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>negative_forecast</code></td>
+<td>
+<p>If TRUE, allow forecasts to dip below zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel_processing</code></td>
+<td>
+<p>Default of NULL runs no parallel processing and
+forecasts each individual time series one after another. 'local_machine'
+leverages all cores on current machine Finn is running on. 'spark'
+runs time series in parallel on a spark cluster in Azure Databricks or
+Azure Synapse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inner_parallel</code></td>
+<td>
+<p>Run components of forecast process inside a specific
+time series in parallel. Can only be used if parallel_processing is
+set to NULL or 'spark'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_cores</code></td>
+<td>
+<p>Number of cores to run when parallel processing is set up.
+Used when running parallel computations on local machine or within Azure.
+Default of NULL uses total amount of cores on machine minus one. Can't be
+greater than number of cores on machine minus 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Set seed for random number generator. Numeric value.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>trained model outputs are written to disk.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data_tbl &lt;- timetk::m4_monthly %&gt;%
+  dplyr::rename(Date = date) %&gt;%
+  dplyr::mutate(id = as.character(id)) %&gt;%
+  dplyr::filter(
+    Date &gt;= "2013-01-01",
+    Date &lt;= "2015-06-01"
+  )
+
+run_info &lt;- set_run_info()
+
+prep_data(run_info,
+  input_data = data_tbl,
+  combo_variables = c("id"),
+  target_variable = "value",
+  date_type = "month",
+  forecast_horizon = 3
+)
+
+prep_models(run_info,
+  models_to_run = c("arima", "glmnet"),
+  num_hyperparameters = 2,
+  back_test_scenarios = 6,
+  run_ensemble_models = FALSE
+)
+
+train_models(run_info)
+
+</code></pre>
+
+
+</div>

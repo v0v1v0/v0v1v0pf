@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimate.mocca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Model parameter estimation</h2>
+
+<h3>Description</h3>
+
+<p>Function to estimate model parameters by maximizing the observed log likelihood via an EM algorithm. 
+The estimation procedure is based on an algorithm proposed by James and Sugar (2003).
+</p>
+<p>The function is not normally called directly, but rather service routines for <code>mocca</code>. See the description of the <code>mocca</code> function for more detailed information of arguments.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimate.mocca(data,K=5,q=6,h=2,random=TRUE,B=NULL,svd=TRUE,
+       use.covariates=FALSE,stand.cov=TRUE,index.cov=NULL,
+       lambda=1.4e-4,EM.maxit=50, EMstep.tol=1e-8,Mstep.maxit=10,
+       Mstep.tol=1e-4, EMplot=TRUE,trace=TRUE,n.cores=NULL)
+
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a list containing at least five objects (vectors) named as <code>x</code>, <code>time</code>, <code>timeindex</code>, <code>curve</code>, <code>grid</code>, <code>covariates</code> (optional). See <code>mocca</code> for the detailed explanation of each object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>number of clusters (default: <code>K=3</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>number of B-splines used to describe the individual curves. Evenly spaced knots are used (default: <code>q=6</code>). (currently only B-splines are implemented, however, it is possible  to use other basis functions such as, e.g. Fourier basis functions)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>a positive integer, parameter vector dimension in low-dimensionality representation of the curves (spline coefficients).
+<code class="reqn">h</code> should be less or equal to the number of clusters <code class="reqn">K</code> (default: <code>h=2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p><code>TRUE/FALSE</code>,  if <code>TRUE</code> each subject is randomly assigned to one of the <code>K</code> clusters initially, otherwise <code>k-</code>means is used to initialize cluster belongings (default: TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p> an <code class="reqn">N x q</code> matrix of spline coefficients,  the spline approximation of the yearly curves based on <code class="reqn">p</code> number of splines. If <code>B=NULL</code> (default), the coefficients are estimated using <code>fda:: create.bspline.basis</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svd</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether SVD decomposition should be used for the matrix of spline coefficients (default: TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.covariates</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether covariates should be included when modelling (default: FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stand.cov</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether covariates should be standardized when modelling (default: <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index.cov</code></td>
+<td>
+<p>a vector of indices indicating which covariates should be used when modelling. If <code>NULL</code> (default) all present covariates are included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>a positive real number, smoothing parameter value to be used when estimating B-spline coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EM.maxit</code></td>
+<td>
+<p>a positive integer which gives the maximum number of iterations for a EM algorithm (default: EM.maxit=50).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EMstep.tol</code></td>
+<td>
+<p>the tolerance to use within iterative procedure of the EM algorithm (default: EMstep.tol=1e-8).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mstep.maxit</code></td>
+<td>
+<p>a positive scalar which gives the maximum number of iterations for an inner loop of the parameter estimation in M step (default: Mstep.maxit=20).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mstep.tol</code></td>
+<td>
+<p>the tolerance to use within iterative procedure to estimate model parameters (default: Mstep.tol=1e-4).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EMplot</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether plots of cluster means with some summary information should be produced at each iteration of the EM algorithm (default: FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p><code>TRUE/FALSE</code>, whether to print the current values of <code class="reqn">\sigma^2</code> and <code class="reqn">\sigma^2_x</code> of the covariates at each iteration of <code>M step</code>  (default: TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>number of cores to be used with parallel computing.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list is returned with the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>the maximized log likelihood value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig2</code></td>
+<td>
+<p>estimated residual variance for the spline coefficients (for the model without covariates), or a vector of the estimated residual variances for the spline coefficients and for the covariates (for the model with covariates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>indicates why the EM algorithm terminated:
+</p>
+<p>0: indicates successful completion.
+</p>
+<p>1: indicates that the iteration limit <code>EM.maxit</code> has been reached.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>number of iterations of the EM algorithm taken to get convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>score.hist</code></td>
+<td>
+<p>a matrix of the succesive values of the scores: residual variances and log likelihood, up until convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>a list containing all the estimated parameters: <code class="reqn">\bm\lambda_0</code>, <code class="reqn">\bm\Lambda</code>, <code class="reqn">\bm\alpha_k</code>, <code class="reqn">\bm\Gamma_k</code> (or <code class="reqn">\bm\Delta_k</code> in presence of covariates), <code class="reqn">\pi_k</code> (probabilities of cluster belongnings), <code class="reqn">\sigma^2_x</code> (residual variance for the covariates if present), <code class="reqn">\mathbf{v}_k</code> (mean values of the covariates for each cluster, in presence of covariates), <code class="reqn">k=1,..., K</code>, where <code class="reqn">K</code> is the number of clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>a list containing results from the E step of the algorithm: the posterior probabilities for each subject <code class="reqn">\pi_{k|i}</code>'s, the expected values of the <code class="reqn">\bm\gamma_i</code>'s, <code class="reqn">\bm\gamma_i\bm\gamma_i^T</code>, and the covariance matrix of <code class="reqn">\bm\gamma_i</code> given cluster membership and the observed values of the curve. See Arnqvist and Sjöstedt de Luna (2019) that explains these values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a list containing all the original data plus re-arranged functional data and covariates (if supplied) needed for EM-steps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>a list of spline basis matrices with and without covariates: 
+<code>FullS.bmat</code> is the spline basis matrix <code class="reqn">\mathbf{S}</code> computed on the grid of uniquily specified time points; 
+<code>FullS</code> is the spline basis matrix <code>FullS.bmat</code> or <code class="reqn">\mathbf U</code> matrix from the svd of <code>FullS</code> (if applied);
+<code class="reqn">\mathbf{S}</code> is the spline basis matrix computed on <code>timeindex</code>, a vector of time indices from <code class="reqn">T</code> possible from <code>grid</code>;
+the inverse <code class="reqn">(\mathbf{S}^T\mathbf{S})^{-1}</code>;
+<code>tag.S</code> is the matrix <code class="reqn">\mathbf{S}</code> with covariates; 
+<code>tag.FullS</code> is the matrix <code>FullS</code> with covariates. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initials</code></td>
+<td>
+<p>a list of initial settings: <code class="reqn">q</code> is the spline basis dimension, <code class="reqn">N</code> is the number of objects/curves, <code class="reqn">Q</code> is the number of basis dimension plus the number of covariates (if present), <code class="reqn">random</code> is whether k-means was used to initialize cluster belonings, <code class="reqn">h</code> is the vector dimension in low-dimensionality representation of the curves, <code class="reqn">K</code> is the number of clusters,  <code class="reqn">r</code> is the number of scalar covariates.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Per Arnqvist, Natalya Pya Arnqvist, Sara Sjöstedt de Luna
+</p>
+
+
+<h3>References</h3>
+
+<p>James, G.M., Sugar, C.A. (2003). Clustering for sparsely sampled functional data.  <em>Journal of the American Statistical Association</em>, 98.462, 397–408.
+</p>
+<p>Arnqvist, P., and Sjöstedt de Luna, S. (2019). Model based functional clustering of varved lake sediments. <em>arXiv preprint arXiv:1904.10265</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fdaMocca-package</code>, <code>mocca</code>
+</p>
+
+
+</div>

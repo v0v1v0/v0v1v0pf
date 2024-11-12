@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.femlm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary of a <code>femlm</code> object. Computes different types of standard errors.</h2>
+
+<h3>Description</h3>
+
+<p>This function is similar to <code>print.femlm</code>. It provides the table of coefficients along with other information on the fit of the estimation. It can compute different types of standard errors. The new variance covariance matrix is an object returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'femlm'
+summary(object, se = c("standard", "white", "cluster",
+  "twoway", "threeway", "fourway"), cluster, dof_correction = FALSE,
+  forceCovariance = FALSE, keepBounded = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A femlm object. Obtained using <code>femlm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Character scalar. Which kind of standard error should be computed: “standard” (default), “White”, “cluster”, “twoway”, “threeway” or “fourway”?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>A list of vectors. Used only if <code>se="cluster"</code>, “se=twoway”, “se=threeway” or “se=fourway”. The vectors should give the cluster of each observation. Note that if the estimation was run using <code>cluster</code>, the standard error is automatically clustered along the cluster given in <code>femlm</code>. For one-way clustering, this argument can directly be a vector (instead of a list). If the estimation has been done with cluster variables, you can give a character vector of the dimensions over which to cluster the SE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dof_correction</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. Should there be a degree of freedom correction to the standard errors of the coefficients?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forceCovariance</code></td>
+<td>
+<p>(Advanced users.) Logical, default is <code>FALSE</code>. In the peculiar case where the obtained Hessian is not invertible (usually because of collinearity of some variables), use this option force the covariance matrix, by using a generalized inverse of the Hessian. This can be useful to spot where possible problems come from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepBounded</code></td>
+<td>
+<p>(Advanced users.) Logical, default is <code>FALSE</code>. If <code>TRUE</code>, then the bounded coefficients (if any) are treated as unrestricted coefficients and their S.E. is computed (otherwise it is not).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not currently used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>It returns a <code>femlm</code> object with:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cov.scaled</code></td>
+<td>
+<p>The new variance-covariance matrix (computed according to the argument <code>se</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>The new standard-errors (computed according to the argument <code>se</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeftable</code></td>
+<td>
+<p>The table of coefficients with the new standard errors.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also the main estimation function <code>femlm</code>. Use <code>getFE</code> to extract the cluster coefficients, and the functions <code>res2table</code> and <code>res2tex</code> to visualize the results of multiple estimations.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load trade data
+data(trade)
+
+# We estimate the effect of distance on trade (with 3 cluster effects)
+est_pois = femlm(Euros ~ log(dist_km)|Origin+Destination+Product, trade)
+
+# Comparing different types of standard errors
+sum_white = summary(est_pois, se = "white")
+sum_oneway = summary(est_pois, se = "cluster")
+sum_twoway = summary(est_pois, se = "twoway")
+sum_threeway = summary(est_pois, se = "threeway")
+
+res2table(sum_white, sum_oneway, sum_twoway, sum_threeway)
+
+# Alternative ways to cluster the SE:
+## Not run: 
+# two-way clustering: Destination and Product
+summary(est_pois, se = "twoway", cluster = c("Destination", "Product"))
+summary(est_pois, se = "twoway", cluster = list(trade$Destination, trade$Product))
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simFunData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate univariate functional data</h2>
+
+<h3>Description</h3>
+
+<p>This functions simulates (univariate) functional data <code class="reqn">f_1,\ldots, f_N</code> based on a truncated 
+Karhunen-Loeve representation: </p>
+<p style="text-align: center;"><code class="reqn">f_i(t) = \sum_{m = 1}^M \xi_{i,m} \phi_m(t).</code>
+</p>
+<p> on one- or
+higher-dimensional domains. The eigenfunctions (basis functions) <code class="reqn">\phi_m(t)</code> are generated 
+using <code>eFun</code>, the scores <code class="reqn">\xi_{i,m}</code> are simulated independently from a normal
+distribution with zero mean and decreasing variance based on the <code>eVal</code> function. For
+higher-dimensional domains, the eigenfunctions are constructed as tensors of marginal orthonormal
+function systems.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simFunData(argvals, M, eFunType, ignoreDeg = NULL, eValType, N)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+<p>A numeric vector, containing the observation points (a fine grid on a real
+interval) of the functional data that is to be simulated or a list of the marginal observation points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>An integer, giving the number of univariate basis functions to use. For higher-dimensional data, <code>M</code> is a vector with the marginal number of eigenfunctions. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eFunType</code></td>
+<td>
+<p>A character string specifying the type of univariate orthonormal basis functions
+to use. For data on higher-dimensional domains, <code>eFunType</code> can be a vector, specifying the marginal type of eigenfunctions to use in the tensor product. See <code>eFun</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignoreDeg</code></td>
+<td>
+<p>A vector of integers, specifying the degrees to ignore when generating the
+univariate orthonormal bases. Defaults to <code>NULL</code>. For higher-dimensional data, <code>ignoreDeg</code> can be supplied as list with vectors for each marginal. See <code>eFun</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eValType</code></td>
+<td>
+<p>A character string, specifying the type of eigenvalues/variances used for the
+generation of the simulated functions based on the truncated Karhunen-Loeve representation. See
+<code>eVal</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>An integer, specifying the number of multivariate functions to be generated.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>simData</code></td>
+<td>
+<p>A <code>funData</code> object with <code>N</code> observations,
+representing the simulated functional data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trueFuns</code></td>
+<td>
+<p>A <code>funData</code>
+object with <code>M</code> observations, representing the true eigenfunction basis used for
+simulating the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trueVals</code></td>
+<td>
+<p>A vector of numerics, representing the true eigenvalues
+used for simulating the data.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>funData</code>, <code>eFun</code>, <code>eVal</code>, 
+<code>addError</code>, <code>sparsify</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldPar &lt;- par(no.readonly = TRUE)
+
+# Use Legendre polynomials as eigenfunctions and a linear eigenvalue decrease
+test &lt;- simFunData(seq(0,1,0.01), M = 10, eFunType = "Poly", eValType = "linear", N = 10)
+
+plot(test$trueFuns, main = "True Eigenfunctions")
+plot(test$simData, main = "Simulated Data")
+
+# The use of ignoreDeg for eFunType = "PolyHigh"
+test &lt;- simFunData(seq(0,1,0.01), M = 4, eFunType = "Poly", eValType = "linear", N = 10)
+test_noConst &lt;-  simFunData(seq(0,1,0.01), M = 4, eFunType = "PolyHigh",
+                            ignoreDeg = 1, eValType = "linear", N = 10)
+test_noLinear &lt;-  simFunData(seq(0,1,0.01), M = 4, eFunType = "PolyHigh",
+                             ignoreDeg = 2, eValType = "linear", N = 10)
+test_noBoth &lt;-  simFunData(seq(0,1,0.01), M = 4, eFunType = "PolyHigh",
+                           ignoreDeg = 1:2, eValType = "linear", N = 10)
+
+par(mfrow = c(2,2))
+plot(test$trueFuns, main = "Standard polynomial basis (M = 4)")
+plot(test_noConst$trueFuns, main = "No constant basis function")
+plot(test_noLinear$trueFuns, main = "No linear basis function")
+plot(test_noBoth$trueFuns, main = "Neither linear nor constant basis function")
+
+# Higher-dimensional domains
+simImages &lt;- simFunData(argvals = list(seq(0,1,0.01), seq(-pi/2, pi/2, 0.02)), 
+             M = c(5,4), eFunType = c("Wiener","Fourier"), eValType = "linear", N = 4)
+for(i in 1:4) 
+   plot(simImages$simData, obs = i, main = paste("Observation", i))
+               
+par(oldPar)
+</code></pre>
+
+
+</div>

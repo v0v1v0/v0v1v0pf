@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_pgeometry</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a <code>pgeometry</code> object with components</h2>
+
+<h3>Description</h3>
+
+<p><code>create_pgeometry()</code> creates a <code>pgeometry</code> object from a <code>data.frame</code> or <code>tibble</code> object, a list of components, or a list of spatial plateau objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_pgeometry(x, type, is_valid = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A list of <code>component</code> objects, a list of <code>pgeometry</code> objects or a <code>data.frame</code>/<code>tibble</code> object. For <code>PLATEAUPOINT</code>, <code>PLATEAULINE</code> and <code>PLATEAUREGION</code>, the type of each component must be the same for all components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A character value that indicates the type of the desired <code>pgeometry</code> object.
+It should be either <code>"PLATEAUPOINT"</code>, <code>"PLATEAULINE"</code>, <code>"PLATEAUREGION"</code>, <code>"PLATEAUCOMPOSITION"</code>, or <code>"PLATEAUCOLLECTION"</code>.
+It must be compatible with the components given in <code>x</code> parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is_valid</code></td>
+<td>
+<p>A Boolean value to check whether the user wants to validate the created spatial plateau object at the end. If <code>is_valid = TRUE</code>, it calls <code>validObject()</code> method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>create_pgeometry()</code> is a flexible function that creates a <code>pgeometry</code> object by using the values given in <code>x</code>.
+This object is built by using either a list of <code>component</code> objects, a list of <code>pgeometry</code> objects or a <code>data.frame</code> (or <code>tibble</code>) object.
+If a <code>data.frame</code> or <code>tibble</code> object is given as input, its columns must have the following format: (i) first column is an <code>sfc</code> object, and
+(ii) the second columns consists of the membership degree of each respective object of the <code>sfc</code> column.
+</p>
+<p>By default, this function checks if the resulting spatial plateau object is valid.
+That is, it checks whether all constraints defined by the Spatial Plateau Algebra are satisfied.
+For instance, the components of a plateau point, plateau line, or plateau region must be adjacent or disjoint from each other and have to be unique membership degrees.
+</p>
+<p>If you are sure that the component objects provided to this function satisfy all the constraints, then you can use <code>is_valid = FALSE</code> to improve the performance of this function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>pgeometry</code> object.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://onlinelibrary.wiley.com/doi/10.1111/tgis.13044">Carniel, A. C.; Venâncio, P. V. A. B; Schneider, M. fsr: An R package for fuzzy spatial data handling. Transactions in GIS, vol. 27, no. 3, pp. 900-927, 2023.</a>
+</p>
+<p>Underlying concepts and formal definitions of spatial plateau data types are explained in detail in:
+</p>
+
+<ul>
+<li> <p><a href="https://ieeexplore.ieee.org/document/8491565">Carniel, A. C.; Schneider, M. Spatial Plateau Algebra: An Executable Type System for Fuzzy Spatial Data Types. In Proceedings of the 2018 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2018), pp. 1-8, 2018.</a>
+</p>
+</li>
+<li> <p><a href="https://ieeexplore.ieee.org/document/9177620">Carniel, A. C.; Schneider, M. Spatial Data Types for Heterogeneously Structured Fuzzy Spatial Collections and Compositions. In Proceedings of the 2020 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2020), pp. 1-8, 2020.</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(sf)
+
+# Creating some components
+pts &lt;- rbind(c(0, 2), c(4, 2))
+# Point components
+pcp1 &lt;- create_component(st_multipoint(pts), 0.3)
+pcp2 &lt;- create_component("MULTIPOINT((2 2), (2 4), (2 0))", 0.5)
+pcp3 &lt;- create_component("MULTIPOINT((1 1), (3 1), (1 3), (3 3))", 0.9)
+# Line components
+lcp1 &lt;- create_component("LINESTRING(0 0, 1 1.5)", 0.2)
+lcp2 &lt;- create_component("LINESTRING(1 3, 1 2, 2 0.5)", 0.5)
+lcp3 &lt;- create_component("LINESTRING(2 1.2, 3 1.6, 4 4)", 0.7)
+lcp4 &lt;- create_component("LINESTRING(1 1.5, 2 1.2)", 1.0)
+# Polygon components
+rcp1 &lt;- create_component("POLYGON((0 0, 1 4, 2 2, 0 0))", 0.4)
+rcp2 &lt;- create_component("POLYGON((2 0.5, 4 1, 4 0, 2 0.5))", 0.8)
+
+# Creating spatial plateau objects from lists of components
+pp &lt;- create_pgeometry(list(pcp1, pcp2, pcp3), "PLATEAUPOINT")
+pl &lt;- create_pgeometry(list(lcp1, lcp3, lcp4), "PLATEAULINE")
+pr &lt;- create_pgeometry(list(rcp1, rcp2), "PLATEAUREGION")
+pcm &lt;- create_pgeometry(list(pcp1, pcp2, lcp1, lcp2, lcp3, rcp2), "PLATEAUCOMPOSITION")
+
+# Creating a spatial plateau objects from a list of spatial plateau objects
+pcl &lt;- create_pgeometry(list(pp, pr, pcm), "PLATEAUCOLLECTION")
+
+# Converting pp into a tibble
+pp
+tibble_pp &lt;- as_tibble(pp)
+tibble_pp
+
+# Creating a spatial plateau point from the previous tibble
+equivalent_pp &lt;- create_pgeometry(tibble_pp, "PLATEAUPOINT")
+equivalent_pp
+</code></pre>
+
+
+</div>

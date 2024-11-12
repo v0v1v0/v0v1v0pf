@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>value</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a user-defined format</h2>
+
+<h3>Description</h3>
+
+<p>The <code>value</code> function creates a user-defined format.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">value(..., log = TRUE, as.factor = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>One or more <code>condition</code> functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>Whether to log the creation of the format.  Default is
+TRUE. This parameter is used internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.factor</code></td>
+<td>
+<p>If TRUE, the <code>fapply</code> function will return
+the result as an ordered factor.  Otherwise, the result will be returned
+as a vector.  Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>value</code> function creates a user defined format object, in a manner
+similar to a SAS® format.  The <code>value</code> function accepts 
+one or more <code>condition</code> arguments that define the format.  The 
+conditions map an R expression to a label.  When applied, the format 
+will return the label corresponding to the first true expression.
+</p>
+<p>The format object is an S3 class of type "fmt". When the object is created,
+the <strong>levels</strong> attribute of the object will be set with a vector 
+of values
+assigned to the <strong>labels</strong> property of the <code>condition</code> arguments.  
+These labels may be accessed either from the <code>levels</code> function or the 
+<code>labels</code> function.  If no order has been assigned to the conditions,
+the labels will be returned in the order the conditions were passed to the
+<code>value</code> function.  If an order has been assigned to the conditions,
+the labels will be returned in the order specified.
+</p>
+<p>The format object may be applied to a vector using the <code>fapply</code>
+function.  See <code>fapply</code> for further details.
+</p>
+<p>Note that the label may also be a string format.  That means a 
+user-defined format can be used to apply string formats conditionally.
+This capability is useful when you want to conditionally format 
+data values.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The new format object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>condition</code> to define a condition,
+<code>levels</code> or <code>labels.fmt</code> to access the labels, and 
+<code>fapply</code> to apply the format to a vector.
+</p>
+<p>Other fmt: 
+<code>as.data.frame.fmt()</code>,
+<code>as.fmt()</code>,
+<code>as.fmt.data.frame()</code>,
+<code>condition()</code>,
+<code>is.format()</code>,
+<code>labels.fmt()</code>,
+<code>print.fmt()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: Character to Character Mapping ##
+# Set up vector
+v1 &lt;- c("A", "B", "C", "B")
+
+# Define format
+fmt1 &lt;- value(condition(x == "A", "Label A"),
+              condition(x == "B", "Label B"), 
+              condition(TRUE, "Other"))
+              
+# Apply format to vector
+fapply(v1, fmt1)
+# [1] "Label A" "Label B" "Other"   "Label B"
+
+## Example 2: Character to Integer Mapping ##
+fmt2 &lt;- value(condition(x == "A", 1),
+              condition(x == "B", 2),
+              condition(TRUE, 3))
+
+# Apply format to vector
+fapply(v1, fmt2)
+# [1] 1 2 3 2
+
+## Example 3: Categorization of Continuous Variable ##
+# Set up vector
+v2 &lt;- c(1, 6, 11, 7)
+
+# Define format
+fmt3 &lt;- value(condition(x &lt; 5, "Low"),
+              condition(x &gt;= 5 &amp; x &lt; 10, "High"), 
+              condition(TRUE, "Out of range"))
+              
+# Apply format to vector
+fapply(v2, fmt3)
+# [1] "Low"          "High"         "Out of range" "High" 
+
+### Example 4: Conditional formatting
+v3 &lt;- c(10.398873, 12.98762, 0.5654, 11.588372)
+
+fmt4 &lt;- value(condition(x &lt; 1, "&lt; 1.0"),
+              condition(TRUE, "%.2f"))
+              
+fapply(v3, fmt4)
+# [1] "10.40" "12.99" "&lt; 1.0" "11.59"
+
+</code></pre>
+
+
+</div>

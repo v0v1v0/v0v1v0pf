@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>measure-of-accuracy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mean squared or absolute <code class="reqn">h</code>-step ahead prediction errors</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>MSPE</code> computes the empirical mean squared prediction
+errors for a collection of <code class="reqn">h</code>-step ahead, linear predictors
+(<code class="reqn">h=1,\ldots,H</code>) of observations <code class="reqn">X_{t+h}</code>, where
+<code class="reqn">m_1 \leq t+h \leq m_2</code>, for two indices <code class="reqn">m_1</code> and <code class="reqn">m_2</code>.
+The resulting array provides
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{1}{m_{\rm lo} - m_{\rm up} + 1} \sum_{t=m_{\rm lo}}^{m_{\rm up}} R_{(t)}^2,</code>
+</p>
+
+<p>with <code class="reqn">R_{(t)}</code> being the prediction errors
+</p>
+<p style="text-align: center;"><code class="reqn">R_t := | X_{t+h} - (X_t, \ldots, X_{t-p+1}) \hat v_{N,T}^{(p,h)}(t) |,</code>
+</p>
+
+<p>ordered by magnitude; i.e., they are such that <code class="reqn">R_{(t)} \leq R_{(t+1)}</code>.
+The lower and upper limits of the indices are
+<code class="reqn">m_{\rm lo} := m_1-h + \lfloor (m_2-m_1+1) \alpha_1 \rfloor</code> and
+<code class="reqn">m_{\rm up} := m_2-h - \lfloor (m_2-m_1+1) \alpha_2 \rfloor</code>.
+The function <code>MAPE</code> computes the empirical mean absolute prediction
+errors
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{1}{m_{\rm lo} - m_{\rm up} + 1} \sum_{t=m_{\rm lo}}^{m_{\rm up}} R_{(t)},</code>
+</p>
+
+<p>with <code class="reqn">m_{\rm lo}</code>, <code class="reqn">m_{\rm up}</code> and <code class="reqn">R_{(t)}</code> defined as before.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MSPE(X, predcoef, m1 = length(X)/10, m2 = length(X), P = 1, H = 1,
+  N = c(0, seq(P + 1, m1 - H + 1)), trimLo = 0, trimUp = 0)
+
+MAPE(X, predcoef, m1 = length(X)/10, m2 = length(X), P = 1, H = 1,
+  N = c(0, seq(P + 1, m1 - H + 1)), trimLo = 0, trimUp = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the data <code class="reqn">X_1, \ldots, X_T</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predcoef</code></td>
+<td>
+<p>the prediction coefficients in form of a list of an array
+<code>coef</code>, and two integer vectors <code>t</code>    and <code>N</code>. The two
+integer vectors provide the information for which indices <code class="reqn">t</code> and
+segment lengths <code class="reqn">N</code> the coefficients are to be interpreted;
+<code>(m1-H):(m2-1)</code> has to be a subset of <code>predcoef$t</code>.
+if not provided the necessary coefficients will be computed using
+<code>predCoef</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m1</code></td>
+<td>
+<p>first index from the set in which the indices <code class="reqn">t+h</code> shall lie</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m2</code></td>
+<td>
+<p>last index from the set in which the indices <code class="reqn">t+h</code> shall lie</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>maximum order of prediction coefficients to be used;
+must not be larger than <code>dim(predcoef$coef)[1]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>maximum lead time to be used;
+must not be larger than <code>dim(predcoef$coef)[3]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>vector with the segment sizes to be used, 0 corresponds to
+using 1, ..., t;
+has to be a subset of predcoef$N.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trimLo</code></td>
+<td>
+<p>percentage <code class="reqn">\alpha_1</code> of lower observations to be trimmed away</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trimUp</code></td>
+<td>
+<p>percentage <code class="reqn">\alpha_2</code> of upper observations to be trimmed away</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>MSPE</code> returns an object of type <code>MSPE</code> that has <code>mspe</code>,
+an array of size <code>H</code><code class="reqn">\times</code><code>P</code><code class="reqn">\times</code><code>length(N)</code>,
+as an attribute, as well as the parameters <code>N</code>, <code>m1</code>,
+<code>m2</code>, <code>P</code>, and <code>H</code>.
+<code>MAPE</code> analogously returns an object of type <code>MAPE</code> that
+has <code>mape</code> and the same parameters as attributes.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">T &lt;- 1000
+X &lt;- rnorm(T)
+P &lt;- 5
+H &lt;- 1
+m &lt;- 20
+Nmin &lt;- 20
+pcoef &lt;- predCoef(X, P, H, (T - m - H + 1):T, c(0, seq(Nmin, T - m - H, 1)))
+
+mspe &lt;- MSPE(X, pcoef, 991, 1000, 3, 1, c(0, Nmin:(T-m-H)))
+
+plot(mspe, vr = 1, Nmin = Nmin)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cross_levels</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates panel or cross-classified data</h2>
+
+<h3>Description</h3>
+
+<p>This function allows the user to create data structures that are paneled or
+cross-classified: where one level of observation draws simultaneously from
+two or many source levels. Common examples of panels include country-year
+data which have country-level and year-level characteristics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cross_levels(by = NULL, ...)
+
+link_levels(N = NULL, by = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>The result of a call to <code>join_using()</code> which specifies how
+the cross-classified data will be created</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>A variable or series of variables to add to the resulting data
+frame after the cross-classified data is created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>The number of observations in the resulting data frame.
+If <code>N</code> is NULL or not provided, the join_using will be an "outer product" –
+merging each row of each provided data frame with each other data frame to
+make a full panel.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>By specifying the appropriate arguments in <code>join_using()</code> within the
+function call, it is possible to induce correlation in cross-classified data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>data.frame
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Generate full panel data
+panel &lt;- fabricate(
+ countries = add_level(N = 20, country_shock = runif(N, 1, 10)),
+ years = add_level(N = 20, year_shock = runif(N, 1, 10), nest=FALSE),
+ obs = cross_levels(by = join_using(countries, years), GDP_it = country_shock + year_shock)
+)
+
+# Include an "N" argument to allow for cross-classified
+# data.
+students &lt;- fabricate(
+ primary_school = add_level(N = 20, ps_quality = runif(N, 1, 10)),
+ secondary_school = add_level(N = 15, ss_quality = runif(N, 1, 10), nest=FALSE),
+ students = link_levels(N = 500, by = join_using(primary_school, secondary_school))
+)
+head(students)
+
+# Induce a correlation structure in cross-classified data by providing
+# rho.
+students &lt;- fabricate(
+ primary_school = add_level(N = 20, ps_quality = runif(N, 1, 10)),
+ secondary_school = add_level(N = 15, ss_quality = runif(N, 1, 10), nest=FALSE),
+ students = link_levels(N = 500, by = join_using(ps_quality, ss_quality, rho = 0.5))
+)
+cor(students$ps_quality, students$ss_quality)
+
+</code></pre>
+
+
+</div>

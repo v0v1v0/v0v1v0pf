@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mvspectrum2wcov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute (weighted) covariance matrix from frequency spectrum</h2>
+
+<h3>Description</h3>
+
+<p><code>mvspectrum2wcov</code> computes a (weighted) covariance matrix estimate 
+from the frequency spectrum (see Details).
+</p>
+<p><code>weightvector2entropy_wcov</code> computes the weighted covariance
+matrix using the negative entropy of the univariate spectrum (given the
+weightvector) as kernel weights.  This matrix is the objective matrix
+for many <code>foreca.*</code> algorithms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mvspectrum2wcov(mvspectrum.output, kernel.weights = 1)
+
+weightvector2entropy_wcov(
+  weightvector = NULL,
+  f.U,
+  f.current = NULL,
+  entropy.control = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mvspectrum.output</code></td>
+<td>
+<p>an object of class <code>"mvspectrum"</code> representing
+the multivariate spectrum of <code class="reqn">\mathbf{X}_t</code> (not necessarily <code>normalize</code>d).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel.weights</code></td>
+<td>
+<p>numeric; weights for each frequency. By default uses 
+weights that average out to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightvector</code></td>
+<td>
+<p>numeric; weights <code class="reqn">\mathbf{w}</code> for 
+<code class="reqn">y_t = \mathbf{U}_t \mathbf{w}</code>. Must have unit norm in <code class="reqn">\ell^2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.U</code></td>
+<td>
+<p>multivariate spectrum of class <code>'mvspectrum'</code> with 
+<code>normalize = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.current</code></td>
+<td>
+<p>numeric; spectral density estimate of 
+<code class="reqn">y_t=\mathbf{U}_t \mathbf{w}</code> for the current estimate 
+<code class="reqn">\widehat{\mathbf{w}}_i</code> (required for 
+<code>foreca.EM.M_step</code>; optional for <code>foreca.EM.h</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy.control</code></td>
+<td>
+<p>list; control settings for entropy estimation.
+See <code>complete_entropy_control</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The covariance matrix of a multivariate time series satisfies the identity
+</p>
+<p style="text-align: center;"><code class="reqn">
+\Sigma_{X} \equiv \int_{-\pi}^{\pi} S_{X}(\lambda) d \lambda.
+</code>
+</p>
+
+<p>A generalized covariance matrix estimate can thus be obtained using a weighted average
+</p>
+<p style="text-align: center;"><code class="reqn">
+\tilde{\Sigma}_X = \int_{-\pi}^{\pi} K(\lambda) S_{X}(\lambda) d \lambda,
+</code>
+</p>
+
+<p>where <code class="reqn">K(\lambda)</code> is a kernel symmetric around <code class="reqn">0</code> which averages out to
+<code class="reqn">1</code> over the interval <code class="reqn">[-\pi, \pi]</code>, i.e.,
+<code class="reqn">\frac{1}{2 \pi} \int_{-\pi}^{\pi} K(\lambda) d \lambda = 1</code>. 
+This allows one to remove or amplify specific frequencies in the covariance matrix 
+estimation.
+</p>
+<p>For ForeCA <code>mvspectrum2wcov</code> is especially important as we use
+</p>
+<p style="text-align: center;"><code class="reqn">
+K(\lambda) = -\log f_y(\lambda),
+</code>
+</p>
+
+<p>as the <em>weights</em> (their average is not <code class="reqn">1</code>!).  This particular kernel
+weight is implemented as a wrapper in <code>weightvector2entropy_wcov</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A symmetric <code class="reqn">n \times n</code> matrix.
+</p>
+<p>If <code>kernel.weights</code> <code class="reqn">\geq 0</code>, then it is positive semi-definite;
+otherwise, it is symmetric but not necessarily positive semi-definite.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mvspectrum</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+nn &lt;- 50
+YY &lt;- cbind(rnorm(nn), arima.sim(n = nn, list(ar = 0.9)), rnorm(nn))
+XX &lt;- YY %*% matrix(rnorm(9), ncol = 3)  # random mix
+XX &lt;- scale(XX, scale = FALSE, center = TRUE)
+
+# sample estimate of covariance matrix
+Sigma.hat &lt;- cov(XX)
+dimnames(Sigma.hat) &lt;- NULL
+
+# using the frequency spectrum
+SS &lt;- mvspectrum(XX, "mvspec")
+Sigma.hat.freq &lt;- mvspectrum2wcov(SS)
+
+layout(matrix(1:4, ncol = 2))
+par(mar = c(2, 2, 1, 1))
+plot(c(Sigma.hat/Sigma.hat.freq))
+abline(h = 1)
+
+image(Sigma.hat)
+image(Sigma.hat.freq)
+image(Sigma.hat / Sigma.hat.freq)
+
+# examples for entropy wcov
+XX &lt;- diff(log(EuStockMarkets)) * 100
+UU &lt;- whiten(XX)$U
+ff &lt;- mvspectrum(UU, "mvspec", normalize = TRUE)
+
+ww0 &lt;- initialize_weightvector(num.series = ncol(XX), method = 'rnorm')
+
+weightvector2entropy_wcov(ww0, ff,
+                          entropy.control = 
+                            list(prior.weight = 0.1))
+</code></pre>
+
+
+</div>

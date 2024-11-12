@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modelDef</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retrieve a <code>fgpm</code> from within a <code>Xfgpm</code> object</h2>
+
+<h3>Description</h3>
+
+<p>Retrieve the <code>fgpm</code> model with index (or rank) <code>i</code> from
+within a <code>Xfgpm</code> object. By evaluating this code in an
+environment containing suitable objects <code>sIn</code>, <code>fIn</code> and
+<code>sOut</code> we can re-create a <code>fgpm</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modelDef(
+  object,
+  ind,
+  trace = TRUE,
+  pbars = TRUE,
+  control.optim = list(trace = TRUE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>Xfgpm</code> object as created by
+<code>fgpm_factory</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ind</code></td>
+<td>
+<p>The index (or rank) of the model in <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>An optional boolean indicating whether funGp-native progress
+messages should be displayed. Default is TRUE. See the <code>fgpm()</code>
+documentation for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pbars</code></td>
+<td>
+<p>An optional boolean indicating whether progress bars managed by
+<code>fgpm()</code> should be displayed. Default is TRUE. See the
+<code>fgpm()</code> documentation for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.optim</code></td>
+<td>
+<p>An optional list to be passed as the control argument to
+<code>optim</code>(), the function in charge of the non-linear
+optimization of the hyperparameters. Default is list(trace = TRUE). See the
+<code>fgpm()</code> documentation for more details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The models are sorted by decreasing quality so <code>i = 1</code> extracts
+the definition of the best model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A parsed R code defining the <code>fgpm</code> model.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Remind that the models are sorted by decreasing quality so
+<code>i = 1</code> extracts the definition of the best model.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The <code>[[,Xfgpm-method</code> that can also be used
+to re-create a <code>fgpm</code> object using <em>the same data</em>
+as that used to create the <code>Xfgpm</code> object in
+<code>object</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## =========================================================================
+## Using the pre-calculated object `xm` to save time. See `?xm` to re-create
+## this object.
+## =========================================================================
+
+## 'xm@model' is the best 'fgpm' model in 'xm'
+plot(xm@model)
+
+## see the R code to use to recreate the model
+modelDef(xm, i = 1)
+
+## Not run: 
+    ## Define new data in a list. Using an environment would also work,
+    ## including the global environment, which is the default in  `eval`.
+    L &lt;- list()
+    set.seed(341)
+    n.new &lt;- 3^5
+    x1 &lt;- x2 &lt;- x3 &lt;- x4 &lt;- x5 &lt;- seq(0, 1, length = n.new^(1/5))
+
+    ## create the data objects required to fit the model
+    L$sIn &lt;- as.matrix(expand.grid(x1 = x1, x2 = x2, x3 = x3, x4 = x4, x5 = x5))
+    L$fIn &lt;- list(f1 = matrix(runif(n.new * 10), ncol = 10),
+                   f2 = matrix(runif(n.new * 22), ncol = 22))
+    L$sOut &lt;- fgp_BB7(L$sIn, L$fIn, n.new)
+
+    ## Now evaluate
+    fgpm.new &lt;- eval(modelDef(xm, i = 1), envir = L)
+    plot(fgpm.new, main = "Re-created 'fgpm' model with different data")
+    plot(xm[[1]], main = "Re-created 'fgpm' model with the same data")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

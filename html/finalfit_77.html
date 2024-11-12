@@ -1,0 +1,75 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ff_remove_ref</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Remove regression reference level row from table</h2>
+
+<h3>Description</h3>
+
+<p>This looks for a column with a name including "Coefficient", "OR", or "HR"
+(<code>finalfit</code> defaults) and removes any rows with "-" (the default
+for the reference level). Can also be combined to produce an
+<code>or_plot</code>, see below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ff_remove_ref(.data, only_binary = TRUE)
+
+finalfit_remove_ref(.data, only_binary = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>Output from <code>finalfit</code> or similar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>only_binary</code></td>
+<td>
+<p>Logical. Remove reference level only for two-level
+factors. When set to false, reference level for all factors removed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Data frame.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Table example
+explanatory = c("age.factor", "age", "sex.factor", "nodes", "obstruct.factor", "perfor.factor")
+dependent = 'mort_5yr'
+colon_s %&gt;%
+	 finalfit(dependent, explanatory, add_dependent_label = FALSE) %&gt;%
+	 ff_remove_ref() %&gt;%
+	 dependent_label(colon_s, dependent)
+
+# Plot example
+explanatory = c("age.factor", "age", "sex.factor", "nodes", "obstruct.factor", "perfor.factor")
+dependent = 'mort_5yr'
+colon_s %&gt;%
+  summary_factorlist(dependent, explanatory, total_col = TRUE, fit_id=TRUE) %&gt;%
+  ff_merge(
+    glmuni(colon_s, dependent, explanatory) %&gt;%
+    fit2df()) %&gt;%
+  ff_remove_ref() %&gt;%
+  dplyr::select(-`OR`) -&gt; factorlist_plot
+
+colon_s %&gt;%
+   or_plot(dependent, explanatory, factorlist = factorlist_plot)
+</code></pre>
+
+
+</div>

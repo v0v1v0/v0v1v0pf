@@ -1,0 +1,264 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotPerformanceSpace</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plots a performance space using the system performance and scenarios as input</h2>
+
+<h3>Description</h3>
+
+<p><code>plotPerformanceSpace</code> uses the system model performance calculated using the function <code>runSystemModel</code> and
+the summary of the simulation generated using the functions <code>generateScenarios</code> &amp; <code>getSimSummary</code> as input to plot the performance space of the system.
+The user may specify the attributes to be used as the axes of the performance space.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotPerformanceSpace(
+  performance,
+  sim,
+  metric = NULL,
+  attX = NULL,
+  attY = NULL,
+  topReps = NULL,
+  perfThresh = NULL,
+  perfThreshLabel = "Threshold",
+  attSlices = NULL,
+  climData = NULL,
+  colMap = NULL,
+  colLim = NULL,
+  contourBreaks = NULL,
+  axesPercentLabel = FALSE,
+  type = "heat.plot",
+  noPlot = F
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>performance</code></td>
+<td>
+<p>a named list; contains the system model performance calculated using <code>runSystemModel</code>.
+If the list contains more than one performance metric, the argument <code>metric</code> can be used to specify the metric to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim</code></td>
+<td>
+<p>a list; summary of the simulation containing the scenarios generated using the function <code>generateScenarios</code> that is used to run the system model using <code>runSystemModel</code>.
+The summary of the simulation may be obtained by using the function <code>getSimSummary</code> on the full simulation. The summary object is much smaller in size for ease of storage and use with the performance
+plotting functions like <code>plotPerformanceSpace</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>a string; the name of the performance metric to be plotted. The argument can be used to select a metric from <code>performance</code> for plotting.
+If <code>NULL</code> (the default), the first metric in the list will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attX</code></td>
+<td>
+<p>a string; the tag of the perturbed attribute to plot on the xaxis. The attribute must be one of the perturbed attributes of <code>sim</code>.
+Type <code>sim$expSpace$attPerturb</code> to view all perturbed attributes of <code>sim</code>. If <code>NULL</code> (default), the first perturbed attribute of <code>sim</code> will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attY</code></td>
+<td>
+<p>a string; the tag of the perturbed attribute to plot on the yaxis. The attribute must be another perturbed attribute of <code>sim</code>.
+If <code>NULL</code>, the second perturbed attribute of <code>sim</code> will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>topReps</code></td>
+<td>
+<p>an integer (default is <code>NULL</code>); the number of "top" replicates in terms of simulation fitness to be used. If <code>topReps</code> is specified, <code>topReps</code>
+number of replicates will be identified for each target and the average performance across these replicates will be plotted. If <code>NULL</code>, the average performance across all the replicates will be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perfThresh</code></td>
+<td>
+<p>a number; the minimum or maximum threshold value of the performance metric. A line will be drawn to mark this threshold value in the performance space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perfThreshLabel</code></td>
+<td>
+<p>a string; the text to label <code>perfThresh</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attSlices</code></td>
+<td>
+<p>a list; used to subset perturbed attributes in <code>sim</code> for the plot. This argument would typically be used in cases where there are more than two perturbed attributes.
+The elements of the list correspond to the perturbed attributes to be subsetted and must be named using the attribute tag. Each element may contain a single value or a two-element vector specifying the minimum-maximum values.
+If the element is a single value, the exposure space is sliced on this single value of the attribute. If minimum-maximum values are specified, the exposure space will be sliced to subset this range.
+If <code>attSlices</code> includes <code>attX</code> or <code>attY</code>, these attributes will be sliced and the resulting plot will be a "zoomed-in" space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>climData</code></td>
+<td>
+<p>data.frame; the values of attX and attY from other sources like climate models. This data will be plotted as points in the performance space.
+The data frame may contain columns with values of the performance metric to be plotted and the "Name" of the dataset.
+If the performance metric is available in the data.frame, the points will be coloured based on the performance <code>colMap</code> scale.
+If the <code>Name</code> of the data is available in the data.frame, the points will be identified using the <code>Name</code>.
+Please refer data provided with the package that may be loaded using <code>data("egClimData")</code> for an example of the expected format of <code>climData</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colMap</code></td>
+<td>
+<p>a vector of colours; to specify the colourmap to be used. If <code>NULL</code>, the default foreSIGHT colourmap is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colLim</code></td>
+<td>
+<p>a vector of 2 values; the minimum and maximum limits of the colour scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contourBreaks</code></td>
+<td>
+<p>a vector; specifies breaks in the performance metric</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axesPercentLabel</code></td>
+<td>
+<p>a logical flag; if TRUE x and y axes to be displayed in terms of percentage change instead of fraction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>a string; indicates type of plot as "heat.plot" (default) or "filled.contour"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noPlot</code></td>
+<td>
+<p>logical; indicates whether plots will be printed (<code>TRUE</code>) or not printed (<code>FALSE</code>) and only saved as an object.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the space contains more than two perturbed attributes, the performance values are averaged across the perturbations in the attributes other than <code>attX</code> and <code>attY</code>.
+The user may specify argument <code>attSlices</code> to slice the performance space at specific values of the other perturbed attributes. If <code>attSlices</code> are used to
+specify minimum-maximum values to subset other perturbed attributes, the performance values are averaged across the subsetted perturbations in these attributes.
+If the input performance list contains multiple performance metrics, the function plots the first metric.
+The function may be called with <code>performance</code> argument specifying the metric to be plotted <code>plotPerformanceSpace(performance[2], sim)</code> to plot other metrics.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The plot of the performance space and the ggplot object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>runSystemModel</code>, <code>generateScenarios</code>, <code>getSimSummary</code>, <code>plotPerformanceOAT</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load example datasets
+data("egSimSummary")       # summary of stochastic simulation
+data("egSimPerformance")   # system performance calculated using the stochastic simulation
+data("egClimData")         # alternate climate data and system performance
+
+plotPerformanceSpace(performance=egSimPerformance[2], sim=egSimSummary)
+
+## Not run: 
+# change plot style to "filled.contour" and specify contours - show contours from
+# 0.76 to 0.9 in increments of 0.02
+plotPerformanceSpace(type="filled.contour",performance=egSimPerformance[2],
+                     sim=egSimSummary,contourBreaks=seq(0.76,0.9,0.02))
+
+
+# adding climate data, using top 10 replicates
+plotPerformanceSpace(performance=egSimPerformance[1], sim=egSimSummary,
+                     topReps = 10, climData = egClimData)
+
+# adding a threshold
+plotPerformanceSpace(performance=egSimPerformance, sim=egSimSummary, metric = "Avg. Deficit (L)",
+                     climData = egClimData, perfThresh = 27.5, perfThreshLabel = "Max Avg. Deficit")
+
+# user specified colMap
+plotPerformanceSpace(performance=egSimPerformance[1], sim=egSimSummary,
+                     climData = egClimData, perfThresh = 27.5,
+                     perfThreshLabel = "Max Avg. Deficit",
+                     colMap = viridisLite::inferno(100))
+
+#modify theme to change axes positioning to stacked vertically and left aligned
+plotPerformanceSpace(performance=egSimPerformance[1], sim=egSimSummary,
+                     climData = egClimData, perfThresh = 27.5,
+                     perfThreshLabel = "Max Avg. Deficit",
+                     colMap = viridisLite::inferno(100))+
+ggplot2::theme(legend.box="vertical",
+               legend.position="bottom",
+               legend.box.just = "left",
+               legend.margin = ggplot2::margin(t=0.01, r=0.1, b=0.01, l=0.1, "cm"),
+               legend.justification=c(0.01,0.01))
+
+# display fractional changes axes as percentage change
+plotPerformanceSpace(performance=egSimPerformance, sim=egSimSummary,
+                     metric = "Avg. Deficit (L)",
+                     climData = egClimData, perfThresh = 27.5,
+                     perfThreshLabel = "Max Avg. Deficit",
+                     axesPercentLabel=TRUE)
+
+# change displayed contours on performance space - show contours from 18 to 34 in increments of 2 L
+plotPerformanceSpace(performance=egSimPerformance, sim=egSimSummary,
+                     metric = "Avg. Deficit (L)",
+                     climData = egClimData, perfThresh = 27.5,
+                     perfThreshLabel = "Max Avg. Deficit",axesPercentLabel=TRUE,
+                     contourBreaks=seq(18,34,2))
+
+# change plot type to filled.contour style
+plotPerformanceSpace(type="filled.contour",performance=egSimPerformance,
+                     sim=egSimSummary, metric = "Avg. Deficit (L)",
+                     climData = egClimData, perfThresh = 27.5,
+                     perfThreshLabel = "Max Avg. Deficit",axesPercentLabel=TRUE,
+                     contourBreaks=seq(18,34,2))
+
+#example overlay points manually from a dataset in a similar style to egClimData
+ptStyle= c(21,22, 24)  #select set of pt styles (e.g. hollow circle, square, triangle)
+plotPerformanceSpace(performance=egSimPerformance[1], sim=egSimSummary,axesPercentLabel=TRUE)+
+ggplot2::geom_point(data = egClimData,
+                    mapping = ggplot2::aes(x = .data[["P_ann_tot_m"]],
+                    y = .data[["P_ann_seasRatio"]],
+                    shape = .data[["Name"]]),
+                    show.legend = TRUE, size = 5, colour = "black", fill = "lightgray") +
+ggplot2::scale_shape_manual(name = NULL, values = ptStyle,
+                            guide = ggplot2::guide_legend(order = 2, nrow = 1))+
+                   #one row of legend for specified ptStyle types
+ggplot2::theme(legend.box="vertical", # vertical arrangement of items in legends
+               legend.position="bottom", # position legends base of figure
+               legend.justification=c(0,0)) # justification according to the plot area
+
+# example of performance generated using simple scaled simulation
+data("egScalPerformance")
+data("egScalSummary")
+data("egClimData")
+plotPerformanceSpace(performance=egScalPerformance[1], sim=egScalSummary, climData = egClimData,
+                     perfThresh = 28.25, perfThreshLabel = "Max Avg. Deficit")
+                     
+## End(Not run)
+</code></pre>
+
+
+</div>

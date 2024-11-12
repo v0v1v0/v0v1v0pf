@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spot_funs_custom</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spot Functions Custom</h2>
+
+<h3>Description</h3>
+
+<p>Engine that runs <code>spot_funs()</code>. <code>spot_funs_custom()</code> has options for changing
+returned output and for producing print statements and errors. It also
+requires you to provide a character vector for <code>pkgs</code> rather than identifying
+these automatically via <code>spot_pkgs()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spot_funs_custom(
+  pkgs,
+  file_path,
+  show_each_use = FALSE,
+  keep_search_list = FALSE,
+  copy_local = TRUE,
+  print_pkgs_load_status = FALSE,
+  error_if_missing_pkg = FALSE,
+  keep_in_multiple_pkgs = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pkgs</code></td>
+<td>
+<p>Character vector of packages that are added to search space via
+<code>require()</code> or <code>import::from()</code> so can be found by <code>utils::find()</code>.
+Generally will be the returned value from <code>spot_pkgs(file_path, show_explicit_funs = TRUE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_path</code></td>
+<td>
+<p>character vector of path to file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_each_use</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If changed to <code>TRUE</code> will
+return individual rows for each time a function is used (rather than just
+once for the entire file).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_search_list</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If changed to <code>TRUE</code>
+will include entire search list for function. May be helpful for debugging
+in cases where funspotr may not be doing a good job of recreating the
+search list for identifying which packages function(s) came from. This will
+print all packages in the search list for each function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>copy_local</code></td>
+<td>
+<p>Logical, if changed to <code>FALSE</code> will not copy to a local
+temporary folder prior to doing analysis. Many functions require file to
+already be an .R file and for the file to exist locally. This should
+generally not be set to <code>TRUE</code> unless these hold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_pkgs_load_status</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If set to <code>TRUE</code>
+will print a named vector of logicals showing whether packages are on
+machine along with any warning messages that come when running <code>require()</code>.
+Will continue on to produce output of function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error_if_missing_pkg</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If set to <code>TRUE</code> then
+<code>print_pkgs_load_status = TRUE</code> automatically. If a package is not
+installed on the machine then will print load status of individual pkgs and
+result in an error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_in_multiple_pkgs</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If set to <code>TRUE</code>
+will include in the outputted dataframe a column <code>in_multiple_pkgs</code>:
+logical, whether a function exists in multiple packages loaded (i.e. on the
+search space of <code>utils::find()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>spot_funs_custom()</code> is also what you should use in cases where you don't
+trust <code>spot_pkgs()</code> to properly identify package dependencies from within the
+same file and instead want to pass in your own character vector of packages.
+</p>
+<p>See README for a description of how the function works.
+</p>
+<p>If a package is not included in <code>pkgs</code>, any functions called that should come
+from that package will be assigned a value of "(unknown)" in the <code>pkgs</code>
+column of the returned output. You can also use the <code>print_pkgs_load_status</code>
+and <code>error_if_missing_pkg</code> arguments to alter how output works in cases when
+not all packages are on the machine.
+</p>
+<p>Explicit calls to unexported functions i.e. <code>pkg:::fun()</code> will have <code>pkgs = "(unknown)"</code> in the returned dataframe.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Given default arguments and no missing packages, a dataframe with the
+following columns is returned:
+</p>
+<p><code>funs</code>: specifying functions in file.
+<code>pkgs</code>: the package a function came from. If <code>funs</code> is a custom function or
+if it came from a package not installed on your machine, <code>pkgs</code> will return
+"(unknown)".
+</p>
+<p>Note that any unused loaded packages / <code>pkgs</code> are dropped from output.
+Any functions without an available package are returned with the value
+"(unknown)".
+</p>
+<p>See README for further documentation.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>spot_funs()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funspotr)
+
+file_lines &lt;- "
+library(dplyr)
+require(tidyr)
+library(madeUpPkg)
+
+as_tibble(mpg) %&gt;%
+  group_by(class) %&gt;%
+  nest() %&gt;%
+  mutate(stats = purrr::map(data,
+                            ~lm(cty ~ hwy, data = .x)))
+
+made_up_fun()
+"
+
+file_output &lt;- tempfile(fileext = ".R")
+writeLines(file_lines, file_output)
+
+pkgs &lt;- spot_pkgs(file_output)
+
+spot_funs_custom(pkgs, file_output)
+
+# If you'd rather it error when a pkg doesn't exist e.g. for {madeUpPkg}
+# set`error_if_missing_pkg = TRUE`
+</code></pre>
+
+
+</div>

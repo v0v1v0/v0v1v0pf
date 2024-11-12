@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ctcov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-temporal covariance matrix approximation</h2>
+
+<h3>Description</h3>
+
+<p>This function provides an approximation of the cross-temporal base forecasts errors
+covariance matrix using different reconciliation methods (Di Fonzo and Girolimetto, 2023,
+Girolimetto et al., 2023).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ctcov(comb = "ols", n = NULL, agg_mat = NULL, agg_order = NULL, res = NULL,
+      tew = "sum", mse = TRUE, shrink_fun = shrink_estim, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>comb</code></td>
+<td>
+<p>A string specifying the reconciliation method.
+</p>
+
+<ul>
+<li>
+<p> Ordinary least squares:
+</p>
+
+<ul><li>
+<p> "<code>ols</code>" (<em>default</em>) - identity error covariance.
+</p>
+</li></ul>
+</li>
+<li>
+<p> Weighted least squares:
+</p>
+
+<ul>
+<li>
+<p> "<code>str</code>" - structural variances.
+</p>
+</li>
+<li>
+<p> "<code>csstr</code>" - cross-sectional structural variances.
+</p>
+</li>
+<li>
+<p> "<code>testr</code>" - temporal structural variances.
+</p>
+</li>
+<li>
+<p> "<code>wlsh</code>" - hierarchy variances (uses <code>res</code>).
+</p>
+</li>
+<li>
+<p> "<code>wlsv</code>" - series variances (uses <code>res</code>).
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> Generalized least squares (uses <code>res</code>):
+</p>
+
+<ul>
+<li>
+<p> "<code>acov</code>" - series auto-covariance.
+</p>
+</li>
+<li>
+<p> "<code>bdshr</code>"/"<code>bdsam</code>" - shrunk/sample block diagonal cross-sectional covariance.
+</p>
+</li>
+<li>
+<p> "<code>Sshr</code>"/"<code>Ssam</code>" - series shrunk/sample covariance.
+</p>
+</li>
+<li>
+<p> "<code>shr</code>"/"<code>sam</code>" - shrunk/sample covariance.
+</p>
+</li>
+<li>
+<p> "<code>hbshr</code>"/"<code>hbsam</code>" - shrunk/sample high frequency bottom time series covariance.
+</p>
+</li>
+<li>
+<p> "<code>bshr</code>"/"<code>bsam</code>" - shrunk/sample bottom time series covariance.
+</p>
+</li>
+<li>
+<p> "<code>hshr</code>"/"<code>hsam</code>" - shrunk/sample high frequency covariance.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Cross-sectional number of variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_mat</code></td>
+<td>
+<p>A (<code class="reqn">n_a \times n_b</code>) numeric matrix representing the cross-sectional
+aggregation matrix. It maps the <code class="reqn">n_b</code> bottom-level (free)
+variables into the <code class="reqn">n_a</code> upper (constrained) variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_order</code></td>
+<td>
+<p>Highest available sampling frequency per seasonal cycle (max. order
+of temporal aggregation, <code class="reqn">m</code>), or a vector representing a subset of <code class="reqn">p</code> factors
+of <code class="reqn">m</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>A (<code class="reqn">n \times N(k^\ast+m)</code>) optional numeric matrix containing the
+in-sample residuals at all the temporal frequencies ordered from the lowest frequency
+to the highest frequency (columns) for each variable (rows). This matrix is used
+to compute some covariance matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tew</code></td>
+<td>
+<p>A string specifying the type of temporal aggregation. Options include:
+"<code>sum</code>" (simple summation, <em>default</em>), "<code>avg</code>" (average),
+"<code>first</code>" (first value of the period), and "<code>last</code>"
+(last value of the period).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mse</code></td>
+<td>
+<p>If <code>TRUE</code> (<em>default</em>) the residuals used to compute the covariance
+matrix are not mean-corrected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrink_fun</code></td>
+<td>
+<p>Shrinkage function of the covariance matrix, shrink_estim (<em>default</em>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (<code class="reqn">n(k^\ast+m) \times n(k^\ast+m)</code>) symmetric matrix.
+</p>
+
+
+<h3>References</h3>
+
+<p>Di Fonzo, T. and Girolimetto, D. (2023), Cross-temporal forecast reconciliation:
+Optimal combination method and heuristic alternatives, <em>International Journal
+of Forecasting</em>, 39, 1, 39-57. <a href="https://doi.org/10.1016/j.ijforecast.2021.08.004">doi:10.1016/j.ijforecast.2021.08.004</a>
+</p>
+<p>Girolimetto, D., Athanasopoulos, G., Di Fonzo, T. and Hyndman, R.J. (2024),
+Cross-temporal probabilistic forecast reconciliation: Methodological and
+practical issues. <em>International Journal of Forecasting</em>, 40, 3, 1134-1151.
+<a href="https://doi.org/10.1016/j.ijforecast.2023.10.003">doi:10.1016/j.ijforecast.2023.10.003</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Cross-temporal framework: 
+<code>ctboot()</code>,
+<code>ctbu()</code>,
+<code>ctlcc()</code>,
+<code>ctmo()</code>,
+<code>ctrec()</code>,
+<code>cttd()</code>,
+<code>cttools()</code>,
+<code>iterec()</code>,
+<code>tcsrec()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# Aggregation matrix for Z = X + Y
+A &lt;- t(c(1,1))
+# (3 x 70) in-sample residuals matrix (simulated),
+# agg_order = 4 (annual-quarterly)
+res &lt;- rbind(rnorm(70), rnorm(70), rnorm(70))
+
+cov1 &lt;- ctcov("ols", n = 3, agg_order = 4)                     # OLS methods
+cov2 &lt;- ctcov("str", agg_mat = A, agg_order = 4)               # STR methods
+cov3 &lt;- ctcov("csstr", agg_mat = A, agg_order = 4)             # CSSTR methods
+cov4 &lt;- ctcov("testr", n = 3, agg_order = 4)                   # TESTR methods
+cov5 &lt;- ctcov("wlsv", agg_order = 4, res = res)                # WLSv methods
+cov6 &lt;- ctcov("wlsh", agg_order = 4, res = res)                # WLSh methods
+cov7 &lt;- ctcov("shr", agg_order = 4, res = res)                 # SHR methods
+cov8 &lt;- ctcov("sam", agg_order = 4, res = res)                 # SAM methods
+cov9 &lt;- ctcov("acov", agg_order = 4, res = res)                # ACOV methods
+cov10 &lt;- ctcov("Sshr", agg_order = 4, res = res)               # Sshr methods
+cov11 &lt;- ctcov("Ssam", agg_order = 4, res = res)               # Ssam methods
+cov12 &lt;- ctcov("hshr", agg_order = 4, res = res)               # Hshr methods
+cov13 &lt;- ctcov("hsam", agg_order = 4, res = res)               # Hsam methods
+cov14 &lt;- ctcov("hbshr", agg_mat = A, agg_order = 4, res = res) # HBshr methods
+cov15 &lt;- ctcov("hbsam", agg_mat = A, agg_order = 4, res = res) # HBsam methods
+cov16 &lt;- ctcov("bshr", agg_mat = A, agg_order = 4, res = res)  # Bshr methods
+cov17 &lt;- ctcov("bsam", agg_mat = A, agg_order = 4, res = res)  # Bsam methods
+cov18 &lt;- ctcov("bdshr", agg_order = 4, res = res)              # BDshr methods
+cov19 &lt;- ctcov("bdsam", agg_order = 4, res = res)              # BDsam methods
+
+# Custom covariance matrix
+ctcov.ols2 &lt;- function(comb, x) diag(x)
+cov20 &lt;- ctcov(comb = "ols2", x = 21) # == ctcov("ols", n = 3, agg_order = 4)
+
+</code></pre>
+
+
+</div>

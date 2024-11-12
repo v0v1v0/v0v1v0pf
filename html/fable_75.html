@@ -1,0 +1,295 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ARIMA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate an ARIMA model</h2>
+
+<h3>Description</h3>
+
+<p>Searches through the model space specified in the specials to identify the
+best ARIMA model, with the lowest AIC, AICc or BIC value. It is implemented
+using <code>stats::arima()</code> and allows ARIMA models to be used in the fable
+framework.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ARIMA(
+  formula,
+  ic = c("aicc", "aic", "bic"),
+  selection_metric = function(x) x[[ic]],
+  stepwise = TRUE,
+  greedy = TRUE,
+  approximation = NULL,
+  order_constraint = p + q + P + Q &lt;= 6 &amp; (constant + d + D &lt;= 2),
+  unitroot_spec = unitroot_options(),
+  trace = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>The information criterion used in selecting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection_metric</code></td>
+<td>
+<p>A function used to compute a metric from an <code>Arima</code>
+object which is minimised to select the best model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepwise</code></td>
+<td>
+<p>Should stepwise be used? (Stepwise can be much faster)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>greedy</code></td>
+<td>
+<p>Should the stepwise search move to the next best option immediately?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approximation</code></td>
+<td>
+<p>Should CSS (conditional sum of squares) be used during model
+selection? The default (<code>NULL</code>) will use the approximation if there are more than
+150 observations or if the seasonal period is greater than 12.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order_constraint</code></td>
+<td>
+<p>A logical predicate on the orders of <code>p</code>, <code>d</code>, <code>q</code>,
+<code>P</code>, <code>D</code>, <code>Q</code> and <code>constant</code> to consider in the search. See "Specials" for
+the meaning of these terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitroot_spec</code></td>
+<td>
+<p>A specification of unit root tests to use in the
+selection of <code>d</code> and <code>D</code>. See <code>unitroot_options()</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>If <code>TRUE</code>, the selection_metric of estimated models in the
+selection procedure will be outputted to the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments for <code>stats::arima()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+
+
+<h3>Parameterisation</h3>
+
+<p>The fable <code>ARIMA()</code> function uses an alternative parameterisation of
+constants to <code>stats::arima()</code> and <code>forecast::Arima()</code>. While the
+parameterisations are equivalent, the coefficients for the constant/mean
+will differ.
+</p>
+<p>In <code>fable</code>, if there are no exogenous regressors, the parameterisation used
+is:
+</p>
+<p style="text-align: center;"><code class="reqn">(1-\phi_1B - \cdots - \phi_p B^p)(1-B)^d y_t = c + (1 + \theta_1 B + \cdots + \theta_q B^q)\varepsilon_t</code>
+</p>
+
+<p>In stats and forecast, an ARIMA model is parameterised as:
+</p>
+<p style="text-align: center;"><code class="reqn">(1-\phi_1B - \cdots - \phi_p B^p)(y_t' - \mu) = (1 + \theta_1 B + \cdots + \theta_q B^q)\varepsilon_t</code>
+</p>
+
+<p>where <code class="reqn">\mu</code> is the mean of <code class="reqn">(1-B)^d y_t</code> and <code class="reqn">c = \mu(1-\phi_1 - \cdots - \phi_p )</code>.
+</p>
+<p>If there are exogenous regressors, <code>fable</code> uses the same parameterisation as
+used in stats and forecast. That is, it fits a regression with ARIMA(p,d,q)
+errors:
+</p>
+<p style="text-align: center;"><code class="reqn">y_t = c + \beta' x_t + z_t</code>
+</p>
+
+<p>where <code class="reqn">\beta</code> is a vector of regression coefficients, <code class="reqn">x_t</code> is
+a vector of exogenous regressors at time <code class="reqn">t</code>, and <code class="reqn">z_t</code> is an
+ARIMA(p,d,q) error process:
+</p>
+<p style="text-align: center;"><code class="reqn">(1-\phi_1B - \cdots - \phi_p B^p)(1-B)^d z_t = (1 + \theta_1 B + \cdots + \theta_q B^q)\varepsilon_t</code>
+</p>
+
+<p>For details of the estimation algorithm, see the
+<code>arima</code> function in the stats package.
+</p>
+
+
+<h3>Specials</h3>
+
+<p>The <em>specials</em> define the space over which <code>ARIMA</code> will search for the model that best fits the data. If the RHS of <code>formula</code> is left blank, the default search space is given by <code>pdq() + PDQ()</code>: that is, a model with candidate seasonal and nonseasonal terms, but no exogenous regressors. Note that a seasonal model requires at least 2 full seasons of data; if this is not available, <code>ARIMA</code> will revert to a nonseasonal model with a warning.
+</p>
+<p>To specify a model fully (avoid automatic selection), the intercept and <code>pdq()/PDQ()</code> values must be specified. For example, <code>formula = response ~ 1 + pdq(1, 1, 1) + PDQ(1, 0, 0)</code>.
+</p>
+
+
+<h4>pdq</h4>
+
+<p>The <code>pdq</code> special is used to specify non-seasonal components of the model.
+</p>
+<pre>
+pdq(p = 0:5, d = 0:2, q = 0:5,
+    p_init = 2, q_init = 2, fixed = list())
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>p</code>      </td>
+<td style="text-align: left;"> The order of the non-seasonal auto-regressive (AR) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>d</code>      </td>
+<td style="text-align: left;"> The order of integration for non-seasonal differencing. If multiple values are provided, one of the values will be selected via repeated KPSS tests. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>q</code>      </td>
+<td style="text-align: left;"> The order of the non-seasonal moving average (MA) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>p_init</code> </td>
+<td style="text-align: left;"> If <code>stepwise = TRUE</code>, <code>p_init</code> provides the initial value for <code>p</code> for the stepwise search procedure. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>q_init</code> </td>
+<td style="text-align: left;"> If <code>stepwise = TRUE</code>, <code>q_init</code> provides the initial value for <code>q</code> for the stepwise search procedure. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>fixed</code>  </td>
+<td style="text-align: left;"> A named list of fixed parameters for coefficients. The names identify the coefficient, beginning with either <code>ar</code> or <code>ma</code>, followed by the lag order. For example, <code>fixed = list(ar1 = 0.3, ma2 = 0)</code>.
+</td>
+</tr>
+</table>
+<h4>PDQ</h4>
+
+<p>The <code>PDQ</code> special is used to specify seasonal components of the model. To force a non-seasonal fit, specify <code>PDQ(0, 0, 0)</code> in the RHS of the model formula. Note that simply omitting <code>PDQ</code> from the formula will <em>not</em> result in a non-seasonal fit.
+</p>
+<pre>
+PDQ(P = 0:2, D = 0:1, Q = 0:2, period = NULL,
+    P_init = 1, Q_init = 1, fixed = list())
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>P</code>      </td>
+<td style="text-align: left;"> The order of the seasonal auto-regressive (SAR) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>D</code>      </td>
+<td style="text-align: left;"> The order of integration for seasonal differencing. If multiple values are provided, one of the values will be selected via repeated heuristic tests (based on strength of seasonality from an STL decomposition). </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Q</code>      </td>
+<td style="text-align: left;"> The order of the seasonal moving average (SMA) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>period</code> </td>
+<td style="text-align: left;"> The periodic nature of the seasonality. This can be either a number indicating the number of observations in each seasonal period, or text to indicate the duration of the seasonal window (for example, annual seasonality would be "1 year").  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>P_init</code> </td>
+<td style="text-align: left;"> If <code>stepwise = TRUE</code>, <code>P_init</code> provides the initial value for <code>P</code> for the stepwise search procedure. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Q_init</code> </td>
+<td style="text-align: left;"> If <code>stepwise = TRUE</code>, <code>Q_init</code> provides the initial value for <code>Q</code> for the stepwise search procedure. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>fixed</code>  </td>
+<td style="text-align: left;"> A named list of fixed parameters for coefficients. The names identify the coefficient, beginning with either <code>sar</code> or <code>sma</code>, followed by the lag order. For example, <code>fixed = list(sar1 = 0.1)</code>.
+</td>
+</tr>
+</table>
+<h4>xreg</h4>
+
+<p>Exogenous regressors can be included in an ARIMA model without explicitly using the <code>xreg()</code> special. Common exogenous regressor specials as specified in <code>common_xregs</code> can also be used. These regressors are handled using <code>stats::model.frame()</code>, and so interactions and other functionality behaves similarly to <code>stats::lm()</code>.
+</p>
+<p>The inclusion of a constant in the model follows the similar rules to <code>stats::lm()</code>, where including <code>1</code> will add a constant and <code>0</code> or <code>-1</code> will remove the constant. If left out, the inclusion of a constant will be determined by minimising <code>ic</code>.
+</p>
+<pre>
+xreg(..., fixed = list())
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>...</code>      </td>
+<td style="text-align: left;"> Bare expressions for the exogenous regressors (such as <code>log(x)</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>fixed</code>    </td>
+<td style="text-align: left;"> A named list of fixed parameters for coefficients. The names identify the coefficient, and should match the name of the regressor. For example, <code>fixed = list(constant = 20)</code>.
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><a href="https://otexts.com/fpp3/arima.html">Forecasting: Principles and Practices, ARIMA models (chapter 9)</a>
+<a href="https://otexts.com/fpp3/dynamic.html">Forecasting: Principles and Practices, Dynamic regression models (chapter 10)</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Manual ARIMA specification
+USAccDeaths %&gt;%
+  as_tsibble() %&gt;%
+  model(arima = ARIMA(log(value) ~ 0 + pdq(0, 1, 1) + PDQ(0, 1, 1))) %&gt;%
+  report()
+
+# Automatic ARIMA specification
+library(tsibble)
+library(dplyr)
+tsibbledata::global_economy %&gt;%
+  filter(Country == "Australia") %&gt;%
+  model(ARIMA(log(GDP) ~ Population))
+</code></pre>
+
+
+</div>

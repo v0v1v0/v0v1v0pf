@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fwhich</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>A generic function of <code>which</code> that is <code>'FileArray'</code> compatible</h2>
+
+<h3>Description</h3>
+
+<p>A generic function of <code>which</code> that is <code>'FileArray'</code> compatible
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fwhich(x, val, arr.ind = FALSE, ret.values = FALSE, ...)
+
+## Default S3 method:
+fwhich(x, val, arr.ind = FALSE, ret.values = FALSE, ...)
+
+## S3 method for class 'FileArray'
+fwhich(x, val, arr.ind = FALSE, ret.values = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>any R vector, matrix, array or file-array</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>val</code></td>
+<td>
+<p>values to find, or a function taking one argument (a slice of 
+data vector) and returns either logical vector with the same length as the 
+slice or index of the slice; see 'Examples'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arr.ind</code></td>
+<td>
+<p>logical; should array indices be 
+returned when <code>x</code> is an array?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ret.values</code></td>
+<td>
+<p>whether to return the values of corresponding indices as 
+an attributes; default is false</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>passed to <code>val</code> if <code>val</code> is a function</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The indices of <code>x</code> elements that are listed in <code>val</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# ---- Default case ------------------------------------
+x &lt;- array(1:27 + 2, rep(3,3))
+
+# find index of `x` equal to either 4 or 5
+fwhich(x, c(4,5))
+res &lt;- fwhich(x, c(4,5), ret.values = TRUE)
+res
+attr(res, "values")
+
+# ---- file-array case --------------------------------
+arr &lt;- filearray_create(tempfile(), dim(x))
+arr[] &lt;- x
+fwhich(arr, c(4,5))
+fwhich(arr, c(4,5), arr.ind = TRUE, ret.values = TRUE)
+
+arr[2:3, 1, 1]
+
+# Clean up this example
+arr$delete()
+
+# ---- `val` is a function ----------------------------
+x &lt;- as_filearray(c(sample(15), 15), dimension = c(4,4))
+
+ret &lt;- fwhich(x, val = which.max, 
+              ret.values = TRUE, arr.ind = FALSE)
+
+# ret is the index
+ret == which.max(x[])
+
+# attr(ret, "values") is the max value
+max(x[]) == attr(ret, "values")
+
+# customize `val`
+fwhich(x, ret.values = TRUE, arr.ind = FALSE,
+       val = function( slice ) {
+           slice &gt; 10 # or which(slice &gt; 10)
+       })
+
+
+</code></pre>
+
+
+</div>

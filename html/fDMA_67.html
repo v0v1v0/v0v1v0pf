@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tvp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes Time-Varying Parameters Regression.</h2>
+
+<h3>Description</h3>
+
+<p>This function computes Time-Varying Parameters Regression (TVP) with the updating procedure as in Raftery et. al (2010). 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tvp(y,x,V,lambda,W=NULL,kappa=NULL,c=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code>numeric</code> or a column <code>matrix</code> of a dependent variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>matrix</code> of independent variables, different columns should correspond to different variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p><code>numeric</code>, initial variance in the state space equation for the recursive moment estimator updating method, as in Raftery et al. (2010)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p><code>numeric</code>, a forgetting factor between 0 and 1 used in variance approximations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>optional, <code>numeric</code>, initial value of variance for the model equations, if not specified the method based on the linear regression, as in Raftery et al. (2010) is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>optional, <code>numeric</code>, a parameter in the exponentially weighted moving average in variance updating (see also <code>fDMA</code>), between 0 and 1, if not specified the method as in Raftery et al. (2010) is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>optional, <code>logical</code>, a parameter indicating whether constant is included, if not specified <code>c=TRUE</code> is used, i.e., constant is included</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is not possible to set <code>c=FALSE</code> if <code>ncol(x)=0</code>. In such a case the function will automatically reset <code>c=TRUE</code> inside the code.</p>
+
+
+<h3>Value</h3>
+
+<p>class <code>tvp</code> object, <code>list</code> of
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$y.hat</code></td>
+<td>
+<p>fitted (forecasted) values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$thetas</code></td>
+<td>
+<p>estimated regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$pred.dens.</code></td>
+<td>
+<p>predicitive densities from each period</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$y</code></td>
+<td>
+<p><code>y</code>, forecasted time-series</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Raftery, A. E., Karny, M., Ettler, P., 2010. Online prediction under model uncertainty via Dynamic Model Averaging: Application to a cold rolling mill. <em>Technometrics</em> <b>52</b>, 52–66.
+</p>
+<p>Sanderson, C., Curtin, R., 2016. Armadillo: A template-based C++ library for linear algebra. <em>Journal of Open Source Software</em> <b>1</b>, <a href="https://arma.sourceforge.net/armadillo_joss_2016.pdf">https://arma.sourceforge.net/armadillo_joss_2016.pdf</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>grid.tvp</code>, <code>print.tvp</code>, <code>summary.tvp</code>, <code>plot.tvp</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">wti &lt;- crudeoil[-1,1]
+drivers &lt;- (lag(crudeoil[,-1],k=1))[-1,]
+ld.wti &lt;- (diff(log(wti)))[-1,]
+ld.drivers &lt;- (diff(log(drivers)))[-1,]
+
+t1 &lt;- tvp(y=ld.wti,x=ld.drivers,V=1,lambda=0.99)
+
+
+
+t2 &lt;- tvp(y=ld.wti,x=ld.drivers,V=1,lambda=0.99,W=1)
+
+
+
+t3 &lt;- tvp(y=ld.wti,x=ld.drivers,V=1,lambda=0.99,W=1,kappa=0.75)
+
+
+# Model with constant only
+empty &lt;- matrix(,nrow=nrow(ld.drivers),ncol=0)
+t4 &lt;- tvp(y=ld.wti,x=empty,lambda=0.99,V=1)
+</code></pre>
+
+
+</div>

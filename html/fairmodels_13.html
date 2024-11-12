@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fairness_heatmap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fairness heatmap</h2>
+
+<h3>Description</h3>
+
+<p>Create <code>fairness_heatmap</code> object to compare both models and metrics.
+If parameter <code>scale</code> is set to <code>TRUE</code> metrics will be scaled to median = 0 and sd = 1.
+If NA's appear heatmap will still plot, but with gray area where NA's were.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fairness_heatmap(x, scale = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class <code>fairness_object</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>logical, if codeTRUE metrics will be scaled to mean 0 and sd 1. Default <code>FALSE</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>fairness_heatmap</code> object.
+</p>
+<p>It is a list with following fields:
+</p>
+
+<ul>
+<li>
+<p>heatmap_data - <code>data.frame</code> with information about score for model and parity loss metric
+</p>
+</li>
+<li>
+<p>matrix_model - matrix used in dendogram plots
+</p>
+</li>
+<li>
+<p>scale - logical parameter passed to <code>fairness_heatmap</code>
+</p>
+</li>
+<li>
+<p>label - character, vector of model labels
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200,
+  num.threads = 1
+)
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm, explainer_rf,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+# same explainers with different cutoffs for female
+fobject &lt;- fairness_check(explainer_lm, explainer_rf, fobject,
+  protected = german$Sex,
+  privileged = "male",
+  cutoff = list(female = 0.4),
+  label = c("lm_2", "rf_2")
+)
+
+
+fh &lt;- fairness_heatmap(fobject)
+
+plot(fh)
+</code></pre>
+
+
+</div>

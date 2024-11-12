@@ -1,0 +1,250 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>export_risk_stratification_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract and export sample risk group stratification and associated
+tests.</h2>
+
+<h3>Description</h3>
+
+<p>Extract and export sample risk group stratification and
+associated tests for data in a familiarCollection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">export_risk_stratification_data(
+  object,
+  dir_path = NULL,
+  export_strata = TRUE,
+  time_range = NULL,
+  export_collection = FALSE,
+  ...
+)
+
+## S4 method for signature 'familiarCollection'
+export_risk_stratification_data(
+  object,
+  dir_path = NULL,
+  export_strata = TRUE,
+  time_range = NULL,
+  export_collection = FALSE,
+  ...
+)
+
+## S4 method for signature 'ANY'
+export_risk_stratification_data(
+  object,
+  dir_path = NULL,
+  export_strata = TRUE,
+  time_range = NULL,
+  export_collection = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>familiarCollection</code> object, or other other objects from which
+a <code>familiarCollection</code> can be extracted. See details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir_path</code></td>
+<td>
+<p>Path to folder where extracted data should be saved. <code>NULL</code>
+will allow export as a structured list of data.tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_strata</code></td>
+<td>
+<p>Flag that determines whether the raw data or strata are
+exported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_range</code></td>
+<td>
+<p>Time range for which strata should be created. If <code>NULL</code>,
+the full time range is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_collection</code></td>
+<td>
+<p>(<em>optional</em>) Exports the collection if TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>extract_risk_stratification_data</code>, <code>as_familiar_collection</code>
+</p>
+
+<dl>
+<dt><code>data</code></dt>
+<dd>
+<p>A <code>dataObject</code> object, <code>data.table</code> or <code>data.frame</code> that
+constitutes the data that are assessed.</p>
+</dd>
+<dt><code>is_pre_processed</code></dt>
+<dd>
+<p>Flag that indicates whether the data was already
+pre-processed externally, e.g. normalised and clustered. Only used if the
+<code>data</code> argument is a <code>data.table</code> or <code>data.frame</code>.</p>
+</dd>
+<dt><code>cl</code></dt>
+<dd>
+<p>Cluster created using the <code>parallel</code> package. This cluster is then
+used to speed up computation through parallellisation.</p>
+</dd>
+<dt><code>ensemble_method</code></dt>
+<dd>
+<p>Method for ensembling predictions from models for the
+same sample. Available methods are:
+</p>
+
+<ul>
+<li> <p><code>median</code> (default): Use the median of the predicted values as the ensemble
+value for a sample.
+</p>
+</li>
+<li> <p><code>mean</code>: Use the mean of the predicted values as the ensemble value for a
+sample.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>verbose</code></dt>
+<dd>
+<p>Flag to indicate whether feedback should be provided on the
+computation and extraction of various data elements.</p>
+</dd>
+<dt><code>message_indent</code></dt>
+<dd>
+<p>Number of indentation steps for messages shown during
+computation and extraction of various data elements.</p>
+</dd>
+<dt><code>detail_level</code></dt>
+<dd>
+<p>(<em>optional</em>) Sets the level at which results are computed
+and aggregated.
+</p>
+
+<ul>
+<li> <p><code>ensemble</code>: Results are computed at the ensemble level, i.e. over all
+models in the ensemble. This means that, for example, bias-corrected
+estimates of model performance are assessed by creating (at least) 20
+bootstraps and computing the model performance of the ensemble model for
+each bootstrap.
+</p>
+</li>
+<li> <p><code>hybrid</code> (default): Results are computed at the level of models in an
+ensemble. This means that, for example, bias-corrected estimates of model
+performance are directly computed using the models in the ensemble. If there
+are at least 20 trained models in the ensemble, performance is computed for
+each model, in contrast to <code>ensemble</code> where performance is computed for the
+ensemble of models. If there are less than 20 trained models in the
+ensemble, bootstraps are created so that at least 20 point estimates can be
+made.
+</p>
+</li>
+<li> <p><code>model</code>: Results are computed at the model level. This means that, for
+example, bias-corrected estimates of model performance are assessed by
+creating (at least) 20 bootstraps and computing the performance of the model
+for each bootstrap.
+</p>
+</li>
+</ul>
+<p>Note that each level of detail has a different interpretation for bootstrap
+confidence intervals. For <code>ensemble</code> and <code>model</code> these are the confidence
+intervals for the ensemble and an individual model, respectively. That is,
+the confidence interval describes the range where an estimate produced by a
+respective ensemble or model trained on a repeat of the experiment may be
+found with the probability of the confidence level. For <code>hybrid</code>, it
+represents the range where any single model trained on a repeat of the
+experiment may be found with the probability of the confidence level. By
+definition, confidence intervals obtained using <code>hybrid</code> are at least as
+wide as those for <code>ensemble</code>. <code>hybrid</code> offers the correct interpretation if
+the goal of the analysis is to assess the result of a single, unspecified,
+model.
+</p>
+<p><code>hybrid</code> is generally computationally less expensive then <code>ensemble</code>, which
+in turn is somewhat less expensive than <code>model</code>.
+</p>
+<p>A non-default <code>detail_level</code> parameter can be specified for separate
+evaluation steps by providing a parameter value in a named list with data
+elements, e.g. <code>list("auc_data"="ensemble", "model_performance"="hybrid")</code>.
+This parameter can be set for the following data elements: <code>auc_data</code>,
+<code>decision_curve_analyis</code>, <code>model_performance</code>, <code>permutation_vimp</code>,
+<code>ice_data</code>, <code>prediction_data</code> and <code>confusion_matrix</code>.</p>
+</dd>
+<dt><code>confidence_level</code></dt>
+<dd>
+<p>(<em>optional</em>) Numeric value for the level at which
+confidence intervals are determined. In the case bootstraps are used to
+determine the confidence intervals bootstrap estimation, <code>familiar</code> uses the
+rule of thumb <code class="reqn">n = 20 / ci.level</code> to determine the number of required
+bootstraps.
+</p>
+<p>The default value is <code>0.95</code>.</p>
+</dd>
+<dt><code>familiar_data_names</code></dt>
+<dd>
+<p>Names of the dataset(s). Only used if the <code>object</code>
+parameter is one or more <code>familiarData</code> objects.</p>
+</dd>
+<dt><code>collection_name</code></dt>
+<dd>
+<p>Name of the collection.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Data is usually collected from a <code>familiarCollection</code> object.
+However, you can also provide one or more <code>familiarData</code> objects, that will
+be internally converted to a <code>familiarCollection</code> object. It is also
+possible to provide a <code>familiarEnsemble</code> or one or more <code>familiarModel</code>
+objects together with the data from which data is computed prior to export.
+Paths to the previous files can also be provided.
+</p>
+<p>All parameters aside from <code>object</code> and <code>dir_path</code> are only used if <code>object</code>
+is not a <code>familiarCollection</code> object, or a path to one.
+</p>
+<p>Three tables are exported in a list:
+</p>
+
+<ul>
+<li> <p><code>data</code>: Contains the assigned risk group for a given sample, along with
+its reported survival time and censoring status.
+</p>
+</li>
+<li> <p><code>hr_ratio</code>: Contains the hazard ratio between different risk groups.
+</p>
+</li>
+<li> <p><code>logrank</code>: Contains the results from the logrank test between different
+risk groups.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list of data.tables (if <code>dir_path</code> is not provided), or nothing, as
+all data is exported to <code>csv</code> files.
+</p>
+
+
+</div>

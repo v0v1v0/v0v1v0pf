@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fluxing</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>generate fluxes</h2>
+
+<h3>Description</h3>
+
+<p>Creates a valuated graph adjacency matrix from its binary version.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fluxing(mat, biomasses = NULL, losses, efficiencies, bioms.prefs = TRUE,
+  bioms.losses = TRUE, ef.level = "prey")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mat</code></td>
+<td>
+<p>Network adjacency matrix describing interactions among species. Interactions can be either binary or weighted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biomasses</code></td>
+<td>
+<p>Vector of species biomasses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>losses</code></td>
+<td>
+<p>A vector or an array of species energy losses (excluding consumption).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>efficiencies</code></td>
+<td>
+<p>A vector or an array of conversion efficiencies of species in the adjacency matrix. These values describe the proportion of consumed energy that is converted to biomass of the consumer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bioms.prefs</code></td>
+<td>
+<p>Logical - if <code>TRUE</code>, consumer preferences are scaled according to species biomasses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bioms.losses</code></td>
+<td>
+<p>Logical - if <code>TRUE</code>, losses are scaled with species biomasses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ef.level</code></td>
+<td>
+<p>Set to <code>"prey"</code> if efficiencies are defined by prey, <code>"pred"</code> if they are a property of the predator.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function computes fluxes in food webs based on an equilibrium hypothesis: for each species, sum of ingoing fluxes (gains from predation) balances the sum of outgoing fluxes.
+Outgoing fluxes are defined by consumption and the <code>losses</code> argument. Usually <code>losses</code> relate to species metabolic rates and/or natural death rates. For each species <code>i</code>, sum of ingoing fluxes <code>F_i</code> is computed as:
+</p>
+<p style="text-align: center;"><code class="reqn">
+F_{i} = \frac{1}{e_i} (L_i + \sum_j W_{ij}F_j) \quad if \quad \code{ef.level == "pred"}
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">
+F_{i} = \frac{L_i + \sum_j W_{ij}F_j}{\sum_j W_{ji}e_j} \quad if \quad \code{ef.level == "pred"}
+</code>
+</p>
+
+<p><code>W</code> set the matrix of preferences estimated from <code>mat</code>, according to <code>bioms.prefs</code>. <code>L</code> is the vector depicting sum of losses
+(scaled or not by biomasses, accordingly to <code>bioms.losses</code>) and <code>e</code> is the vector of species efficiencies.
+</p>
+
+<ul>
+<li>
+<p><code>mat</code>: Either a binary or a valuated matrix can be used. A non zero value for mat[i,j] means that species i is consumed by species j.
+Matrix entries would assess predator preferences on its prey, thus providing a binary matrix assumes no preferences.
+</p>
+</li>
+<li>
+<p><code>losses</code>: Express species energetic losses not related to consumption. Usually metabolic or death rates.
+When an array is provided, losses associated to each species correspond to line sums.
+</p>
+</li>
+<li>
+<p><code>efficiencies</code>: Determines how efficient species are to convert energy (see <code>ef.level</code> for more details).
+Providing an array will assume values depending on both prey and predator identity.
+</p>
+</li>
+<li>
+<p><code>bioms.pref</code>: If <code>TRUE</code>, preferences <code class="reqn">W_{ij}</code> of predator j on prey i are scaled accordingly to species biomass using the following formula:
+</p>
+<p style="text-align: center;"><code class="reqn">
+W_{i,j} = \frac{mat[i,j] * biomasses[i]}{\sum_k mat[i,k]* biomasses[k]}
+</code>
+</p>
+
+<p>If <code>FALSE</code>, a normalisation on column values is performed.
+</p>
+</li>
+<li>
+<p><code>bioms.losses</code>: Set to true, function will assume that losses are defined per biomass unit.
+Thus, total losses will be thereafter multiplied by biomass values for each species.
+</p>
+</li>
+<li>
+<p><code>ef.level</code>: If <code>"prey"</code> (resp <code>"pred"</code>), the total amount of energy that can be metabolized from a trophic link
+will be determined by prey (resp predator) identity. <code>"link.specific"</code> assumes that efficiencies are defined for each trophic interaction
+and implies <code>efficiencies</code> parameter to be a matrix.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>Returns an adjacency matrix where entries are the computed energy fluxes between consumer species and their respective resources.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Benoit gauzens, <a href="mailto:benoit.gauzens@gmail.com">benoit.gauzens@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># first compute species per unit biomass metabolic rates using the metabolic theory:
+losses = 0.1 * species.level$bodymasses^(-0.25)
+
+# call of the function:
+fluxing(species.level$mat, 
+       species.level$biomasses, 
+       losses, 
+       species.level$efficiencies, 
+       bioms.pref = TRUE, 
+       ef.level = "prey")
+
+</code></pre>
+
+
+</div>

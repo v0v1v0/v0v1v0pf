@@ -1,0 +1,273 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>runfastcmh</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run the fastcmh algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function runs the FastCMH algorithm on a particular data set.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">runfastcmh(folder = NULL, data = NULL, label = NULL, cov = NULL,
+  alpha = 0.05, Lmax = 0, showProcessing = FALSE, saveAllPvals = FALSE,
+  doFDR = FALSE, useDependenceFDR = FALSE, saveToFile = FALSE,
+  saveFilename = "fastcmhresults.RData", saveFolder = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>folder</code></td>
+<td>
+<p>The folder in which the data is saved. If the any of
+<code>data</code>, <code>label</code> and <code>pvalue</code> arguments are not specified,
+then filenames must have following a naming convention inside the folder:
+the data file is <code>"data.txt"</code>
+(i.e. the full path is <code>"folder/data.txt"</code>), the phenotype label file
+is <code>label.txt</code>, and covariate label file is
+<code>cov.txt</code>. More details on the structure of these files is given
+below, or the user can use the <code>makefastcmhdata</code> function to
+see an example of the correct data formats. If <code>folder="/data/"</code>, the
+data in <code>fastcmh/inst/extdata</code> is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The filename for the data file. Default is <code>NULL</code>. The
+data file must be an <code>L x n</code> txt file containing only <code>0</code>s and
+<code>1</code>s, which are space-separated in each row, while each row is on a
+separate newline.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>The filename for the phenotype label file. Default is
+<code>NULL</code>. The label file should consist of a single column (i.e. each
+row is on a separate line) of <code>0</code>s and <code>1</code>s.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov</code></td>
+<td>
+<p>The filename for the covariate label file. Default is
+<code>NULL</code>. The <code>cov</code> file contains a single column of positive
+integers. The first row, containing value <code class="reqn">n_1</code>, specifies that the
+first <code class="reqn">n_1</code> columns have covariate value <code>1</code>; the second row,
+containing <code class="reqn">n_2</code>, specifies that the next <code class="reqn">n_2</code> rows have
+covariate value <code>2</code>, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The value of the FWER; must be a number between 0 and 1.
+Default is <code>alpha=0.05</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lmax</code></td>
+<td>
+<p>The maximum length of significant intervals which is
+considered. Must be a non-negative integer. For example, <code>Lmax=10</code>
+searches for significant intervals up to length 10. Setting <code>Lmax=0</code>
+will search for significant intervals up to any length (with algorithm
+pruning appropriately). Default is <code>Lmax=0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showProcessing</code></td>
+<td>
+<p>A flag which will turn printing to screen on/off.
+Default is <code>FALSE</code> (which is “off”).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveAllPvals</code></td>
+<td>
+<p>A flag which controls whether or not all the intervals
+(less than minimum attainable pvalue) will be returned. Default is
+<code>FALSE</code> (which is “no, do notreturn all intervals”).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doFDR</code></td>
+<td>
+<p>A flag which controls whether or not Gilbert's Tarone FDR
+procedure (while accounting for positive regression dependence) is
+performed. Default is <code>FALSE</code> (which is “no, do not do FDR”).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useDependenceFDR</code></td>
+<td>
+<p>A flag which controls whether or not Gilbert's
+Tarone FDR procedure uses the dependent formulation by Benjamini and
+Yekutieli (2001), which further adjusts alpha by dividing by the harmonic
+mean. This flag is only used if <code>doFDR==TRUE</code>. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveToFile</code></td>
+<td>
+<p>A flag which controls whether or not the results are
+saved to file. By default, <code>saveToFile=FALSE</code>, and the data frame is
+returned in R. See the examples below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveFilename</code></td>
+<td>
+<p>A string which gives the filename to which the output
+is saved (needs to have <code>saveToFile=TRUE</code>) as an RData file. Default
+is <code>"fastcmhresults.RData"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveFolder</code></td>
+<td>
+<p>A string which gives the path to which the output will
+be saved (needs to have <code>saveToFile=TRUE</code>). Default is <code>"./"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function runs the FastCMH algorithm on a particular data set in
+order to discover intervals that are statistically significantly
+associated with a particular label, while accounting for categorical
+covariates.
+</p>
+<p>The user must either supply the folder, which contains files named
+<code>"data.txt"</code>, <code>"label.txt"</code> and <code>"cov.txt"</code>, or the
+non-default filenames must be specified individually. See the descriptions of arguments <code>data</code>, <code>label</code> and <code>cov</code> to see the format of
+the input files, or make a small sample data file using the
+<code>makefastcmhdata</code> function.
+By default, filtered results are provided. The user also has the option
+of using an FDR procedure rather than the standard FWER-preserving
+procedure.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>runfastcmh</code> will return a list if <code>saveToFile=FALSE</code> (default
+setting), otherwise it will save the list in an .RData file. The fields
+of the list are:
+</p>
+
+<dl>
+<dt><code>sig</code></dt>
+<dd>
+<p>a dataframe listing the significant intervals, after
+filterting. Columns <code>start</code>, <code>end</code> and <code>pvalue</code> indicate
+the start and end points of the interval (inclusive), and the
+<em>p</em>-value for that interval.</p>
+</dd>
+<dt><code>unfiltered</code></dt>
+<dd>
+<p>a dataframe listing all the significant intervals
+before filtering. The filtering compares the overlapping intervals and
+returns the interval with the smallest p-value in each cluster of
+overlapping intervals. Dataframe has has structure as <code>sig</code>.</p>
+</dd>
+<dt><code>fdr</code></dt>
+<dd>
+<p>(if doFDR==TRUE) significant intervals using Gilbert's
+FDR-Tarone procedure, after filtering. Dataframe has same structure as
+<code>sig</code>.</p>
+</dd>
+<dt><code>unfilteredFdr</code></dt>
+<dd>
+<p>(if doFDR==TRUE) a dataframe listing all the significant intervals before filtering. See description of <code>unfiltered</code>.</p>
+</dd>
+<dt><code>allTestablle</code></dt>
+<dd>
+<p>(if saveAllPvals==TRUE) a dataframe listing all
+the testable intervals, many of which will not be significant. Dataframe
+has same structure as <code>sig</code>.</p>
+</dd>
+<dt><code>histObs</code></dt>
+<dd>
+<p>Together with histFreq gives a histogram of maximum
+attainable CMH statistics.</p>
+</dd>
+<dt><code>histFreq</code></dt>
+<dd>
+<p>Histogram of maximum attainable CMH statistics (only
+reliable in the testable range).</p>
+</dd>
+<dt><code>summary</code></dt>
+<dd>
+<p>a character string summarising the results. Use
+<code>cat(...$summary)</code> to print the results with the correct
+indentation/new lines.</p>
+</dd>
+<dt><code>timing</code></dt>
+<dd>
+<p>a list containing (i) <code>details</code>, a character
+string summarising the runtime values for the experiment - use
+<code>cat(...$timing$details)</code> for correct indentation, etc.
+(ii) <code>exec</code>, the total execution time. (iii) <code>init</code>, the time
+to initialise the objects. (iv) <code>fileIO</code>, the time to read the input
+files. (v) <code>compSigThresh</code>, the time to compute the significance
+threshold. (vi) <code>compSigInt</code>, the time to compute the significant
+intervals.</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Felipe Llinares Lopez, Dean Bodenham
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>makefastcmhdata</code>
+</p>
+
+
+<h3>References</h3>
+
+<p>Gilbert, P. B. (2005) <em>A modified false discovery rate
+multipl-comparisons procedure for discrete data, applied to human
+immunodeficiency virus genetics</em>. Journal of the Royal Statistical
+Society: Series C (Applied Statistics), 54(1), 143-158.
+</p>
+<p>Benjamini, Y., Yekutieli, D. (2001). <em>The control of the false
+discovery rate in multiple testing under dependency</em>.
+Annals of Statistics, 29(4), 1165-1188.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Example with default naming convention used for data, label and cov files
+# Note: using "/data/" as the argument for folder
+#       accesses the data/ directory in the fastcmh package folder
+mylist &lt;- runfastcmh("/data/")
+
+#Example where the progress will be shown
+mylist &lt;- runfastcmh(folder="/data/", showProcessing=TRUE)
+
+#Example where many parameters are specified
+mylist &lt;- runfastcmh(folder="/data/", data="data2.txt", alpha=0.01, Lmax=7)
+
+#Example where Gilbert's Tarone-FDR procedure is used
+mylist &lt;- runfastcmh("/data/", doFDR=TRUE)
+
+#Example where FDR procedure takes some dependence structures into account
+mylist &lt;- runfastcmh("/data/", doFDR=TRUE, useDependenceFDR=TRUE)
+</code></pre>
+
+
+</div>

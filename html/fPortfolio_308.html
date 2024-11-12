@@ -1,0 +1,474 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>portfolio-portfolioSpec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Specification of Portfolios</h2>
+
+<h3>Description</h3>
+
+<p>Specifies a portfolio from scratch.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">portfolioSpec(
+    model = list(
+        type = "MV", optimize = "minRisk",           
+        estimator = "covEstimator", tailRisk = list(),
+        params = list(alpha = 0.05)),
+    portfolio = list(
+        weights = NULL, targetReturn = NULL,
+        targetRisk = NULL, riskFreeRate = 0, nFrontierPoints = 50,
+        status = NA),
+    optim = list(
+        solver = "solveRquadprog", 
+        objective = c("portfolioObjective", "portfolioReturn", "portfolioRisk"),
+        options = list(meq = 2), control = list(), trace = FALSE),
+    messages = list(
+        messages = FALSE, note = ""),
+    ampl = list(
+        ampl = FALSE, project = "ampl", solver = "ipopt",
+        protocol = FALSE, trace = FALSE)
+    )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>a list, containing different arguments: type, estimator, params.
+See these arguments for further explanation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>portfolio</code></td>
+<td>
+
+<p>a list, containing different arguments: weights, targetReturn,
+riskFreeRate, nFrontierPoints. See these
+arguments for further explanation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim</code></td>
+<td>
+
+<p>a list with four entries, a character string <code>solver</code> denoting 
+the type of the solver to be used, a <code>params</code> list to pass further
+arguments to the objective function to optimize, a <code>control</code> list
+for all control settings of the solver, and a logical flag, <code>trace</code>
+denoting if the optimization should be traced.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>messages</code></td>
+<td>
+
+<p>a list, for optional messages.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ampl</code></td>
+<td>
+
+<p>a list, controls settings for the R/AMPL interface.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To optimize a portfolio of assets we first have to specify it. All
+settings which specify a portfolio of assets are respresented by a
+S4 class named <code>fPFOLIOSPEC</code>.
+</p>
+<pre>
+    setClass("fPFOLIOSPEC", 
+      representation(
+        model = "list",
+        portfolio = "list",
+        optim = "list") )
+    </pre>
+<p>An object of class <code>fPFOLIOSPEC</code> has three slots, named
+<code>@model</code>, <code>@portfolio</code>, and <code>@optim</code>. The first 
+slot <code>@model</code> holds the model information, the second
+slot <code>@portfolio</code> the portfolio information, and the last 
+slot <code>@optim</code> the information about the solver used for 
+optimization.
+</p>
+<p>The default settings are as follows:
+</p>
+<pre>
+    model = list(
+        type = "MV",
+        optimize = "minRisk",    
+        estimator = "covEstimator",     
+        tailRisk = list(),               
+        params = list(alpha = 0.05, a = 2)),
+    portfolio = list(
+        weights = NULL, 
+        targetReturn = NULL, 
+        targetRisk = NULL,
+        riskFreeRate = 0, 
+        nFrontierPoints = 50,
+        status = NA),
+    optim = list(
+        solver = "solveRquadprog",    
+        objective = NULL,  
+        parames = list(),
+        control = list(meq = 2),   
+        trace = FALSE)
+    </pre>
+<p><b>Model Slot:</b>
+</p>
+<p><em>Type of Model:</em><br>
+The list entry <code>type</code> from the <code>@model</code> slot describes 
+the type of the desired portfolio. The current implementation 
+supports three types of portfolios. This may be 
+a Markowitz mean – variance portfolio named <code>"MV"</code>, 
+a mean – lower partial moment portfolio named <code>"LPM"</code>, or 
+a mean – CVaR condititional value-at-risk portfolio named <code>"CVaR"</code>. 
+One can use the function <code>getType</code> to retrieve the current
+setting and the function <code>setType</code> to modify this selection.
+</p>
+<p><em>What to optimize?</em><br>
+The list entry <code>optimize</code> from the <code>@model</code> slot describes 
+what should be optimized. Two choices are psssible. Either
+</p>
+<pre>
+        \code{"minRisk"}
+        </pre> 
+<p>which minimizes the risk if the target returns is given, or 
+</p>
+<pre>
+        \code{"maxReturn"}
+        </pre> 
+<p>which maximizes the return if the target risk is given.
+One can use the function <code>getOptimize</code> to retrieve the current
+setting and the function <code>setOptimize</code> to modify this selection.
+</p>
+<p><em>How to estimate mean and covariance?</em><br>
+The list entry <code>estimator</code> from the <code>@model</code> slot requests 
+for a string that denotes the function name of the covariance 
+estimator which should be used for the estimation of risk. 
+</p>
+<p>In Markowitz' mean-variance portfolio model, <code>type="MV"</code>, the 
+default function 
+</p>
+<pre>
+        \code{"covEstimator"} 
+        </pre>
+<p>is used which computes the standard column means 
+of the multivariate assets data series and the standard covariance 
+matrix. Alternative robust estimators include 
+</p>
+<pre>
+        \code{"covMcdEstimator"}
+        \code{"covOGKEstimator"}
+        \code{"mveEstimator"}
+        \code{"nnveEstimator"}
+        \code{"mcdEstimator"}
+        </pre>
+<p>In addition a shrinkage covariance estimator named
+</p>
+<pre>
+        \code{"shrinkEstimator"},
+        </pre>
+<p>and a bagged covariance estimator named
+</p>
+<pre>   
+        \code{"baggedEstimator"} 
+        </pre>
+<p>are also available.
+Note, the experienced user can add his own function to estimate in any
+alternative way the mean and the covariance of the multivariate assets
+data series. In this case (s)he has to write a function, e.g. named
+</p>
+<pre>   
+        \code{myEstimator=function(x,spec=NULL,...)}
+        </pre>
+<p>where <code>x</code> is a multivariate time series, <code>spec</code> optionally 
+the portfolio specification, if rquired, and <code>...</code> additional
+arguments passed to the users code. Note, <code>myEstimator</code> must
+a return a named list, with at least the following two entries
+<code>\$mu</code> and <code>\$Sigma</code>, which represent estimators for the
+mean and covariance, respectively. 
+</p>
+<p>In the case of the Mean – Lower-Partial-Moment portfolio, 
+<code>type="LPM"</code> we make use of the equivalence to Markowitz' 
+mean-variance portfolio with a modified covariance estimator, i.e. 
+</p>
+<pre>
+        \code{"lpmEstimator"},
+        </pre>
+<p>Note, in this case the setting of <code>type="LPM"</code> 
+changes the covariance estimator function name 
+from any selection previously made to the function automatically
+to <code>"lpmEstimator"</code> which returns the LPM mean and covariance 
+estimates.   
+</p>
+<p>One can use the function <code>getEstimator</code> to retrieve the current
+setting and the function <code>setEstimator</code> to modify this selection.
+</p>
+<p><em>Tail Risk List:</em><br>
+The list entry <code>tailRisk</code> from the <code>@model</code> slot is an empty 
+list. It can be used to add tail risk budget constrains to the 
+optimization. In this case a square matrix of the size of the 
+number of assets is expected as list entry, which contains bivariate 
+tail risk measures, i.e. the tail dependence coefficients estaimated 
+via a copulae approach.   
+Use the function <code>setType</code> to modify this selection.
+</p>
+<p>The list entry <code>parameters</code> from the <code>@model</code> slot is a 
+list with additional parameters used in different situations. It can 
+be ebhanced by the user if needed. 
+By default it contains the exponent <code>a=2</code>, the parameter needed 
+for "LPM" portfolio optimization,
+and it contains the <code>targetAlpha=0.05</code>, the confidence level
+for "CVaR" portfolio optimization.
+Use the function <code>setParams</code> to modify this selection.
+</p>
+<p><b>Portfolio Slot:</b>
+</p>
+<p>The values <code>weights</code>, <code>targetReturn</code>, and <code>targetRisk</code>
+from the <code>portfolio</code> slot have to be considered in common. By
+default all three are set to <code>NULL</code>. If this is the case, then 
+it is assumed that an equal weight portfolio should be calculated.
+If only one of the three values is different from <code>NULL</code> then
+the following procedure will be startet. 
+If the weights are specified then it is assumed that a feasible 
+portfolio should be considered.
+If the target return is fixed then it is assumed that the efficient 
+portfolio with the minimal risk will be considered. 
+And finally if the risk is fixed, then the return should be maximized.
+Use the functions <code>setWeights</code>, <code>setTargetReturn</code>, and
+<code>setTargetRisk</code> to modify this selection.Note, the change in of
+the three functions will influence the settings of the other two.
+</p>
+<p>The <code>riskFreeRate=0</code> is also stored in the <code>portfolio</code> slot.
+Its value defaults to zero. It can be changed by the user.
+Use the function <code>setRiskFreeRate</code> to modify this selection.
+</p>
+<p>The number of frontier points reqauired by the calculation of
+the <code>portfolioFrontier</code> is obtained from the value of
+<code>nFrontierPoints=50</code> hold in the <code>portfolio</code> slot.
+Its value defaults to 50. It can be changed by the user.
+Use the function <code>setNFrontierPoints</code> to modify this selection.
+</p>
+<p>The final <code>status</code> of portfolio optimization is returned 
+and stored in the <code>portfolio</code> slot. Before optimization the
+value is unset to <code>NA</code>, after optimization a value of 
+<code>status=0</code> means a successful termination. For other
+values we recommend to inspect the help page of the selected
+solver, the name of the solver can be returned by the function
+<code>getSolver</code>.
+Use the function <code>setSolver</code> to reset the value to <code>NA</code>
+if it should be required.
+</p>
+<p><b>Optim Slot:</b>
+</p>
+<p>The name of the default solver used for optimization can be retrieved
+calling the function <code>getSolver</code>. The default value for the
+value <code>solver</code> in the specification is set to <code>NULL</code> 
+which means that the best solver availalbe will be autoselected 
+and used. Before optimization the user can change the setting
+to another solver. Be aware, that a possible personal change will 
+be overwritten by the function <code>setType</code>, so call 
+<code>setSolver</code> after setting the type of the portfolio.
+</p>
+<p>The logical flag <code>trace</code> in the slot <code>optim</code> allows
+to trace optionally the portfolio optimization process. By 
+default this will not be the case since the default value is 
+<code>trace=FALSE</code>. Use the fanction <code>setTrace</code> to modify
+the selection.
+</p>
+<p><b>Retrieving and Modifying Specification Settings:</b>
+</p>
+<p>Information about the current portfolio specification can be retrieved 
+by <code>"get"</code> functions. These include:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <code>getType</code> </td>
+<td style="text-align: left;"> Extracts portfolio type from specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getOptimize</code> </td>
+<td style="text-align: left;"> Extracts what to optimize from specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getEstimator</code> </td>
+<td style="text-align: left;"> Extracts type of covariance estimator, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getTailRisk</code> </td>
+<td style="text-align: left;"> Extracts list of tail dependency risk matrixes, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getParams</code> </td>
+<td style="text-align: left;"> Extracts parameters from specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getWeights</code> </td>
+<td style="text-align: left;"> Extracts weights from a portfolio object, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getTargetReturn</code> </td>
+<td style="text-align: left;"> Extracts target return from specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getTargetRisk</code> </td>
+<td style="text-align: left;"> Extracts target riks from specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getAlpha</code> </td>
+<td style="text-align: left;"> Extracts target VaR-alpha specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getRiskFreeRate</code> </td>
+<td style="text-align: left;"> Extracts risk free rate from specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getNFrontierPoints</code> </td>
+<td style="text-align: left;"> Extracts number of frontier points, </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+    <code>getStatus</code> </td>
+<td style="text-align: left;"> Extracts the status of optimization, </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+    <code>getSolver</code> </td>
+<td style="text-align: left;"> Extracts solver from specification, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>getTrace</code> </td>
+<td style="text-align: left;"> Extracts solver's trace flag. </td>
+</tr>
+</table>
+<p>For details we refer to <code>link{getSpec}</code>.
+</p>
+<p>To modify the setting from a portfolio specification use the 
+<code>"set"</code> functions:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <code>setType</code> </td>
+<td style="text-align: left;"> Sets type of portfolio optimization, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setOptimize</code> </td>
+<td style="text-align: left;"> Sets what to optimize, min risk or max return, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setEstimator</code> </td>
+<td style="text-align: left;"> Sets names of mean and covariance estimators, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setParams</code> </td>
+<td style="text-align: left;"> Sets optional model parameters, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setWeights</code> </td>
+<td style="text-align: left;"> Sets weights vector, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setTargetReturn</code> </td>
+<td style="text-align: left;"> Sets target return value, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setTargetRisk</code> </td>
+<td style="text-align: left;"> Sets target risk value, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setTargetAlpha</code> </td>
+<td style="text-align: left;"> Sets CVaR target alpha value, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setRiskFreeRate</code> </td>
+<td style="text-align: left;"> Sets risk-free rate value, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setNFrontierPoints</code> </td>
+<td style="text-align: left;"> Sets number of frontier points, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setStatus</code> </td>
+<td style="text-align: left;"> Sets status value, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setSolver</code> </td>
+<td style="text-align: left;"> Sets the type of solver to be used, </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>setTrace</code> </td>
+<td style="text-align: left;"> Sets the logical trace flag. </td>
+</tr>
+</table>
+<p>For details we refer to <code>link{setSpec}</code>.
+</p>
+<p><b>Printing Specification Settings:</b>
+</p>
+<p>There is a generic print function to print information from
+specification. What is printed depends on the values of the
+settings. For example <code>print(portfolioSpec())</code> returns
+the type of portfolio, the name of the covariance estimator,
+the portfolios risk free rate, and the desired solver.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>portfolioSpec</code><br><br>
+returns an S4 object of class <code>"fPFOLIOSPEC"</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Wuertz, D., Chalabi, Y., Chen W., Ellis A. (2009);
+<em>Portfolio Optimization with R/Rmetrics</em>, 
+Rmetrics eBook, Rmetrics Association and Finance Online, Zurich.
+</p>
+
+
+</div>

@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>facSMC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Evaluate the determinacy of factor scores
+</h2>
+
+<h3>Description</h3>
+
+<p><code>facSMC</code> is a function with which one may evaluate the determinacy of factor scores.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">facSMC(R, LM)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>(Regularized) correlation <code>matrix</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LM</code></td>
+<td>
+
+<p>A (rotated) loadings <code>matrix</code>. Usually the <code>$Loadings</code>-slot object from the <code>mlFA</code> function output.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>facSMC</code> function calculates the squared multiple correlations between the observed features and the common latent factors.
+The closer to unity, the lesser the problem of factor-score indeterminacy and the better one is able to uniquely determine the  factor scores.
+In practice, a squared multiple correlation equalling or exceeding .9 would be considered adequate.
+See Mulaik (2010, Chapter 13) and Peeters <em>et al.</em> (2019, Supplementary Materials) for further details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns a <code>numeric</code> vector indicating, for each factor, the squared multiple correlation between the observed features and the common latent factor.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Note that the computations assume an orthogonal factor model.
+Hence, only orthogonal rotations of the loadings matrix should be used (or no rotation at all).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carel F.W. Peeters &lt;cf.peeters@vumc.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Mulaik, S.A. (2010). Foundations of Factor Analysis. Boca Raton: Chapman &amp; Hall/CRC, 2nd
+edition.
+</p>
+<p>Peeters, C.F.W. <em>et al.</em> (2019). Stable prediction with radiomics data.
+<a href="https://arxiv.org/abs/1903.11696">arXiv:1903.11696 [stat.ML]</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>facScore</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate some data according to a factor model with 5 latent factors
+## Simulate high-dimensional situation in the sense that p &gt; n
+## $cormatrix gives the correlation matrix on the generated data
+simDAT &lt;- FAsim(p = 50, m = 5, n = 40, loadingvalue = .9)
+simDAT$cormatrix
+
+## Regularize the correlation matrix
+RegR &lt;- regcor(simDAT$data)
+
+## Evaluate the Guttman bounds
+## First Guttman bound indicates to retain 5 latent factors
+GB &lt;- dimGB(RegR$optCor)
+print(GB)
+
+## Produce ML factor solution under 5 factors
+## Print loadings structure of this solution
+fit &lt;- mlFA(RegR$optCor, 5)
+print(fit$Loadings, digits = 2, cutoff = .3, sort = TRUE)
+
+## Obtain factor-scores
+scores &lt;- facScore(scale(simDAT$data), fit$Loadings, fit$Uniqueness)
+print(scores)
+
+## Evaluate determinacy of factor scores
+fd &lt;- facSMC(RegR$optCor, fit$Loadings)
+print(fd)
+</code></pre>
+
+
+</div>

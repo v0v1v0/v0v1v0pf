@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.forecast_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict on validation datasets or forecast</h2>
+
+<h3>Description</h3>
+
+<p>Predict with a 'forecast_model' object from <code>train_model()</code>. If <code>data = create_lagged_df(..., type = "train")</code>,
+predictions are returned for the outer-loop nested cross-validation datasets.
+If <code>data</code> is an object of class 'lagged_df' from <code>create_lagged_df(..., type = "forecast")</code>,
+predictions are returned for the horizons specified in <code>create_lagged_df(horizons = ...)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'forecast_model'
+predict(..., prediction_function = list(NULL), data)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>One or more trained models from <code>train_model()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prediction_function</code></td>
+<td>
+<p>A list of user-defined prediction functions with length equal to
+the number of models supplied in <code>...</code>. The prediction functions
+take 2 required positional arguments–(1) a 'forecast_model' object from <code>train_model()</code> and (2) a
+data.frame of model features from <code>create_lagged_df()</code>. For numeric outcomes and <code>method = "direct"</code>, the function should <code>return()</code>
+1- or 3-column data.frame of model predictions. If the prediction function returns a 1-column data.frame, point forecasts are assumed.
+If the prediction function returns a 3-column data.frame, lower and upper forecast bounds are assumed (the
+order and names of the 3 columns does not matter). For factor outcomes and <code>method = "direct"</code>, the function should <code>return()</code>
+(1) 1-column data.frame of the model-predicted factor level or (2) an L-column data.frame of class probabilities where
+'L' equals the number of levels in the outcome; columns should be ordered, from left to right, the same as
+<code>levels(data$outcome)</code> which is the default behavior for most <code>predict(..., type = "prob")</code> functions.
+Column names do not matter. For numeric outcomes and <code>method = "multi_output"</code>, the function should <code>return()</code> and
+h-column data.frame of model predictions–1 column for each horizon. Forecast intervals and factor outcomes are not currently
+supported with <code>method = "multi_output"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>If <code>data</code> is a training dataset from <code>create_lagged_df(..., type = "train")</code>, validation dataset
+predictions are returned; else, if <code>data</code> is a forecasting dataset from <code>create_lagged_df(..., type = "forecast")</code>,
+forecasts from horizons 1:h are returned.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>data = create_lagged_df(..., type = "forecast")</code>, an S3 object of class 'training_results'. If
+<code>data = create_lagged_df(..., type = "forecast")</code>, an S3 object of class 'forecast_results'.
+</p>
+<p><strong>Columns in returned 'training_results' data.frame:</strong>
+</p>
+
+<ul>
+<li> <p><code>model</code>: User-supplied model name in <code>train_model()</code>.
+</p>
+</li>
+<li> <p><code>model_forecast_horizon</code>: The direct-forecasting time horizon that the model was trained on.
+</p>
+</li>
+<li> <p><code>window_length</code>: Validation window length measured in dataset rows.
+</p>
+</li>
+<li> <p><code>window_number</code>: Validation dataset number.
+</p>
+</li>
+<li> <p><code>valid_indices</code>: Validation dataset row names from <code>attributes(create_lagged_df())$row_indices</code>.
+</p>
+</li>
+<li> <p><code>date_indices</code>: If given and <code>method = "direct"</code>, validation dataset date indices from <code>attributes(create_lagged_df())$date_indices</code>.
+If given and <code>method = "multi_output"</code>, date_indices represents the date of the forecast.
+</p>
+</li>
+<li> <p><code>"groups"</code>: If given, the user-supplied groups in <code>create_lagged_df()</code>.
+</p>
+</li>
+<li> <p><code>"outcome_name"</code>: The target being forecasted.
+</p>
+</li>
+<li> <p><code>"outcome_name"_pred</code>: The model predictions.
+</p>
+</li>
+<li> <p><code>"outcome_name"_pred_lower</code>: If given, the lower prediction bounds returned by the user-supplied prediction function.
+</p>
+</li>
+<li> <p><code>"outcome_name"_pred_upper</code>: If given, the upper prediction bounds returned by the user-supplied prediction function.
+</p>
+</li>
+<li> <p><code>forecast_indices</code>: If <code>method = "multi_output"</code>, the validation index of the h-step-ahead forecast.
+</p>
+</li>
+<li> <p><code>forecast_date_indices</code>: If <code>method = "multi_output"</code>, the validation date index of the h-step-ahead forecast.
+</p>
+</li>
+</ul>
+<p><strong>Columns in returned 'forecast_results' data.frame:</strong>
+</p>
+
+<ul>
+<li> <p><code>model</code>: User-supplied model name in <code>train_model()</code>.
+</p>
+</li>
+<li> <p><code>model_forecast_horizon</code>: If <code>method = "direct"</code>, the direct-forecasting time horizon that the model was trained on.
+</p>
+</li>
+<li> <p><code>horizon</code>: Forecast horizons, 1:h, measured in dataset rows.
+</p>
+</li>
+<li> <p><code>window_length</code>: Validation window length measured in dataset rows.
+</p>
+</li>
+<li> <p><code>forecast_period</code>: The forecast period in row indices or dates. The forecast period starts at either <code>attributes(create_lagged_df())$data_stop + 1</code> for row indices or <code>attributes(create_lagged_df())$data_stop + 1 * frequency</code> for date indices.
+</p>
+</li>
+<li> <p><code>"groups"</code>: If given, the user-supplied groups in <code>create_lagged_df()</code>.
+</p>
+</li>
+<li> <p><code>"outcome_name"</code>: The target being forecasted.
+</p>
+</li>
+<li> <p><code>"outcome_name"_pred</code>: The model forecasts.
+</p>
+</li>
+<li> <p><code>"outcome_name"_pred_lower</code>: If given, the lower forecast bounds returned by the user-supplied prediction function.
+</p>
+</li>
+<li> <p><code>"outcome_name"_pred_upper</code>: If given, the upper forecast bounds returned by the user-supplied prediction function.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Sampled Seatbelts data from the R package datasets.
+data("data_seatbelts", package = "forecastML")
+
+# Example - Training data for 2 horizon-specific models w/ common lags per predictor.
+horizons &lt;- c(1, 12)
+lookback &lt;- 1:15
+
+data_train &lt;- create_lagged_df(data_seatbelts, type = "train", outcome_col = 1,
+                               lookback = lookback, horizon = horizons)
+
+# One custom validation window at the end of the dataset.
+windows &lt;- create_windows(data_train, window_start = 181, window_stop = 192)
+
+# User-define model - LASSO
+# A user-defined wrapper function for model training that takes the following
+# arguments: (1) a horizon-specific data.frame made with create_lagged_df(..., type = "train")
+# (e.g., my_lagged_df$horizon_h) and, optionally, (2) any number of additional named arguments
+# which are passed as '...' in train_model().
+library(glmnet)
+model_function &lt;- function(data, my_outcome_col) {
+
+  x &lt;- data[, -(my_outcome_col), drop = FALSE]
+  y &lt;- data[, my_outcome_col, drop = FALSE]
+  x &lt;- as.matrix(x, ncol = ncol(x))
+  y &lt;- as.matrix(y, ncol = ncol(y))
+
+  model &lt;- glmnet::cv.glmnet(x, y, nfolds = 3)
+  return(model)
+}
+
+# my_outcome_col = 1 is passed in ... but could have been defined in model_function().
+model_results &lt;- train_model(data_train, windows, model_name = "LASSO", model_function,
+                             my_outcome_col = 1)
+
+# User-defined prediction function - LASSO
+# The predict() wrapper takes two positional arguments. First,
+# the returned model from the user-defined modeling function (model_function() above).
+# Second, a data.frame of predictors--identical to the datasets returned from
+# create_lagged_df(..., type = "train"). The function can return a 1- or 3-column data.frame
+# with either (a) point forecasts or (b) point forecasts plus lower and upper forecast
+# bounds (column order and column names do not matter).
+prediction_function &lt;- function(model, data_features) {
+
+  x &lt;- as.matrix(data_features, ncol = ncol(data_features))
+
+  data_pred &lt;- data.frame("y_pred" = predict(model, x, s = "lambda.min"))
+  return(data_pred)
+}
+
+# Predict on the validation datasets.
+data_valid &lt;- predict(model_results, prediction_function = list(prediction_function),
+                      data = data_train)
+
+# Forecast.
+data_forecast &lt;- create_lagged_df(data_seatbelts, type = "forecast", outcome_col = 1,
+                                  lookback = lookback, horizon = horizons)
+
+data_forecasts &lt;- predict(model_results, prediction_function = list(prediction_function),
+                          data = data_forecast)
+</code></pre>
+
+
+</div>

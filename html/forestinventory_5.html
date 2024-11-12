@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estTable</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>estTable</h2>
+
+<h3>Description</h3>
+
+<p><code>estTable</code> can be used to compare the results of <code>onephase</code> to multiphase estimations
+(<code>twophase</code>, <code>threephase</code>). It restructures the estimation results into a table that can
+be used to plot the estimation results and provides the basis for further analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estTable(
+  est.list,
+  sae = FALSE,
+  add.ci = TRUE,
+  vartypes = c("variance", "ext_variance", "g_variance")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>est.list</code></td>
+<td>
+<p>a <code>list</code> object containing at least one multiphase estimation object created by
+the <code>twophase</code> or <code>threephase</code> function and the respective <code>onephase</code> estimation object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sae</code></td>
+<td>
+<p>an object of type <code>logical</code>. Has to be set to <code>TRUE</code> if results of small area estimations are passed to <code>estTable</code>.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.ci</code></td>
+<td>
+<p><code>logical</code>: Should confidence intervals be added? Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vartypes</code></td>
+<td>
+<p>Specifying the variances that should be included in the estimation table. Has to be specified as a <code>character</code> vector. The full set
+contains <code>"variance"</code>, <code>"ext_variance"</code> and <code>"g_variance"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>estTable</code> returns a <code>list</code> of the following components:
+</p>
+
+<ul>
+<li> <p><code>area:</code> in case of small area estimations: the name of the small area
+</p>
+</li>
+<li> <p><code>estimate:</code> the point estimates
+</p>
+</li>
+<li> <p><code>vartype:</code> the type of variance
+</p>
+</li>
+<li> <p><code>variance:</code> the variance values
+</p>
+</li>
+<li> <p><code>std:</code> the standard errors (square root of variance values)
+</p>
+</li>
+<li> <p><code>error:</code> the estimation errors defined as the ratio between <em>standard error</em> and <em>point estimate</em>
+</p>
+</li>
+<li> <p><code>domain:</code> indicating if current row belongs to a <code>smallarea</code> or <code>global</code> estimation
+</p>
+</li>
+<li> <p><code>estimator:</code> the estimator that that was applied
+</p>
+</li>
+<li> <p><code>method:</code> the estimation method that was applied
+</p>
+</li>
+<li> <p><code>n2:</code> terrestrial sample size in entire inventory area
+</p>
+</li>
+<li> <p><code>n1:</code> first phase sample size in entire inventory area
+</p>
+</li>
+<li> <p><code>n0:</code> in case of <code>threephase</code> estimations: zero phase sample size in entire inventory area
+</p>
+</li>
+<li> <p><code>n2G:</code> terrestrial sample size in small area
+</p>
+</li>
+<li> <p><code>n1G:</code> first phase sample size in small area
+</p>
+</li>
+<li> <p><code>n0G:</code> in case of <code>threephase</code> estimations: zero phase sample size in small area
+</p>
+</li>
+<li> <p><code>r.squared:</code> coefficient of determination of regression model
+</p>
+</li>
+<li> <p><code>r.squared_reduced:</code> in case of <code>threephase</code> estimations: coefficient of determination of reduced regression model
+</p>
+</li>
+<li> <p><code>r.squared_full:</code> in case of <code>threephase</code> estimations: coefficient of determination of full regression model
+</p>
+</li>
+<li> <p><code>ci_lower:</code> if <code>add.ci=TRUE</code>: lower confidence limit
+</p>
+</li>
+<li> <p><code>ci_upper:</code> if <code>add.ci=TRUE</code>: upper confidence limit
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>An estimation object of class <code>onephase</code> as input is mandatory
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## run onephase estimation:
+op.a &lt;- onephase(formula = tvol~1,
+                 data = grisons,
+                 phase_id = list(phase.col = "phase_id_2p", terrgrid.id = 2),
+                 area = list(sa.col = "smallarea", areas = c("A", "B", "C", "D")))
+
+## run small area twophase estimation:
+sae.2p.est &lt;- twophase(formula = tvol ~ mean + stddev + max + q75,
+                       data = grisons,
+                       phase_id = list(phase.col = "phase_id_2p", terrgrid.id = 2),
+                       small_area = list(sa.col = "smallarea", areas = c("A", "B","C", "D"),
+                                         unbiased = TRUE))
+
+## run small area threephase estimation:
+sae.3p.est &lt;- threephase(formula.s0 =  tvol ~ mean,
+                         formula.s1 = tvol ~ mean + stddev + max + q75,
+                         data = grisons,
+                         phase_id = list(phase.col = "phase_id_3p", s1.id = 1, terrgrid.id = 2),
+                         small_area=list(sa.col = "smallarea", areas = c("A", "B", "C", "D"),
+                                         unbiased = TRUE))
+
+## create estimation table with confidence intervals:
+sae.table&lt;- estTable(est.list = list(op.a, sae.2p.est, sae.3p.est), add.ci=TRUE,
+                     sae = TRUE, vartypes = c("variance", "g_variance",  "ext_variance"))
+
+sae.table.df&lt;- as.data.frame(sae.table)
+</code></pre>
+
+
+</div>

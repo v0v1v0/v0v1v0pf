@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fic.glm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Focused information criteria for generalized linear models</h2>
+
+<h3>Description</h3>
+
+<p>Focused information criteria for generalized linear models fitted with <code>glm</code>.
+Used to compare models with different covariates (more generally,
+different linear terms).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'glm'
+fic(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
+  focus_deriv = NULL, wt = NULL, sub = "auto", B = 0, loss = loss_mse,
+  ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>wide</code></td>
+<td>
+<p>Fitted model object containing the wide model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inds</code></td>
+<td>
+<p>Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+</p>
+<p>A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in <code>inds0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inds0</code></td>
+<td>
+<p>Vector of indicators specifying the narrow model, in the same format as <code>inds</code>.  If this is omitted, the narrow model is assumed to be defined by the first row of <code>inds</code> (if <code>inds</code> is a matrix), or <code>inds</code> itself if this is a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma0</code></td>
+<td>
+<p>Vector of special values taken by the parameters <code class="reqn">gamma</code> which define the narrow model.
+</p>
+<p>This defaults to 0, as in covariate selection, where "excluded" coefficients are fixed to 0. 
+</p>
+<p>This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of <code>inds0</code> which are zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>focus</code></td>
+<td>
+<p>An R function with:
+</p>
+
+<ul>
+<li>
+<p> first argument named <code>par</code>, denoting a vector of parameters, of the same length as in wide model
+</p>
+</li>
+<li>
+<p> other arguments defining alternative focuses.  These are supplied through the <code>...</code> argument to <code>fic</code>.  In the built-in examples, there is an argument named <code>X</code>, denoting alternative covariate values.  The required format is documented below. 
+</p>
+</li>
+</ul>
+<p>The function should return the focus quantity of interest.  If additional arguments are supplied which are vectors or matrices, e.g. <code>X</code>, then these are assumed to represent multiple focuses, and <code>focus</code> should return a vector giving the focus for <code>par</code> and each row of <code>X</code>.  Otherwise <code>focus</code> should return a scalar giving the focus value at <code>par</code>.
+</p>
+<p>Not required if <code>focus_deriv</code> is specified.
+</p>
+<p>Alternatively, <code>focus</code> can be a character string naming a built-in focus function supplied by the <span class="pkg">fic</span> package.  Currently these include:
+</p>
+<p><code>"prob_logistic"</code>, the probability of the outcome in a logistic regression model
+</p>
+<p><code>"mean_normal"</code> the mean outcome in a normal linear regression model
+</p>
+<p>See <code>focus_fns</code> for the functions underlying these built-in focuses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>focus_deriv</code></td>
+<td>
+<p>Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in <code>focus</code>, using numerical differentiation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wt</code></td>
+<td>
+<p>Vector of weights to apply to different covariate values in <code>X</code>.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub</code></td>
+<td>
+<p>If <code>"auto"</code> (the default) then the submodels are fitted automatically within this function.   If <code>NULL</code> they are not fitted, and focus estimates are not returned with the results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>If <code>B</code> is 0 (the default) the standard analytic formulae for the focused model comparison statistics are used with mean square error loss.   If <code>B</code>&gt;0, then a parametric bootstrap method is used with <code>B</code> bootstrap samples, and the loss specified in the <code>loss</code> argument. More details of this approach are given in the package vignette "Focused model comparison with bootstrapping and alternative loss functions".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments <code>sub</code> and <code>wide</code>.  <code>sub</code> should be a scalar giving the focus estimate from a submodel.  <code>wide</code> should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.   An example is given in the vignette  "Focused model comparison with bootstrapping and alternative loss functions".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to the focus function can be supplied here.
+</p>
+<p>The built-in focus functions <code>prob_logistic</code> and <code>mean_normal</code> take an argument <code>X</code> giving covariate values defining the focus. This can either be a matrix or a vector, or a list or data frame that can be coerced into a matrix. 
+</p>
+<p>If just one focus is needed, then <code>X</code> can be a vector of length equal to the number of parameters in the wide model.
+</p>
+<p>To compute focused model comparison statistics for multiple focuses defined by the same focus function evaluated at multiple covariate values, <code>X</code> should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative focuses.
+</p>
+<p>For a typical regression model, the first parameter will denote an intercept, so the first value of <code>X</code> should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+</p>
+<p>Arguments to the focus function other than <code>X</code> can also be supplied as a matrix, vector, list or data frame in the same way. An exception is when the argument is supplied as a vector, this is assumed to refer to multiple focuses.   For example, suppose the focus function defines the quantile of a distribution, and takes an argument <code>focus_p</code>, then calling <code>fic(...,focus_p=c(0.1, 0.9))</code> indicates two alternative focuses defined by the 0.1 and 0.9 quantiles.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The model parameters include the intercept, followed by the coefficients of any covariates.  Any "dispersion" parameter is excluded from the parameters indicated by <code>inds</code> and <code>inds0</code>.   
+</p>
+<p>Only covariate selection problems are supported in this function.
+To compare between models with a fixed and unknown dispersion,
+<code>glm</code> would have to be replaced by maximum likelihood
+estimation routines written by hand, along the lines described in
+the "skew-normal models" vignette.
+</p>
+<p>The focus function can however depend on the value of the
+dispersion parameter.  The focus function should then have
+an argument called <code>dispersion</code>.  See the example of a gamma
+GLM below, where the focus is the mean outcome for some covariate
+value.
+</p>
+<p>Examples of covariate selection in logistic regression are given in the main package vignette.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Gamma regression with one binary covariate
+
+# Simulated data 
+set.seed(1)
+simx &lt;- rbinom(1000, 1, 0.5)
+mean0 &lt;- 1.1
+simy &lt;- rgamma(1000, shape=2, scale=exp(log(mean0) + 0.2*simx))
+
+mod &lt;- glm(simy ~ simx, family=Gamma(link="log"))
+
+# Check the parameter estimates are close to true
+# values used for simulation
+(shape &lt;- 1 / summary(mod)$dispersion)
+coef(mod)[2] # log mean ratio associated with covariate. true value 0.2
+exp(coef(mod)[1] - log(shape))  # mean with x=0, true value 1.1
+exp(coef(mod)[1] + coef(mod)[2] - log(shape))  # mean with x=1
+
+focus_mean &lt;- function(par, X, dispersion){  
+  exp(X %*% par - log(1/dispersion))
+}
+
+X &lt;- rbind("x0" = c(1,0), "x1" = c(1,1))
+inds &lt;- rbind("no_covariate"=c(1,0), "covariate"=c(1,1))
+
+fic(mod, inds=inds, focus=focus_mean, X=X)
+
+# The focus need not depend on X or the dispersion
+focus_base_scale &lt;- function(par, dispersion){  
+  exp(par[1])
+}
+fic(mod, inds=inds, focus=focus_base_scale)
+
+# ...equivalently,
+focus_base_scale &lt;- function(par){  
+  exp(par[1])
+}
+fic(mod, inds=inds, focus=focus_base_scale)
+
+
+
+</code></pre>
+
+
+</div>

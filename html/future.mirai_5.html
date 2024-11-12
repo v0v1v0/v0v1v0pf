@@ -1,0 +1,89 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mirai_multisession</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mirai-based localhost multisession futures</h2>
+
+<h3>Description</h3>
+
+<p>Mirai-based localhost multisession futures
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mirai_multisession(
+  expr,
+  substitute = TRUE,
+  envir = parent.frame(),
+  ...,
+  workers = availableCores()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>expr</code></td>
+<td>
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> expression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>substitute</code></td>
+<td>
+<p>If TRUE, argument <code>expr</code> is
+<code>substitute()</code>:ed, otherwise not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>The environment from where global objects should be
+identified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional named elements of the future.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>workers</code></td>
+<td>
+<p>The number of parallel processes to use.
+If a function, it is called without arguments <em>when the future
+is created</em> and its value is used to configure the workers.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class MiraiFuture.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">plan(mirai_multisession)
+
+# A function that returns a future, note that N uses lexical scoping...
+f &lt;- function() future({4 * sum((runif(N) ^ 2 + runif(N) ^ 2) &lt; 1) / N}, seed = TRUE)
+
+# Run a simple sampling approximation of pi in parallel using  M * N points:
+N &lt;- 1e6  # samples per worker
+M &lt;- 10   # iterations
+pi_est &lt;- Reduce(sum, Map(value, replicate(M, f()))) / M
+print(pi_est)
+
+plan(sequential)
+invisible(mirai::daemons(0)) ## Shut down mirai workers
+</code></pre>
+
+
+</div>

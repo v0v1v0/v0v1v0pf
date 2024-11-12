@@ -1,0 +1,328 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>finalfit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Final output tables for common regression models</h2>
+
+<h3>Description</h3>
+
+<p>An "all-in-one" function that takes a single dependent variable with a vector
+of explanatory variable names (continuous or categorical variables) to
+produce a final table for publication including summary statistics. The
+appropriate model is selected on the basis of dependent variable and whether
+a random effect is specified.
+</p>
+<p><code>finalfit.lm</code> method (not called directly)
+</p>
+<p><code>finalfit.glm</code> method (not called directly)
+</p>
+<p><code>finalfit.coxph</code> method (not called directly)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">finalfit(
+  .data,
+  dependent = NULL,
+  explanatory = NULL,
+  explanatory_multi = NULL,
+  random_effect = NULL,
+  formula = NULL,
+  model_args = list(),
+  weights = NULL,
+  cont_cut = 5,
+  column = NULL,
+  keep_models = FALSE,
+  metrics = FALSE,
+  add_dependent_label = TRUE,
+  dependent_label_prefix = "Dependent: ",
+  dependent_label_suffix = "",
+  keep_fit_id = FALSE,
+  ...
+)
+
+finalfit.lm(
+  .data,
+  dependent,
+  explanatory,
+  explanatory_multi = NULL,
+  random_effect = NULL,
+  model_args = NULL,
+  weights = NULL,
+  cont_cut = 5,
+  column = FALSE,
+  keep_models = FALSE,
+  metrics = FALSE,
+  add_dependent_label = TRUE,
+  dependent_label_prefix = "Dependent: ",
+  dependent_label_suffix = "",
+  keep_fit_id = FALSE,
+  ...
+)
+
+finalfit.glm(
+  .data,
+  dependent,
+  explanatory,
+  explanatory_multi = NULL,
+  random_effect = NULL,
+  model_args = NULL,
+  weights = NULL,
+  cont_cut = 5,
+  column = FALSE,
+  keep_models = FALSE,
+  metrics = FALSE,
+  add_dependent_label = TRUE,
+  dependent_label_prefix = "Dependent: ",
+  dependent_label_suffix = "",
+  keep_fit_id = FALSE,
+  ...
+)
+
+finalfit.coxph(
+  .data,
+  dependent,
+  explanatory,
+  explanatory_multi = NULL,
+  random_effect = NULL,
+  model_args = NULL,
+  column = TRUE,
+  cont_cut = 5,
+  keep_models = FALSE,
+  metrics = FALSE,
+  add_dependent_label = TRUE,
+  dependent_label_prefix = "Dependent: ",
+  dependent_label_suffix = "",
+  keep_fit_id = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>Data frame or tibble.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent</code></td>
+<td>
+<p>Character vector of length 1:  quoted name of dependent
+variable. Can be continuous, a binary factor, or a survival object of form
+<code>Surv(time, status)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explanatory</code></td>
+<td>
+<p>Character vector of any length: quoted name(s) of
+explanatory variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explanatory_multi</code></td>
+<td>
+<p>Character vector of any length: quoted name(s) of a
+subset of explanatory variables to generate reduced multivariable model
+(must only contain variables contained in <code>explanatory</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_effect</code></td>
+<td>
+<p>Character vector of length 1, either, (1) name of random
+intercept variable, e.g. "var1", (automatically convered to "(1 | var1)");
+or, (2) the full <code>lme4</code> specification, e.g. "(var1 | var2)". Note
+parenthesis MUST be included in (2) but NOT included in (1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class "formula" (or one that can be coerced to 
+that class). Optional instead of standard dependent/explanatory format. 
+Do not include if using dependent/explanatory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_args</code></td>
+<td>
+<p>List. A list of arguments to pass to 
+<code>lm</code>, <code>glm</code>, <code>coxph</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Character vector of length 1: quoted name of weights variable. 
+Passed to <code>summary_factorlist</code>, <code>lm</code>, and <code>glm</code> 
+to provide weighted summary table and regression (e.g. IPTW). If wish weighted regression
+and non-weighted summary table, pass <code>weights</code> argument within <code>model_args</code>. 
+Not available with surival dependent variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cont_cut</code></td>
+<td>
+<p>Numeric: number of unique values in continuous variable at
+which to consider it a factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column</code></td>
+<td>
+<p>Logical: Compute margins by column rather than row.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_models</code></td>
+<td>
+<p>Logical: include full multivariable model in output when
+working with reduced multivariable model (<code>explanatory_multi</code>) and/or
+mixed effect models (<code>random_effect</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>Logical: include useful model metrics in output in
+publication format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_dependent_label</code></td>
+<td>
+<p>Add the name of the dependent label to the top
+left of table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent_label_prefix</code></td>
+<td>
+<p>Add text before dependent label.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent_label_suffix</code></td>
+<td>
+<p>Add text after dependent label.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_fit_id</code></td>
+<td>
+<p>Keep original model output coefficient label (internal).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass to <code>fit2df</code>:
+<code>estimate_name, digits, confint_type, confint_level,
+confint_sep</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a data frame with the final model table.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(finalfit)
+library(dplyr)
+
+# Summary, univariable and multivariable analyses of the form:
+# glm(depdendent ~ explanatory, family="binomial")
+# lmuni(), lmmulti(), lmmixed(), glmuni(), glmmulti(), glmmixed(), glmmultiboot(),
+#   coxphuni(), coxphmulti()
+
+data(colon_s) # Modified from survival::colon
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+dependent = 'mort_5yr'
+colon_s %&gt;%
+  finalfit(dependent, explanatory)
+
+# Multivariable analysis with subset of explanatory
+#   variable set used in univariable analysis
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+explanatory_multi = c("age.factor", "obstruct.factor")
+dependent = "mort_5yr"
+colon_s %&gt;%
+  finalfit(dependent, explanatory, explanatory_multi)
+
+# Summary, univariable and multivariable analyses of the form:
+# lme4::glmer(dependent ~ explanatory + (1 | random_effect), family="binomial")
+
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+explanatory_multi = c("age.factor", "obstruct.factor")
+random_effect = "hospital"
+dependent = "mort_5yr"
+# colon_s %&gt;%
+#   finalfit(dependent, explanatory, explanatory_multi, random_effect)
+
+# Include model metrics:
+colon_s %&gt;%
+  finalfit(dependent, explanatory, explanatory_multi,  metrics=TRUE)
+
+# Summary, univariable and multivariable analyses of the form:
+# survival::coxph(dependent ~ explanatory)
+
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+dependent = "Surv(time, status)"
+
+colon_s %&gt;%
+  finalfit(dependent, explanatory)
+
+# Rather than going all-in-one, any number of subset models can
+# be manually added on to a summary_factorlist() table using finalfit.merge().
+# This is particularly useful when models take a long-time to run or are complicated.
+
+# Note requirement for fit_id=TRUE.
+# `fit2df` is a subfunction extracting most common models to a dataframe.
+
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+dependent = 'mort_5yr'
+colon_s %&gt;%
+  finalfit(dependent, explanatory, metrics=TRUE)
+
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+explanatory_multi = c("age.factor", "obstruct.factor")
+random_effect = "hospital"
+dependent = 'mort_5yr'
+
+# Separate tables
+colon_s %&gt;%
+  summary_factorlist(dependent, explanatory, fit_id=TRUE) -&gt; example.summary
+
+colon_s %&gt;%
+  glmuni(dependent, explanatory) %&gt;%
+  fit2df(estimate_suffix=" (univariable)") -&gt; example.univariable
+
+colon_s %&gt;%
+  glmmulti(dependent, explanatory) %&gt;%
+  fit2df(estimate_suffix=" (multivariable)") -&gt; example.multivariable
+
+# Edited as CRAN slow to run these
+# colon_s %&gt;%
+#   glmmixed(dependent, explanatory, random_effect) %&gt;%
+#   fit2df(estimate_suffix=" (multilevel") -&gt; example.multilevel
+
+# Pipe together
+example.summary %&gt;%
+  finalfit_merge(example.univariable) %&gt;%
+  finalfit_merge(example.multivariable, last_merge = TRUE)
+# finalfit_merge(example.multilevel)
+</code></pre>
+
+
+</div>

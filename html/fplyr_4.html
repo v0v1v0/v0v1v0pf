@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flply</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read, process each block and return a list</h2>
+
+<h3>Description</h3>
+
+<p>With <code>flply()</code> you can apply a function to each block of the file separately.
+The result of each function is saved into a list and returned. <code>flply()</code>
+is similar to <code>lapply()</code>, except that it applies the function to each
+block of the file rather than to each element of a list. It is also similar
+to <code>by()</code>, except that it does not read the whole file into memory, but
+each block is processed as soon as it is read from the disk.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flply(
+  input,
+  FUN,
+  ...,
+  key.sep = "\t",
+  sep = "\t",
+  skip = 0,
+  header = TRUE,
+  nblocks = Inf,
+  stringsAsFactors = FALSE,
+  colClasses = NULL,
+  select = NULL,
+  drop = NULL,
+  col.names = NULL,
+  parallel = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Path of the input file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>A function to be applied to each block. The first argument to the
+function must be a <code>data.table</code> containing the current block. Additional
+arguments can be passed with <code>...</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to FUN.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key.sep</code></td>
+<td>
+<p>The character that delimits the first field from the rest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>The field delimiter (often equal to <code>key.sep</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>Number of lines to skip at the beginning of the file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>header</code></td>
+<td>
+<p>Whether the file has a header.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nblocks</code></td>
+<td>
+<p>The number of blocks to read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stringsAsFactors</code></td>
+<td>
+<p>Whether to convert strings into factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colClasses</code></td>
+<td>
+<p>Vector or list specifying the class of each field.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>The columns (names or numbers) to be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop</code></td>
+<td>
+<p>The columns (names or numbers) not to be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.names</code></td>
+<td>
+<p>Names of the columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Number of cores to use.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list containing, for each chunk, the result of the
+processing.
+</p>
+
+
+<h3>Slogan</h3>
+
+<p>flply: from <strong>f</strong>ile to <strong>l</strong>ist
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">f &lt;- system.file("extdata", "dt_iris.csv", package = "fplyr")
+
+# Compute, within each block, the correlation between Sepal.Length and Petal.Length
+flply(f, function(d) cor(d$Sepal.Length, d$Petal.Length))
+
+# Summarise each block
+flply(f, summary)
+
+# Make a different linear model for each block
+block.lm &lt;- function(d) {
+  lm(Sepal.Length ~ ., data = d[, !"Species"])
+}
+lm.list &lt;- flply(f, block.lm)
+
+</code></pre>
+
+
+</div>

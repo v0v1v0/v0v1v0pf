@@ -1,0 +1,400 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MCMC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Markov Chain Monte Carlo</h2>
+
+<h3>Description</h3>
+
+<p>A flexible implementation of the Metropolis-Hastings MCMC algorithm, users
+can utilize arbitrary transition kernels as well as set-up an automatic
+stop criterion using a convergence check test.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MCMC(
+  initial,
+  fun,
+  nsteps,
+  ...,
+  seed = NULL,
+  nchains = 1L,
+  burnin = 0L,
+  thin = 1L,
+  kernel = kernel_normal(),
+  multicore = FALSE,
+  conv_checker = NULL,
+  cl = NULL,
+  progress = interactive() &amp;&amp; !multicore,
+  chain_id = 1L
+)
+
+MCMC_without_conv_checker(
+  initial,
+  fun,
+  nsteps,
+  ...,
+  nchains = 1L,
+  burnin = 0L,
+  thin = 1L,
+  kernel = kernel_normal(),
+  multicore = FALSE,
+  conv_checker = NULL,
+  cl = NULL,
+  progress = interactive() &amp;&amp; !multicore,
+  chain_id = 1L
+)
+
+MCMC_OUTPUT
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>Either a numeric matrix or vector, or an object of class coda::mcmc
+or coda::mcmc.list (see details).
+initial values of the parameters for each chain (See details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>A function. Returns the log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsteps</code></td>
+<td>
+<p>Integer scalar. Length of each chain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>fun</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>If not null, passed to set.seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nchains</code></td>
+<td>
+<p>Integer scalar. Number of chains to run (in parallel).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>Integer scalar. Length of burn-in. Passed to
+coda::mcmc as <code>start</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thin</code></td>
+<td>
+<p>Integer scalar. Passed to coda::mcmc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p>An object of class fmcmc_kernel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multicore</code></td>
+<td>
+<p>Logical. If <code>FALSE</code> then chains will be executed in serial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv_checker</code></td>
+<td>
+<p>A function that receives an object of class coda::mcmc.list,
+and returns a logical value with <code>TRUE</code> indicating convergence. See the
+"Automatic stop" section and the convergence-checker manual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>A <code>cluster</code> object passed to parallel::clusterApply.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>Logical scalar. When set to <code>TRUE</code> shows a progress bar. A new
+bar will be show every time that the convergence checker is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chain_id</code></td>
+<td>
+<p>Integer scalar (internal use only). This is an argument
+passed to the kernel function and it allows it identify in which of the
+chains the process is taking place. This could be relevant for some kernels
+(see <code>kernel_new()</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements Markov Chain Monte Carlo (MCMC) using the
+Metropolis-Hastings ratio with
+flexible transition kernels. Users can specify either one of the available
+transition kernels or define one of their own (see kernels). Furthermore,
+it allows easy parallel implementation running multiple chains in parallel.
+The function also allows using convergence diagnostics tests to set-up a
+criterion for automatically stopping the algorithm  (see convergence-checker).
+</p>
+<p>The canonical form of the Metropolis Hastings algorithm consists on accepting
+a move from state <code class="reqn">x</code> to state <code class="reqn">y</code> based on the Hastings ratio <code class="reqn">r(x,y)</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">%
+r(x,y) = \frac{h(y)q(y,x)}{h(x)q(x,y)},%
+</code>
+</p>
+
+<p>where <code class="reqn">h</code> is the unnormalized density of the specified distribution (
+the posterior probability), and <code class="reqn">q</code> has the conditional probability of
+moving from state <code class="reqn">x</code> to <code class="reqn">y</code> (the proposal density). The move
+<code class="reqn">x \to y</code> is then accepted with probability
+</p>
+<p style="text-align: center;"><code class="reqn">%
+\alpha(x,y) = \min\left(1, r(x,y)\right)%
+</code>
+</p>
+
+<p>Observe that, in the case that <code class="reqn">q()</code> is symmetric, meaning <code class="reqn">q(x, y) = q(y, x)</code>,
+the Hastings ration reduces to <code class="reqn">h(y)/h(x)</code>. Starting version 0.5-0, the value
+of the log unnormalized density and the proposed states <code>y</code> can be accessed using
+the functions <code>get_logpost()</code> and <code>get_draws()</code>.
+</p>
+<p>We now give details of the
+various options included in the function.
+</p>
+<p>The function <code>MCMC_without_conv_checker</code> is for internal use
+only.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>MCMC</code> returns an object of class coda::mcmc from the <a href="https://CRAN.R-project.org/package=coda"><span class="pkg">coda</span></a>
+package. The <code>mcmc</code> object is a matrix with one column per parameter,
+and <code>nsteps</code> rows. If <code>nchains &gt; 1</code>, then it returns a coda::mcmc.list.
+</p>
+<p>While the main output of <code>MCMC</code> is the <code>mcmc</code>(<code>.list</code>) object, other information
+and intermediate outputs of the process are stored in <code>MCMC_OUTPUT</code>. For information
+about how to retrieve/set data, see mcmc-output.
+</p>
+
+
+<h3>Starting point</h3>
+
+<p>By default, if <code>initial</code> is of class <code>mcmc</code>, <code>MCMC</code> will take the last <code>nchains</code>
+points from the chain as starting point for the new sequence. If <code>initial</code> is
+of class <code>mcmc.list</code>, the number of chains in <code>initial</code> must match the <code>nchains</code>
+parameter.
+</p>
+<p>If <code>initial</code> is a vector, then it must be of length equal to the number of
+parameters used in the model. When using multiple chains, if <code>initial</code> is not
+an object of class <code>mcmc</code> or <code>mcmc.list</code>, then it must be a numeric matrix
+with as many rows as chains, and as many columns as parameters in the model.
+</p>
+
+
+<h3>Multiple chains</h3>
+
+<p>When <code>nchains &gt; 1</code>, the function will run multiple chains. Furthermore,
+if <code>cl</code> is not passed, <code>MCMC</code> will create a <code>PSOCK</code> cluster
+using <code>makePSOCKcluster</code> with
+parallel::detectCores
+clusters and attempt to execute using multiple cores. Internally, the function does
+the following:
+</p>
+<pre>
+  # Creating the cluster
+  ncores &lt;- parallel::detectCores()
+  ncores &lt;- ifelse(nchains &lt; ncores, nchains, ncores)
+  cl     &lt;- parallel::makePSOCKcluster(ncores)
+  
+  # Loading the package and setting the seed using clusterRNGStream
+  invisible(parallel::clusterEvalQ(cl, library(fmcmc)))
+  parallel::clusterSetRNGStream(cl, .Random.seed)
+</pre>
+<p>When running in parallel, objects that are
+used within <code>fun</code> must be passed through <code>...</code>, otherwise the cluster
+will return with an error.
+</p>
+<p>The user controls the initial value of the parameters of the MCMC algorithm
+using the argument <code>initial</code>. When using multiple chains, i.e., <code>nchains &gt; 1</code>,
+the user can specify multiple starting points, which is recommended. In such a
+case, each row of <code>initial</code> is use as a starting point for each of the
+chains. If <code>initial</code> is a vector and <code>nchains &gt; 1</code>, the value is recycled, so
+all chains start from the same point (not recommended, the function throws a
+warning message).
+</p>
+
+
+<h3>Automatic stop</h3>
+
+<p>By default, no automatic stop is implemented. If one of the functions in
+convergence-checker is used, then the MCMC is done by bulks as specified
+by the convergence checker function, and thus the algorithm will stop if,
+the <code>conv_checker</code> returns <code>TRUE</code>. For more information see convergence-checker.
+</p>
+
+
+<h3>References</h3>
+
+<p>Brooks, S., Gelman, A., Jones, G. L., &amp; Meng, X. L. (2011). Handbook of
+Markov Chain Monte Carlo. Handbook of Markov Chain Monte Carlo.
+</p>
+<p>Vega Yon, G., &amp; Marjoram, P. (2019). fmcmc: A friendly MCMC framework.
+Journal of Open Source Software, 4(39), 1427. <a href="https://doi.org/10.21105/joss.01427">doi:10.21105/joss.01427</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_logpost()</code>, <code>get_logpost()</code> (mcmc-output) for post execution of <code>MCMC</code>, and
+<code>ith_step()</code> for accessing objects within an <code>MCMC</code> call.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Univariate distributed data with multiple parameters ----------------------
+# Parameters
+set.seed(1231)
+n &lt;- 1e3
+pars &lt;- c(mean = 2.6, sd = 3)
+
+# Generating data and writing the log likelihood function
+D &lt;- rnorm(n, pars[1], pars[2])
+fun &lt;- function(x) {
+  x &lt;- log(dnorm(D, x[1], x[2]))
+  sum(x)
+}
+
+# Calling MCMC, but first, loading the coda R package for
+# diagnostics
+library(coda)
+ans &lt;- MCMC(
+  fun, initial = c(mu=1, sigma=1), nsteps = 2e3,
+  kernel = kernel_normal_reflective(scale = .1, ub = 10, lb = 0)
+  )
+
+# Ploting the output
+oldpar &lt;- par(no.readonly = TRUE)
+par(mfrow = c(1,2))
+boxplot(as.matrix(ans), 
+        main = expression("Posterior distribution of"~mu~and~sigma),
+        names =  expression(mu, sigma), horizontal = TRUE,
+        col  = blues9[c(4,9)],
+        sub = bquote(mu == .(pars[1])~", and"~sigma == .(pars[2]))
+)
+abline(v = pars, col  = blues9[c(4,9)], lwd = 2, lty = 2)
+
+plot(apply(as.matrix(ans), 1, fun), type = "l",
+     main = "LogLikelihood",
+     ylab = expression(L("{"~mu,sigma~"}"~"|"~D)) 
+)
+par(oldpar)
+
+
+# In this example we estimate the parameter for a dataset with ----------------
+# With 5,000 draws from a MVN() with parameters M and S.
+
+# Loading the required packages
+library(mvtnorm)
+library(coda)
+
+# Parameters and data simulation
+S &lt;- cbind(c(.8, .2), c(.2, 1))
+M &lt;- c(0, 1)
+
+set.seed(123)
+D &lt;- rmvnorm(5e3, mean = M, sigma = S)
+
+# Function to pass to MCMC
+fun &lt;- function(pars) {
+  # Putting the parameters in a sensible way
+  m &lt;- pars[1:2]
+  s &lt;- cbind( c(pars[3], pars[4]), c(pars[4], pars[5]) )
+  
+  # Computing the unnormalized log likelihood
+  sum(log(dmvnorm(D, m, s)))
+}
+
+# Calling MCMC
+ans &lt;- MCMC(
+  initial = c(mu0=5, mu1=5, s0=5, s01=0, s2=5), 
+  fun,
+  kernel  = kernel_normal_reflective(
+    lb    = c(-10, -10, .01, -5, .01),
+    ub    = 5,
+    scale = 0.01
+  ),
+  nsteps  = 1e3,
+  thin    = 10,
+  burnin  = 5e2
+)
+
+# Checking out the outcomes
+plot(ans)
+summary(ans)
+
+# Multiple chains -----------------------------------------------------------
+
+# As we want to run -fun- in multiple cores, we have to
+# pass -D- explicitly (unless using Fork Clusters)
+# just like specifying that we are calling a function from the
+# -mvtnorm- package.
+  
+fun &lt;- function(pars, D) {
+  # Putting the parameters in a sensible way
+  m &lt;- pars[1:2]
+  s &lt;- cbind( c(pars[3], pars[4]), c(pars[4], pars[5]) )
+  
+  # Computing the unnormalized log likelihood
+  sum(log(mvtnorm::dmvnorm(D, m, s)))
+}
+
+# Two chains
+ans &lt;- MCMC(
+  initial = c(mu0=5, mu1=5, s0=5, s01=0, s2=5), 
+  fun,
+  nchains = 2,
+  kernel  = kernel_normal_reflective(
+    lb    = c(-10, -10, .01, -5, .01),
+    ub    = 5,
+    scale = 0.01
+  ),
+  nsteps  = 1e3,
+  thin    = 10,
+  burnin  = 5e2,
+  D       = D
+)
+
+summary(ans)
+
+
+</code></pre>
+
+
+</div>

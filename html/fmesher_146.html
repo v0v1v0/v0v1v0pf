@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fm_gmrf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>SPDE, GMRF, and Matérn process methods</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+Methods for SPDEs and GMRFs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fm_matern_precision(x, alpha, rho, sigma)
+
+fm_matern_sample(x, alpha = 2, rho, sigma, n = 1, loc = NULL)
+
+fm_covariance(Q, A1 = NULL, A2 = NULL, partial = FALSE)
+
+fm_sample(n, Q, mu = 0, constr = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A mesh object, e.g. from <code>fm_mesh_1d()</code> or <code>fm_mesh_2d()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The SPDE operator order. The resulting smoothness index
+is <code>nu = alpha - dim / 2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>The Matérn range parameter
+(scale parameter <code>kappa = sqrt(8 * nu) / rho</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>The nominal Matérn std.dev. parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of samples to generate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loc</code></td>
+<td>
+<p>locations to evaluate the random field, compatible with
+<code>fm_evaluate(x, loc = loc, field = ...)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+<p>A precision matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A1, A2</code></td>
+<td>
+<p>Matrices, typically obtained from <code>fm_basis()</code> and/or <code>fm_block()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partial</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a> If <code>TRUE</code>, compute the
+partial inverse of <code>Q</code>, i.e. the elements of the inverse corresponding to
+the non-zero pattern of <code>Q</code>. (Note: This can be done efficiently with
+the Takahashi recursion method, but to avoid an RcppEigen dependency this
+is currently disabled, and a slower method is used until the efficient method
+is reimplemented.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>Optional mean vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constr</code></td>
+<td>
+<p>Optional list of constraint information, with elements
+<code>A</code> and <code>e</code>. Should only be used for a small number of exact constraints.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>fm_matern_sample()</code> returns a matrix, where each column is a sampled
+field. If <code>loc</code> is <code>NULL</code>, the <code>fm_dof(mesh)</code> basis weights are given.
+Otherwise, the evaluated field at the <code>nrow(loc)</code> locations <code>loc</code> are given
+(from version <code style="white-space: pre;">⁠0.1.4.9001⁠</code>)
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>fm_matern_precision()</code>: Construct the (sparse) precision matrix for the basis weights for
+Whittle-Matérn SPDE models.  The boundary behaviour is determined by the
+provided mesh function space.
+</p>
+</li>
+<li> <p><code>fm_matern_sample()</code>: Simulate a Matérn field given a mesh and
+covariance function parameters, and optionally evaluate at given locations.
+</p>
+</li>
+<li> <p><code>fm_covariance()</code>: Compute the covariance between "A1 x" and "A2 x", when
+x is a basis vector with precision matrix <code>Q</code>.
+</p>
+</li>
+<li> <p><code>fm_sample()</code>: Generate <code>n</code> samples based on a sparse precision matrix <code>Q</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(Matrix)
+mesh &lt;- fm_mesh_1d(-20:120, degree = 2)
+Q &lt;- fm_matern_precision(mesh, alpha = 2, rho = 15, sigma = 1)
+x &lt;- seq(0, 100, length.out = 601)
+A &lt;- fm_basis(mesh, x)
+plot(x,
+  as.vector(Matrix::diag(fm_covariance(Q, A))),
+  type = "l",
+  ylab = "marginal variances"
+)
+
+plot(x,
+  fm_evaluate(mesh, loc = x, field = fm_sample(1, Q)[, 1]),
+  type = "l",
+  ylab = "process sample"
+)
+
+</code></pre>
+
+
+</div>

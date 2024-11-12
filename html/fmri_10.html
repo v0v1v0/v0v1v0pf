@@ -1,0 +1,372 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmri.lmePar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Linear Mixed-effects Model for fMRI data </h2>
+
+<h3>Description</h3>
+
+<p>Group maps are directly estimated from the BOLD time series data of all subjects using <code>lme</code> from R package <span class="pkg">nlme</span> to fit a Linear Mixed-effects Model with temporally correlated and heteroscedastic within-subject errors. Voxel-wise regression analysis is accelerated by optional parallel processing using R package <span class="pkg">parallel</span>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmri.lmePar(bold, z, fixed = NULL, random = NULL, mask = NULL,
+            ac = 0.3, vtype = "individual", cluster = 2,
+            wghts = c(1, 1, 1))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bold</code></td>
+<td>
+<p> a large 4D-Array with the aggregated fMRI data of all subjects that were previously registered to a common brain atlas. Be careful with the assembly of this array, the order of the data sets has to be compatible with the design matrix: <code>"z"</code>. If not the whole brain but a region is analyzed, vectors with region-indices can be preserved by adding as attributes (e.g. <code>attr(bold, "xind") &lt;- xind</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p> a design matrix for a multi-subject and/or multi-session fMRI-study of class <code>"data.frame"</code> specifying the expected BOLD response(s) and additional components for trend and other effects. Typically a <code>fmri.designG</code> object. This data frame contains all variables named in the model. There are some indispensable variables: <var>"group"</var>, <var>"subj"</var>, <var>"session"</var> and <var>"run"</var>, which define the different strata. That information will be used for setting up the residual variance structure.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p> optionally, a one-sided linear formula describing the fixed-effects part of the model. Default settings are:
+<code>fixed &lt;- ~ 0 + hrf + session + drift1:session + drift2:session</code> in case of one detected group, and the same but <code>"hrf"</code> replaced with <code>"hrf:group"</code> if two group levels in <code>z</code> are found. Since an intercept would be a linear combination of the session factor-variable modeling session-specific intercepts, it is excluded.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p> optionally, a one-sided formula of the form <code>~ x1 + ... + xn | g1/.../gm</code>, with <code>~ x1 + ... + xn</code> specifying the model for the random effects and <code>g1/.../gm</code> the grouping structure.<br></p>
+<p>Default is always the basic model without covariates, i.e. <br><code>random &lt;- ~ 0 + hrf|subj</code>  if no repeated measures in <code>z</code> are found (<code>nlevels(z$run)==1</code>),<br><code>random &lt;- ~ 0 + hrf|subj/session</code>  if repeated measures and<br><code>random &lt;- ~ 0 + hrf|session</code>  if repeated measures but one subject only. <br>
+In case of two independent groups:<br><code>random &lt;- list(subj = pdDiag(~ 0 + hrf:group))</code> is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p> if available, a logical 3D-Array of dimensionality of the data (without time component) describing a brain mask. The computation is restricted to the selected voxels.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ac</code></td>
+<td>
+<p> if available, a numeric 3D-Array of dimensionality of the data (without time component) with spatially smoothed autocorrelation parameters should be used in the AR(1) models fitted in each voxel, e.g. locally estimated and smoothed AR(1)-coefficients from <code>fmri.lm</code> applied to the first subject. Alternatively, a global approach with uniform value can be used. In this case enter a number between 0 and 1. Default is <code>0.3</code> applied to all voxels.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vtype</code></td>
+<td>
+<p> a character string choosing the residual variance model. If <code>"equal"</code>, homoscedastic variance across subjects is assumed setting weights argument in function <code>lme</code> to zero, whereas <code>"individual"</code> allows different within-subject variances. Default method is <code>"individual"</code> that means subject-specific error variances using formula: <code>weights &lt;- varIdent(form =~ 1|subj)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p> number of threads for parallel processing, which is limited to available multi-core CPUs. If you do not know your CPUs, try: <code>detectCores()</code> from <span class="pkg">parallel</span> package. Presets are 2 threads. <code>cluster = 1</code> does not use <span class="pkg">parallel</span> package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts</code></td>
+<td>
+<p> a vector of length 3 specifying ratio of voxel dimensions. Isotropic voxels (e.g. MNI-space) are set as default.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<p><code>fmri.lmePar()</code> fits the configured Linear Mixed-effects Model separately at each voxel and extracts estimated BOLD contrasts, corresponding squared standard errors and degrees of freedom as well as the residuals from resulting <code>lme</code> objects to produce a statistical parametric map (SPM) for the group(s). Voxel-by-voxel analysis is performed by either the function <code>apply</code> or <code>parApply</code> from <span class="pkg">parallel</span> package, which walks through the <code>bold</code> array.
+</p>
+<p>If one group is analyzed, from each fitted model the first fixed-effects coefficient and corresponding parameters are stored in results object. This should be the first specified predictor in the fixed-effects part of the model (verify the attribute of <code>"df"</code> in returned object). However, in two-sample case this principle does not work. The order changes, estimated session-specific intercepts now comes first and the number of these coefficients is not fixed. Therefore in current version it has explicitly been looked for the coefficient names: <var>"hrf:group1"</var> and <var>"hrf:group2"</var>. Available functions within the <span class="pkg">nlme</span> package to extract estimated values from <code>lme</code> objects do not operate at contrast matrices.
+</p>
+<p>Spatial correlation among voxels, e.g. through the activation of nearby voxels, is ignored at this stage, but corrects for it, when random field theory define a threshold for significant activation at inference stage.
+</p>
+<p>It is recommended to check your model syntax and residuals choosing some distinct voxels before running the model in loop (see Example, step 1); especially for more advanced designs! Error handling default is to stop if one of the threads produces an error. When this occurs, the output will be lost from any voxel, where the model has fitted successfully.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"fmrispm"</code> and <code>"fmridata"</code>, basically a list
+with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cbeta, cbeta2</code></td>
+<td>
+<p>estimated BOLD contrast parameters separated for the groups 1 and 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var, var2</code></td>
+<td>
+<p>estimated variance of the contrast parameters separated for the groups 1 and 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p> brain mask </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res, res2</code></td>
+<td>
+<p>raw (integer size 2) vector containing residuals of the estimated Linear Mixed-effects Model up to scale factor <code>resscale</code> separated for the groups 1 and 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resscale, resscale2</code></td>
+<td>
+<p><code>resscale*extractData(object,"residuals")</code> are the residuals of group 1 and group 2 respectively. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arfactor</code></td>
+<td>
+<p>autocorrelation parameters used in AR(1)-model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rxyz, rxyz2</code></td>
+<td>
+<p>array of smoothness from estimated correlation for each voxel in resel space separated for the groups 1 and 2 (for analysis without smoothing) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr, scorr2</code></td>
+<td>
+<p>array of spatial correlations with maximal lags 5, 5, 3 in x, y and z-direction separated for the groups 1 and 2 </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw, bw2</code></td>
+<td>
+<p>vector of bandwidths (in FWHM) corresponding to the spatial correlation within the data separated for the groups 1 and 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> ratio of voxel dimensions </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim, dim2</code></td>
+<td>
+<p>dimension of the data cube and residuals separated for the groups 1 and 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df, df2</code></td>
+<td>
+<p>degrees of freedom for t-statistics reported in <code>lme</code> objects for the extracted regression coefficients separated for the groups 1 and 2. The name of the coefficient belonging to this df-value appears as attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subjects</code></td>
+<td>
+<p>number of subjects in the study</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subj.runs</code></td>
+<td>
+<p>number of repeated measures within subjects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sessions</code></td>
+<td>
+<p>number of total sessions that were analyzed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>number of groups in the study</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedModel</code></td>
+<td>
+<p>fixed-effects model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomModel</code></td>
+<td>
+<p>random-effects model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VarModel</code></td>
+<td>
+<p>assumption about the subject error variances</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>number of threads run in parallel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr(*,"design")</code></td>
+<td>
+<p>design matrix for the multi-subject fMRI-study</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr(*,"approach")</code></td>
+<td>
+<p>one-stage estimation method</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Maybe the computing power is insufficient to carry out a whole brain analysis. You have two opportunities: either select and analyze a certain brain area or switch to a two-stage model.
+</p>
+<p>Current Limitations<br>
+The function cannot handle experimental designs with:
+</p>
+<ul>
+<li>
+<p>more than two independent groups
+</p>
+</li>
+<li>
+<p>more than one stimulus (task)
+</p>
+</li>
+<li>
+<p>paired samples with varying tasks
+</p>
+</li>
+<li>
+<p>user defined contrasts </p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p> Sibylle Dames </p>
+
+
+<h3>References</h3>
+
+<p>Pinheiro J. and Bates D. (2000). Mixed-Effects Models in S and S-Plus. Springer.
+</p>
+<p>Pinheiro J., Bates D., DebRoy S., Sarkar D. and the R Core team (2014). <em>nlme: Linear and Nonlinear Mixed Effects Models</em> R package version 3.1-117.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lme</code>, <code>fmri.designG</code>,
+<code>fmri.design</code>, <code>fmri.stimulus</code>,
+<code>fmri.metaPar</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: ## Generate some fMRI data sets: noise + stimulus
+dx &lt;- dy &lt;- dz &lt;- 32
+dt &lt;- 107
+hrf &lt;- fmri.stimulus(dt, c(18, 48, 78), 15, 2)
+stim &lt;- matrix(hrf, nrow= dx*dy*dz, ncol=dt, byrow=TRUE)
+mask &lt;- array(FALSE, c(dx, dy, dz))
+mask[12:22,12:22,12:22] &lt;- TRUE
+
+ds1 &lt;- list(ttt=writeBin(1.0*rnorm(dx*dy*dz*dt) + as.vector(5*stim),
+            raw(), 4), mask=mask, dim=c(dx, dy, dz, dt))
+ds2 &lt;- list(ttt=writeBin(1.7*rnorm(dx*dy*dz*dt) + as.vector(3*stim),
+            raw(), 4), mask=mask, dim=c(dx, dy, dz, dt))
+ds3 &lt;- list(ttt=writeBin(0.8*rnorm(dx*dy*dz*dt) + as.vector(1*stim),
+            raw(), 4), mask=mask, dim=c(dx, dy, dz, dt))
+ds4 &lt;- list(ttt=writeBin(1.2*rnorm(dx*dy*dz*dt) + as.vector(2*stim),
+            raw(), 4), mask=mask, dim=c(dx, dy, dz, dt))
+class(ds1) &lt;- class(ds2) &lt;- class(ds3) &lt;- class(ds4) &lt;- "fmridata"
+
+## Construct a design matrix for a multi-subject study
+subj &lt;- 4
+runs &lt;- 1
+z &lt;-fmri.designG(hrf, subj = subj, runs = runs)
+
+## Assembly of the aggregated BOLD-Array
+Bold &lt;- array(0, dim = c(dx,dy,dz,subj*runs*dt))
+Bold[1:dx,1:dy,1:dz,1:(dt*1)] &lt;- extractData(ds1)
+Bold[1:dx,1:dy,1:dz,(dt*1+1):(dt*2)] &lt;- extractData(ds2)
+Bold[1:dx,1:dy,1:dz,(dt*2+1):(dt*3)] &lt;- extractData(ds3)
+Bold[1:dx,1:dy,1:dz,(dt*3+1):(dt*4)] &lt;- extractData(ds4)
+
+## Step 1: Check the model
+y &lt;- Bold[16, 16, 16, ] # choose one voxel
+M1.1 &lt;-  lme(fixed = y ~ 0 + hrf + session + drift1:session + drift2:session,
+            random = ~ 0 + hrf|subj,
+            correlation = corAR1(value = 0.3, form = ~ 1|subj/session, fixed=TRUE),
+            weights = varIdent(form =~ 1|subj),
+            method ="REML",
+            control = lmeControl(rel.tol=1e-6, returnObject = TRUE),
+            data = z)
+summary(M1.1)
+
+# Residual plots
+plot(M1.1, resid(.,type = "response") ~ scan|subj)
+qqnorm(M1.1, ~resid(.,type = "normalized")|subj, abline = c(0,1))
+
+# Testing the assumption of homoscedasticity
+M1.2 &lt;- update(M1.1, weights = NULL, data = z)
+anova(M1.2, M1.1)
+
+# Model fit: observed and fitted values
+fitted.values &lt;- fitted(M1.1)
+plot(y[1:dt], type="l", main = "Subject 1", xlab = "scan",
+     ylab = "BOLD-signal", ylim = c(-5,5))
+lines(fitted.values[names(fitted.values)==1],lty=1,lwd=2)
+
+plot(y[(dt+1):(2*dt)], type="l", main = "Subject 2", xlab = "scan",
+     ylab = "BOLD-signal", ylim = c(-5,5))
+lines(fitted.values[names(fitted.values)==2],lty=1,lwd=2)
+
+plot(y[(2*dt+1):(3*dt)], type="l", main = "Subject 3", xlab = "scan",
+     ylab = "BOLD-signal", ylim = c(-5,5))
+lines(fitted.values[names(fitted.values)==3],lty=1,lwd=2)
+
+plot(y[(3*dt+1):(4*dt)], type="l", main = "Subject 4", xlab = "scan",
+     ylab = "BOLD-signal", ylim = c(-5,5))
+lines(fitted.values[names(fitted.values)==4],lty=1,lwd=2)
+
+## Step 2: Estimate a group map
+## without parallelizing
+spm.group1a &lt;- fmri.lmePar(Bold, z, mask = mask, cluster = 1)
+# same with 4 parallel threads
+spm.group1b &lt;- fmri.lmePar(Bold, z, mask = mask, cluster = 4)
+## Example for two independent groups
+group &lt;- c(1,1,4,4)
+z2 &lt;- fmri.designG(hrf, subj = subj, runs = runs, group = group)
+spm.group2 &lt;- fmri.lmePar(Bold, z2, mask = mask, cluster = 4)
+## End(Not run)
+</code></pre>
+
+
+</div>

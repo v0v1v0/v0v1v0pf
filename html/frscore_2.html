@@ -1,0 +1,298 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>causal_submodel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Determine if a model is a causal submodel of another model</h2>
+
+<h3>Description</h3>
+
+<p>Determine whether the causal relevance ascriptions made by
+<em>candidate</em> solution/model <code>x</code> are contained in the causal
+relevance ascriptions made by <em>target</em> model <code>y</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">causal_submodel(x, y, dat = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A string that specifies a valid <code>cna</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A string that specifies a valid <code>cna</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>A <code>configTable</code>, a data frame, a matrix, or a list that
+specifies the range of admissible factor values for the factors featured in
+<code>x</code> and <code>y</code>. Only needed when the models <code>x</code> and <code>y</code> are
+multi-valued, otherwise ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>causal_submodel()</code> checks whether the causal relevance claims
+made by the candidate model <code>x</code> are contained within the causal
+relevance claims made by the target model <code>y</code>. When <code>x</code> and
+<code>y</code> are multi-valued models, a further argument <code>dat</code> must be
+provided to determine the admissible factor values for the factors featured
+in <code>x</code> and <code>y</code>. This would typically be the data set that <code>x</code>
+and <code>y</code> were inferred from. <code>causal_submodel()</code> is similar to, and
+based on <code>is.submodel()</code> from the
+<code>cna</code> package, with one important difference.
+<code>is.submodel()</code> checks whether a model is a syntactic
+submodel of another, and can thus be used to check whether all syntactically
+explicit causal ascriptions, i.e. claims about direct causation only, of one
+model are contained in another. <code>causal_submodel()</code> checks if <em>all</em> causal
+<em>relevance</em> claims made by <code>x</code>, i.e. claims of either direct or indirect
+causation, have a counterpart causal relevance ascription in <code>y</code>. In case
+when all causal relevance claims of <code>x</code> have a suitable (see below)
+counterpart in <code>y</code>, <code>x</code> is a <em>causal</em> submodel of <code>y</code>.
+</p>
+<p>For <code>x</code> to be causal submodel of <code>y</code>, (1), every ascription of
+direct causal relevance made by <code>x</code> must either have a counterpart
+direct causal ascription in <code>y</code>, or a counterpart indirect causal
+ascription in <code>y</code> such that <code>x</code> omits any factors that mediate the
+relation according to <code>y</code>. (2), every ascription of indirect causal
+relevance made by <code>x</code> must have a counterpart indirect causal
+ascription in <code>y</code>. That is, every pair of factors represented as direct
+cause and effect in <code>x</code> must either be represented as direct cause and
+effect in <code>y</code>, or be connected by a transitive chain of direct causal
+relations according to <code>y</code>. In the latter case, <code>x</code> must in addition
+omit the factors that according to <code>y</code> mediate the causal relation in
+question. Direct causal relations are those causal relations that can be
+read off from the explicit syntax of an atomic solution/model ("asf"). For
+example, according to <code>A*F+B&lt;-&gt;C</code>, <code>A</code> and <code>B</code> are direct
+causes of <code>C</code> on alternative paths. Furthermore, candidate model
+<code>A+B&lt;-&gt;C</code> is a causal submodel of the target <code>A*F+B&lt;-&gt;C</code>, but
+<code>A+B*U&lt;-&gt;C</code> is not, since the latter makes a claim about the causal
+relevance of <code>U</code> to <code>C</code> which is not made by the target. Each
+direct cause is a difference-maker for its effect in some circumstances
+where alternative sufficient causes of the effect are not present, and the
+<em>co-factors</em> located on the same path are present. For example,
+<code>A*F+B&lt;-&gt;C</code> claims that when <code>B</code> is absent and <code>F</code> is
+present, difference in the presence of <code>A</code> will associate with
+differences in <code>C</code>, given some suitable configuration of factors not
+explicitly represented in <code>A*F+B&lt;-&gt;C</code>. When both <code>x</code> and <code>y</code>
+are asfs, i.e. represent direct causal relations only, <code>x</code> is a causal
+submodel of <code>y</code> if, and only if <code>x</code> is is a syntactic submodel of <code>y</code>, as the syntax of an asf is such
+that every causal ascription is explicitly represented.
+</p>
+<p>Judgments of direct vs. indirect causation are relative to the set of
+factors included in a model. <code style="white-space: pre;">⁠A+B&lt;-&gt;E⁠</code> describes <code>A</code> and <code>B</code> as direct
+causes of <code>E</code>, but another model that includes additional factors besides
+<code style="white-space: pre;">⁠{A,B,E}⁠</code> might describe these causal relations as causal chains that
+include intermediate steps, as in <code>(A+B&lt;-&gt;C)*(C+D&lt;-&gt;E)</code>. <code style="white-space: pre;">⁠A+B&lt;-&gt;E⁠</code>
+makes no claim that would contradict the chain model; it merely says that
+<em>relative</em> to the factor set <code style="white-space: pre;">⁠{A,B,E}⁠</code>, the factors are causally ordered so
+that <code>A</code> and <code>B</code> are causes of <code>E</code>, and there is no causal relation between
+<code>A</code> and <code>B</code>. Causal order refers to the ordering of the factors by the
+relation of direct causation that determines what is causally "upstream" and
+"downstream" of what. The exogenous factors <code style="white-space: pre;">⁠{A,B,D}⁠</code> are top-level upstream
+causes in <code>(A+B&lt;-&gt;C)*(C+D&lt;-&gt;E)</code>, as they are not caused by any other
+factor included in the model. Endogenous factors <code>C</code> and <code>E</code> are downstream
+of of <code style="white-space: pre;">⁠{A,B}⁠</code> by one and two levels respectively, and <code>E</code> is one level
+downstream of <code>D</code>. The chain model agrees with the direct cause model on the
+causal ordering of <code style="white-space: pre;">⁠{A,B,E}⁠</code> – <code>A</code> and <code>B</code> are upstream of <code>E</code> and not
+causes of each other – but also includes an additional cause of <code>E</code>, <code>C</code>,
+that is ordered between <code style="white-space: pre;">⁠{A,B}⁠</code> and <code>E</code> along a chain of direct causal
+relations. <code>(A+B&lt;-&gt;C)*(C+D&lt;-&gt;E)</code> represents a <em>transitive</em> causal
+chain where <code>A</code> and <code>B</code> are indirectly causally relevant for
+<code>E</code> in virtue of being causes of <code>E</code>'s more proximate cause
+<code>C</code> and the difference-making ability they have on <code>E</code> via
+<code>C</code>. <code>A+B&lt;-&gt;E</code> is a causal submodel of <code>(A+B&lt;-&gt;C)*(C+D&lt;-&gt;E)</code>,
+as the models agree on the causal relevance ascriptions over <code style="white-space: pre;">⁠{A,B,E}⁠</code>, and
+the former makes no claims whatsoever about the additional factors <code style="white-space: pre;">⁠{C,D}⁠</code>
+included in the latter model. Both models can be seen as descriptions of the
+same causal structure, one more complete in detail than the other. An
+<em>in</em>transitive chain is a causal chain where the influence of some
+upstream causes is not transmitted to some downstream effects. For example,
+<code>(A+B&lt;-&gt;C)*(C*a+D&lt;-&gt;E)</code> represents a chain where <code>A</code> is not
+causally relevant to <code>E</code> despite being a cause of one of <code>E</code>'s
+direct causes (<code>C</code>). That is, according to this model, <code>A</code> is not
+a difference-maker for <code>E</code>, and <code>A+B&lt;-&gt;E</code>, which makes this claim,
+is not its causal submodel.
+</p>
+<p>Besides avoiding causal relevance ascriptions that are not present in the
+target at all, the candidate should also attribute causal relevance
+correctly in the sense of causally ordering the represented causes in a way
+that is compatible with the target. Factors that appear as direct causes of
+the same outcome both in the target and the candidate should be grouped into
+alternative disjuncts similarly in both. Analogously, causes that appear on
+different levels in a causal chain according to the target should not be
+represented as same-level causes by the candidate. Say, for example, that
+the target is <code>(A+B&lt;-&gt;C)*(C+D&lt;-&gt;E)*(E+F&lt;-&gt;G)</code>. Candidate models
+<code>(A+B&lt;-&gt;G)</code> and <code>(A+B&lt;-&gt;E)*(E+F&lt;-&gt;G)</code> are both causal submodels of
+this target. By contrast, neither of <code>(A+C&lt;-&gt;G)</code> and
+<code>(A+B&lt;-&gt;C)*(C+E&lt;-&gt;G)</code> is a causal submodel of the target. Both of the
+latter two models commit the error of representing as same-level causes
+factors that the target represents as cause and effect. For example,
+<code>(A+C&lt;-&gt;G)</code> claims that <code>A</code> and <code>C</code> are same-level causes of
+<code>G</code>, whereas the target says <code>A</code> is a cause of <code>C</code>. In other
+words, relative to a factor set that include <code>C</code>, the candidate claims that
+<code>A</code> is a direct cause of <code>E</code>, which is false according to the target. It is
+instructive to consider the difference in implications for
+difference-making: <code>(A+C&lt;-&gt;G)</code> claims that differences in <code>A</code>
+associate with differences in <code>G</code> when <code>C</code> is fixed absent, but
+the target claims that this is impossible.
+</p>
+<p>Finally, a causal submodel relation requires that any claims of indirect
+causal relevance made by a candidate model are claims made by the target
+also. Consider the target model <code>(A+B*D&lt;-&gt;C)*(C+D&lt;-&gt;G)</code> and a candidate
+<code>(A+B*D&lt;-&gt;C)*(C&lt;-&gt;G)</code>. Despite superficial similarity (the candidate is
+a syntactic submodel of the target), the candidate is not a causal submodel
+of the target. Namely, the candidate makes a claim that <code>B</code> is
+indirectly causally relevant for <code>G</code>, a claim that is not made by the
+target. Again, it is best to examine the specific difference-making claim in
+question. The candidate model claims that differences in <code>B</code> make a
+difference to the presence of <code>G</code> when <code>D</code> is fixed to be present.
+But this is false according to the target. The target claims that <code>G</code>
+is always present whenever <code>D</code> is: <code>B</code> is not causally relevant
+for <code>G</code> despite being a cause of an intermediary factor <code>C</code>.
+</p>
+<p>In its implementation, <code>causal_submodel()</code> relies on the fact that when
+both the target and candidate are asfs, a syntactic submodel relation that
+can be verified with <code>is.submodel()</code> is a necessary and
+sufficient condition for causal submodel relation. If both the candidate and
+the target are asfs, a check for syntactic submodel relation is performed,
+and the result returned. When the target, or both the target and candidate
+comprise more than one asf, the process is more complicated. First,
+<code>causal_submodel()</code> checks if the component asfs of the candidate are
+syntactic submodels of the target <em>as is</em>. If yes for all, each of the
+candidate's direct causal relevance ascriptions is contained in the target,
+and the function proceeds to the second phase. For those direct causal
+relations that are not contained in the target, the function searches for
+counterpart indirect relations in the target. Since <code>cna</code> models do not
+represent indirect relations explicitly, these are explicated by
+syntactically manipulating the target. This involves finding asfs in the
+target with the same outcomes as those candidate asfs that are not syntactic
+submodels of the target <em>as is</em>. For each such component asf of the
+target, factors in the disjunction on the left hand side of the equivalence
+sign ("&lt;-&gt;") are substituted with the disjunctions, if any, that according
+to the target represent their causes. The resulting expression is then
+minimized to render it causally interpretable. What is left is an asf
+representing some of the target's indirect causal claims as direct causal
+claims. Then, the candidate asfs that are not syntactic submodels of the
+target <em>as is</em> are tested against the manipulated target asfs for
+syntactic submodel relation. This process is repeated until all the submodel
+checks return <code>TRUE</code>, or no further substitutions are possible. In the
+former case, the function proceeds to the second phase. In the latter case,
+the candidate is deemed not to be a causal submodel of the target, and the
+function returns <code>FALSE</code>.
+</p>
+<p>An example is in order to illustrate the procedure so far. Say that the
+target and candidate are <code>(A+B&lt;-&gt;C)*(C+D&lt;-&gt;E)</code> and <code>A+B&lt;-&gt;E</code>,
+respectively. Since the sole candidate asf is not a syntactic submodel of
+the target, one then attempts to find indirect causal relevance ascriptions
+in the target to license the direct causal claims made by the candidate asf.
+By the procedure described above, one focuses on the second asf of the
+target, <code>C+D&lt;-&gt;E</code>, and seeks to syntactically manipulate that until it
+is transformed into a syntactic supermodel of <code>A+B&lt;-&gt;E</code>, or until no
+transformation is possible. According to the first component asf of the
+target, <code>C</code> is equivalent to (caused by) <code>A+B</code>. Hence, <code>C</code> in
+<code>C+D&lt;-&gt;E</code> can be replaced with <code>A+B</code>, which yields
+<code>(A+B)+D&lt;-&gt;E</code>, reducing simply to <code>A+B+D&lt;-&gt;E</code>. Since
+<code>A+B&lt;-&gt;E</code> is a syntactic submodel of <code>A+B+D&lt;-&gt;E</code>, we have shown
+that the causal relevance claims made by the candidate are contained in the
+target.
+</p>
+<p>The purpose of the second phase is to check that all indirect causal claims
+made by the <em>candidate</em> model have a counterpart in the target. This
+involves doing all the substitutions of left-hand side factors by their
+causes in the candidate model, to generate expressions that explicitly
+represent the indirect claims of the candidate. The asfs generated by such
+manipulations of the candidate model are then tested for causal
+compatibility with the target, following the exact same procedure described
+above. For example, say that <code>(A+B*D&lt;-&gt;C)*(C+D&lt;-&gt;G)</code> and
+<code>(A+B*D&lt;-&gt;C)*(C&lt;-&gt;G)</code> are the target and the candidate, respectively.
+Here, each candidate asf <code>A+B*D&lt;-&gt;C</code> and <code>C&lt;-&gt;G</code> has a supermodel
+in one of the target asfs <code>A+B*D&lt;-&gt;C</code> and <code>C+D&lt;-&gt;G</code>, i.e. each
+direct causal claim of the candidate has a counterpart direct causal claim
+in the target, and the function proceeds to the second phase. In the second
+phase, the indirect causal claims of the candidate are first made explicit.
+By substituting <code>A+B*D</code> in place of <code>C</code> in the second asf of the
+candidate and minimizing, one gets <code>A+B*D&lt;-&gt;G</code>, which represents the
+indirect causal relevance, as claimed by the candidate, of <code>A+B*D</code> on
+<code>G</code>. This expression is then tested against the target as in the first
+phase: the target asf with <code>G</code> as the outcome is manipulated to reflect
+the indirect claims that the target makes about <code>G</code>, based on what the
+target says about the indirect causes of <code>G</code>. After substitution and
+minimization, we get <code>A+D&lt;-&gt;G</code>, meaning that the target does <em>not</em>
+make a claim of indirect causal relevance of <code>B</code> for <code>G</code>. That the
+candidate's indirect causal ascriptions are not contained in the target is
+shown by the fact that <code>A+B*D&lt;-&gt;G</code> is not a syntactic submodel of
+<code>A+D&lt;-&gt;G</code>, and the function returns <code>FALSE</code>.
+</p>
+<p>Due to the computational demands of some of the steps in the above
+procedure, <code>causal_submodel()</code> is an approximation of a strictly
+speaking valid check for causal submodel relations. Since the syntactic
+manipulations and especially the minimization of the resulting expressions
+is so costly, <code>causal_submodel()</code> relies on the
+<code>rreduce()</code> function from the <code>cna</code>
+package for minimization. <code>rreduce()</code> randomly chooses a
+single reduction path to produce only one minimal form of an expression
+whenever more than one exists, i.e. when the expression is ambiguous in its
+causal claims. In the case of ambiguous models, the output of
+<code>causal_submodel()</code> may depend on which reduction path(s) were chosen.
+These cases are rare enough to not significantly affect the intended use of
+<code>causal_submodel()</code> in the context of <code>frscore</code>. Another instance of
+<code>causal_submodel()</code> taking a shortcut is when processing cyclic models
+like <code>(A+B&lt;-&gt;C)*(C+D&lt;-&gt;A)</code>. Here the problems are as much philosophical
+as computational. It is clear that a cyclic candidate model cannot be a
+causal submodel of a non-cyclic target. However, problems arise when testing
+a non-cyclic candidate against a cyclic target: it is not clear what counts
+as an incompatibility in causal ordering, given that a cyclic target model
+includes factors that are causally relevant for themselves. Since many
+conclusions can be argued for here but some approach must be taken to ensure
+that <code>causal_submodel()</code> works on all valid <code>cna</code> models,
+<code>causal_submodel()</code> takes the least costly option and simply checks
+whether the candidate is a syntactic submodel of the target, and returns the
+result.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Named logical.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cna::is.submodel()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">target &lt;- "(A+B&lt;-&gt;C)*(C+D&lt;-&gt;E)"
+candidate1 &lt;- "A+B&lt;-&gt;E"
+causal_submodel(candidate1, target) # TRUE
+candidate2 &lt;- "A+C&lt;-&gt;E"
+causal_submodel(candidate2, target) # FALSE
+
+dat &lt;- cna::d.pban
+target_mv &lt;- "C=1 + F=2 + T=1 + C=0*F=1 &lt;-&gt; PB=1"
+candidate_mv &lt;- "C=1 + F=2 + T=1 &lt;-&gt; PB=1"
+causal_submodel(candidate_mv, target_mv, dat = dat) # mv models require the 'dat' argument
+
+</code></pre>
+
+
+</div>

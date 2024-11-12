@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LSfam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ontario Lynch Syndrom families</h2>
+
+<h3>Description</h3>
+
+<p>Data from 32 Lynch Syndrome families segregating mismatch repair mutations selected from the Ontario Familial Colorectal Cancer Registry that includes 765 individuals, both probands and relatives. The families were ascertained throughout affected and mutation carrier probands.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("LSfam")</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 765 observations on the following 11 variables.
+</p>
+
+<dl>
+<dt><code>famID</code></dt>
+<dd>
+<p>Family identification (ID) numbers.</p>
+</dd>
+<dt><code>indID</code></dt>
+<dd>
+<p>Individuals ID numbers.</p>
+</dd>
+<dt><code>fatherID</code></dt>
+<dd>
+<p>Father ID numbers.</p>
+</dd>
+<dt><code>motherID</code></dt>
+<dd>
+<p>Mother ID numbers.</p>
+</dd>
+<dt><code>gender</code></dt>
+<dd>
+<p>Gender indicators: 1 for male, 0 for female.</p>
+</dd>
+<dt><code>status</code></dt>
+<dd>
+<p>Disease statuses: 1 for affected, 0 for unaffected.</p>
+</dd>
+<dt><code>time</code></dt>
+<dd>
+<p>Ages at diagnosis of colorectal cancer for the affected or ages of last follow-up for the unaffected.</p>
+</dd>
+<dt><code>currentage</code></dt>
+<dd>
+<p>Current ages in years.</p>
+</dd>
+<dt><code>mgene</code></dt>
+<dd>
+<p>MLH1 or MSH2 mutation indicators: 1 for mutated gene carriers, 0 for mutated gene noncarriers, or <code>NA</code> if missing.</p>
+</dd>
+<dt><code>proband</code></dt>
+<dd>
+<p>Proband indicators: 1 for proband, 0 for non-proband.</p>
+</dd>
+<dt><code>relation</code></dt>
+<dd>
+<p>Family members' relationship with the proband.
+Relation codes:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    1  </td>
+<td style="text-align: left;"> Proband (self) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    2  </td>
+<td style="text-align: left;"> Brother or sister </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    3  </td>
+<td style="text-align: left;"> Son or daughter </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    4  </td>
+<td style="text-align: left;"> Parent </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    5  </td>
+<td style="text-align: left;"> Nephew or niece </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    6  </td>
+<td style="text-align: left;"> Spouse </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    7  </td>
+<td style="text-align: left;"> Brother or sister in law </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    8  </td>
+<td style="text-align: left;"> Paternal grandparent </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    9  </td>
+<td style="text-align: left;"> Paternal uncle or aunt </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    10  </td>
+<td style="text-align: left;"> Paternal cousin </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    11  </td>
+<td style="text-align: left;"> Maternal grandparent </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    12  </td>
+<td style="text-align: left;"> Maternal uncle or aunt </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    13  </td>
+<td style="text-align: left;"> Maternal cousin  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    14  </td>
+<td style="text-align: left;"> Son or daughter in law </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    15  </td>
+<td style="text-align: left;"> Grandchild </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    16  </td>
+<td style="text-align: left;"> Uncle's or aunt's spouse. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+</tr>
+</table>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Choi, Y.-H., Cotterchio, M., McKeown-Eyssen, G., Neerav, M., Bapat, B., Boyd, K., Gallinger, S.,  McLaughlin, J., Aronson, M., and Briollais, L. (2009). Penetrance of Colorectal Cancer among MLH1/ MSH2 Carriers Participating in the Colorectal Cancer Familial Registry in Ontario, Hereditary Cancer in Clinical Practice, 7:14.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(LSfam)
+
+# Summary of LSfam
+summary.simfam(LSfam)
+
+# Pedigree plot for the first family
+plot.simfam(LSfam)
+
+# Assign minimum age for fitting penmodel
+attr(LSfam, "agemin") &lt;- 18
+
+fit &lt;- penmodelEM(Surv(time, status) ~ gender + mgene, cluster = "famID", 
+       parms = c(0.05, 2, 1, 3), data = LSfam[!is.na(LSfam$time) &amp; LSfam$time &gt; 18, ], 
+       method = "mendelian", base.dist = "Weibull", design = "pop+", robust = TRUE)
+
+summary(fit)
+
+penetrance(fit, fixed = c(1, 1), age = c(50, 60, 70), CI = TRUE, MC = 100)
+
+</code></pre>
+
+
+</div>

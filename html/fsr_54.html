@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spa_creator</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Build <code>pgeometry</code> objects from a point dataset</h2>
+
+<h3>Description</h3>
+
+<p><code>spa_creator()</code> builds a set of spatial plateau objects from a given point dataset assigned with domain-specific numerical values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spa_creator(tbl, fuzz_policy = "fsp", const_policy = "voronoi", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tbl</code></td>
+<td>
+<p>A <code>data.frame</code> or <code>tibble</code> object with three columns: (<em>x</em>, <em>y</em>, <em>z</em>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fuzz_policy</code></td>
+<td>
+<p>The fuzzification policy to be employed by the algorithm. See details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>const_policy</code></td>
+<td>
+<p>The construction policy to be used by the algorithm. See details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>&lt;<code>dynamic-dots</code>&gt; Parameters for the chosen policies. See details below.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>spa_creator()</code> function implements a two-stage construction method that takes as input a point dataset and produces a set of spatial plateau objects as output.
+</p>
+<p>The input <code>tbl</code> is a point dataset (<code>data.frame</code> or <code>tibble</code> object) where each point represents the location of a phenomenon treated by the application.
+Further, each point is annotated with numerical data that describe its meaning in the application.
+Therefore, <code>tbl</code> must have three columns: (<em>x</em>, <em>y</em>, <em>z</em>). The columns <em>x</em>, <em>y</em> are the coordinate pairs, and <em>z</em> is the column containing domain-specific numeric values.
+</p>
+<p>The parameter <code>fuzz_policy</code> refers to the method used by the <strong>fuzzification stage</strong>.
+This stage aims to assign membership degrees to each point of the dataset.
+It accepts two possible values: <code>"fsp"</code> (default) or <code>"fcp"</code>.
+</p>
+<p><code>"fsp"</code> stands for <em>fuzzy set policy</em> and requires two parameters that should be informed in <code>...</code>:
+</p>
+
+<ul>
+<li> <p><code>classes</code>: A character vector containing the name of classes.
+</p>
+</li>
+<li> <p><code>mfs</code>: A vector of membership functions. Each membership function <em>i</em> represents the class <em>i</em>, where <em>i</em> in <code>length(classes)</code>. See the provided examples for more information on how to build membership functions.
+</p>
+</li>
+</ul>
+<p><code>"fcp"</code> stands for <em>fuzzy clustering policy</em> and requires the <code>e1071</code> package. Its possible parameters informed in <code>...</code> are:
+</p>
+
+<ul>
+<li> <p><code>k</code>: A numeric value that refers to the number of groups to be created.
+</p>
+</li>
+<li> <p><code>method</code>: A fuzzy clustering method of the package <code>e1071</code>, which can be either <code>"cmeans"</code> (default) or <code>"cshell"</code>.
+</p>
+</li>
+<li> <p><code>use_coords</code>: A Boolean value to indicate whether the columns (<em>x</em>, <em>y</em>) should be used in the clustering algorithm (default is <code>FALSE</code>).
+</p>
+</li>
+<li> <p><code>iter</code>: A numeric indicating the number of maximum iterations of the clustering algorithm (default is 100).
+</p>
+</li>
+</ul>
+<p>An optional and common parameter for both fuzzification stages is <code>"digits"</code>.
+This is an integer value that indicates the number of decimal digits of the membership degrees calculated by the fuzzification stage.
+That is, it is used to <strong>round</strong> membership degrees to the specified number of decimal places.
+Be careful with this optional parameter! If you specify a low value for <code>"digits"</code>, some membership degrees could be rounded to 0 and thus, some components would not be created.
+</p>
+<p>The parameter <code>const_policy</code> refers to the method used by the <strong>construction stage</strong>.
+This stage aims to create polygons from the labeled point dataset and use them to build spatial plateau objects.
+It accepts three possible values: <code>"voronoi"</code> (default), "<code style="white-space: pre;">⁠delaunay"⁠</code>, or <code>"convex_hull"</code>.
+</p>
+<p><code>"voronoi"</code> stands for <em>Voronoi diagram policy</em> and has two optional parameter that can be provided in <code>...</code>:
+</p>
+
+<ul>
+<li> <p><code>base_poly</code>: An <code>sfg</code> object that will be used to clip the generated polygons. If this parameter is not provided, the Voronoi is created by using a bounding box (standard behavior of the package <code>sf</code>).
+</p>
+</li>
+<li> <p><code>d_tolerance</code>: It refers to the parameter <code>dTolerance</code> employed by the function <code>st_voronoi()</code> of the package <code>sf</code>.
+</p>
+</li>
+</ul>
+<p><code>"delaunay"</code> stands for <em>Delaunay triangulation policy</em>, which accepts the following parameters in <code>...</code>:
+</p>
+
+<ul>
+<li> <p><code>base_poly</code>: An <code>sfg</code> object that will be used to clip the generated triangles.
+</p>
+</li>
+<li> <p><code>tnorm</code>: A t-norm used to calculate the membership degree of the triangle. It should be the name of a vectorized function.
+Possible values are <code>"min"</code> (default) and <code>"prod"</code>.
+Note that it is possible to use your own t-norms. A t-norm should has the following signature: <code>FUN(x)</code> where <em>x</em> is a numeric vector. Such a function should return a single numeric value.
+</p>
+</li>
+<li> <p><code>d_tolerance</code>: It refers to the parameter <code>dTolerance</code> employed by the function <code>st_triangulate()</code> of the package <code>sf</code>.
+</p>
+</li>
+</ul>
+<p><code>"convex_hull"</code> stands for <em>Convex hull policy</em>, which accepts the following parameters in <code>...</code>:
+</p>
+
+<ul>
+<li> <p><code>degrees</code>: A numeric vector containing the membership degrees that will be used to create the components. The default vector is defined by <code>seq(0.05, 1, by = 0.05)</code>.
+</p>
+</li>
+<li> <p><code>d</code>: A numeric value representing the tolerance distance to compute the membership degree between the elements of <code>m</code> and the membership degrees of the points. The default is <code>0.05</code>.
+</p>
+</li>
+<li> <p><code>base_poly</code>: An <code>sfg</code> object that will be used to clip the generated polygons.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A tibble in the format <code style="white-space: pre;">⁠(class, pgeometry)⁠</code>, where <code>class</code> is a character column and <code>pgeometry</code> is a list of <code>pgeometry</code> objects.
+This means that a spatial plateau object is created for representing a specific class of the point dataset.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://onlinelibrary.wiley.com/doi/10.1111/tgis.13044">Carniel, A. C.; Venâncio, P. V. A. B; Schneider, M. fsr: An R package for fuzzy spatial data handling. Transactions in GIS, vol. 27, no. 3, pp. 900-927, 2023.</a>
+</p>
+<p>Underlying concepts and formal definitions of the two-stage construction method is introduced in:
+</p>
+
+<ul><li> <p><a href="https://ieeexplore.ieee.org/document/8858878/">Carniel, A. C.; Schneider, M. A Systematic Approach to Creating Fuzzy Region Objects from Real Spatial Data Sets. In Proceedings of the 2019 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2019), pp. 1-6, 2019.</a>
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(sf)
+library(ggplot2)
+ 
+# Defining two different types of membership functions
+trap_mf &lt;- function(a, b, c, d) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), 1, (d - x)/(d - c), na.rm = TRUE), 0)
+  }
+}
+
+trim_mf &lt;- function(a, b, c) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), (c - x)/(c - b), na.rm = TRUE), 0)
+  }
+}
+
+set.seed(7)
+tbl = tibble(x = runif(10, min = 0, max = 30), 
+             y = runif(10, min = 0, max = 50), 
+             z = runif(10, min = 0, max = 100))
+classes &lt;- c("cold", "hot")
+cold_mf &lt;- trap_mf(0, 10, 20, 35)
+hot_mf &lt;- trim_mf(35, 50, 100)
+
+# Using the standard fuzzification policy based on fuzzy sets
+res &lt;- spa_creator(tbl, classes = classes, mfs = c(cold_mf, hot_mf))
+## Not run: 
+res  
+plot(res$pgeometry[[1]]) + ggtitle("Cold")
+plot(res$pgeometry[[2]]) + ggtitle("Hot")
+
+# Getting the convex hull on the points to clip plateau region objects during their constructions
+pts &lt;- st_as_sf(tbl, coords = c(1, 2))
+ch &lt;- st_convex_hull(do.call(c, st_geometry(pts)))
+res &lt;- spa_creator(tbl, classes = classes, mfs = c(cold_mf, hot_mf), base_poly = ch)
+plot(res$pgeometry[[1]]) + ggtitle("Cold (with clipped boundaries)")
+plot(res$pgeometry[[2]]) + ggtitle("Hot (with clipped boundaries)")
+ 
+# Using the fuzzification policy based on fuzzy clustering
+spa_creator(tbl, fuzz_policy = "fcp", k = 4)
+
+spa_creator(tbl, fuzz_policy = "fcp", k = 4, digits = 2)
+
+# Varying the construction policy
+spa_creator(tbl, fuzz_policy = "fcp", k = 3, const_policy = "delaunay")
+
+spa_creator(tbl, fuzz_policy = "fcp", const_policy = "delaunay", k = 3, tnorm = "prod")
+
+spa_creator(tbl, fuzz_policy = "fcp", k = 2, digits = 2, 
+            degrees = seq(0.1, 1, by = 0.1), d = 0.05, const_policy = "convex_hull")
+
+spa_creator(tbl, classes = classes, mfs = c(cold_mf, hot_mf), const_policy = "delaunay")
+            
+spa_creator(tbl, classes = classes, mfs = c(cold_mf, hot_mf), 
+            digits = 2, const_policy = "convex_hull")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

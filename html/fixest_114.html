@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>r2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>R2s of <code>fixest</code> models</h2>
+
+<h3>Description</h3>
+
+<p>Reports different R2s for <code>fixest</code> estimations (e.g. <code>feglm</code> or <code>feols</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">r2(x, type = "all", full_names = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>fixest</code> object, e.g. obtained with function <code>feglm</code> or <code>feols</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A character vector representing the R2 to compute. The R2 codes are of the form:
+"wapr2" with letters "w" (within), "a" (adjusted) and "p" (pseudo) possibly missing.
+E.g. to get the regular R2: use <code>type = "r2"</code>, the within adjusted R2: use <code>type = "war2"</code>,
+the pseudo R2: use <code>type = "pr2"</code>, etc. Use <code>"cor2"</code> for the squared correlation.
+By default, all R2s are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_names</code></td>
+<td>
+<p>Logical scalar, default is <code>FALSE</code>. If <code>TRUE</code> then names of the vector
+in output will have full names instead of keywords (e.g. <code style="white-space: pre;">⁠Squared Correlation⁠</code>
+instead of <code>cor2</code>, etc).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The pseudo R2s are the McFaddens R2s, that is the ratio of log-likelihoods.
+</p>
+<p>For R2s with no theoretical justification, like e.g. regular R2s for maximum likelihood
+models – or within R2s for models without fixed-effects, NA is returned.
+The single measure to possibly compare all kinds of models is the squared
+correlation between the dependent variable and the expected predictor.
+</p>
+<p>The pseudo-R2 is also returned in the OLS case, it corresponds to the
+pseudo-R2 of the equivalent GLM model with a Gaussian family.
+</p>
+<p>For the adjusted within-R2s, the adjustment factor is <code>(n - nb_fe) / (n - nb_fe - K)</code>
+with <code>n</code> the number of observations, <code>nb_fe</code> the number of fixed-effects and <code>K</code>
+the number of variables.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a named vector.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load trade data
+data(trade)
+
+# We estimate the effect of distance on trade (with 3 fixed-effects)
+est = feols(log(Euros) ~ log(dist_km) | Origin + Destination + Product, trade)
+
+# Squared correlation:
+r2(est, "cor2")
+
+# "regular" r2:
+r2(est, "r2")
+
+# pseudo r2 (equivalent to GLM with Gaussian family)
+r2(est, "pr2")
+
+# adjusted within r2
+r2(est, "war2")
+
+# all four at once
+r2(est, c("cor2", "r2", "pr2", "war2"))
+
+# same with full names instead of codes
+r2(est, c("cor2", "r2", "pr2", "war2"), full_names = TRUE)
+
+</code></pre>
+
+
+</div>

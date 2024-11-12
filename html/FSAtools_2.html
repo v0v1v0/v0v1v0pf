@@ -1,0 +1,187 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>align.fsa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Aligns peaks using size ladder
+</h2>
+
+<h3>Description</h3>
+
+<p>This function adds to a <code>fsa</code> object a linear regression model allowing the raw time indexes to be converted into base pair sizes, using a known size markers ladder.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  align.fsa(x, channel = "ROX", fullLadder = c(50, 60, 90, 100, 120, 150, 160, 180, 190,
+    200, 220, 240, 260, 280, 290, 300, 320, 340, 360, 380, 400), useLadder = c(50, 60, 
+    90, 100, 120), outThreshold = 0.15, noiseLevel = 10, surePeaks = 5,
+	leakingRatios = c(-1, 10), trim = c("forward", "backward", "none"),
+	maskOffScale = FALSE, rMin = 0.999, rescue = FALSE, ylim = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>An object of class <code>fsa</code>, as returned by <code>read.fsa</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>channel</code></td>
+<td>
+
+<p>Single character value, the name of the channel used for size markers.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fullLadder</code></td>
+<td>
+
+<p>Integer vector, the size markers used in the assay (in base pairs).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useLadder</code></td>
+<td>
+
+<p>Integer vector, the size markers to use for the alignment (using only size markers nearing the expected size for the experimental peaks may achieve a more precise alignment). They must be present in <code>fullLadder</code>. If <code>NULL</code>, <code>fullLadder</code> will be used entirely.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outThreshold</code></td>
+<td>
+
+<p>Single numeric value, maximal distance from the computed size-marker intensity for a peak to be considered as a size-marker. If lower than 1, it is considered as a proportion of the size-marker intensity computed from sure peaks.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noiseLevel</code></td>
+<td>
+
+<p>Single numeric value, minimal intensity for a local maximum to be considered as a peak.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maskOffScale</code></td>
+<td>
+
+<p>Single logical value, whether to mask indexes with off-scale values in any channel to limit side-effects or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surePeaks</code></td>
+<td>
+
+<p>Single integer value, amount of peaks to use to compute size-marker intensity. They are selected at the end of the profile, as most artefacts are observed ate the beginning. Consider to reduce this value if your assay was prematurely ended.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leakingRatios</code></td>
+<td>
+
+<p>Numeric vector of length two, defining the thresholds to consider a marker peak as a leakage from another channel. A leakage is expected to show at least one channel with a negative value below the absolute value of the marker channel (first ratio, -1) and another channel with a positive value higher than 10 times the absolute value of the marker channel (second ratio, 10).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+
+<p>Single character value, defining how to behave when more/less peaks than expected are read. "forward" will keep first peaks and adjust discarding the last ones, "backward" will keep last peaks and adjust discarding the first ones, and "none" will generate an error.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rMin</code></td>
+<td>
+
+<p>Single numeric value, minimum adjusted r squared value (see <code>summary.lm</code>) to consider an alignment as "good". Poor alignments raise a warning, and may be due to artefactual peaks in the size-marker channel or errors in <code>fullLadder</code> definition. Consider lowering <code>outThreshold</code> and raising <code>noiseLevel</code> to minimize artefact selection.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescue</code></td>
+<td>
+
+<p>Single logical value, whether to plot a "rescue" profile or not. Rescue profiles are calls to <code>plot.fsa</code> on which diverse additionnal data is drawn to help diagnose alignment problems.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+
+<p>To be passed to <code>plot.fsa</code> for the alignment rescue plot, if enabled (see <code>rescue</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments to be passed to <code>plot.fsa</code> for the alignment rescue plot, if enabled (see <code>rescue</code>).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns the object of class <code>fsa</code> provided with updated <code>attributes</code> :
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ladderModel</code></td>
+<td>
+<p>A numeric vector of linear regression coefficients to use to convert raw indexes into base pairs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladderExact</code></td>
+<td>
+<p>A named numeric vector of raw indexes at which size markers were detected.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sylvain Mareschal, Philippe Ruminy
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Example FSA file provided
+  fsa &lt;- read.fsa(system.file("extdata/fsa_GEP/A5918.fsa", package="FSAtools"))
+  
+  # Plot subset of the profile (time index)
+  plot(fsa, units="index", xlim=c(4000,5000))
+  
+  # Align using full ladder
+  fullLadder &lt;- c(
+    50, 60, 90, 100, 120, 150, 160, 180, 190, 200, 220,
+    240, 260, 280, 290, 300, 320, 340, 360, 380, 400
+  )
+  fsa &lt;- align.fsa(fsa, fullLadder=fullLadder)
+  
+  # Plot subset of the profile (base pairs)
+  plot(fsa, units="bp", xlim=c(80,130))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>make.recipe</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates a recipe for training models.</h2>
+
+<h3>Description</h3>
+
+<p>Creates a recipe for training models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">make.recipe(envs, init, optim, fit, init.data, time.step, gate.open.min = 0,
+  opts = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>envs</code></td>
+<td>
+<p>An array of weather factors to be taken into account
+during the construction of models.
+At the moment, the array <code>envs</code> can only contain a single weather factor
+from <code>weather.entries</code>, though there is a plan to remove the restriction
+in a future version.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>A string to specify the method to choose the initial parameters.
+(One of <code>'gridsearch'</code> or <code>'manual'</code>.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim</code></td>
+<td>
+<p>A string to specify the method to be used for optimizing
+the model parameters.
+(One of <code>'none'</code>, <code>'lm'</code> or <code>'lasso'</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>A string to specify the method to be used for fixing
+the linear regression coefficients.
+(One of <code>'fit.lm'</code> or <code>'fit.lasso'</code>.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.data</code></td>
+<td>
+<p>Auxiliary data needed to perform the Init stage
+using the method specified by the <code>init</code> argument.
+When <code>init</code> is <code>'gridsearch'</code>, it should be a list representing
+a discretized parameter space.
+When <code>init</code> is <code>'manual'</code>, it should be a list of parameter
+values that is used as the initial values for the parameters in
+the Optim stage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.step</code></td>
+<td>
+<p>An integer to specify the basic unit of time (in minute)
+for the transcriptomic models.
+Must be a multiple of the time step of weather data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gate.open.min</code></td>
+<td>
+<p>The minimum opning length in minutes of the gate function for 
+environmental inputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>An optional named list that specifies the arguments to be passed
+to methods that constitute each stage of the model training.
+Each key of the list corresponds to a name of a method.
+</p>
+<p>See examples for the supported options.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object representing the procedure to construct models.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+init.params &lt;- .. # choose them wisely
+# Defined in Train.R:
+# default.opts &lt;- list(
+#   none  = list(),
+#   lm    = list(maxit=1500, nfolds=-1), # nfolds for lm is simply ignored
+#   lasso = list(maxit=1000, nfolds=10)
+# )
+recipe &lt;- FIT::make.recipe(c('wind', 'temperature'),
+                           init = 'manual',
+                           init.data = init.params,
+                           optim = c('lm', 'none', 'lasso'),
+                           fit = 'fit.lasso',
+                           time.step = 10,
+                           opts =
+                             list(lm    = list(maxit = 900),
+                                  lasso = list(maxit = 1000)))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

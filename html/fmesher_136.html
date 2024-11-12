@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fm_block</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Blockwise aggregation matrices</h2>
+
+<h3>Description</h3>
+
+<p>Creates an aggregation matrix for blockwise aggregation, with optional
+weighting.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fm_block(
+  block = NULL,
+  weights = NULL,
+  log_weights = NULL,
+  rescale = FALSE,
+  n_block = NULL
+)
+
+fm_block_eval(
+  block = NULL,
+  weights = NULL,
+  log_weights = NULL,
+  rescale = FALSE,
+  n_block = NULL,
+  values = NULL
+)
+
+fm_block_logsumexp_eval(
+  block = NULL,
+  weights = NULL,
+  log_weights = NULL,
+  rescale = FALSE,
+  n_block = NULL,
+  values = NULL,
+  log = TRUE
+)
+
+fm_block_weights(
+  block = NULL,
+  weights = NULL,
+  log_weights = NULL,
+  rescale = FALSE,
+  n_block = NULL
+)
+
+fm_block_log_weights(
+  block = NULL,
+  weights = NULL,
+  log_weights = NULL,
+  rescale = FALSE,
+  n_block = NULL
+)
+
+fm_block_log_shift(block = NULL, log_weights = NULL, n_block = NULL)
+
+fm_block_prep(
+  block = NULL,
+  log_weights = NULL,
+  weights = NULL,
+  n_block = NULL,
+  values = NULL,
+  n_values = NULL,
+  force_log = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>block</code></td>
+<td>
+<p>integer vector; block information. If <code>NULL</code>,
+<code>rep(1L, block_len)</code> is used, where <code>block_len</code> is determined by
+<code style="white-space: pre;">⁠length(log_weights)))⁠</code> or <code style="white-space: pre;">⁠length(weights)))⁠</code>.
+A single scalar is also repeated
+to a vector of corresponding length to the weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional weight vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_weights</code></td>
+<td>
+<p>Optional <code>log(weights)</code> vector. Overrides <code>weights</code> when
+non-NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, normalise the weights by <code>sum(weights)</code>
+or <code>sum(exp(log_weights))</code> within each block.
+Default: <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_block</code></td>
+<td>
+<p>integer; The number of conceptual blocks. Only needs to be
+specified if it's larger than <code>max(block)</code>, or to keep the output of
+consistent size for different inputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Vector to be blockwise aggregated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>If <code>TRUE</code> (default), return log-sum-exp. If <code>FALSE</code>,
+return sum-exp.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_values</code></td>
+<td>
+<p>When supplied, used instead of <code>length(values)</code> to determine
+the value vector input length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force_log</code></td>
+<td>
+<p>When <code>FALSE</code> (default),
+passes either <code>weights</code> and <code>log_weights</code> on, if provided, with <code>log_weights</code>
+taking precedence. If <code>TRUE</code>, forces the computation of <code>log_weights</code>,
+whether given in the input or not.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (sparse) matrix
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>fm_block()</code>: A (sparse) matrix of size <code>n_block</code> times <code>length(block)</code>.
+</p>
+</li>
+<li> <p><code>fm_block_eval()</code>: Evaluate aggregation. More efficient alternative to to
+<code>as.vector(fm_block(...) %*% values)</code>.
+</p>
+</li>
+<li> <p><code>fm_block_logsumexp_eval()</code>: Evaluate log-sum-exp aggregation.
+More efficient and numerically stable alternative to to
+<code>log(as.vector(fm_block(...) %*% exp(values)))</code>.
+</p>
+</li>
+<li> <p><code>fm_block_weights()</code>: Computes (optionally) blockwise renormalised weights
+</p>
+</li>
+<li> <p><code>fm_block_log_weights()</code>: Computes (optionally) blockwise renormalised log-weights
+</p>
+</li>
+<li> <p><code>fm_block_log_shift()</code>: Computes shifts for stable blocked log-sum-exp.
+To compute <code class="reqn">\log(\sum_{i; \textrm{block}_i=k} \exp(v_i) w_i)</code> for
+each block <code>k</code>, first compute combined values and weights, and a shift:
+</p>
+<div class="sourceCode"><pre>w_values &lt;- values + fm_block_log_weights(block, log_weights = log_weights)
+shift &lt;- fm_block_log_shift(block, log_weights = w_values)
+</pre></div>
+<p>Then aggregate the values within each block:
+</p>
+<div class="sourceCode"><pre>agg &lt;- aggregate(exp(w_values - shift[block]),
+                 by = list(block = block),
+                 \(x) log(sum(x)))
+agg$x &lt;- agg$x + shift[agg$block]
+</pre></div>
+<p>The implementation uses a faster method:
+</p>
+<div class="sourceCode"><pre>as.vector(
+  Matrix::sparseMatrix(
+    i = block,
+    j = rep(1L, length(block)),
+    x = exp(w_values - shift[block]),
+    dims = c(n_block, 1))
+) + shift
+</pre></div>
+</li>
+<li> <p><code>fm_block_prep()</code>: Helper function for preparing <code>block</code>, <code>weights</code>, and
+<code>log_weights</code>, <code>n_block</code> inputs.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">block &lt;- rep(1:2, 3:2)
+fm_block(block)
+fm_block(block, rescale = TRUE)
+fm_block(block, log_weights = -2:2, rescale = TRUE)
+fm_block_eval(
+  block,
+  weights = 1:5,
+  rescale = TRUE,
+  values = 11:15
+)
+fm_block_logsumexp_eval(
+  block,
+  weights = 1:5,
+  rescale = TRUE,
+  values = log(11:15),
+  log = FALSE
+)
+</code></pre>
+
+
+</div>

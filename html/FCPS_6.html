@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AutomaticProjectionBasedClustering</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Automatic Projection-Based Clustering
+</h2>
+
+<h3>Description</h3>
+
+<p>Projection-based clustering <code>AutomaticProjectionBasedClustering</code> projects the data (nonlinear) into two dimensions and tries only to preserve relevant neighborhoods prior to clustering. The cluster analysis itself includes the high-dimensional distances in the clustering process. Performs non-interactive projection-based clustering based on non-linear projection methods [Thrun/Ultsch, 2017], [Thrun/Ultsch, 2020a].
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AutomaticProjectionBasedClustering(DataOrDistances,ClusterNo,Type="NerV",
+
+StructureType = TRUE,PlotIt=FALSE,PlotTree=FALSE,PlotMap=FALSE,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>DataOrDistances</code></td>
+<td>
+
+<p>Either nonsymmetric [1:n,1:d] numerical matrix of a dataset to be clustered. It consists of n cases of d-dimensional data points. Every case has d attributes, variables or features.
+</p>
+<p>or
+</p>
+<p>symmetric [1:n,1:n] distance matrix, e.g. <code>as.matrix(dist(Data,method))</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ClusterNo</code></td>
+<td>
+<p>A number k which defines k different clusters to be built by the algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Type</code></td>
+<td>
+
+<p>Type of Projection method, either
+</p>
+<p><code>NerV</code> [Venna et al., 2010] 
+</p>
+<p><code>Pswarm</code> [Thrun/Ultsch, 2020b] 
+</p>
+<p><code>MDS</code> [Torgerson, 1952]  
+</p>
+<p><code>Uwot</code> [McInnes et al., 2018]
+</p>
+<p><code>CCA</code> [Demartines/Herault, 1995] 
+</p>
+<p><code>Sammon</code> [Sammon, 1969] 
+</p>
+<p><code>t-SNE</code> [Van der Maaten/Hinton, 2008]
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>StructureType</code></td>
+<td>
+
+<p>Either compact (TRUE) or connected (FALSE), see discussion in [Thrun, 2018] 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PlotIt</code></td>
+<td>
+<p>Default: FALSE, if TRUE plots the first three dimensions of the dataset with colored three-dimensional data points defined by the clustering stored in <code>Cls</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PlotTree</code></td>
+<td>
+
+<p>TRUE: Plots the dendrogram, FALSE: no plot
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PlotMap</code></td>
+<td>
+
+<p>Plots the topographic map [Thrun et al., 2016].
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be set for the clustering algorithm, if not set, default arguments are used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The first idea of using non-PCA projections for clustering was published by [Bock, 1987] as a definition. However, to the knowledge of the author, it was not applied to any data. The coexistence of projection and clustering was introduced in [Thrun/Ultsch, 2017].
+</p>
+<p>Projection-based clustering is based on a nonlinear projection of high-dimensional data into a two-dimensional space [Thrun/Ultsch, 2020b].  Typical projection-methods like t-distributed stochastic neighbor embedding (t-SNE) [Van der Maaten/Hinton, 2008], or neighbor retrieval visualizer (NerV) [Venna et al., 2010] are used project data explicitly into two dimensions disregarding the subspaces of higher dimension than two and preserving only relevant neighborhoods in high-dimensional data. In the next step, the Delaunay graph [Delaunay, 1934] between the projected points is calculated, and each vertex between two projected points is weighted with the high-dimensional distance between the corresponding high-dimensional data points. Thereafter the shortest path between every pair of points is computed using the Dijkstra algorithm [Dijkstra, 1959]. The shortest paths are then used in the clustering process, which involves two choices depending on the structure type in the high-dimensional data [Thrun/Ultsch, 2020b]. This Boolean choice can be decided by looking at the topographic map of high-dimensional structures [Thrun/Ultsch, 2020a]. In a benchmarking of 34 comparable clustering methods, projection-based clustering was the only algorithm that always was able to find the high-dimensional distance or density-based structure of the dataset [Thrun/Ultsch, 2020b].
+</p>
+<p>It should be noted that it is preferable to use a visualization for the Generalized U-Matrix like the topographic map <code>plotTopographicMap</code> of [Thrun et al., 2016] to evaluate the choice of the boolean parameter <code>StructureType</code> and the clustering, improve it or set the number of clusters appropriately. A comparison with 32 clustering algorithms showed that PBC is always able to find the correct cluster structure while the best of the 32 clustering algorithms varies depending on the dataset [Thrun/Ultsch, 2020].
+</p>
+<p>The first systematic comparison to other DR clustering methods like Projection-Pursuit Methods <code>ProjectionPursuitClustering</code>, supspace clustering methods <code>SubspaceClustering</code>,  and CA-based clustering methods can be found in [Thrun/Ultsch, 2020a]. For PCA-based clustering methods please see <code>TandemClustering</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List of
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Cls</code></td>
+<td>
+<p>[1:n]  numerical vector with n numbers defining the classification as the main output of the clustering algorithm. It has k unique numbers representing the arbitrary labels of the clustering.
+. Points which cannot be assigned to a cluster will be reported with 0.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Object</code></td>
+<td>
+<p>Object defined by clustering algorithm as the other output of this algorithm</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Michael Thrun
+</p>
+
+
+<h3>References</h3>
+
+<p>[Bock, 1987]  Bock, H.: On the interface between cluster analysis, principal component analysis, and multidimensional scaling, Multivariate statistical modeling and data analysis, (pp. 17-34), Springer, 1987.
+</p>
+<p>[Thrun/Ultsch, 2017]  Thrun, M. C., &amp; Ultsch, A.: Projection based Clustering, Proc. International Federation of Classification Societies (IFCS), pp. 250-251, Tokai University, Japanese Classification Society (JCS), Tokyo, Japan August 7-10, 2017.
+</p>
+<p>[Thrun/Ultsch, 2020a]  Thrun, M. C., &amp; Ultsch, A.: Using Projection based Clustering to Find Distance and Density based Clusters in High-Dimensional Data, Journal of Classification, in press, doi 10.1007/s00357-020-09373-2, 2020.
+</p>
+<p>[Thrun et al., 2016]  Thrun, M. C., Lerch, F., Loetsch, J., &amp; Ultsch, A.: Visualization and 3D Printing of Multivariate Data of Biomarkers, in Skala, V. (Ed.), International Conference in Central Europe on Computer Graphics, Visualization and Computer Vision (WSCG), Vol. 24, pp. 7-16, Plzen, http://wscg.zcu.cz/wscg2016/short/A43-full.pdf, 2016.
+</p>
+<p>[McInnes et al., 2018]  McInnes, L., Healy, J., &amp; Melville, J.: Umap: Uniform manifold approximation and projection for dimension reduction, arXiv preprint arXiv:1802.03426, 2018.
+</p>
+<p>[Demartines/Herault, 1995]  Demartines, P., &amp; Herault, J.: CCA:" Curvilinear component analysis", Proc. 15 Colloque sur le traitement du signal et des images, Vol. 199, GRETSI, Groupe d Etudes du Traitement du Signal et des Images, France 18-21 September, 1995.
+</p>
+<p>[Sammon, 1969]  Sammon, J. W.: A nonlinear mapping for data structure analysis, IEEE Transactions on computers, Vol. 18(5), pp. 401-409. doi doi:10.1109/t-c.1969.222678, 1969.
+</p>
+<p>[Thrun/Ultsch, 2020b]  Thrun, M. C., &amp; Ultsch, A.: Swarm Intelligence for Self-Organized Clustering, Journal of Artificial Intelligence, Vol. in press, pp. doi 10.1016/j.artint.2020.103237, 2020.
+</p>
+<p>[Torgerson, 1952]  Torgerson, W. S.: Multidimensional scaling: I. Theory and method, Psychometrika, Vol. 17(4), pp. 401-419. 1952.
+</p>
+<p>[Venna et al., 2010]  Venna, J., Peltonen, J., Nybo, K., Aidos, H., &amp; Kaski, S.: Information retrieval perspective to nonlinear dimensionality reduction for data visualization, The Journal of Machine Learning Research, Vol. 11, pp. 451-490. 2010.
+</p>
+<p>[Van der Maaten/Hinton, 2008]  Van der Maaten, L., &amp; Hinton, G.: Visualizing Data using t-SNE, Journal of Machine Learning Research, Vol. 9(11), pp. 2579-2605. 2008.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data('Hepta')
+out=AutomaticProjectionBasedClustering(Hepta$Data,ClusterNo=7,PlotIt=FALSE)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.lm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Prediction for linear models
+</h2>
+
+<h3>Description</h3>
+
+<p><code>predict</code> method for: 
+</p>
+
+<ul>
+<li>
+<p> Linear model (LM) fitted using <code>lm.pels.fit</code>. 
+</p>
+</li>
+<li>
+<p> Linear model with covariates derived from the discretization of a curve fitted using <code>PVS.fit</code>.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lm.pels'
+predict(object, newdata = NULL, y.test = NULL, ...)
+## S3 method for class 'PVS'
+predict(object, newdata = NULL, y.test = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>Output of the <code>lm.pels.fit</code> or <code>PVS.fit</code> functions (i.e. an object of the class <code>lm.pels</code> or <code>PVS</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+
+<p>Matrix containing the new observations of the scalar covariates (LM), or the scalar covariates resulting from the discretisation of a curve. Observations are collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.test</code></td>
+<td>
+
+<p>(optional) A vector containing the new observations of the response.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function returns the predicted values of the response (<code>y</code>) for <code>newdata</code>. If <code>!is.null(y.test)</code>, it also provides the mean squared error of prediction (<code>MSEP</code>) computed as <code>mean((y-y.test)^2)</code>.
+If <code>is.null(newdata)</code>, then the function returns the fitted values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>German Aneiros Perez <a href="mailto:german.aneiros@udc.es">german.aneiros@udc.es</a> 
+</p>
+<p>Silvia Novo Diaz  <a href="mailto:snovo@est-econ.uc3m.es">snovo@est-econ.uc3m.es</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lm.pels.fit</code> and <code>PVS.fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("Tecator")
+y&lt;-Tecator$fat
+z1&lt;-Tecator$protein       
+z2&lt;-Tecator$moisture
+
+#Quadratic, cubic and interaction effects of the scalar covariates.
+z.com&lt;-cbind(z1,z2,z1^2,z2^2,z1^3,z2^3,z1*z2)
+train&lt;-1:160
+test&lt;-161:215
+
+#LM fit. 
+fit&lt;-lm.pels.fit(z=z.com[train,], y=y[train],lambda.min.l=0.01,
+      factor.pn=2, max.iter=5000, criterion="BIC")
+
+#Predictions
+predict(fit,newdata=z.com[test,],y.test=y[test])
+
+
+data(Sugar)
+
+y&lt;-Sugar$ash
+z&lt;-Sugar$wave.240
+
+#Outliers
+index.y.25 &lt;- y &gt; 25
+index.atip &lt;- index.y.25
+(1:268)[index.atip]
+
+
+#Dataset to model
+z.sug&lt;- z[!index.atip,]
+y.sug &lt;- y[!index.atip]
+
+train&lt;-1:216
+test&lt;-217:266
+
+#Fit
+fit.pvs&lt;-PVS.fit(z=z.sug[train,], y=y.sug[train],train.1=1:108,train.2=109:216,
+          lambda.min.h=0.2,criterion="BIC", max.iter=5000)
+
+
+#Predictions
+predict(fit.pvs,newdata=z.sug[test,],y.test=y.sug[test])
+
+
+</code></pre>
+
+
+</div>

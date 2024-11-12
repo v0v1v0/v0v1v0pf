@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fairness_radar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fairness radar</h2>
+
+<h3>Description</h3>
+
+<p>Make <code>fairness_radar</code> object with chosen <code>fairness_metrics</code>. Note that there must be at least three metrics that does not contain NA.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fairness_radar(x, fairness_metrics = c("ACC", "TPR", "PPV", "FPR", "STP"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class <code>fairness_object</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fairness_metrics</code></td>
+<td>
+<p>character, vector of metric names, at least 3 metrics without NA needed. Full names of metrics can be found in <code>fairness_check</code> documentation.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>fairness_radar</code> object.
+It is a list containing:
+</p>
+
+<ul>
+<li>
+<p>radar_data - <code>data.frame</code> containing scores for each model and parity loss metric
+</p>
+</li>
+<li>
+<p>label - model labels
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+fradar &lt;- fairness_radar(fobject, fairness_metrics = c(
+  "ACC", "STP", "TNR",
+  "TPR", "PPV"
+))
+
+plot(fradar)
+
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200,
+  num.threads = 1
+)
+
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_rf, fobject)
+
+
+fradar &lt;- fairness_radar(fobject, fairness_metrics = c(
+  "ACC",
+  "STP",
+  "TNR",
+  "TPR",
+  "PPV"
+))
+
+plot(fradar)
+
+
+</code></pre>
+
+
+</div>

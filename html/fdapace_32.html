@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FSVD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Singular Value Decomposition</h2>
+
+<h3>Description</h3>
+
+<p>FSVD for a pair of dense or sparse functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FSVD(
+  Ly1,
+  Lt1,
+  Ly2,
+  Lt2,
+  FPCAoptns1 = NULL,
+  FPCAoptns2 = NULL,
+  SVDoptns = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ly1</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual. Missing values specified by <code>NA</code>s are supported for dense case (<code>dataType='dense'</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt1</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual corresponding to y. Each vector should be sorted in ascending order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ly2</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual. Missing values specified by <code>NA</code>s are supported for dense case (<code>dataType='dense'</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt2</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual corresponding to y. Each vector should be sorted in ascending order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FPCAoptns1</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code> for the FPC analysis of sample 1. See ‘?FPCA’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FPCAoptns2</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code> for the FPC analysis of sample 2. See ‘?FPCA’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SVDoptns</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code> for the FSVD analysis of samples 1 &amp; 2. See 'Details'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available control options for SVDoptns are: 
+</p>
+
+<dl>
+<dt>bw1</dt>
+<dd>
+<p>The bandwidth value for the smoothed cross-covariance function across the direction of sample 1; positive numeric - default: determine automatically based on 'methodBwCov'</p>
+</dd>
+<dt>bw2</dt>
+<dd>
+<p>The bandwidth value for the smoothed cross-covariance function across the direction of sample 2; positive numeric - default: determine automatically based on 'methodBwCov'</p>
+</dd>
+<dt>methodBwCov</dt>
+<dd>
+<p>The bandwidth choice method for the smoothed covariance function; 'GMeanAndGCV' (the geometric mean of the GCV bandwidth and the minimum bandwidth),'CV','GCV' - default: 10% of the support</p>
+</dd>
+<dt>userMu1</dt>
+<dd>
+<p>The user defined mean of sample 1 used to centre it prior to the cross-covariance estimation. - default: determine automatically based by the FPCA of sample 1</p>
+</dd>
+<dt>userMu2</dt>
+<dd>
+<p>The user defined mean of sample 2 used to centre it prior to the cross-covariance estimation. - default: determine automatically based by the FPCA of sample 2</p>
+</dd>
+<dt>maxK</dt>
+<dd>
+<p>The maximum number of singular components to consider; default: min(20, N-1), N:# of curves.</p>
+</dd>
+<dt>kernel</dt>
+<dd>
+<p>Smoothing kernel choice, common for mu and covariance; "rect", "gauss", "epan", "gausvar", "quar" - default: "gauss"; dense data are assumed noise-less so no smoothing is performed.</p>
+</dd>
+<dt>rmDiag</dt>
+<dd>
+<p>Logical describing if the routine should remove diagonal raw cov for cross cov estimation (default: FALSE) </p>
+</dd>
+<dt>noScores</dt>
+<dd>
+<p>Logical describing if the routine should return functional singular scores or not (default: TRUE) </p>
+</dd>
+<dt>regulRS</dt>
+<dd>
+<p>String describing if the regularisation of the composite cross-covariance matrix should be done using 'sigma1' or 'rho' (see ?FPCA for details) (default: 'sigma2') </p>
+</dd>
+<dt>bwRoutine</dt>
+<dd>
+<p>String specifying the routine used to find the optimal bandwidth 'grid-search', 'bobyqa', 'l-bfgs-b' (default: 'l-bfgs-b')</p>
+</dd>
+<dt>flip</dt>
+<dd>
+<p>Logical describing if the routine should flip the sign of the singular components functions or not after the SVD of the cross-covariance matrix. (default: FALSE)</p>
+</dd>
+<dt>useGAM</dt>
+<dd>
+<p>Indicator to use gam smoothing instead of local-linear smoothing (semi-parametric option) (default: FALSE)</p>
+</dd>
+<dt>dataType1</dt>
+<dd>
+<p>The type of design we have for sample 1 (usually distinguishing between sparse or dense functional data); 'Sparse', 'Dense', 'DenseWithMV' - default:  determine automatically based on 'IsRegular'</p>
+</dd>
+<dt>dataType2</dt>
+<dd>
+<p>The type of design we have for sample 2 (usually distinguishing between sparse or dense functional data); 'Sparse', 'Dense', 'DenseWithMV' - default:  determine automatically based on 'IsRegular'</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>bw1</code></td>
+<td>
+<p>The selected (or user specified) bandwidth for smoothing the cross-covariance function across the support of sample 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw2</code></td>
+<td>
+<p>The selected (or user specified) bandwidth for smoothing the cross-covariance function across the support of sample 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CrCov</code></td>
+<td>
+<p>The smoothed cross-covariance between samples 1 &amp; 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sValues</code></td>
+<td>
+<p>A list of length <em>nsvd</em>, each entry containing the singular value estimates for the FSC estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsvd</code></td>
+<td>
+<p>The number of singular components used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>canCorr</code></td>
+<td>
+<p>The canonical correlations for each dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FVE</code></td>
+<td>
+<p>A percentage indicating the total variance explained by chosen FSCs with corresponding 'FVEthreshold'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sFun1</code></td>
+<td>
+<p>An nWorkGrid by <em>K</em> matrix containing the estimated singular functions for sample 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sFun2</code></td>
+<td>
+<p>An nWorkGrid by <em>K</em> matrix containing the estimated singular functions for sample 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid1</code></td>
+<td>
+<p>A vector of length nWorkGrid1. The internal regular grid on which the singular analysis is carried on the support of sample 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid2</code></td>
+<td>
+<p>A vector of length nWorkGrid2. The internal regular grid on which the singular analysis is carried on the support of sample 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sScores1</code></td>
+<td>
+<p>A <em>n</em> by <em>K</em> matrix containing the singular scores for sample 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sScores2</code></td>
+<td>
+<p>A <em>n</em> by <em>K</em> matrix containing the singular scores for sample 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options used by the SVD and the FPCA's procedures.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Yang, W., Müller, H.G., Stadtmüller, U. (2011). Functional singular component analysis. J. Royal Statistical Society B73, 303-324.</cite>
+</p>
+
+
+</div>

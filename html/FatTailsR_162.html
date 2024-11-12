@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pk2pk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Global Conversion Function Between Kiener Distribution Parameters</h2>
+
+<h3>Description</h3>
+
+<p>A conversion function between Kiener distribution parameters 
+<code>K1(m, g, k)</code>, <code>K2(m, g, a, w)</code>,
+<code>K3(m, g, k, d)</code> and <code>K4(m, g, k, e)</code> to and from
+<code>coefk = c(m, g, a, k, w, d, e)</code> extracted from <code>regkienerLX</code> 
+and <code>paramkienerX</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pk2pk(coefk, model = "K2", to = "K7", dgts = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefk</code></td>
+<td>
+<p>vectors of numeric of length 3, 4 or 7.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>character. Either "K1", "K2", "K3", "K4", "K7".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+<p>character. Either "K1", "K2", "K3", "K4", "K7".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dgts</code></td>
+<td>
+<p>integer. The rounding applied to the output.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Kiener distributions use the following parameters, some of them being redundant. 
+See also <code>aw2k</code> for the formulas and 
+the conversion between parameters:
+</p>
+
+<ul>
+<li> <p><code>m</code> (mu) is the median of the distribution,. 
+</p>
+</li>
+<li> <p><code>g</code> (gamma) is the scale parameter. 
+</p>
+</li>
+<li> <p><code>a</code> (alpha) is the left tail parameter.  
+</p>
+</li>
+<li> <p><code>k</code> (kappa) is the harmonic mean of <code>a</code> and <code>w</code> 
+and describes a global tail parameter. 
+</p>
+</li>
+<li> <p><code>w</code> (omega) is the right tail parameter.  
+</p>
+</li>
+<li> <p><code>d</code> (delta) is the distortion parameter. 
+</p>
+</li>
+<li> <p><code>e</code> (epsilon) is the eccentricity parameter. 
+</p>
+</li>
+</ul>
+<p><code>pk2pk()</code> performs the conversion between the various representation, from and to:
+</p>
+
+<ul>
+<li>
+<p> "K1" : <code>kiener1(m, g, k)</code>    
+</p>
+</li>
+<li>
+<p> "K2" : <code>kiener2(m, g, a, w)</code> 
+</p>
+</li>
+<li>
+<p> "K3" : <code>kiener3(m, g, k, d)</code> 
+</p>
+</li>
+<li>
+<p> "K4" : <code>kiener4(m, g, k, e)</code> 
+</p>
+</li>
+<li>
+<p> "K7" : <code>c(m, g, a, k, w, d, e)</code> 
+</p>
+</li>
+</ul>
+<p><code>coefk</code> can take any of the above form. When length(coefk) is 4, 
+<code>model = "K2", "K3" or "K4"</code> is required to differentiate the three models.
+When length(coefk) is 3 or 7, recognition is automatic and  
+<code>model = "K1" or "K7"</code> is ignored. The vector is assumed to be correct 
+and there is no check of the consistency between the 
+parameters <code>a, k, w, d</code> and <code>e</code>.
+</p>
+<p>The output may be any of the above forms. Default is <code>"K7" = c(m, g, a, k, w, d, e)</code> 
+which is <code>coefk</code> provided by the regression function <code>regkienerLX</code>
+or the parameter estimation function <code>paramkienerX</code>. It is widely in many plots.
+</p>
+<p>An integer rounding parameter is provided trough <code>dgts</code>. Default is no rounding.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Local conversion functions <code>aw2k</code>, 
+Kiener distributions K1, K2, K3 and K4: <code>kiener1</code>, 
+<code>kiener2</code>, <code>kiener3</code>, <code>kiener4</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Example 1
+c2 &lt;- c(1, 2, 3, 5)
+pk2pk(c2, model = "K2", to = "K1") # loose the asymmetry.
+pk2pk(c2, model = "K2", to = "K2")
+pk2pk(c2, model = "K2", to = "K3")
+pk2pk(c2, model = "K2", to = "K4")
+pk2pk(c2, model = "K2", to = "K4")
+(c7 &lt;- pk2pk(c2, model = "K2", to = "K7", dgts = 3))
+pk2pk(c7, model = "K7", to = "K2")
+
+## Example 2 ("K2" to "K7")
+(mat4 &lt;- matrix( c(rep(0,9), rep(1,9), seq(0.5,4.5,0.5), seq(1,5,0.5)), 
+         nrow = 4, byrow = TRUE, dimnames = list(c("m","g","a","w"), paste0("b",1:9))))
+(mat7 &lt;- round(apply(mat4, 2, pk2pk), 3))
+
+
+</code></pre>
+
+
+</div>

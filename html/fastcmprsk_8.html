@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastCrrp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Penalized Fine-Gray Model Estimation via two-way linear scan</h2>
+
+<h3>Description</h3>
+
+<p>Performs penalized regression for the proportional subdistribution hazards model.
+Penalties currently include LASSO, MCP, SCAD, and ridge regression. User-specificed weights can be assigned
+to the penalty for each coefficient (e.g. implementing adaptive LASSO and broken adaptive ridge regerssion).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastCrrp(
+  formula,
+  data,
+  eps = 1e-06,
+  max.iter = 1000,
+  standardize = TRUE,
+  penalty = c("LASSO", "RIDGE", "MCP", "SCAD", "ENET"),
+  lambda = NULL,
+  alpha = 0,
+  lambda.min.ratio = 0.001,
+  nlambda = 25,
+  penalty.factor,
+  gamma = switch(penalty, scad = 3.7, 2.7)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula object, with the response on the left of a ~ operator, and the terms on the right. The response must be a Crisk object as returned by the <code>Crisk</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame in which to interpret the variables named in the formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Numeric: algorithm stops when the relative change in any coefficient is less than <code>eps</code> (default is <code>1E-6</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+<p>Numeric: maximum iterations to achieve convergence (default is 1000)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Logical: Standardize design matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>Character: Penalty to be applied to the model. Options are "lasso", "scad", "ridge", "mcp", and "enet".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A user-specified sequence of <code>lambda</code> values for tuning parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>L1/L2 weight for elastic net regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.ratio</code></td>
+<td>
+<p>Smallest value for <code>lambda</code>, as a fraction of <code>lambda.max</code> (if <code>lambda</code> is NULL).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>Number of <code>lambda</code> values (default is 25).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty.factor</code></td>
+<td>
+<p>A vector of weights applied to the penalty for each coefficient. Vector must be of length equal to the number of columns in <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>Tuning parameter for the MCP/SCAD penalty. Default is 2.7 for MCP and 3.7 for SCAD and should be left unchanged.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>fastCrrp</code> functions performed penalized Fine-Gray regression.
+Parameter estimation is performed via cyclic coordinate descent and using a two-way linear scan approach to efficiently
+calculate the gradient and Hessian values. Current implementation includes LASSO, SCAD, MCP, and ridge regression.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list of class <code>fcrrp</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>fitted coefficients matrix with <code>nlambda</code> columns and <code>nvars</code> columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik</code></td>
+<td>
+<p>vector of log-pseudo likelihood at the estimated regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik.null</code></td>
+<td>
+<p>log-pseudo likelihood when the regression coefficients are 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.path</code></td>
+<td>
+<p>sequence of tuning parameter values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>number of iterations needed until convergence at each tuning parameter value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+<p>convergence status at each tuning parameter value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breslowJump</code></td>
+<td>
+<p>Jumps in the Breslow baseline cumulative hazard (used by <code>predict.fcrr</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uftime</code></td>
+<td>
+<p>vector of unique failure (event) times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>same as above</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>same as above</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>above</code></td>
+<td>
+<p>same as above</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Fu, Z., Parikh, C.R., Zhou, B. (2017) Penalized variable selection in competing risks
+regression. <em>Lifetime Data Analysis</em> 23:353-376.
+</p>
+<p>Breheny, P. and Huang, J. (2011) Coordinate descent algorithms for nonconvex penalized regression, with applications to biological feature selection. <em>Ann. Appl. Statist.</em>, 5: 232-253.
+</p>
+<p>Fine J. and Gray R. (1999) A proportional hazards model for the subdistribution of a competing risk.  <em>JASA</em> 94:496-509.
+</p>
+<p>Kawaguchi, E.S., Shen J.I., Suchard, M. A., Li, G. (2020) Scalable Algorithms for Large Competing Risks Data, Journal of Computational and Graphical Statistics
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fastcmprsk)
+set.seed(10)
+ftime &lt;- rexp(200)
+fstatus &lt;- sample(0:2, 200, replace = TRUE)
+cov &lt;- matrix(runif(1000), nrow = 200)
+dimnames(cov)[[2]] &lt;- c('x1','x2','x3','x4','x5')
+fit &lt;- fastCrrp(Crisk(ftime, fstatus) ~ cov, lambda = 1, penalty = "RIDGE")
+fit$coef
+
+</code></pre>
+
+
+</div>

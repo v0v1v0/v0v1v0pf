@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.fuzzy_forest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict method for fuzzy_forest object.
+Obtains predictions from fuzzy forest algorithm.</h2>
+
+<h3>Description</h3>
+
+<p>Predict method for fuzzy_forest object.
+Obtains predictions from fuzzy forest algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fuzzy_forest'
+predict(object, new_data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A fuzzy_forest object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_data</code></td>
+<td>
+<p>A matrix or data.frame containing new_data.
+Pay close attention to ensure feature names
+match between training set and test set
+data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments not in use.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector of predictions
+</p>
+
+
+<h3>Note</h3>
+
+<p>This work was partially funded by NSF IIS 1251151 and AMFAR 8721SC.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ff</code>,
+<code>wff</code>,
+<code>ff.formula</code>,
+<code>wff.formula</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(mvtnorm)
+gen_mod &lt;- function(n, p, corr) {
+  sigma &lt;- matrix(corr, nrow=p, ncol=p)
+  diag(sigma) &lt;- 1
+  X &lt;- rmvnorm(n, sigma=sigma)
+  return(X)
+}
+
+gen_X &lt;- function(n, mod_sizes, corr){
+  m &lt;- length(mod_sizes)
+  X_list &lt;- vector("list", length = m)
+  for(i in 1:m){
+    X_list[[i]] &lt;- gen_mod(n, mod_sizes[i], corr[i])
+  }
+  X &lt;- do.call("cbind", X_list)
+  return(X)
+}
+
+err_sd &lt;- .5
+n &lt;- 500
+mod_sizes &lt;- rep(25, 4)
+corr &lt;- rep(.8, 4)
+X &lt;- gen_X(n, mod_sizes, corr)
+beta &lt;- rep(0, 100)
+beta[c(1:4, 76:79)] &lt;- 5
+y &lt;- X%*%beta + rnorm(n, sd=err_sd)
+X &lt;- as.data.frame(X)
+
+Xtest &lt;- gen_X(n, mod_sizes, corr)
+ytest &lt;- Xtest%*%beta + rnorm(n, sd=err_sd)
+Xtest &lt;- as.data.frame(Xtest)
+
+cdist &lt;- as.dist(1 - cor(X))
+hclust_fit &lt;- hclust(cdist, method="ward.D")
+groups &lt;- cutree(hclust_fit, k=4)
+
+screen_c &lt;- screen_control(keep_fraction = .25,
+                           ntree_factor = 1,
+                           min_ntree = 250)
+select_c &lt;- select_control(number_selected = 10,
+                           ntree_factor = 1,
+                           min_ntree = 250)
+
+ff_fit &lt;- ff(X, y, module_membership = groups,
+             screen_params = screen_c,
+             select_params = select_c,
+             final_ntree = 250)
+#extract variable importance rankings
+vims &lt;- ff_fit$feature_list
+
+#plot results
+modplot(ff_fit)
+
+#obtain predicted values for a new test set
+preds &lt;- predict(ff_fit, new_data=Xtest)
+
+#estimate test set error
+test_err &lt;- sqrt(sum((ytest - preds)^2)/n)
+
+</code></pre>
+
+
+</div>

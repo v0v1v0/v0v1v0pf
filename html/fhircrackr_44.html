@@ -1,0 +1,237 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_crack</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flatten list of FHIR bundles</h2>
+
+<h3>Description</h3>
+
+<p>Converts a fhir_bundle_list (the result of <code>fhir_search()</code>) to a data.frame/data.table or list of df/dt,
+if more than one resource type is extracted at once.
+</p>
+<p>There are two main output formats for the table: compact and wide. They differ regarding their handling of multiple occurrences of
+the same FHIR element (e.g. <code>Patient.adress</code>). In the compact format multiple occurrences are pasted together into one cell/column,
+in the wide format multiple occurrences are distributed over several (indexed) columns. If none of the resources contains any multiple
+values on the extracted elements, the two formats will result in the same structure.
+</p>
+<p>To increase speed with larger amounts of data the cracking process can be parallelised over a number of cores defined in the
+<code>ncores</code> argument.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_crack(
+  bundles,
+  design,
+  sep = NULL,
+  brackets = NULL,
+  rm_empty_cols = NULL,
+  verbose = 2,
+  data.table = FALSE,
+  format = NULL,
+  keep_attr = NULL,
+  ncores = 1
+)
+
+## S4 method for signature 'ANY,fhir_table_description'
+fhir_crack(
+  bundles,
+  design,
+  sep = NULL,
+  brackets = NULL,
+  rm_empty_cols = NULL,
+  verbose = 2,
+  data.table = FALSE,
+  format = NULL,
+  keep_attr = NULL,
+  ncores = 1
+)
+
+## S4 method for signature 'ANY,fhir_design'
+fhir_crack(
+  bundles,
+  design,
+  sep = NULL,
+  brackets = NULL,
+  rm_empty_cols = NULL,
+  verbose = 2,
+  data.table = FALSE,
+  format = NULL,
+  keep_attr = NULL,
+  ncores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bundles</code></td>
+<td>
+<p>A FHIR search result as returned by <code>fhir_search()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>A fhir_design or fhir_table_description object. See <code>fhir_design()</code>/<code>fhir_table_description()</code>
+and the corresponding vignette (<code>vignette("flattenResources", package ="fhircrackr")</code>) for a more detailed explanation and
+comprehensive examples of both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>Optional. A character of length one containing the separator string used for separating multiple entries in cells when <code>format = "compact"</code>.
+Will overwrite the <code>sep</code> defined in <code>design</code>. If <code>sep = NULL</code>, it is looked up in <code>design</code>, where the default is <code>":::"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brackets</code></td>
+<td>
+<p>Optional. A character of length one or two used for the indices of multiple entries, which will overwrite the <code>brackets</code> defined in <code>design</code>.
+If <code>brackets = NULL</code>, it is looked up in <code>design</code>, where the default is <code>character(0)</code>,i.e. no indices are added to multiple entries.
+Empty strings (<code>""</code>) are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm_empty_cols</code></td>
+<td>
+<p>Optional. Remove empty columns? Logical scalar which will overwrite the <code>rm_empty_cols</code> defined in
+<code>design</code>. If <code>rm_empty_cols = NULL</code>, it is looked up in <code>design</code>, where the default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>An integer vector of length one. If 0, nothing is printed, if 1, only finishing message is printed, if &gt; 1,
+extraction progress will be printed. Defaults to 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.table</code></td>
+<td>
+<p>A logical vector of length one. If it is set to <code>TRUE</code> the fhir_crack-function returns a data.table, otherwise a data.frame.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>Optional. A character of length one indicating whether the resulting table should be cracked to a <code>wide</code> or <code>compact</code> format. Will overwrite the <code>format</code> defined
+in <code>design</code> which defaults to <code>compact</code>. <code>wide</code> means multiple entries will be distributed over several columns with indexed names. <code>compact</code> means multiple entries will be pasted into one cell/column separated by <code>sep</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_attr</code></td>
+<td>
+<p>Optional. A logical of length one indicating whether the attribute name of the respective element (<code style="white-space: pre;">⁠@value⁠</code> in most cases)
+should be attached to the name of the variable in the resulting table. Will overwrite <code>keep_attr</code> in <code>design</code> which defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>Either <code>NULL</code> (no parallelisation) or an integer of length 1 containing the number of
+cpu cores that should be used for parallelised cracking. Parallelisation currently only works on linux systems.
+Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If a fhir_design was used, the result is a list of data.frames, i.e. a fhir_df_list object, or a list of data.tables,
+i.e. a fhir_dt_list object. If a fhir_table_description was used, the result is a single data.frame/data.table.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p> Downloading bundles from a FHIR server: <code>fhir_search()</code>
+</p>
+</li>
+<li>
+<p> Creating designs/table_descriptions: <code>fhir_table_description()</code> and <code>fhir_design()</code>
+</p>
+</li>
+<li>
+<p> Dealing with multiple entries: <code>fhir_melt()</code>, <code>fhir_cast()</code>, <code>fhir_rm_indices()</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">#unserialize example bundle
+bundles &lt;- fhir_unserialize(medication_bundles)
+
+
+###Example 1###
+#Extract just one resource type
+
+#define attributes to extract
+med_desc &lt;- fhir_table_description(
+   resource = "MedicationStatement",
+   cols     = c(
+   	id              = "id",
+   	status          = "status",
+   	system          = "medicationCodeableConcept/coding/system",
+   	code            = "medicationCodeableConcept/coding/code",
+   	display         = "medicationCodeableConcept/coding/display"
+  )
+)
+
+med_df &lt;- fhir_crack(bundles = bundles, design = med_desc)
+
+head(med_df) #data.frame
+
+
+###Example 2###
+#extract two resource types at once
+
+pat_desc &lt;- fhir_table_description(
+   resource = "Patient"
+)
+
+design &lt;- fhir_design(med_desc, pat_desc)
+
+df_list &lt;- fhir_crack(bundles = bundles, design = design)
+
+#list of data.frames/fhir_df_list
+head(df_list$med_desc)
+head(df_list$pat_desc)
+
+#The design that was used can be extracted from a fhir_df_list
+fhir_design(df_list)
+
+
+###Example 3###
+#Filter values before extracting
+
+#unserialize example bundle
+b &lt;- fhir_unserialize(bundles = example_bundles5)
+
+#only extract codings with loinc system
+table_desc &lt;- fhir_table_description(
+                    resource = "Observation",
+                    cols = c(
+                      id = "id",
+		                 loinc = "code/coding[system[@value='http://loinc.org']]/code",
+	                 display = "code/coding[system[@value='http://loinc.org']]/display"
+	                 )
+)
+
+table &lt;- fhir_crack(bundles = b,
+				    design = table_desc)
+
+table
+</code></pre>
+
+
+</div>

@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extractObs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract observations of functional data</h2>
+
+<h3>Description</h3>
+
+<p>This function extracts one or more observations and/or observations on
+a part of the domain from a <code>funData</code>, <code>irregFunData</code> or
+<code>multiFunData</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extractObs(
+  object,
+  obs = seq_len(nObs(object)),
+  argvals = funData::argvals(object)
+)
+
+## S4 method for signature 'funData'
+subset(x, obs = seq_len(nObs(x)), argvals = funData::argvals(x))
+
+## S4 method for signature 'multiFunData'
+subset(x, obs = seq_len(nObs(x)), argvals = funData::argvals(x))
+
+## S4 method for signature 'irregFunData'
+subset(x, obs = seq_len(nObs(x)), argvals = funData::argvals(x))
+
+## S4 method for signature 'funData,ANY,missing,missing'
+x[i, j, ..., drop = TRUE]
+
+## S4 method for signature 'multiFunData,ANY,missing,missing'
+x[i, j, ..., drop = TRUE]
+
+## S4 method for signature 'irregFunData,ANY,missing,missing'
+x[i = seq_len(nObs(x)), j, ..., drop = TRUE]
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class <code>funData</code>, <code>irregFunData</code> or
+<code>multiFunData</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>A numeric vector, giving the indices of the observations to
+extract (default: all observations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+<p>The part of the domain to be extracted (default: the
+whole domain <code>object</code>@<code>argvals</code>). Must be a list or a
+numeric vector (only for one-dimensional domains, see also the
+definition of <code>funData</code>,
+<code>multiFunData</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class <code>funData</code>, <code>irregFunData</code> or
+<code>multiFunData</code> (for <code>subset</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>A numeric vector, giving the indices of the observations to
+extract when using <code>x[i]</code>. Defaults to all observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j, drop</code></td>
+<td>
+<p>not used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Used to pass further arguments to <code>extractObs</code>. Here
+only usable for <code>argvals</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In case of an <code>irregFunData</code> object, some functions may not have
+observation points in the given part of the domain. In this case, the
+functions are removed from the extracted dataset and a warning is
+thrown.
+</p>
+<p>If only observations are to be extracted, the usual notation
+<code>object[1:3]</code> is equivalent to <code>extractObs(object, obs =
+1:3)</code>. This works only if the domain remains unchanged.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>funData</code>, <code>irregFunData</code> or
+<code>multiFunData</code> containing the desired observations.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>x[i</code>: 
+</p>
+</li></ul>
+<h3>Warning</h3>
+
+<p>The function is currently implemented only for
+functional data with up to three-dimensional domains.
+</p>
+
+
+<h3>Alias</h3>
+
+<p>The function <code>subset</code> is an alias for
+<code>extractObs</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>funData</code>,
+<code>irregFunData</code>, <code>multiFunData</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Univariate - one-dimensional domain
+object1 &lt;- funData(argvals = 1:5, X = rbind(1:5, 6:10))
+extractObs(object1, obs = 1)
+extractObs(object1, argvals = 1:3)
+extractObs(object1, argvals = list(1:3)) # the same as the statement before
+# alias
+subset(object1, argvals = 1:3)
+
+# Univariate - two-dimensional domains
+object2 &lt;- funData(argvals = list(1:5, 1:6), X = array(1:60, dim = c(2, 5, 6)))
+extractObs(object2, obs = 1)
+extractObs(object2, argvals = list(1:3, c(2,4,6))) # argvals must be supplied as list
+
+# Univariate - irregular
+irregObject &lt;- irregFunData(argvals = list(1:5, 2:4), X = list(2:6, 3:5))
+extractObs(irregObject, obs = 2)
+extractObs(irregObject, argvals = 1:3)
+extractObs(irregObject, argvals = c(1,5)) # throws a warning, as second function has no observations
+
+# Multivariate
+multiObject &lt;- multiFunData(object1, object2)
+extractObs(multiObject, obs = 2)
+multiObject[2] # shorthand
+extractObs(multiObject, argvals = list(1:3, list(1:3, c(2,4,6))))
+
+
+### Shorthand via "[]"
+object1[1]
+object1[argvals = 1:3]
+object2[1] 
+object2[argvals = list(1:3, c(2,4,6))]
+irregObject[2]
+irregObject[argvals = 1:3]
+</code></pre>
+
+
+</div>

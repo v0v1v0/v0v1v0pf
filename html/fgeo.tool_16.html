@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_var</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add columns <code>lx/ly</code>, <code>QX/QY</code>, <code>index</code>, <code>col/row</code>, <code>hectindex</code>, <code>quad</code>, <code>gx/gy</code>.</h2>
+
+<h3>Description</h3>
+
+<p>These functions add columns to position trees in a forest plot. They work
+with <em>ViewFullTable</em>, <em>tree</em> and <em>stem</em> tables. From the input table, most
+functions use only the <code>gx</code> and <code>gy</code> columns (or equivalent columns). The
+exception is the function <code>add_gxgy()</code> which inputs quadrat information. If
+your data lacks some important column, an error message will inform you which
+column is missing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_lxly(data, gridsize = 20, plotdim = NULL)
+
+add_qxqy(data, gridsize = 20, plotdim = NULL)
+
+add_index(data, gridsize = 20, plotdim = NULL)
+
+add_col_row(data, gridsize = 20, plotdim = NULL)
+
+add_hectindex(data, gridsize = 20, plotdim = NULL)
+
+add_quad(data, gridsize = 20, plotdim = NULL, start = NULL, width = 2)
+
+add_gxgy(data, gridsize = 20, start = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A ForestGEO-like dataframe: A <em>ViewFullTable</em>, <em>tree</em> or <em>stem</em>
+table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gridsize</code></td>
+<td>
+<p>The gridsize of the census plot (commonly 20 m).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotdim</code></td>
+<td>
+<p>The global dimensions of the census plot (i.e. the
+maximum possible values of <code>gx</code> and <code>gy</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>Defaults to label the first quadrat as "0101". Use <code>0</code> to
+label it as "0000" instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>Number; width to pad the labels of plot-columns and -rows.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions are adapted from the <a href="https://forestgeo.si.edu/explore-data/r-package-0">CTFS R Package</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For any given <code>var</code>, a function <code>add_var()</code> returns a modified
+version of the input dataframe, with the additional variable(s) <code>var</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other functions to add columns to dataframes: 
+<code>add_status_tree()</code>,
+<code>add_subquad()</code>
+</p>
+<p>Other functions for ForestGEO data: 
+<code>add_status_tree()</code>,
+<code>add_subquad()</code>
+</p>
+<p>Other functions for fgeo census: 
+<code>add_status_tree()</code>,
+<code>guess_plotdim()</code>,
+<code>pick_drop</code>
+</p>
+<p>Other functions for fgeo vft: 
+<code>add_status_tree()</code>,
+<code>add_subquad()</code>,
+<code>guess_plotdim()</code>,
+<code>pick_drop</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># styler: off
+x &lt;- tribble(
+    ~gx,    ~gy,
+      0,      0,
+     50,     25,
+  999.9, 499.95,
+   1000,    500
+)
+# styler: on
+
+# `gridsize` has a common default; `plotdim` is guessed from the data
+add_lxly(x)
+
+gridsize &lt;- 20
+plotdim &lt;- c(1000, 500)
+
+add_qxqy(x, gridsize, plotdim)
+
+add_index(x, gridsize, plotdim)
+
+add_hectindex(x, gridsize, plotdim)
+
+add_quad(x, gridsize, plotdim)
+
+add_quad(x, gridsize, plotdim, start = 0)
+
+# `width` gives the nuber of digits to pad the label of plot-rows and
+# plot-columns, e.g. 3 pads plot-rows with three zeros and plot-columns with
+# an extra trhree zeros, resulting in a total of 6 zeros.
+add_quad(x, gridsize, plotdim, start = 0, width = 3)
+
+add_col_row(x, gridsize, plotdim)
+
+
+# From `quadrat` or `QuadratName` --------------------------------------
+# styler: off
+x &lt;- tribble(
+  ~QuadratName,
+        "0001",
+        "0011",
+        "0101",
+        "1001"
+)
+# styler: on
+
+# Output `gx` and `gy` ---------------
+
+add_gxgy(x)
+
+assert_is_installed("fgeo.x")
+# Warning: The data may already have `gx` and `gx` columns
+gxgy &lt;- add_gxgy(fgeo.x::tree5)
+select(gxgy, matches("gx|gy"))
+
+# Output `col` and `row` -------------
+
+# Create columns `col` and `row` from `QuadratName` with `tidyr::separate()`
+# The argument `sep` lets you separate `QuadratName` at any positon
+## Not run: 
+tidyr_is_installed &lt;- requireNamespace("tidyr", quietly = TRUE)
+stringr_is_installed &lt;- requireNamespace("stringr", quietly = TRUE)
+
+if (tidyr_is_installed &amp;&amp; stringr_is_installed) {
+  library(tidyr)
+  library(stringr)
+
+  vft &lt;- tibble(QuadratName = c("0001", "0011"))
+  vft
+
+  separate(
+    vft,
+    QuadratName,
+    into = c("col", "row"),
+    sep = 2
+  )
+
+  census &lt;- select(fgeo.x::tree5, quadrat)
+  census
+
+  census$quadrat &lt;- str_pad(census$quadrat, width = 4, pad = 0)
+
+  separate(
+    census,
+    quadrat,
+    into = c("col", "row"),
+    sep = 2,
+    remove = FALSE
+  )
+}
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

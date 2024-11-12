@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rulebase</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The rule checking function</h2>
+
+<h3>Description</h3>
+
+<p>This function checks the consistency of a rule definition (given by the user).
+The rulebase consists of several fuzzy IF-THEN rules. The rules could be in 
+a list or matrix type. Generally, there are three types of rule structures which are
+rules based on Mamdani, Takagi Sugeno Kang and fuzzy rule-based classification systems (FRBCS).
+</p>
+<p>For rules of the Mamdani model, there are 2 parts in each rule, the antecedent and 
+the consequent part, which are separated by "-&gt;".
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rulebase(type.model, rule, func.tsk = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>type.model</code></td>
+<td>
+<p>a value determining the type of model to use. 
+Here, <code>MAMDANI</code> and <code>TSK</code> mean Mamdani and Takagi Sugeno Kang model, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rule</code></td>
+<td>
+<p>a matrix or list of rules.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func.tsk</code></td>
+<td>
+<p>a matrix representing the consequent parts of rules in Takagi Sugeno Kang formulation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For example:  <code>r1 &lt;- c("a1","and","b1","-&gt;", "c1")</code>
+</p>
+<p>It means that "IF input.variable1 is a1 and input.variable2 is b1 THEN output.variable is c1"
+</p>
+<p>Here, ("a1", "and", "b1") is the antecedent, with "a1" and "b1" being linguistic terms, 
+and ("c1") is the consequent part.
+</p>
+<p>A fuzzy IF-THEN rule base with several rules is defined in the following way:
+</p>
+<p><code>r1 &lt;- c("not a1","and","b1", "-&gt;", "c1")</code>
+</p>
+<p><code>r2 &lt;- c("a2","or","b2", "-&gt;", "c2")</code>
+</p>
+<p><code>r3 &lt;- c("a3","or","b2", "-&gt;", "c3")</code>
+</p>
+<p><code>rule &lt;- list(r1,r2,r3)</code>
+</p>
+<p>For rules of the Takagi Sugeno Kang model, the rules are at first defined without the consequent part, e.g.:
+</p>
+<p><code>r1 &lt;- c("a1",1,"b1","-&gt;")</code>
+</p>
+<p><code>r2 &lt;- c("a2",2,"b2", "-&gt;")</code>
+</p>
+<p><code>r3 &lt;- c("a3","2","b2", "-&gt;")</code>
+</p>
+<p><code>rule &lt;- list(r1,r2,r3)</code>
+</p>
+<p>The consequences are defined then as a matrix <code>fun_tsk</code>, which contains the linear equations of the consequences of the rules.
+The dimension of this matrix is [&lt;number_of_rules&gt;, &lt;number_of_variables&gt; + 1]. The matrix has one extra column for the constants. 
+If there is no constant, a zero is put.
+</p>
+<p>So, for example, if we have 3 rules and 2 linguistic variables (A, B), the matrix <code>fun_tsk</code> has dim(3,3), as in:
+</p>
+<p><code>func.tsk &lt;- matrix(c(1, 1, 5, 2, 1, 3, 1, 2, 2), nrow=3, ncol=3, byrow = TRUE)</code>
+</p>
+<p>Furthermore, we can represent linguistic hedges within the rules. The kinds of hedges used are
+</p>
+
+<ul>
+<li> <p><code>"extremely"</code> reduces the truth value. For example, <code>"extremely a1"</code> means membership function <code class="reqn">a1 = \mu(a1)^3</code>.
+</p>
+</li>
+<li> <p><code>"very"</code> reduces the truth value. For example, <code>"very a1"</code> means membership function <code class="reqn">a1 = \mu(a1)^2</code>.
+</p>
+</li>
+<li> <p><code>"somewhat"</code> increases the truth value. For example, <code>"somewhat a1"</code> means membership function 
+<code class="reqn">a1 = \mu(a1)^0.5</code>.
+</p>
+</li>
+<li> <p><code>"slightly"</code> increases the truth value. For example, <code>"slightly a1"</code> means membership function 
+<code class="reqn">a1 = \mu(a1)^0.33</code>
+</p>
+</li>
+</ul>
+<p>An example of fuzzy IF-THEN rules using linguistic hedge is:
+</p>
+<p><code>r1 &lt;- c("very a1","and","b1","-&gt;","c1")</code>
+</p>
+<p><code>r2 &lt;- c("a2",2,"b2", "-&gt;", "c2")</code>
+</p>
+<p><code>r3 &lt;- c("a3","2","slightly b2", "-&gt;", "c3")</code>
+</p>
+<p><code>rule &lt;- list(r1,r2,r3)</code>
+</p>
+<p>Furthermore, the following is an example in order to give names to the linguistic terms in the input and output variables.
+</p>
+<p><code>varinput.1 &lt;- c("a1", "a2", "a3")</code>
+</p>
+<p><code>varinput.2 &lt;- c("b1", "b2")</code>
+</p>
+<p><code>names.varinput &lt;- c(varinput.1, varinput.2)</code>
+</p>
+<p><code>names.varoutput &lt;- c("c1", "c2", "c3")</code>
+</p>
+<p>In case of FRBCS model, the structure of rules are quite similar with Takagi Sugeno Kang model. But, instead of using 
+linear equation in consequent part, consequent parts in FRBCS are represented by class. For example,
+Take into account that consequent parts expresses classes.
+</p>
+<p><code>rule&lt;-matrix(c("v.1_a.2","and","v.2_a.2","and","v.3_a.3","and","v.4_a.2","-&gt;","3",</code>
+</p>
+<p><code>"v.1_a.2","and","v.2_a.3","and","v.3_a.1","and","v.4_a.3","-&gt;","1",</code>
+</p>
+<p><code>"v.1_a.2","and","v.2_a.2","and","v.3_a.2","and","v.4_a.2","-&gt;","2"),</code>
+</p>
+<p><code>nrow=3, byrow=TRUE)</code>
+</p>
+<p>Where, <code>"1"</code>, <code>"2"</code>, <code>"3"</code> represent class <code>1</code>, <code>2</code>, and <code>3</code>.
+</p>
+<p>Noted that all rules included in rule base must have the same length as many as the number of variables. 
+However, we can ignore some input variables by defining the "dont_care" value. 
+For example, the rule ("not a1","and","dont_care", "-&gt;", "c1") refers to the rule ("not a1" "-&gt;", "c1"). 
+Furthermore, if we are using the learning methods, the fuzzy IF-THEN rules will be generated automatically 
+as the outputs of <code>frbs.learn</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>fuzzy IF-THEN rule base
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>defuzzifier</code>, <code>inference</code>, and <code>fuzzifier</code>
+</p>
+
+
+</div>

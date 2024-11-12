@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.FPCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict FPC scores and curves for a new sample given an FPCA object</h2>
+
+<h3>Description</h3>
+
+<p>Return a list containing the matrix with the first k FPC scores according to conditional expectation or numerical integration, the matrix of predicted trajectories and the prediction work grid.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FPCA'
+predict(object, newLy, newLt, sigma2 = NULL, K = NULL, xiMethod = "CE", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An FPCA object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newLy</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newLt</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual corresponding to y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>The user-defined measurement error variance. A positive scalar. (default: rho if applicable, otherwise sigma2 if applicable, otherwise 0 if no error. )</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The scalar defining the number of clusters to define; (default: from user-specified FPCA Object).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xiMethod</code></td>
+<td>
+<p>The integration method used to calculate the functional principal component scores 
+(standard numerical integration 'IN' or conditional expectation 'CE'); default: 'CE'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>A matrix of size <em>n</em>-by-<em>k</em> which comprise of the predicted functional principal component scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predCurves</code></td>
+<td>
+<p>A matrix of size <em>n</em>-by-<em>l</em> where <em>l</em> is the length of the work grid in <em>object</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predGrid</code></td>
+<td>
+<p>A vector of length <em>l</em> which is the output grid of the predicted curves. This is same is the workgrid of <em>object</em>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+n &lt;- 50
+pts &lt;- seq(0, 1, by=0.05)
+# The first n samples are for training and the rest testing
+sampWiener &lt;- Wiener(2 * n, pts)
+sparsity &lt;- 2:5
+train &lt;- Sparsify(sampWiener[seq_len(n), , drop=FALSE], pts, sparsity)
+test &lt;- Sparsify(sampWiener[seq(n + 1, 2 * n), , drop=FALSE], pts, sparsity)
+res &lt;- FPCA(train$Ly, train$Lt)
+pred &lt;- predict(res, test$Ly, test$Lt, K=3)
+plot(pred$predGrid, pred$predCurves[1,])
+
+
+</code></pre>
+
+
+</div>

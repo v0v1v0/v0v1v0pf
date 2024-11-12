@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>write_package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Write a Data Package to disk</h2>
+
+<h3>Description</h3>
+
+<p>Writes a Data Package and its related Data Resources to disk as a
+<code>datapackage.json</code> and CSV files.
+Already existing CSV files of the same name will not be overwritten.
+The function can also be used to download a Data Package in its entirety.
+The Data Resources are handled as follows:
+</p>
+
+<ul>
+<li>
+<p> Resource <code>path</code> has at least one local path (e.g. <code>deployments.csv</code>):
+CSV files are copied or downloaded to <code>directory</code> and <code>path</code> points to new
+location of file(s).
+</p>
+</li>
+<li>
+<p> Resource <code>path</code> has only URL(s): resource stays as is.
+</p>
+</li>
+<li>
+<p> Resource has inline <code>data</code> originally: resource stays as is.
+</p>
+</li>
+<li>
+<p> Resource has inline <code>data</code> as result of adding data with <code>add_resource()</code>:
+data are written to a CSV file using <code>readr::write_csv()</code>, <code>path</code> points to
+location of file, <code>data</code> property is removed.
+Use <code>compress = TRUE</code> to gzip those CSV files.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">write_package(package, directory, compress = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>package</code></td>
+<td>
+<p>Data Package object, as returned by <code>read_package()</code> or
+<code>create_package()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directory</code></td>
+<td>
+<p>Path to local directory to write files to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>If <code>TRUE</code>, data of added resources will be gzip compressed
+before being written to disk (e.g. <code>deployments.csv.gz</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>package</code> invisibly, as written to file.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load the example Data Package from disk
+package &lt;- read_package(
+  system.file("extdata", "datapackage.json", package = "frictionless")
+)
+
+package
+
+# Write the (unchanged) Data Package to disk
+write_package(package, directory = "my_directory")
+
+# Check files
+list.files("my_directory")
+
+# No files written for the "observations" resource, since those are all URLs.
+# No files written for the "media" resource, since it has inline data.
+
+# Clean up (don't do this if you want to keep your files)
+unlink("my_directory", recursive = TRUE)
+</code></pre>
+
+
+</div>

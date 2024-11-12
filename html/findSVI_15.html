@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>find_svi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retrieve census data and calculate SVI for one or multiple year(s)/state(s)</h2>
+
+<h3>Description</h3>
+
+<p><code>find_svi()</code> is like a wrapper for <code>get_census_data()</code> and
+<code>get_svi()</code> that retrieves census data and produces SVI for one or
+multiple years(s) and state(s). For multiple year-state entries, SVI is
+obtained from percentile rankings for each entry and summarised into one
+table. Note that a Census API key is required for this function to work,
+which can be obtained at <a href="https://api.census.gov/data/key_signup.html">https://api.census.gov/data/key_signup.html</a> and
+set up using <code>tidycensus::census_api_key()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">find_svi(year, state = NULL, geography, key = NULL, full.table = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>A vector containing years of interest (available 2012-2021).
+Length &gt;=1. Acting as pairs with <code>state</code>, <code>year</code> should be of the same
+length as <code>state</code>. The exception is when it's a single year entry (length
+1), other than providing one state of interest, supply <code>state = NULL</code> as
+default or <code>state = 'US'</code> retrieves and processes nation level data to
+obtain SVI.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state</code></td>
+<td>
+<p>A vector containing states of interest. Length &gt;=0. Length 0
+(<code>state = NULL</code>), or <code>state = 'US'</code> must be used with single year argument,
+when SVI is calculated from nation-level census data. In other cases,
+<code>state</code> must have the same elements as <code>year</code> (same length).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geography</code></td>
+<td>
+<p>One geography level of interest for all year-state
+combination (e.g."county", "zcta", "tract").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p>Your Census API key. Obtain one at
+<a href="https://api.census.gov/data/key_signup.html">https://api.census.gov/data/key_signup.html</a>. To set up, use
+<code>tidycensus::census_api_key("YOUR KEY GOES HERE")</code>, or include it as an argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full.table</code></td>
+<td>
+<p>Default as <code>FALSE</code>, returning SVI table with only "GEOID",
+and SVI for each theme and all themes. If set as <code>TRUE</code>, a full SVI table
+with individual SVI variables and intermediate ranking calculations are
+also included in addition to the theme-related SVIs (similar style to
+tables from <a href="https://www.atsdr.cdc.gov/placeandhealth/svi/data_documentation_download.html">CDC/ATSDR database</a>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A tibble of summarised SVI for one or multiple year-state combination(s)
+of interest. Rows represent the geographic units, and columns represent its
+SVI for each theme and all themes. Additional two columns at the end
+indicate the corresponding state and year information. For <code>full.table = TRUE</code>, estimated count and percentage values for individual SVI variables
+are also included. For description of variable names (column names), please
+refer to <a href="https://www.atsdr.cdc.gov/placeandhealth/svi/data_documentation_download.html">CDC/ATSDR documentation</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Census API key required
+# For one year-state entry
+find_svi(
+      year = 2019,
+      state = "AZ",
+      geography = "county"
+   )
+
+
+# For multiple year-state pairs
+## All ZCTAs for 2017-AZ; 2017-DE; and 2018-DC
+year &lt;- c(2017, 2017, 2018)
+state &lt;- c("AZ", "DE", "DC")
+info &lt;- data.frame(year, state)
+
+find_svi(
+      year = info$year,
+      state = info$state,
+      geography = "zcta"
+   )
+
+
+</code></pre>
+
+
+</div>

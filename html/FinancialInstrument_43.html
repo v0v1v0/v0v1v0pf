@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>instrument.auto</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an instrument based on name alone</h2>
+
+<h3>Description</h3>
+
+<p>Given a name, this function will attempt to create
+an instrument of the appropriate type.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">instrument.auto(primary_id, currency = NULL, multiplier = 1,
+  silent = FALSE, default_type = "unknown", root = NULL,
+  assign_i = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>primary_id</code></td>
+<td>
+<p>charater primary identifier of instrument to be created</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>currency</code></td>
+<td>
+<p>character name of currency that instrument will be 
+denominated it. Default=“USD”</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multiplier</code></td>
+<td>
+<p>numeric product multiplier</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>TRUE/FALSE. silence warnings?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default_type</code></td>
+<td>
+<p>What type of instrument to make if it is not clear from 
+the primary_id. ("stock", "future", etc.) Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>character string to pass to <code>parse_id</code> to be used as 
+the root_id for easier/more accurate parsing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>assign_i</code></td>
+<td>
+<p>TRUE/FALSE. Should the <code>instrument</code> be assigned in the 
+<code>.instrument</code> environment?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other passthrough parameters</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>currency</code> is not already defined, it will be defined (unless it is 
+not 3 uppercase characters).  The default value for <code>currency</code> is 
+“USD”.  If you do not provide a value for <code>currency</code>, 
+“USD” will be defined and used to create the instrument.
+</p>
+<p>If <code>primary_id</code> is 6 uppercase letters and <code>default_type</code> is not 
+provided, it will be assumed that it is the primary_id of an 
+<code>exchange_rate</code>, in which case, the 1st and 2nd half of 
+<code>primary_id</code> will be defined as <code>currency</code>s if not 
+the names of already defined <code>instrument</code>s.
+If the <code>primary_id</code> begins with a “^” it will be assumed that it 
+is a yahoo symbol and that the instrument is an index (synthetic), and the 
+‘src’ will be set to “yahoo”. 
+(see <code>setSymbolLookup</code>)
+</p>
+<p>If it is not clear from the <code>primary_id</code> what type of instrument to 
+create, an instrument of type <code>default_type</code> will be created (which is 
+'NULL' by default).  This will happen when <code>primary_id</code> is that of a 
+<code>stock</code>, <code>future</code>, <code>option</code>, or 
+<code>bond</code>.  This may also happen if <code>primary_id</code> is that of a 
+<code>future_series</code> or <code>option_series</code> but the 
+corresponding <code>future</code> or <code>option</code> cannot be found.  In this case, 
+the instrument type would be <code>default_type</code>, but a lot of things would 
+be filled in as if it were a valid series instrument (e.g. ‘expires’, 
+‘strike’, ‘suffix_id’, etc.)
+</p>
+
+
+<h3>Value</h3>
+
+<p>Primarily called for its side-effect, but will return the name of the 
+instrument that was created
+</p>
+
+
+<h3>Note</h3>
+
+<p>This is not intended to be used to create instruments of type 
+<code>stock</code>, <code>future</code>, <code>option</code>,
+or <code>bond</code> although it may be updated in the future.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Garrett See
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+instrument.auto("CL_H1.U1")
+getInstrument("CL_H1.U1") #guaranteed_spread
+
+instrument.auto("ES_H1.YM_H1")
+getInstrument("ES_H1.YM_H1") #synthetic
+
+currency(c("USD","EUR"))
+instrument.auto("EURUSD")
+getInstrument("EURUSD") #made an exchange_rate
+
+instrument.auto("VX_H11") #no root future defined yet!
+getInstrument("VX_H11") #couldn't find future, didnt make future_series
+future("VX","USD",1000,underlying_id=synthetic("SPX","USD")) #make the root 
+instrument.auto("VX_H11") #and try again
+getInstrument("VX_H11") #made a future_series
+
+## End(Not run)
+</code></pre>
+
+
+</div>

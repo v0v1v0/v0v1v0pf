@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MPPsims</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Missing person power simulations</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the exclusion/inclusion power for various selections of available
+individuals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MPPsims(
+  reference,
+  missing = "MP",
+  selections,
+  ep = TRUE,
+  ip = TRUE,
+  addBaseline = TRUE,
+  nProfiles = 1,
+  lrSims = 1,
+  thresholdIP = NULL,
+  disableMutations = NA,
+  numCores = 1,
+  seed = NULL,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>reference</code></td>
+<td>
+<p>A connected <code>ped</code> object, or a list of pedigrees. In the
+latter case, the list must have the same length as <code>selections</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing</code></td>
+<td>
+<p>The ID label of the missing pedigree member.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selections</code></td>
+<td>
+<p>A list of pedigree member subsets. In the special case that
+all subsets consist of a single individual, <code>selections</code> can be given as a
+simple vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ep</code></td>
+<td>
+<p>A logical: Estimate the exclusion power? (Default: TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ip</code></td>
+<td>
+<p>A logical: Estimate the inclusion power? (Default: TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addBaseline</code></td>
+<td>
+<p>A logical. If TRUE (default) an <em>empty</em> selection, named
+"Baseline", is added as the first element of <code>selection</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nProfiles</code></td>
+<td>
+<p>The number of profile simulations for each selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lrSims, thresholdIP</code></td>
+<td>
+<p>Parameters passed onto <code>missingPersonIP()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disableMutations</code></td>
+<td>
+<p>This parameter determines how mutation models are
+treated. Possible values are as follows:
+</p>
+
+<ul>
+<li> <p><code>NA</code> (the default): Mutations are disabled only for those markers whose
+known genotypes are consistent with the pedigree. This is determined by
+temporarily removing all mutation models and checking which markers have
+nonzero likelihood.
+</p>
+</li>
+<li> <p><code>TRUE</code>: Mutations are disabled for all markers. This will result in an
+error if any markers are inconsistent.
+</p>
+</li>
+<li> <p><code>FALSE</code>: No action is done to disable mutations.
+</p>
+</li>
+<li>
+<p> A vector containing the names or indices of those markers for which
+mutations should be disabled.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numCores</code></td>
+<td>
+<p>The number of cores used for parallelisation, by default 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer seed for the random number generator (optional).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class "MPPsim", which is basically a list with one entry
+for each element of <code>selections</code>. Each entry has elements <code>ep</code> and <code>ip</code>,
+each of which is a list of length <code>nProfiles</code>.
+</p>
+<p>The output object has various attributes reflecting the input. Note that
+<code>reference</code> and <code>selection</code> may differ slightly from the original input,
+since they may be modified during the function run. (For instance, a
+"Baseline" entry is added to <code>selection</code> if <code>addBaseline</code> is TRUE.) The
+crucial point is that the output attributes correspond exactly to the
+output data.
+</p>
+
+<ul>
+<li> <p><code>reference</code> (always a list, of the same length as the <code>selections</code>
+attribute
+</p>
+</li>
+<li> <p><code>selections</code>
+</p>
+</li>
+<li> <p><code>nProfiles</code>,<code>lrSims</code>,<code>thresholdIP</code>,<code>seed</code> (as in the input)
+</p>
+</li>
+<li> <p><code>totalTime</code> (the total time used)
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">x = nuclearPed(fa = "Gf", mo = "Gm", children = c("Uncle", "Mother"), sex = 1:2)
+x = addChildren(x, fa = "Father", mo = "Mother", nch = 3, sex = c(1,2,1),
+                id = c("S1", "S2", "MP"))
+x = addSon(x, "Father", id = "HS")
+
+# Brother S1 is already genotyped with a marker with 4 alleles
+x = addMarker(x, S1 = "1/2", alleles = 1:4)
+
+# Alternatives for additional genotyping
+sel = list("Father", "S2", "HS", c("Gm", "Uncle"))
+
+plot(x, marker = 1, hatched = sel)
+
+# Simulate
+simData = MPPsims(x, selections = sel, nProfiles = 2, lrSims = 2)
+
+# Power plot
+powerPlot(simData, type = 3)
+
+
+### With  mutations
+# Add inconsistent marker
+x = addMarker(x, S1 = "1/2", Father = "3/3", alleles = 1:4)
+
+# Set mutation models for both
+mutmod(x, 1:2) = list("equal", rate = 0.1)
+
+# By default mutations are disabled for consistent markers
+MPPsims(x, selections = "Father", addBaseline = FALSE)
+
+# Don't disable anything
+MPPsims(x, selections = "Father", addBaseline = FALSE,
+        disableMutations = FALSE)
+
+
+# Disable all mutation models. SHOULD GIVE ERROR FOR SECOND MARKER
+# MPPsims(x, selections = "Father", addBaseline = FALSE,
+#         disableMutations = TRUE)
+
+
+
+</code></pre>
+
+
+</div>

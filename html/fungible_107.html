@@ -1,0 +1,184 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>smoothLG</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Smooth NPD to Nearest PSD or PD Matrix</h2>
+
+<h3>Description</h3>
+
+<p>Smoothing an indefinite matrix to a PSD matrix via theory described by Lurie
+and Goldberg
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">smoothLG(
+  R,
+  start.val = NULL,
+  Wghts = NULL,
+  PD = FALSE,
+  Penalty = 50000,
+  eps = 1e-07
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>Indefinite Matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.val</code></td>
+<td>
+<p>Optional vector of start values for Cholesky factor of S.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Wghts</code></td>
+<td>
+<p>An optional matrix of weights such that the objective function
+minimizes wij(rij - sij)^2, where wij is Wghts[i,j].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PD</code></td>
+<td>
+<p>Logical (default = FALSE). If PD = TRUE then the objective
+function will smooth the least squares solution to insure Positive
+Definitness.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Penalty</code></td>
+<td>
+<p>A scalar weight to scale the Lagrangian multiplier. Default =
+50000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>A small value to add to zero eigenvalues if smoothed matrix must
+be PD. Default = 1e-07.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>RLG</code></td>
+<td>
+<p>Lurie Goldberg smoothed matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RKB</code></td>
+<td>
+<p>Knol and
+Berger smoothed matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>0 = converged solution, 1 =
+convergence failure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.val</code></td>
+<td>
+<p>Vector of start.values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gr</code></td>
+<td>
+<p>Analytic gradient at solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Penalty</code></td>
+<td>
+<p>Scalar used to
+scale the Lagrange multiplier.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PD</code></td>
+<td>
+<p>User-supplied value of PD.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Wghts</code></td>
+<td>
+<p>Weights used to scale the squared euclidean distances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Value added to zero eigenvalue to produce PD matrix.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Niels Waller
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(BadRLG)
+
+out&lt;-smoothLG(R = BadRLG, Penalty = 50000)
+cat("\nGradient at solution:", out$gr,"\n")
+cat("\nNearest Correlation Matrix\n")
+print( round(out$RLG,8) )
+
+################################
+##  Rousseeuw Molenbergh example
+data(BadRRM)
+
+out &lt;- smoothLG(R = BadRRM, PD=TRUE)
+cat("\nGradient at solution:", out$gr,"\n")
+cat("\nNearest Correlation Matrix\n")
+print( round(out$RLG,8) )
+
+## Weights for the weighted solution
+W &lt;- matrix(c(1,  1, .5,
+              1,  1,  1,
+              .5,  1,  1), nrow = 3, ncol = 3)
+tmp &lt;- smoothLG(R = BadRRM,  PD = TRUE, eps=.001)
+cat("\nGradient at solution:", out$gr,"\n")
+cat("\nNearest Correlation Matrix\n")
+print( round(out$RLG,8) )
+print( eigen(out$RLG)$val )
+
+## Rousseeuw Molenbergh 
+## non symmetric matrix
+T &lt;- matrix(c(.8, -.9, -.9, 
+            -1.2,  1.1, .3, 
+             -.8, .4, .9),  nrow = 3, ncol = 3,byrow=TRUE)
+out &lt;- smoothLG(R = T,  PD = FALSE, eps=.001)
+
+cat("\nGradient at solution:", out$gr,"\n")
+cat("\nNearest Correlation Matrix\n")
+print( round(out$RLG,8) )    
+
+</code></pre>
+
+
+</div>

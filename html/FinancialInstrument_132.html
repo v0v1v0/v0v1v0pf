@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>instrument</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>instrument class constructors</h2>
+
+<h3>Description</h3>
+
+<p>All 'currency' instruments must be defined before instruments of other types 
+may be defined.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">instrument(primary_id, ..., currency, multiplier, tick_size = NULL,
+  identifiers = NULL, type = NULL, assign_i = FALSE, overwrite = TRUE)
+
+stock(primary_id, currency = NULL, multiplier = 1, tick_size = 0.01,
+  identifiers = NULL, assign_i = TRUE, overwrite = TRUE, ...)
+
+fund(primary_id, currency = NULL, multiplier = 1, tick_size = 0.01,
+  identifiers = NULL, assign_i = TRUE, overwrite = TRUE, ...)
+
+future(primary_id, currency, multiplier, tick_size = NULL,
+  identifiers = NULL, assign_i = TRUE, overwrite = TRUE, ...,
+  underlying_id = NULL)
+
+option(primary_id, currency, multiplier, tick_size = NULL,
+  identifiers = NULL, assign_i = TRUE, overwrite = TRUE, ...,
+  underlying_id = NULL)
+
+currency(primary_id, identifiers = NULL, assign_i = TRUE, ...)
+
+bond(primary_id, currency, multiplier, tick_size = NULL, identifiers = NULL,
+  assign_i = TRUE, overwrite = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>primary_id</code></td>
+<td>
+<p>String describing the unique ID for the instrument. Most 
+of the wrappers allow this to be a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any other passthru parameters, including</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>currency</code></td>
+<td>
+<p>String describing the currency ID of an object of type 
+<code>currency</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multiplier</code></td>
+<td>
+<p>Numeric multiplier to apply to the price in the instrument 
+to get to notional value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tick_size</code></td>
+<td>
+<p>The tick increment of the instrument price in it's 
+trading venue, as numeric quantity (e.g. 1/8 is .125)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>identifiers</code></td>
+<td>
+<p>Named list of any other identifiers that should also be 
+stored for this instrument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>instrument type to be appended to the class definition, typically 
+not set by user</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>assign_i</code></td>
+<td>
+<p>TRUE/FALSE. Should the instrument be assigned to the 
+<code>.instrument</code> environment?  Default is FALSE for <code>instrument</code>, 
+TRUE for wrappers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>TRUE/FALSE. Should existing instruments with the same
+primary_id be overwritten? Default is TRUE. If FALSE, an error will be 
+thrown and the instrument will not be created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>underlying_id</code></td>
+<td>
+<p>For derivatives, the identifier of the instrument that 
+this one is derived from, may be <code>NULL</code> for cash settled instruments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In ... you may pass any other arbitrary instrument fields that will be used 
+to create 'custom' fields.  S3 classes in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> are basically lists with a class 
+attribute.  We use this to our advantage to allow us to set arbitrary fields.
+</p>
+<p><code>identifiers</code> should be a named list to specify other identifiers beyond 
+the <code>primary_id</code>.  Please note that whenever possible, these should 
+still be unique.  Perhaps Bloomberg, Reuters-X.RIC, CUSIP, etc.
+<code>getInstrument</code> will return the first (and only the first) match 
+that it finds, starting with the primary_id, and then searching the 
+primary_ids of all instruments for each of the <code>identifiers</code>.  Note that
+when a large number of instruments are defined, it is faster to find 
+instruments by <code>primary_id</code> than by <code>identifiers</code> because it looks
+for <code>primary_id</code>s first.
+</p>
+<p>The <code>primary_id</code> will be coerced within reason to a valid <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> variable 
+name by using <code>make.names</code>. We also remove any leading '1' digit 
+(a simple workaround to account for issues with the Reuters API).  If you are
+defining an instrument that is not a <code>currency</code>, with a primary_id that
+already belongs to a <code>currency</code>, a new primary_id will be create using
+<code>make.names</code>.  For example, <code>stock("USD", currency("USD"))</code>, would
+create a stock with a primary_id of “USD.1” instead of overwritting
+the <code>currency</code>.
+</p>
+<p>Please use some care to choose your primary identifiers so that R won't 
+complain.  If you have better regular expression code, we'd be happy to 
+include it.
+</p>
+<p>Identifiers will also try to be discovered as regular named arguments passed 
+in via <code>...</code>.  We currently match any of the following: 
+<code>"CUSIP","SEDOL","ISIN","OSI","Bloomberg","Reuters","X.RIC","CQG","TT","Yahoo","Google"</code>
+Others may be specified using a named list of identifiers, as described above.
+</p>
+<p><code>assign_i</code> will use <code>assign</code> to place the constructed 
+instrument class object into the <code>.instrument</code> environment.  Most of the 
+special type-specific constructors will use <code>assign_i=TRUE</code> internally. 
+Calling with <code>assign_i=FALSE</code>, or not specifying it, will return an 
+object and will <em>not</em> store it.  Use this option ether to wrap calls to 
+<code>instrument</code> prior to further processing (and presumably assignment) or 
+to test your parameters before assignment.
+</p>
+<p>If <code>overwrite=FALSE</code> is used, an error will be thrown if any 
+<code>primary_id</code>s are already in use.
+</p>
+<p>As of version 0.10.0, the .instrument environment is located at the top level
+of the package. i.e. <code>.instrument</code>.
+</p>
+<p><code>future</code> and <code>option</code> are used to define the contract specs of a 
+series of instruments.  The <code>primary_id</code> for these can begin with 1 or 
+2 dots if you need to avoid overwriting another instrument.
+For example, if you have a <code>stock</code> with ‘SPY’ as the 
+<code>primary_id</code>, you could use ‘.SPY’ as the <code>primary_id</code> of 
+the <code>option</code> specs, and ‘..SPY’ as the <code>primary_id</code> of the 
+single stock <code>future</code> specs. (or vice versa)
+</p>
+<p>You can (optionally) provide a <code>src</code> argument in which case, it will be 
+used in a call to <code>setSymbolLookup</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>currency</code>,
+<code>exchange_rate</code>,
+<code>option_series</code>,
+<code>future_series</code>,
+<code>spread</code>,
+<code>load.instruments</code>
+</p>
+
+
+</div>

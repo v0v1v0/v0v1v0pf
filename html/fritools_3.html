@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bulk_write_csv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bulk Write Comma Separated Files</h2>
+
+<h3>Description</h3>
+
+<p>Write a bunch of objects to disk using <code>write_csv</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bulk_write_csv(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A list of objects to be written to <code>csv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to
+<code>write_csv</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The list holding the return values of <code>write_csv</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other CSV functions: 
+<code>bulk_read_csv()</code>,
+<code>check_ascii_file()</code>,
+<code>csv2csv()</code>,
+<code>csv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">unlink(dir(tempdir(), full.names = TRUE))
+data(mtcars)
+mt_german &lt;- mtcars
+rownames(mt_german)[1] &lt;- "Mazda R\u00f64"
+names(mt_german)[1] &lt;- "mg\u00dc"
+for (i in 1:10) {
+    f &lt;- file.path(tempdir(), paste0("f", i, ".csv"))
+    write.csv(mtcars[1:5, TRUE], file = f)
+    f &lt;- file.path(tempdir(), paste0("f", i, "_german.csv"))
+    write.csv2(mt_german[1:7, TRUE], file = f, fileEncoding = "Latin1")
+}
+#% read
+bulk &lt;- bulk_read_csv(tempdir())
+
+print(mtime &lt;- file.info(list.files(tempdir(), full.names = TRUE))["mtime"])
+bulk[["f2"]][3, 5] &lt;- bulk[["f2"]][3, 5] + 2
+Sys.sleep(2) # make sure the mtimes would change
+result &lt;- bulk_write_csv(bulk)
+print(new_times &lt;- file.info(dir(tempdir(), full.names = TRUE))["mtime"])
+index_change &lt;- grep("f2\\.csv", rownames(mtime))
+if (requireNamespace("digest", quietly = TRUE)) {
+    only_f2_changed &lt;- all((mtime == new_times)[-c(index_change)]) &amp;&amp;
+        (mtime &lt; new_times)[c(index_change)]
+    RUnit::checkTrue(only_f2_changed)
+} else {
+    RUnit::checkTrue(all(mtime &lt; new_times))
+}
+</code></pre>
+
+
+</div>

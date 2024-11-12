@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.fwb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarize <code>fwb</code> Output</h2>
+
+<h3>Description</h3>
+
+<p><code>summary()</code> creates a regression summary-like table that displays the bootstrap estimates, their empirical standard errors, and their confidence intervals, which are computed using <code>fwb.ci()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fwb'
+summary(
+  object,
+  conf = 0.95,
+  ci.type = "bc",
+  p.value = FALSE,
+  index = 1L:ncol(object$t),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an <code>fwb</code> object; the output of a call to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p>the desired confidence level. Default is .95 for 95% confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci.type</code></td>
+<td>
+<p>the type of confidence interval desired. Allowable options include <code>"norm"</code> (normal approximation), <code>"basic"</code> (basic interval), <code>"perc"</code> (percentile interval), <code>"bc"</code> (bias-correct percentile interval), and <code>"bca"</code> (bias-corrected and accelerated [BCa] interval). Only one is allowed. BCa intervals require that the number of bootstrap replications is larger than the sample size. See <code>fwb.ci()</code> for details. The default is <code>"bc"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p><code>logical</code>; whether to display p-values for the test that each parameter is equal to 0. The p-value is computed using a Z-test with the test statistic computed as the ratio of the estimate to its bootstrap standard error. This test is only valid when the bootstrap distribution is normally distributed around 0 and is not guaranteed to agree with any of the confidence intervals. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>the index or indices of the position of the quantity of interest in <code>x$t0</code> if more than one was specified in <code>fwb()</code>. Default is to display all quantities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>summary.fwb</code> object, which is a matrix with the following columns:
+</p>
+
+<ul>
+<li> <p><code>Estimate</code>: the statistic estimated in the original sample
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠Std. Error⁠</code>: the standard deviation of the bootstrap estimates
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠CI {L}%⁠</code> and <code style="white-space: pre;">⁠CI {U}%⁠</code>, the upper and lower confidence interval bounds computed using the argument to <code>ci.type</code>.
+</p>
+</li>
+</ul>
+<p>When <code>p.value = TRUE</code>, two additional columns, <code style="white-space: pre;">⁠z value⁠</code> and <code style="white-space: pre;">⁠Pr(&gt;|z|)⁠</code> are included containing the z-statistic and p-value for each computed statistic.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fwb()</code> for performing the fractional weighted bootstrap; <code>fwb.ci()</code> for computing multiple confidence intervals for a single bootstrapped quantity
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+data("infert")
+
+fit_fun &lt;- function(data, w) {
+  fit &lt;- glm(case ~ spontaneous + induced, data = data,
+             family = "quasibinomial", weights = w)
+  coef(fit)
+}
+
+fwb_out &lt;- fwb(infert, fit_fun, R = 199, verbose = FALSE)
+
+# Basic confidence interval for both estimates
+summary(fwb_out, ci.type = "basic")
+
+# Just for "induced" coefficient; p-values requested
+summary(fwb_out, index = "induced", p.value = TRUE)
+
+</code></pre>
+
+
+</div>

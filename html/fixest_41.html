@@ -1,0 +1,50 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>emmeans_support</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Support for emmeans package</h2>
+
+<h3>Description</h3>
+
+<p>If <span class="pkg">emmeans</span> is installed, its functionality is supported for <code>fixest</code>
+or <code>fixest_multi</code> objects. Its reference grid is based on the main part
+of the model, and does not include fixed effects or instrumental variables.
+Note that any desired arguments to <code>vcov()</code> may be passed as optional
+arguments in <code>emmeans::emmeans()</code> or <code>emmeans::ref_grid()</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>When fixed effects are present, estimated marginal means (EMMs) are estimated
+correctly, provided equal weighting is used. However, the SEs of these EMMs
+will be incorrect - often dramatically - because the estimated variance of
+the intercept is not available. However, <em>contrasts</em> among EMMs can be
+estimated and tested with no issues, because these do not involve the
+intercept.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Russell V. Lenth
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if(requireNamespace("emmeans") &amp;&amp; requireNamespace("AER")) {
+    data(Fatalities, package = "AER")
+    Fatalities$frate = with(Fatalities, fatal/pop * 10000)
+    fat.mod = feols(frate ~ breath * jail * beertax | state + year, data = Fatalities)
+    emm = emmeans::emmeans(fat.mod, ~ breath*jail, cluster = ~ state + year)
+    emm   ### SEs and CIs are incorrect
+
+    emmeans::contrast(emm, "consec", by = "breath")   ### results are reliable
+}
+</code></pre>
+
+
+</div>

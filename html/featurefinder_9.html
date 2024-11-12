@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>findFeatures</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>findFeatures</h2>
+
+<h3>Description</h3>
+
+<p>Perform analysis of residuals grouped by factor to identify features which explain the target variable
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">findFeatures(outputPath = "NoPath", fcsv, exclusionVars, factorToNumericList,
+  treeGenerationMinBucket = 20, treeSummaryMinBucket = 50,
+  treeSummaryResidualThreshold = 0,
+  treeSummaryResidualMagnitudeThreshold = 0, doAllFactors = TRUE,
+  maxFactorLevels = 20, useSubDir = TRUE, tempDirFolderName = "")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>outputPath</code></td>
+<td>
+<p>A string containing the location of the input csv file. Results are also stored in this location. Set to "NoPath" to use tempdir() or leave blank</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fcsv</code></td>
+<td>
+<p>A string containing the name of a csv file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclusionVars</code></td>
+<td>
+<p>A string consisting of a list of variable names with double quotes around each variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factorToNumericList</code></td>
+<td>
+<p>A list of variable names as strings</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treeGenerationMinBucket</code></td>
+<td>
+<p>Desired minimum number of data points per leaf (default 20)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treeSummaryMinBucket</code></td>
+<td>
+<p>Minimum number of data points in each leaf for the summary (default 50)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treeSummaryResidualThreshold</code></td>
+<td>
+<p>Minimum residual in the summary (default 0 for positive residuals)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treeSummaryResidualMagnitudeThreshold</code></td>
+<td>
+<p>Minimum residual magnitude in the summary (default 0 i.e. no restriction)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doAllFactors</code></td>
+<td>
+<p>Flag to indicate whether to analyse the levels of all factor variables (default TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxFactorLevels</code></td>
+<td>
+<p>Maximum number of levels per factor before it is converted to numeric (default 20)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useSubDir</code></td>
+<td>
+<p>Flag to specify whether the partition trees should be saved in the current directory or a subdirectory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tempDirFolderName</code></td>
+<td>
+<p>specify a subfolder name if writing multiple scans to the temporary directory</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>outputPath returns the location of the output for reference in addFeatures and for any other purpose. Saves residual CART trees and associated highlighted residuals for each to the path provided.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+require(featurefinder)
+data(futuresdata)
+data=futuresdata
+data$SMIfactor=paste("smi",as.matrix(data$SMIfactor),sep="")
+n=length(data$DAX)
+nn=floor(length(data$DAX)/2)
+
+# Can we predict the relative movement of DAX and SMI?
+data$y=data$DAX*0 # initialise the target to 0
+data$y[1:(n-1)]=((data$DAX[2:n])-(data$DAX[1:(n-1)]))/
+  (data$DAX[1:(n-1)])-(data$SMI[2:n]-(data$SMI[1:(n-1)]))/(data$SMI[1:(n-1)])
+
+# Fit a simple model
+thismodel=lm(formula=y ~ .,data=data)
+expected=predict(thismodel,data)
+actual=data$y
+residual=actual-expected
+data=cbind(data,expected, actual, residual)
+
+CSVPath=tempdir()
+fcsv=paste(CSVPath,"/futuresdata.csv",sep="")
+write.csv(data[(nn+1):(length(data$y)),],file=fcsv,row.names=FALSE)
+exclusionVars="\"residual\",\"expected\", \"actual\",\"y\""
+factorToNumericList=c()
+
+# Now the dataset is prepared, try to find new features
+findFeatures(outputPath="NoPath", fcsv, exclusionVars,factorToNumericList,                     
+         treeGenerationMinBucket=50,
+         treeSummaryMinBucket=20,
+         useSubDir=FALSE)  
+         
+newfeat1=((data$SMIfactor==0) &amp; (data$CAC &lt; 2253) &amp; (data$CAC&lt; 1998) &amp; (data$CAC&gt;=1882)) * 1.0
+newfeat2=((data$SMIfactor==1) &amp; (data$SMI &lt; 7837) &amp; (data$SMI &gt;= 7499)) * 1.0
+newfeatures=cbind(newfeat1, newfeat2) # create columns for the newly found features
+datanew=cbind(data,newfeatures)
+thismodel=lm(formula=y ~ .,data=datanew)
+expectednew=predict(thismodel,datanew)
+
+requireNamespace("Metrics")
+OriginalRMSE = Metrics::rmse(data$y,expected)
+NewRMSE = Metrics::rmse(data$y,expectednew)
+
+print(paste("OriginalRMSE = ",OriginalRMSE))
+print(paste("NewRMSE = ",NewRMSE))
+</code></pre>
+
+
+</div>

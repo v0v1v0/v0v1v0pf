@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ffply</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read, process each block and write the result</h2>
+
+<h3>Description</h3>
+
+<p>Suppose you want to process each block of a file and the result is again
+a <code>data.table</code> that you want to print to some output file. One possible
+approach is to use <code>l &lt;- flply(...)</code> followed by <code>do.call(rbind, l)</code>
+and <code>fwrite</code>, but this would be slow. <code>ffply</code> offers a faster
+solution to this problem.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ffply(
+  input,
+  output = "",
+  FUN,
+  ...,
+  key.sep = "\t",
+  sep = "\t",
+  skip = 0,
+  header = TRUE,
+  nblocks = Inf,
+  stringsAsFactors = FALSE,
+  colClasses = NULL,
+  select = NULL,
+  drop = NULL,
+  col.names = NULL,
+  parallel = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Path of the input file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>String containing the path to the output file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>Function to be applied to each block. It must take at least two arguments,
+the first of which is a <code>data.table</code> containing the current block, <em>without
+the first field</em>; the second argument is a character vector containing the
+value of the first field for the current block.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to FUN.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key.sep</code></td>
+<td>
+<p>The character that delimits the first field from the rest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>The field delimiter (often equal to <code>key.sep</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>Number of lines to skip at the beginning of the file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>header</code></td>
+<td>
+<p>Whether the file has a header.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nblocks</code></td>
+<td>
+<p>The number of blocks to read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stringsAsFactors</code></td>
+<td>
+<p>Whether to convert strings into factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colClasses</code></td>
+<td>
+<p>Vector or list specifying the class of each field.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>The columns (names or numbers) to be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop</code></td>
+<td>
+<p>The columns (names or numbers) not to be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.names</code></td>
+<td>
+<p>Names of the columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Number of cores to use.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns NULL invisibly. As a side effect,
+writes the processed <code>data.table</code> to the output file.
+</p>
+
+
+<h3>Slogan</h3>
+
+<p>ffply: from <strong>f</strong>ile to <strong>f</strong>ile
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">f1 &lt;- system.file("extdata", "dt_iris.csv", package = "fplyr")
+f2 &lt;- tempfile()
+
+# Copy the first two blocks from f1 into f2 to obtain a shorter but
+# consistent version of the original input file.
+ffply(f1, f2, function(d, by) {return(d)}, nblocks = 2)
+
+# Compute the mean of the columns for each species
+ffply(f1, f2, function(d, by) d[, lapply(.SD, mean)])
+
+# Reshape the file, block by block
+ffply(f1, f2, function(d, by) {
+    val &lt;- do.call(c, d)
+    var &lt;- rep(names(d), each = nrow(d))
+    data.table(Var = var, Val = val)
+})
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>GLS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generalized least squres for regression analysis considering auto correlation.</h2>
+
+<h3>Description</h3>
+
+<p>This function provides a multiple regression analysis considering auto correlation of response variable using generalized least squres method (Aitken 1934). It supports <code>lm</code> like format of <code>model</code>.  A typical model has the form <code>response ~ terms</code>. Terms specification supports only <code>first + second</code> form. Cross term specification of <code>first * second</code> form is not supported.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">GLS(model, data, omega = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Symbolic description of the model to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame containing variables in the <code>model</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>A numeric matrix of auto correlation of responce variable.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>Estimated coefficient, standard error, Z value and p value of each factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance</code></td>
+<td>
+<p>Variance-covariance matrix of estimated coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logL</code></td>
+<td>
+<p>Log likelihood of fitted model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Reiichiro Nakamichi, Shuichi Kitada, Hirohisa Kishino</p>
+
+
+<h3>References</h3>
+
+<p>Aitken AC (1934) On Least-squares and Linear Combinations of Observations. <em>Proceedings of the Royal Society of Edinburgh</em>, 55, 42-48.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example data of Atlantic herring
+data(herring)
+ah.genepop.file &lt;- tempfile()
+ah.popname.file &lt;- tempfile()
+cat(herring$genepop, file=ah.genepop.file, sep="\n")
+cat(herring$popname, file=ah.popname.file, sep=" ")
+
+# Data load
+popdata &lt;- read.GENEPOP(ah.genepop.file, ah.popname.file)
+
+# Pop-specific FST and correlation among populations
+fst.popsp &lt;- pop_specificFST(popdata, cov=TRUE)
+cov.fst.popsp &lt;- fst.popsp$cov
+sd.fst.popsp &lt;- sqrt(diag(cov.fst.popsp))
+cov2.fst.popsp &lt;- apply(cov.fst.popsp, 2, function(x){x / sd.fst.popsp})
+cor.fst.popsp &lt;- apply(cov2.fst.popsp, 1, function(x){x / sd.fst.popsp})
+
+# Pop-pairwise FST and population structure
+fst.poppair &lt;- pop_pairwiseFST(popdata)
+fst.md &lt;- cmdscale(fst.poppair)
+
+# GLS analysis of FST and environmental factors
+test.data &lt;- data.frame(fst=fst.md[,1], herring$environment)
+GLS(fst~., scale(test.data), omega=cor.fst.popsp)
+</code></pre>
+
+
+</div>

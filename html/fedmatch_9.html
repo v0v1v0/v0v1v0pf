@@ -1,0 +1,87 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calculate_weights</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate weights for computing matchscore</h2>
+
+<h3>Description</h3>
+
+<p>Calculate weights for comparison variables based on <code class="reqn">m</code> and <code class="reqn">u</code>
+probabilities estimated from a verified dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calculate_weights(
+  data,
+  variables,
+  compare_type = "stringdist",
+  suffixes = c("_1", "_2"),
+  non_negative = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame. Verified data. Should have all of the variables you want to calculate weights for from both datasets, named the same with data-specific suffixes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variables</code></td>
+<td>
+<p>character vector of the variable names of the variables you want to calculate weights for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compare_type</code></td>
+<td>
+<p>character vector. One of 'stringdist' (for string variables) 'ratio','difference' (for numerics) 'indicator' (0-1 dummy indicating if the two are the same),'in' (0-1 dummy indicating if data1 is IN data2), and 'substr' (numeric indicating how many digits are the same.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suffixes</code></td>
+<td>
+<p>character vector. Suffixes of of the variables that indicate what data they are from. Default is same as the default for base R merge, c('.x','.y')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>non_negative</code></td>
+<td>
+<p>logical. Do you want to allow negative weights?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function uses the classic Record Linkage methodology first developed by Felligi and Sunter.
+See <a href="https://en.wikipedia.org/wiki/Record_linkage">Record Linkage</a>. <code class="reqn">m</code> is the
+probability of a given link between observations is a true match, while <code class="reqn">u</code> is the probability
+of an unlinked pair of observations being a true match. <code>calculate_weights</code>
+computes a preliminary weight for each variable by computing
+</p>
+<p style="text-align: center;"><code class="reqn">w = \log_2 (\frac{m}{u}),</code>
+</p>
+
+<p>then making these weights sum to 1. Thus, the weights that have higher <code class="reqn">m</code>
+and lower <code class="reqn">u</code> probabilities will get higher weights, which makes sense given
+the definitions. These weights can then be easily passed into the <code>score_settings</code>
+argument of <code>merge_plus</code> or <code>tier_match</code>, or into the <code>wgts</code> argument of
+<code>multivar_match</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>list with m probabilities, u probabilities, w weights, and settings, the list argument required as an input for score_settings in merge_plus using the calculate weights.
+</p>
+
+
+</div>

@@ -1,0 +1,678 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>univariateRankVariables</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Univariate analysis of features</h2>
+
+<h3>Description</h3>
+
+<p>This function reports the mean and standard deviation for each feature in a model, and ranks them according to a user-specified score.
+Additionally, it does a Kolmogorov-Smirnov (KS) test on the raw and <em>z</em>-standardized data.
+It also reports the raw and <em>z</em>-standardized <em>t</em>-test score, the <em>p</em>-value of the Wilcoxon rank-sum test, the integrated discrimination improvement (IDI), the net reclassification improvement (NRI), the net residual improvement (NeRI), and the area under the ROC curve (AUC).
+Furthermore, it reports the <em>z</em>-value of the variable significance	on the fitted model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	univariateRankVariables(variableList,
+	                        formula,
+	                        Outcome,
+	                        data, 
+	                        categorizationType = c("Raw",
+	                                               "Categorical",
+	                                               "ZCategorical",
+	                                               "RawZCategorical",
+	                                               "RawTail",
+	                                               "RawZTail",
+	                                               "Tail",
+	                                               "RawRaw"), 
+	                        type = c("LOGIT", "LM", "COX"), 
+	                        rankingTest = c("zIDI",
+	                                        "zNRI",
+	                                        "IDI",
+	                                        "NRI",
+	                                        "NeRI",
+	                                        "Ztest",
+	                                        "AUC",
+	                                        "CStat",
+	                                        "Kendall"), 
+	                        cateGroups = c(0.1, 0.9),
+	                        raw.dataFrame = NULL,
+	                        description = ".",
+	                        uniType = c("Binary","Regression"),
+	                        FullAnalysis=TRUE,
+	                        acovariates = NULL,
+	                        timeOutcome = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>variableList</code></td>
+<td>
+
+<p>A data frame with the candidate variables to be ranked
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>An object of class <code>formula</code> with the formula to be fitted
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The name of the column in <code>data</code> that stores the variable to be predicted by the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame where all variables are stored in different columns
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorizationType</code></td>
+<td>
+
+<p>How variables will be analyzed: As given in <code>data</code> ("Raw"); broken into the <em>p</em>-value categories given by <code>cateGroups</code> ("Categorical"); broken into the <em>p</em>-value categories given by <code>cateGroups</code>, and weighted by the <em>z</em>-score ("ZCategorical"); broken into the <em>p</em>-value categories given by <code>cateGroups</code>, weighted by the <em>z</em>-score, plus the raw values ("RawZCategorical"); raw values, plus the tails ("RawTail"); or raw values, weighted by the <em>z</em>-score, plus the tails ("RawZTail")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Fit type: Logistic ("LOGIT"), linear ("LM"), or Cox proportional hazards ("COX")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rankingTest</code></td>
+<td>
+
+<p>Variables will be ranked based on: The <em>z</em>-score of the IDI ("zIDI"), the <em>z</em>-score of the NRI ("zNRI"), the IDI ("IDI"), the NRI ("NRI"), the NeRI ("NeRI"), the <em>z</em>-score of the model fit ("Ztest"), the AUC ("AUC"), the Somers' rank correlation ("Cstat"), or the Kendall rank correlation ("Kendall")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cateGroups</code></td>
+<td>
+
+<p>A vector of percentiles to be used for the categorization procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw.dataFrame</code></td>
+<td>
+
+<p>A data frame similar to <code>data</code>, but with unadjusted data, used to get the means and variances of the unadjusted data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+
+<p>The name of the column in <code>variableList</code> that stores the variable description
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniType</code></td>
+<td>
+
+<p>Type of univariate analysis: Binary classification ("Binary") or regression ("Regression")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullAnalysis</code></td>
+<td>
+
+<p>If FALSE it will only order the features according to its z-statistics of the linear model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acovariates</code></td>
+<td>
+
+<p>the list of covariates
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeOutcome</code></td>
+<td>
+
+<p>the name of the Time to event feature
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function will create valid dummy categorical variables if, and only if, <code>data</code> has been <em>z</em>-standardized.
+The <em>p</em>-values provided in <code>cateGroups</code> will be converted to its corresponding <em>z</em>-score, which will then be used to create the categories.
+If non <em>z</em>-standardized data were to be used, the categorization analysis would return wrong results.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A sorted data frame.
+In the case of a binary classification analysis, the data frame will have the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Name</code></td>
+<td>
+
+<p>Name of the raw variable or of the dummy variable if the data has been categorized
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent</code></td>
+<td>
+
+<p>Name of the raw variable from which the dummy variable was created
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>descrip</code></td>
+<td>
+
+<p>Description of the parent variable, as defined in <code>description</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortMean</code></td>
+<td>
+
+<p>Mean value of the variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortStd</code></td>
+<td>
+
+<p>Standard deviation of the variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortKSD</code></td>
+<td>
+
+<p>D statistic of the KS test when comparing a normal distribution and the distribution of the variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortKSP</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>cohortKSD</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseMean</code></td>
+<td>
+
+<p>Mean value of cases (subjects with <code>Outcome</code> equal to 1)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseStd</code></td>
+<td>
+
+<p>Standard deviation of cases
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseKSD</code></td>
+<td>
+
+<p>D statistic of the KS test when comparing a normal distribution and the distribution of the variable only for cases
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseKSP</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>caseKSD</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseZKSD</code></td>
+<td>
+
+<p>D statistic of the KS test when comparing a normal distribution and the distribution of the <em>z</em>-standardized variable only for cases
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseZKSP</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>caseZKSD</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlMean</code></td>
+<td>
+
+<p>Mean value of controls (subjects with <code>Outcome</code> equal to 0)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlStd</code></td>
+<td>
+
+<p>Standard deviation of controls
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlKSD</code></td>
+<td>
+
+<p>D statistic of the KS test when comparing a normal distribution and the distribution of the variable only for controls
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlKSP</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>controlsKSD</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlZKSD</code></td>
+<td>
+
+<p>D statistic of the KS test when comparing a normal distribution and the distribution of the <em>z</em>-standardized variable only for controls
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlZKSP</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>controlsZKSD</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.Rawvalue</code></td>
+<td>
+
+<p>Normal inverse <em>p</em>-value (<em>z</em>-value) of the <em>t</em>-test performed on <code>raw.dataFrame</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.Zvalue</code></td>
+<td>
+
+<p><em>z</em>-value of the <em>t</em>-test performed on <code>data</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wilcox.Zvalue</code></td>
+<td>
+
+<p><em>z</em>-value of the Wilcoxon rank-sum test performed on <code>data</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ZGLM</code></td>
+<td>
+
+<p><em>z</em>-value returned by the <code>lm</code>, <code>glm</code>, or <code>coxph</code> functions for the <code>z</code>-standardized variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zNRI</code></td>
+<td>
+
+<p><em>z</em>-value returned by the <code>improveProb</code> function (<code>Hmisc</code> package) when evaluating the NRI
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zIDI</code></td>
+<td>
+
+<p><em>z</em>-value returned by the <code>improveProb</code> function (<code>Hmisc</code> package) when evaluating the IDI
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zNeRI</code></td>
+<td>
+
+<p><em>z</em>-value returned by the <code>improvedResiduals</code> function when evaluating the NeRI
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROCAUC</code></td>
+<td>
+
+<p>Area under the ROC curve returned by the <code>roc</code> function (<code>pROC</code> package)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cStatCorr</code></td>
+<td>
+
+<p><em>c</em> index of Somers' rank correlation returned by the <code>rcorr.cens</code> function (<code>Hmisc</code> package)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NRI</code></td>
+<td>
+
+<p>NRI returned by the <code>improveProb</code> function (<code>Hmisc</code> package)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IDI</code></td>
+<td>
+
+<p>IDI returned by the <code>improveProb</code> function (<code>Hmisc</code> package)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NeRI</code></td>
+<td>
+
+<p>NeRI returned by the <code>improvedResiduals</code> function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kendall.r</code></td>
+<td>
+
+<p>Kendall <code class="reqn">\tau</code> rank correlation coefficient between the variable and the binary outcome
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kendall.p</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>kendall.r</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TstudentRes.p</code></td>
+<td>
+
+<p><em>p</em>-value of the improvement in residuals, as evaluated by the paired <em>t</em>-test
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WilcoxRes.p</code></td>
+<td>
+
+<p><em>p</em>-value of the improvement in residuals, as evaluated by the paired Wilcoxon rank-sum test
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FRes.p</code></td>
+<td>
+
+<p><em>p</em>-value of the improvement in residual variance, as evaluated by the <em>F</em>-test
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseN_Z_Low_Tail</code></td>
+<td>
+
+<p>Number of cases in the low tail
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseN_Z_Hi_Tail</code></td>
+<td>
+
+<p>Number of cases in the top tail
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlN_Z_Low_Tail</code></td>
+<td>
+
+<p>Number of controls in the low tail
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controlN_Z_Hi_Tail</code></td>
+<td>
+
+<p>Number of controls in the top tail
+</p>
+</td>
+</tr>
+</table>
+<p>In the case of regression analysis, the data frame will have the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Name</code></td>
+<td>
+
+<p>Name of the raw variable or of the dummy variable if the data has been categorized
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent</code></td>
+<td>
+
+<p>Name of the raw variable from which the dummy variable was created
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>descrip</code></td>
+<td>
+
+<p>Description of the parent variable, as defined in <code>description</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortMean</code></td>
+<td>
+
+<p>Mean value of the variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortStd</code></td>
+<td>
+
+<p>Standard deviation of the variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortKSD</code></td>
+<td>
+
+<p>D statistic of the KS test when comparing a normal distribution and the distribution of the variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortKSP</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>cohortKSP</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortZKSD</code></td>
+<td>
+
+<p>D statistic of the KS test when comparing a normal distribution and the distribution of the <em>z</em>-standardized variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohortZKSP</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>cohortZKSD</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ZGLM</code></td>
+<td>
+
+<p><em>z</em>-value returned by the glm or Cox procedure for the z-standardized variable
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zNRI</code></td>
+<td>
+
+<p><em>z</em>-value returned by the <code>improveProb</code> function (<code>Hmisc</code> package) when evaluating the NRI
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NeRI</code></td>
+<td>
+
+<p>NeRI returned by the <code>improvedResiduals</code> function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cStatCorr</code></td>
+<td>
+
+<p><em>c</em> index of Somers' rank correlation returned by the <code>rcorr.cens</code> function (<code>Hmisc</code> package)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spearman.r</code></td>
+<td>
+
+<p>Spearman <code class="reqn">\rho</code> rank correlation coefficient between the variable and the outcome
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pearson.r</code></td>
+<td>
+
+<p>Pearson <em>r</em> product-moment correlation coefficient between the variable and the outcome
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kendall.r</code></td>
+<td>
+
+<p>Kendall <code class="reqn">\tau</code> rank correlation coefficient between the variable and the outcome
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kendall.p</code></td>
+<td>
+
+<p>Associated <em>p</em>-value to the <code>kendall.r</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TstudentRes.p</code></td>
+<td>
+
+<p><em>p</em>-value of the improvement in residuals, as evaluated by the paired <em>t</em>-test
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WilcoxRes.p</code></td>
+<td>
+
+<p><em>p</em>-value of the improvement in residuals, as evaluated by the paired Wilcoxon rank-sum test
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FRes.p</code></td>
+<td>
+
+<p><em>p</em>-value of the improvement in residual variance, as evaluated by the <em>F</em>-test
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena</p>
+
+
+<h3>References</h3>
+
+<p>Pencina, M. J., D'Agostino, R. B., &amp; Vasan, R. S. (2008). Evaluating the added predictive ability of a new marker: from area under the ROC curve to reclassification and beyond. <em>Statistics in medicine</em> <b>27</b>(2), 157-172.</p>
+
+
+</div>

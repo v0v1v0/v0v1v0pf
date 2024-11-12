@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>iterec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Iterative cross-temporal reconciliation</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the iterative procedure described in Di Fonzo and Girolimetto (2023),
+which produces cross-temporally reconciled forecasts by alternating forecast
+reconciliation along one single dimension (either cross-sectional or temporal)
+at each iteration step.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">iterec(base, cslist, telist, res = NULL, itmax = 100, tol = 1e-5,
+       type = "tcs", norm = "inf", verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix containing the base forecasts to
+be reconciled; <code class="reqn">n</code> is the total number of variables, <code class="reqn">m</code> is the max. order of temporal
+aggregation, <code class="reqn">k^\ast</code> is the sum of (a subset of) (<code class="reqn">p-1</code>) factors of <code class="reqn">m</code>,
+excluding <code class="reqn">m</code>, and <code class="reqn">h</code> is the forecast horizon for the lowest frequency time series.
+The row identifies a time series, and the forecasts in each row are ordered from the
+lowest frequency (most temporally aggregated) to the highest frequency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cslist</code></td>
+<td>
+<p>A list of elements for the cross-sectional reconciliation.
+See csrec for a complete list (excluded <code>base</code> and <code>res</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>telist</code></td>
+<td>
+<p>A list of elements for the temporal reconciliation.
+See terec for a complete list (excluded <code>base</code> and <code>res</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>A (<code class="reqn">n \times N(k^\ast+m)</code>) optional numeric matrix containing the
+in-sample residuals at all the temporal frequencies ordered from the lowest frequency
+to the highest frequency (columns) for each variable (rows). This matrix is used
+to compute some covariance matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itmax</code></td>
+<td>
+<p>Max number of iteration (<code>100</code>, <em>default</em>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Convergence tolerance (<code>1e-5</code>, <em>default</em>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A string specifying the uni-dimensional reconciliation order:
+temporal and then cross-sectional ("<code>tcs</code>") or cross-sectional and
+then temporal ("<code>cst</code>").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norm</code></td>
+<td>
+<p>Norm used to calculate the temporal and the cross-sectional
+incoherence: infinity norm ("<code>inf</code>", <em>default</em>), one norm ("<code>one</code>"), and
+2-norm ("<code>two</code>").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code>, reconciliation information are printed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix of cross-temporal reconciled forecasts.
+</p>
+
+
+<h3>References</h3>
+
+<p>Di Fonzo, T. and Girolimetto, D. (2023), Cross-temporal forecast reconciliation:
+Optimal combination method and heuristic alternatives, <em>International Journal
+of Forecasting</em>, 39, 1, 39-57. <a href="https://doi.org/10.1016/j.ijforecast.2021.08.004">doi:10.1016/j.ijforecast.2021.08.004</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Cross-temporal framework: 
+<code>ctboot()</code>,
+<code>ctbu()</code>,
+<code>ctcov()</code>,
+<code>ctlcc()</code>,
+<code>ctmo()</code>,
+<code>ctrec()</code>,
+<code>cttd()</code>,
+<code>cttools()</code>,
+<code>tcsrec()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# (3 x 7) base forecasts matrix (simulated), Z = X + Y and m = 4
+base &lt;- rbind(rnorm(7, rep(c(20, 10, 5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))))
+# (3 x 70) in-sample residuals matrix (simulated)
+res &lt;- rbind(rnorm(70), rnorm(70), rnorm(70))
+
+A &lt;- t(c(1,1)) # Aggregation matrix for Z = X + Y
+m &lt;- 4 # from quarterly to annual temporal aggregation
+
+rite &lt;- iterec(base = base,
+               cslist = list(agg_mat = A, comb = "shr"),
+               telist = list(agg_order = m, comb = "wlsv"),
+               res = res)
+
+</code></pre>
+
+
+</div>

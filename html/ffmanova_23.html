@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.ffmanova</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predictions, mean predictions, adjusted means and linear combinations</h2>
+
+<h3>Description</h3>
+
+<p>The same predictions as <code>lm</code> can be obtained. With some variables missing in input, 
+adjusted means or mean predictions are computed (Langsrud et al., 2007). 
+Linear combinations of such predictions, with standard errors, 
+can also be obtained.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ffmanova'
+predict(object, newdata = NULL, linComb = NULL, nonEstimableAsNA = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Output from <code>ffmanova</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Data frame or list. Missing values and missing variables are possible.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linComb</code></td>
+<td>
+<p>A matrix defining linear combinations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonEstimableAsNA</code></td>
+<td>
+<p>When TRUE missing values are retuned when predictions cannot be made.
+When FALSE predictions are made anyway, but the logical vector, <code>estimable</code>, 
+is added to output in cases of non-estimable results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments (not used)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of two matrices:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>YnewPred</code></td>
+<td>
+<p>Predictions, mean predictions, adjusted means or linear combinations of such predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>YnewStd</code></td>
+<td>
+<p>Corresponding standard errors.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Langsrud, Ø., Jørgensen, K., Ofstad, R. and Næs, T. (2007):
+“Analyzing Designed Experiments with Multiple Responses”,
+<em>Journal of Applied Statistics</em>, <b>34</b>, 1275-1296.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate data
+x1 &lt;- 1:6
+x2 &lt;- rep(c(100, 200), each = 3)
+y1 &lt;- x1 + rnorm(6)/10
+y2 &lt;- y1 + x2 + rnorm(6)/10
+
+# Create ffmanova object
+ff &lt;- ffmanova(cbind(y1, y2) ~ x1 + x2)
+
+# Predictions from the input data
+predict(ff)
+
+# Rows 1 and 5 from above predictions
+predict(ff, data.frame(x1 = c(1, 5), x2 = c(100, 200)))
+
+# Rows 1 as above and row 2 different
+predict(ff, data.frame(x1 = c(1, 5), x2 = 100))
+
+# Three ways of making the same mean predictions
+predict(ff, data.frame(x1 = c(1, 5), x2 = 150))
+predict(ff, data.frame(x1 = c(1, 5), x2 = NA))
+predict(ff, data.frame(x1 = c(1, 5)))
+
+# Using linComb input specified to produce regression coefficients 
+# with std. As produced by summary(lm(cbind(y1, y2) ~ x1 + x2))
+predict(ff, data.frame(x1 = c(1, 2)), matrix(c(-1, 1), 1, 2))
+predict(ff, data.frame(x2 = c(101, 102)), matrix(c(-1, 1), 1, 2))
+
+# Above results by a 2*4 linComb matrix and with rownames
+lC &lt;- t(matrix(c(-1, 1, 0, 0, 0, 0, -1, 1), 4, 2))
+rownames(lC) &lt;- c("x1", "x2")
+predict(ff, data.frame(x1 = c(1, 2, 1, 1), x2 = c(100, 100, 101, 102)), lC)
+</code></pre>
+
+
+</div>

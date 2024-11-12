@@ -1,0 +1,90 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_control_charts</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot control charts</h2>
+
+<h3>Description</h3>
+
+<p>This function takes as input a data frame produced
+with functions such as
+<code>control_charts_pca</code> and <code>control_charts_sof_pc</code> and
+produces a ggplot with the desired control charts, i.e.
+it plots a point for each
+observation in the phase II data set against
+the corresponding control limits.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_control_charts(cclist, nobsI = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cclist</code></td>
+<td>
+<p>A <code>data.frame</code> produced by
+<code>control_charts_pca</code>, <code>control_charts_sof_pc</code>
+<code>regr_cc_fof</code>, or <code>regr_cc_sof</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobsI</code></td>
+<td>
+<p>An integer indicating the first observations that are plotted in gray.
+It is useful when one wants to plot the phase I data set together
+with the phase II data. In that case, one needs to indicate the number
+of phase I observations included in <code>cclist</code>.
+Default is zero.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Out-of-control points are signaled by colouring them in red.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A ggplot with the functional control charts.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air &lt;- lapply(air, function(x) x[1:100, , drop = FALSE])
+fun_covariates &lt;- c("CO", "temperature")
+mfdobj_x &lt;- get_mfd_list(air[fun_covariates],
+                         n_basis = 15,
+                         lambda = 1e-2)
+mfdobj_y &lt;- get_mfd_list(air["NO2"],
+                         n_basis = 15,
+                         lambda = 1e-2)
+mfdobj_y1 &lt;- mfdobj_y[1:60]
+mfdobj_y_tuning &lt;- mfdobj_y[61:90]
+mfdobj_y2 &lt;- mfdobj_y[91:100]
+mfdobj_x1 &lt;- mfdobj_x[1:60]
+mfdobj_x_tuning &lt;- mfdobj_x[61:90]
+mfdobj_x2 &lt;- mfdobj_x[91:100]
+mod_fof &lt;- fof_pc(mfdobj_y1, mfdobj_x1)
+cclist &lt;- regr_cc_fof(mod_fof,
+                      mfdobj_y_new = mfdobj_y2,
+                      mfdobj_x_new = mfdobj_x2,
+                      mfdobj_y_tuning = NULL,
+                      mfdobj_x_tuning = NULL)
+plot_control_charts(cclist)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>maxdd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Drawdown statistics</h2>
+
+<h3>Description</h3>
+
+<p>A collection of functions which compute drawdown statistics.  Included
+are density, distribution function, and random generation for the
+maximum drawdown distribution. In addition the expectation of
+drawdowns for Brownian motion can be computed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dmaxdd(x, sd = 1, horizon = 100, N = 1000) 
+pmaxdd(q, sd = 1, horizon = 100, N = 1000) 
+rmaxdd(n, mean = 0, sd = 1, horizon = 100)
+
+maxddStats(mean = 0, sd = 1, horizon = 1000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, q</code></td>
+<td>
+
+<p>a numeric vector of quantiles.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+
+<p>an integer value, the number of observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean, sd</code></td>
+<td>
+
+<p>two numeric values, the mean and standard deviation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horizon</code></td>
+<td>
+
+<p>an integer value, the (run time) horizon of the investor.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+
+<p>an integer value, the precession index for summations. 
+Before you change this value please inspect Magdon-Ismail
+et. al. (2003).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>dmaxdd</code> computes the density function of the maximum drawdown
+distribution.  <code>pmaxdd</code> computes the distribution function.
+<code>rmaxdd</code> generates random numbers from that distribution.
+<code>maxddStats</code> computes the expectation of drawdowns.
+</p>
+<p><code>dmaxdd</code> returns for a trendless Brownian process <code>mean=0</code>
+and standard deviation "sd"
+the density from
+the probability that the maximum drawdown "D" is larger or equal to
+"h" in the interval [0,T], where "T" denotes the time <code>horizon</code>
+of the investor.
+</p>
+<p><code>pmaxdd</code> returns for a trendless Brownian process <code>mean=0</code>
+and standard deviation "sd"
+the probability that the maximum drawdown "D" is larger or equal to
+"h" in the interval [0,T], where "T" denotes the time <code>horizon</code>
+of the investor.
+</p>
+<p><code>rmaxdd</code> returns for a Brownian Motion process with mean
+<code>mean</code> and standard deviation <code>sd</code> random variates of
+maximum drawdowns.
+</p>
+<p><code>maxddStats</code> returns the expected value, E[D], of maximum
+drawdowns of Brownian Motion for a given drift <code>mean</code>, variance
+<code>sd</code>, and runtime <code>horizon</code> of the Brownian Motion process.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Currrently, only the driftless case is implemented.
+</p>
+
+
+<h3>References</h3>
+
+<p>Magdon-Ismail M., Atiya A.F., Pratap A., Abu-Mostafa Y.S. (2003);
+<em>On the Maximum Drawdown of a Brownian Motion</em>,
+Preprint, CalTech, Pasadena USA, p. 24. 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## rmaxdd
+## Set a random seed
+set.seed(1953)               
+## horizon of the investor, time T
+horizon &lt;- 1000               
+## number of MC samples, N -&gt; infinity
+samples &lt;- 1000               
+## Range of expected Drawdons
+xlim &lt;- c(0, 5) * sqrt(horizon) 
+
+## Plot Histogram of Simulated Max Drawdowns:
+r &lt;- rmaxdd(n = samples, mean = 0, sd = 1, horizon = horizon)
+hist(x = r, n = 40, probability = TRUE, xlim = xlim, 
+     col = "steelblue4", border = "white", main = "Max. Drawdown Density") 
+points(r, rep(0, samples), pch = 20, col = "orange", cex = 0.7)
+   
+## dmaxdd
+x &lt;- seq(0, xlim[2], length = 200)
+d &lt;- dmaxdd(x = x, sd = 1, horizon = horizon, N = 1000)
+lines(x, d, lwd = 2)
+    
+## pmaxdd
+## Count Frequencies of Drawdowns Greater or Equal to "h":
+n &lt;- 50
+x &lt;- seq(0, xlim[2], length = n)
+g &lt;- rep(0, times = n)
+for (i in 1:n)
+    g[i] &lt;- length (r[r &gt; x[i]]) / samples
+
+plot(x, g, type ="h", lwd = 3,
+     xlab = "q", main = "Max. Drawdown Probability")
+## Compare with True Probability "G_D(h)":
+x &lt;- seq(0, xlim[2], length = 5*n)
+p &lt;- pmaxdd(q = x, sd = 1, horizon = horizon, N = 5000)
+lines(x, p, lwd = 2, col="steelblue4") 
+   
+## maxddStats
+## Compute expectation Value E[D]:
+maxddStats(mean = -0.5, sd = 1, horizon = 10^(1:4))
+maxddStats(mean =  0.0, sd = 1, horizon = 10^(1:4))
+maxddStats(mean =  0.5, sd = 1, horizon = 10^(1:4))
+</code></pre>
+
+
+</div>

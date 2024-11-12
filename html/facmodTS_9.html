@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitTsfmUpDn</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a up and down market factor model using time series regression</h2>
+
+<h3>Description</h3>
+
+<p>This is a wrapper function to fits a up and down market model 
+for one or more asset returns or excess returns using time series regression. 
+Users can choose between ordinary least squares-LS, discounted least 
+squares-DLS (or) robust regression. An object of class 
+<code>"tsfmUpDn"</code> is returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitTsfmUpDn(
+  asset.names,
+  mkt.name,
+  rf.name = NULL,
+  data = data,
+  fit.method = c("LS", "DLS", "Robust"),
+  control = fitTsfm.control(...),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asset.names</code></td>
+<td>
+<p>Vector containing syntactically valid names of assets, 
+whose returns or excess returns are the dependent variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mkt.name</code></td>
+<td>
+<p>Syntactically valid name for market returns. Required for an
+up/down market model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rf.name</code></td>
+<td>
+<p>Syntactically valid name of the risk free rate to calculate 
+excess returns for all assets (in <code>asset.names</code>) and the market factor 
+(in <code>mkt.name</code>). Default is <code>NULL</code>, and no action is taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>vector, matrix, data.frame, xts, timeSeries or zoo object
+containing column(s) named in <code>asset.names</code>, <code>factor.names</code> and 
+optionally, <code>mkt.name</code> and <code>rf.name</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.method</code></td>
+<td>
+<p>the estimation method, one of "LS", "DLS" or "Robust". 
+See details. Default is "LS".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>list of control parameters. The default is constructed by 
+the function <code>fitTsfm.control</code>. See the documentation for 
+<code>fitTsfm.control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to <code>fitTsfm.control</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fitTsfmUpDn</code> will use <code>fitTsfm</code> to fit a time series model for up 
+and down market respectively. If risk free rate is provided, the up market is 
+the excess market returns which is no less than 0.
+The goal of up and down market model is to capture two different market Betas 
+in the up and down markets.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fitTsfmUpDn</code> returns an object <code>tsfmUpDn</code>. It supports generic 
+function such as <code>summary</code>, <code>predict</code>, <code>plot</code> and <code>print</code>.
+</p>
+<p>It is also a list object containing <code>Up</code> and <code>Dn</code>. Both <code>Up</code> 
+and <code>Dn</code> are class of <code>"tsfm"</code>. As a result, for each list 
+object, The generic function such as <code>print</code>, <code>plot</code>, <code>predict</code> 
+and <code>summary</code> methods exist for both <code>Up</code> and <code>Dn</code>. Also, the 
+generic accessor functions <code>coef</code>, <code>fitted</code>, <code>residuals</code> and  
+<code>fmCov</code> can be applied as well.
+</p>
+<p>An object of class <code>"tsfmUpDn"</code> is a list containing <code>Up</code> and <code>Dn</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Up</code></td>
+<td>
+<p>An object of <code>tsfm</code> fitted by <code>fitTsfm</code> for the up market;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dn</code></td>
+<td>
+<p>An object of <code>tsfm</code> fitted by <code>fitTsfm</code> for the down market;</p>
+</td>
+</tr>
+</table>
+<p>and others useful items: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>Function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Original data used but converted to <code>xts</code> class.</p>
+</td>
+</tr>
+</table>
+<p>Each object of <code>tsfm</code> contains : 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>asset.fit</code></td>
+<td>
+<p>list of fitted objects for each asset. Each object is of 
+class <code>lm</code> if <code>fit.method="LS" or "DLS"</code>, class <code>lmRob</code> if 
+the <code>fit.method="Robust"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>length-N vector of estimated alphas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>N x 1 matrix of estimated betas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r2</code></td>
+<td>
+<p>length-N vector of R-squared values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.sd</code></td>
+<td>
+<p>length-N vector of residual standard deviations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>xts data object containing the assets and factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asset.names</code></td>
+<td>
+<p>asset.names as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.names</code></td>
+<td>
+<p>factor.names as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.method</code></td>
+<td>
+<p>fit.method as input.</p>
+</td>
+</tr>
+</table>
+<p>Where N is the number of assets and T is the 
+number of time periods.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Yi-An Chen.
+</p>
+
+
+<h3>References</h3>
+
+<p>Christopherson, J. A., Carino, D. R., &amp; Ferson, W. E. (2009). Portfolio 
+performance measurement and benchmarking. McGraw Hill Professional.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The <code>tsfmUpDn</code> methods for generic functions: 
+<code>plot.tsfmUpDn</code>, <code>predict.tsfmUpDn</code>, 
+<code>print.tsfmUpDn</code> and <code>summary.tsfmUpDn</code>. 
+</p>
+<p>The original time series function <code>fitTsfm</code> and its generic 
+functions application.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> # load data
+data(managers, package = 'PerformanceAnalytics')
+
+# example: Up and down market factor model with LS fit
+fitUpDn &lt;- fitTsfmUpDn(asset.names = colnames(managers[,(1:6)]),
+                       mkt.name = "SP500 TR",
+                       data = managers, 
+                       fit.method = "LS")
+ 
+ print(fitUpDn)
+ summary(fitUpDn)
+ 
+ # A list object
+ fitUpDn
+ summary(fitUpDn$Up)
+ summary(fitUpDn$Dn)
+
+</code></pre>
+
+
+</div>

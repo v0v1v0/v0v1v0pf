@@ -1,0 +1,84 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_importance_SL_learner</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract the learner-specific importance from a fitted SuperLearner algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Extract the individual-algorithm extrinsic importance from one fitted
+algorithm within the Super Learner, along with the importance rank.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_importance_SL_learner(fit = NULL, coef = 0, feature_names = "", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>the specific learner (e.g., from the Super Learner's
+<code>fitLibrary</code> list).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>the Super Learner coefficient associated with the learner.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_names</code></td>
+<td>
+<p>the feature names</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments to pass to algorithm-specific importance extractors.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a tibble, with columns <code>algorithm</code> (the fitted algorithm),
+<code>feature</code> (the feature), <code>importance</code> (the algorithm-specific
+extrinsic importance of the feature), <code>rank</code> (the feature importance
+rank, with 1 indicating the most important feature), and <code>weight</code>
+(the algorithm's weight in the Super Learner)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("biomarkers")
+# subset to complete cases for illustration
+cc &lt;- complete.cases(biomarkers)
+dat_cc &lt;- biomarkers[cc, ]
+# use only the mucinous outcome, not the high-malignancy outcome
+y &lt;- dat_cc$mucinous
+x &lt;- dat_cc[, !(names(dat_cc) %in% c("mucinous", "high_malignancy"))]
+feature_nms &lt;- names(x)
+# get the fit (using a simple library and 2 folds for illustration only)
+library("SuperLearner")
+set.seed(20231129)
+fit &lt;- SuperLearner::SuperLearner(Y = y, X = x, SL.library = c("SL.glm", "SL.mean"), 
+                                  cvControl = list(V = 2))
+# extract importance
+importance &lt;- extract_importance_SL_learner(fit = fit$fitLibrary[[1]]$object, 
+                                            feature_names = feature_nms, coef = fit$coef[1])
+importance
+
+</code></pre>
+
+
+</div>

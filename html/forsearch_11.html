@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>forsearch_lm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Statistics Of Forward Search in a Linear Model Database
+</h2>
+
+<h3>Description</h3>
+
+<p>Prepares summary statistics at each stage of forward search for subsequent plotting. 
+Forward search is conducted in two steps: Step 1 to identify minimal set of observations 
+to estimate unknown parameters, and Step 2 to add one observation at each stage such that 
+observations in the set are best fitting at that stage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">forsearch_lm(formula, data, initial.sample=1000, n.obs.per.level = 1,
+                   skip.step1 = NULL, unblinded = TRUE, begin.diagnose = 100,
+                   verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Fixed effects formula as described in help(lm). The only 
+permitted operators are +, : , and * . Terms must be found in data or 
+as constructed by I(xxx) where xxx is found in data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Name of database</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.sample</code></td>
+<td>
+<p>Number of observations in Step 1 of forward search</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.obs.per.level</code></td>
+<td>
+<p>Number of observations per level of (possibly crossed) 
+factor levels.Set to rank of X'X if model contains constructed variables
+such as I(x^3), for example in polynomial regression </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip.step1</code></td>
+<td>
+<p>NULL or a vector of integers for observations to be included
+in Step 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unblinded</code></td>
+<td>
+<p>TRUE causes printing of presumed analysis structure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>begin.diagnose</code></td>
+<td>
+<p>Numeric. Indicates where in code to begin printing diagnostics.
+0 prints all; 100 prints none</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>TRUE causes function identifier to display before and after run</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Step 2 is determined by the results of Step 1, which itself is random. So,
+it is possible to reproduce the entire run by using the skip.step1 argument.</p>
+
+
+<h3>Value</h3>
+
+<p>LIST
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Rows in stage </code></td>
+<td>
+<p>Observation numbers of rows included at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Standardized residuals </code></td>
+<td>
+<p>Matrix of errors at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Number of model parameters </code></td>
+<td>
+<p>Rank of model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma </code></td>
+<td>
+<p>Estimate of random error at final stage; used to standardize all residuals</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fixed parameter estimates </code></td>
+<td>
+<p>Vector of parameter estimates at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s^2 </code></td>
+<td>
+<p>Estimate of random error at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Leverage </code></td>
+<td>
+<p>Matrix of leverage of each observation at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Modified Cook distance </code></td>
+<td>
+<p>Estimate of sum of squared changes in parameter estimates at each stage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Call </code></td>
+<td>
+<p>Call to this function</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>William R. Fairweather</p>
+
+
+<h3>References</h3>
+
+<p>Atkinson, A and M Riani. Robust Diagnostic Regression Analysis, Springer, New York, 2000.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Multiple regression
+Observation &lt;- 1:16
+y &lt;- runif(16)
+x1 &lt;- runif(16)
+x2 &lt;- runif(16)
+x3 &lt;- runif(16)
+lmtest1 &lt;- data.frame(Observation,y,x1,x2,x3)
+forsearch_lm(formula=y~x1+x2+x3, data=lmtest1, initial.sample=200,begin.diagnose=100)
+## Not run: 
+
+# Analysis of variance 
+Observation &lt;- 1:30
+y &lt;- runif(30)
+AN1 &lt;- as.factor(c(rep("A1",5),rep("A2",5),rep("A3",5)))
+AN1 &lt;- c(AN1,AN1)
+AN2 &lt;- as.factor(c(rep("B1",15),rep("B2",15)))
+lmtest2 &lt;- data.frame(Observation,y,AN1,AN2)
+forsearch_lm(formula=y~AN1*AN2, data=lmtest2, initial.sample=200,begin.diagnose=100)
+
+# Analysis of covariance
+Observation &lt;- 1:60
+y &lt;- runif(60)
+AN1 &lt;- as.factor(c(rep("A1",10),rep("A2",10),rep("A3",10)))
+AN1 &lt;- c(AN1,AN1)
+AN2 &lt;- as.factor(c(rep("B1",30),rep("B2",30)))
+COV &lt;- runif(60)
+lmtest3 &lt;- data.frame(Observation,y,AN1,AN2,COV)
+forsearch_lm(formula=y~AN1*AN2+COV, data=lmtest3, initial.sample=200,begin.diagnose=100)
+
+# Polynomial regression
+C1 &lt;- 7*runif(60) + 1
+y &lt;- 4 + C1 - 6*C1^2 + 9*C1^3 + rnorm(60)
+Observation &lt;- 1:60
+dfpoly &lt;- data.frame(Observation,C1,y) 
+forsearch_lm(formula = y ~ C1 + I(C1^2) + I(C1^3), data = dfpoly,  initial.sample = 200, 
+     begin.diagnose=100)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

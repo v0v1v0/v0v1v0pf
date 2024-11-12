@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readFITSbintable</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read a FITS binary table</h2>
+
+<h3>Description</h3>
+
+<p>Read a FITS binary table from an open connection to a
+FITS file.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readFITSbintable(zz, hdr)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>zz</code></td>
+<td>
+<p>File handle; see Example.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hdr</code></td>
+<td>
+<p>Header card images, raw or parsed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>readFITSbintable</code> reads the data from the binary table part of a FITS
+Header and Data Unit (hdu) containing binary table data.  The header must be
+read first by <code>readFITSheader</code>; either this header or the
+parsed version from <code>parseHdr</code> are valid for the <var>hdr</var>
+variable.  Binary tables are multi-column files with one or more rows.  Each
+column has an individual data type and number of entries per cell
+(i.e., a cell may contain a scalar or vector).
+</p>
+<p>64-bit integers are read as pairs of 32-bit integers, for a vector
+twice the length of most other vectors.  Files read properly, but
+reconstructing the 64-bit representation is untested.  The
+CRAN package <code>int64</code> may be of use here.
+</p>
+<p>8, 16, 24, and 32-bit bit arrays return as integers.  Other lengths
+are not supported.
+</p>
+<p>Binary table complex and array
+descriptor data types are not implemented in this release due to a lack
+of examples for testing.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>Data from each column, either a vector or an array.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hdr</code></td>
+<td>
+<p>Vector with parsed header.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colNames</code></td>
+<td>
+<p>Vector of column names, TTYPEn FITS variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colUnits</code></td>
+<td>
+<p>Vector of column units, TUNITn FITS variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TNULLn</code></td>
+<td>
+<p>Vector of undefined value definitions, FITS variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TSCALn</code></td>
+<td>
+<p>Vector of multipliers for scaling, FITS variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TZEROn</code></td>
+<td>
+<p>Vector of zeros for scaling, FITS variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TDISPn</code></td>
+<td>
+<p>Vector of format information, FITS variable.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Graphical FITS viewers such as <em>fv</em>
+(<a href="https://heasarc.gsfc.nasa.gov/ftools/fv/">https://heasarc.gsfc.nasa.gov/ftools/fv/</a>) and <em>SAOImage DS9</em>
+(<a href="http://ds9.si.edu/">http://ds9.si.edu/</a>)
+have excellent facilities for displaying FITS data, headers, and file
+structure.  Having one or more graphical viewers available will
+prove extremely
+useful
+for working with FITS
+files, even when the data are read into <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> for further processing.
+<em>fv</em> and <em>SAOImage DS9</em> are in active devlopement with support for
+unix, Windows, and Mac OS-X operating systems, and are available at no cost.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew Harris</p>
+
+
+<h3>References</h3>
+
+<p>Hanisch et al., <em>Astron.\ Astrophys.</em> 376, 359-380 (2001)
+</p>
+<p><a href="https://fits.gsfc.nasa.gov/">https://fits.gsfc.nasa.gov/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>readFITS</code>, <code>readFITSheader</code>,
+<code>readFITSarray</code>, <code>file</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(FITSio)
+
+## Either download example file from
+## &lt;https://fits.gsfc.nasa.gov/fits_samples.html&gt;
+## and use
+## Not run: filename &lt;- "IUElwp25637mxlo.fits"
+## or, for local example use
+filename &lt;- system.file("fitsExamples", "IUElwp25637mxlo.fits",
+                        package = "FITSio")
+
+## Open file, read header and table, close file.
+zz &lt;- file(description = filename, open = "rb")
+header0 &lt;- readFITSheader(zz) # read primary header
+header &lt;- readFITSheader(zz) # read extension header
+D &lt;- readFITSbintable(zz, header)
+close(zz)
+
+## Look at contents
+str(D)
+str(header)
+str(parseHdr(header))
+D$hdr[which(D$hdr=="BITPIX")+1]   # BITPIX value from header
+D$colNames
+plot(D$col[[5]], ylab = "Value", main = D$colNames[5], type = "l")
+
+</code></pre>
+
+
+</div>

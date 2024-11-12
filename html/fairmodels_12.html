@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fairness_check_regression</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fairness check regression</h2>
+
+<h3>Description</h3>
+
+<p>This is an experimental approach. Please have it in mind when using it.
+Fairness_check_regression enables to check fairness in regression models. It uses so-called probabilistic classification to approximate fairness measures.
+The metrics in use are independence, separation, and sufficiency. The intuition behind this method is that the closer to 1 the metrics are the better.
+When all metrics are close to 1 then it means that from the perspective of a predictive model there are no meaningful differences between subgroups.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fairness_check_regression(
+  x,
+  ...,
+  protected = NULL,
+  privileged = NULL,
+  label = NULL,
+  epsilon = NULL,
+  verbose = TRUE,
+  colorize = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object created with <code>explain</code> or of class <code>fairness_regression_object</code>.
+It can be multiple fairness_objects, multiple explainers, or combination on both, as long as
+they predict the same data. If at least one fairness_object is provided there is no need to
+pass protected and privileged parameters. Explainers must be of type regression</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>possibly more objects created with <code>explain</code> and/or objects of class <code>fairness_regression_object</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>protected</code></td>
+<td>
+<p>factor, protected variable (also called sensitive attribute), containing privileged and unprivileged groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>privileged</code></td>
+<td>
+<p>factor/character, one value of <code>protected</code>, denoting subgroup suspected of the most privilege</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>character, vector of labels to be assigned for explainers, default is explainer label.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>numeric, boundary for fairness checking, lowest/maximal acceptable metric values for unprivileged. Default value is 0.8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical, whether to print information about creation of fairness object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colorize</code></td>
+<td>
+<p>logical, whether to print information in color</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Sometimes during metric calculation faze approximation algorithms (logistic regression models) might not coverage properly. This might
+indicate that the membership to subgroups has strong predictive power.
+</p>
+
+
+<h3>References</h3>
+
+<p>Steinberg, Daniel &amp; Reid, Alistair &amp; O'Callaghan, Simon. (2020). Fairness Measures for Regression via Probabilistic Classification. - <a href="https://arxiv.org/pdf/2001.06089.pdf">https://arxiv.org/pdf/2001.06089.pdf</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(123)
+data &lt;- data.frame(
+  x = c(rnorm(500, 500, 100), rnorm(500, 400, 200)),
+  pop = c(rep("A", 500), rep("B", 500))
+)
+
+data$y &lt;- rnorm(length(data$x), 1.5 * data$x, 100)
+
+# create model
+model &lt;- lm(y ~ ., data = data)
+
+# create explainer
+exp &lt;- DALEX::explain(model, data = data, y = data$y)
+
+# create fobject
+fobject &lt;- fairness_check_regression(exp, protected = data$pop, privileged = "A")
+
+# results
+
+fobject
+plot(fobject)
+
+
+model_ranger &lt;- ranger::ranger(y ~ ., data = data, seed = 123)
+exp2 &lt;- DALEX::explain(model_ranger, data = data, y = data$y)
+
+fobject &lt;- fairness_check_regression(exp2, fobject)
+
+# results
+fobject
+
+plot(fobject)
+
+
+</code></pre>
+
+
+</div>

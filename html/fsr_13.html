@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsi_add_fsa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add an antecedent to an FSI model</h2>
+
+<h3>Description</h3>
+
+<p><code>fsi_add_fsa()</code> adds a fuzzy spatial antecedent to a fuzzy spatial inference (FSI) model.
+A fuzzy spatial antecedent corresponds to a layer of fuzzy spatial objects (i.e., spatial plateau objects) that describe the different characteristics of the problem.
+The antecedent has a linguistic variable and its fuzzy spatial objects have linguistic values so that they are used in the IF part of fuzzy rules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsi_add_fsa(fsi, lvar, tbl)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fsi</code></td>
+<td>
+<p>The FSI model instantiated with the <code>fsi_create()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lvar</code></td>
+<td>
+<p>A character value that represents a linguistic variable of the antecedent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tbl</code></td>
+<td>
+<p>A tibble with spatial plateau objects annotated with linguistic values of the linguistic variable specified by the above <code>lvar</code> parameter.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>fsi_add_fsa()</code> function adds a fuzzy spatial antecedent composed of a linguistic variable and its corresponding <code>pgeometry</code> objects annotated by linguistic values.
+The format of <code>tbl</code> is the same as the output of the function <code>spa_creator()</code>, allowing users to directly provide plateau region objects as input when designing FSI models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An FSI model populated with a fuzzy spatial antecedent.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://dl.acm.org/doi/10.1145/3474717.3484255">Carniel, A. C.; Galdino, F.; Philippsen, J. S.; Schneider, M. Handling Fuzzy Spatial Data in R Using the fsr Package. In Proceedings of the 29th International Conference on Advances in Geographic Information Systems (AM SIGSPATIAL 2021), pp. 526-535, 2021.</a>
+</p>
+<p>Underlying concepts and formal definitions of FSI models are introduced in:
+</p>
+
+<ul><li> <p><a href="https://ieeexplore.ieee.org/document/8015707">Carniel, A. C.; Schneider, M. Fuzzy inference on fuzzy spatial objects (FIFUS) for spatial decision support systems. In Proceedings of the 2017 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2017), pp. 1-6, 2017.</a>
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+trap_mf &lt;- function(a, b, c, d) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), 1, (d - x)/(d - c), na.rm = TRUE), 0)
+  }
+}
+
+trim_mf &lt;- function(a, b, c) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), (c - x)/(c - b), na.rm = TRUE), 0)
+  }
+}
+
+# Creating spatial plateau objects for the linguistic variable "accommodation price"
+lvals_accom_price &lt;- c("cut-rate", "affordable", "expensive")
+cut_rate_mf &lt;- trap_mf(0, 0, 10, 48)
+affordable_mf &lt;- trap_mf(10, 48, 80, 115)
+expensive_mf &lt;- trap_mf(80, 115, 10000, 10000)
+
+# Example of point dataset
+accom_price &lt;- tibble(longitude = c(-74.0, -74.0, -74.0), 
+                      latitude = c(40.8, 40.75, 40.7),
+                      price = c(150, 76, 60))
+ 
+accom_price_layer &lt;- spa_creator(accom_price, classes = lvals_accom_price, 
+                         mfs = c(cut_rate_mf, affordable_mf, expensive_mf))
+                         
+# Creating the FSI model
+fsi &lt;- fsi_create("To visit or not to visit, that is the question", 
+                  default_conseq = trim_mf(10, 30, 60))
+
+# Adding the fuzzy spatial antecedent to the FSI model
+fsi &lt;- fsi_add_fsa(fsi, "accommodation price", accom_price_layer) 
+</code></pre>
+
+
+</div>

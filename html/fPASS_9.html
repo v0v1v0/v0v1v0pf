@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Sim_HotellingT_unequal_var</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Samples from the non-null distribution of the Hotelling-<code class="reqn">T^2</code> statistic under unequal covariance.</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+<p>The function <code>Sim_HotellingT_unequal_var()</code> generates samples from the
+(non-null) distribution of the two-sample Hotelling-<code class="reqn">T^2</code> statistic
+under the assuming of unequal covariance of the multivariate response
+between the two groups. This function is used to compute the power function
+of Two-Sample (TS) Projection-based test (Wang 2021, EJS.)
+for sparsely observed univariate functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Sim_HotellingT_unequal_var(
+  total_sample_size,
+  mean_diff,
+  sig1,
+  sig2,
+  alloc.ratio = c(1, 1),
+  nsim = 10000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>total_sample_size</code></td>
+<td>
+<p>Target sample size, must be a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_diff</code></td>
+<td>
+<p>The difference in the mean vector between the two groups, must be a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig1</code></td>
+<td>
+<p>The true (or estimate) of covariance matrix for the first group. Must be symmetric
+(<code>is.symmetric(sig1) == TRUE</code>) and positive definite (<code>chol(sig1)</code> without an error!).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig2</code></td>
+<td>
+<p>The true (or estimate) of covariance matrix for the second group. Must be symmetric
+(<code>is.symmetric(sig2) == TRUE</code>) and positive definite (<code>chol(sig2)</code> without an error!).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alloc.ratio</code></td>
+<td>
+<p>Allocation of total sample size into the two groups. Must set as a vector of two
+positive numbers. For equal allocation it should be put as c(1,1), for non-equal
+allocation one can put c(2,1) or c(3,1) etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of samples to be generated from the alternate distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Under the assumption of the equal variance, we know that the alternative
+distribution of the Hotelling-<code class="reqn">T^2</code> statistic has an F distribution with the
+non-centrality depending on the difference between the true mean vectors and the
+(common) covariance of the response. However, when the true covariance of the true groups
+of responses differ, the alternate distribution becomes non-trivial. Koner and Luo (2023)
+proved that the alternate distribution of the test-statistic approximately follows
+a ratio of the linear combination of the K (dimension of the response) non-central
+chi-squared random variables (where the non-centrality parameter depends on the mean difference)
+and a chi-squared distribution whose degrees of freedom depends on a complicated functions of
+sample size in the two groups.
+See Koner and Luo (2023) for more details on the formula of the non-null distribution.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named list with two elements.
+</p>
+
+<ol>
+<li> <p><code>samples</code> - a vector of length <code>nsim</code>, containing
+The samples from the distribution of the Hotelling T statistic
+under unequal variance.
+</p>
+</li>
+<li> <p><code>denom.df</code> - The denominator degrees of freedom of the chi-square statistic
+obtained by approximation of the sum of two Wishart distribution under unequal variance.
+</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Salil Koner <br> Maintainer: Salil Koner
+<a href="mailto:salil.koner@duke.edu">salil.koner@duke.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Wang, Qiyao (2021)
+<em>Two-sample inference for sparse functional data,  Electronic Journal of Statistics,
+Vol. 15, 1395-1423</em> <br><a href="https://doi.org/10.1214/21-EJS1802">doi:10.1214/21-EJS1802</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Hotelling::hotelling.test()</code>, <code>Hotelling::hotelling.stat()</code> to generate empirical samples
+from the Hotelling T-statistic from empirical data.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Case 1: Null hypothesis is true. True mean difference is zero, and the true
+# covariance of the two groups are same.
+k &lt;- 5
+mu1  &lt;- rep(0,k); del  &lt;- 0; mu2 &lt;- mu1 + rep(del, k);
+sig1 &lt;- diag(k); sig2 &lt;- sig1 + del*toeplitz(c(1,rep(0.5, k-1))); n &lt;- 200;
+null.dist.samples &lt;- Sim_HotellingT_unequal_var(total_sample_size=n, mean_diff=mu1-mu2,
+                     sig1=sig1, sig2=sig2, alloc.ratio=c(1,1), nsim=1e3)
+# The following Kolmogorov Smirnov test confirms that under null hypothesis
+# and when the covariances are same, the distribution is exactly a
+# central F distribution with \eqn{k} and \eqn{n-k}  degrees of freedom.
+ks.test(null.dist.samples$samples, {{(n - 2) * k}/(n - k -1)} * {rf(n=1e3, k, n-k-1)} )
+
+
+# Case 2: Alternate hypothesis is true. The mean difference is non-zero,
+# and the covariances of the two groups are same:
+k &lt;- 6
+mu1  &lt;- rep(0,k); del  &lt;- 0.15; mu2 &lt;- mu1 + rep(del, k);
+sig1 &lt;- diag(k); sig2 &lt;- sig1;
+n1 &lt;- 100; n2 &lt;- 100;
+alt.dist.samples &lt;- Sim_HotellingT_unequal_var(total_sample_size=n1+n2, mean_diff=mu1-mu2,
+                                               sig1=sig1, sig2=sig2, alloc.ratio=c(1,1), nsim=1e3)
+ks.test(alt.dist.samples$samples,
+        {(n1+n2 - 2) * k /(n1+n2 - k -1)}*rf(n=1e3, k, n1+n2-k-1,
+          ncp = {(n1*n2)/(n1+n2)}*as.vector(crossprod(mu1-mu2, solve(sig1, mu1-mu2))) ) )
+
+
+# Case 3: Alternate hypothesis is true. The mean difference is non-zero,
+# and the covariances of the two groups are different
+k &lt;- 5
+mu1  &lt;- rep(0,k); del  &lt;- 0.25; mu2 &lt;- mu1 + rep(del, k);
+sig1 &lt;- diag(k); sig2 &lt;- sig1 + del*toeplitz(c(1,rep(0.5, k-1)))
+alt.dist.samples &lt;- Sim_HotellingT_unequal_var(total_sample_size=200, mean_diff=mu1-mu2,
+sig1=sig1, sig2=sig2, alloc.ratio=c(1,1), nsim=1e3)
+
+# Generate samples with unequal allocation ratio:
+k &lt;- 8
+mu1  &lt;- rep(0,k); del  &lt;- 0.4; mu2 &lt;- mu1 + rep(del, k);
+sig1 &lt;- diag(k); sig2 &lt;- sig1 + del*toeplitz(c(1,rep(0.5, k-1)))
+alt.dist.samples &lt;- Sim_HotellingT_unequal_var(total_sample_size=150, mean_diff=mu1-mu2,
+sig1=sig1, sig2=sig2, alloc.ratio=c(2,1), nsim=1e3)
+
+</code></pre>
+
+
+</div>

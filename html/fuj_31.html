@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>include</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Include exports in Search Path</h2>
+
+<h3>Description</h3>
+
+<p><code>include()</code> checks whether or not the namespace has been loaded
+to the <code>base::search()</code> path.  It uses the naming convention
+<code>include:{package}</code> to denote the differences from loading via
+<code>base::library()</code> or <code>base::require()</code>. When <code>exports</code> is <code>NULL</code>, the
+environment is detached from the search path if found.  When <code>exports</code> is
+not <code>NULL</code>,
+</p>
+<p><strong>Note:</strong> This function has the specific purpose of affecting the search
+path.  Use <code>options(fuj.verbose = TRUE)</code> or <code>options(verbose = TRUE)</code> for
+more information.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">include(package, exports = NULL, lib = .libPaths(), pos = 2L, warn = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>package</code></td>
+<td>
+<p>A package name.  This can be given as a name or a character
+string. See section <code>package</code> class handling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exports</code></td>
+<td>
+<p>A character vector of exports.  When named, these exports will
+be aliases as such.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lib</code></td>
+<td>
+<p>See <code>lib.loc</code> in <code>base::loadNamespace()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pos</code></td>
+<td>
+<p>An integer specifying the position in the <code>search()</code> path to
+attach the new environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warn</code></td>
+<td>
+<p>See <code>warn.conflicts</code> in <code>base::attach()</code>, generally.  The default
+<code>NULL</code> converts all <code>messages</code>s with masking errors to <code>verboseMessage</code>s,
+<code>TRUE</code> converts to <code>includeConflictsWarning</code> messages, <code>NA</code> uses
+<code>packageStartupMessages</code>, and <code>FALSE</code> silently ignores conflicts.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Include (attach) a package and specific exports to Search Path
+</p>
+
+
+<h3>Value</h3>
+
+<p>The attached environment, invisibly.
+</p>
+
+
+<h3>
+<code>package</code> class handling</h3>
+
+<p>When <code>package</code> is a name or AsIs,
+assumed an installed package.  When <code>package</code> is a file path (via
+<code>is_path()</code>) then <code>package</code> is assumed a file path.  When just a string, a
+viable path is checked first; if it doesn't exist, then it is assumed a
+package.
+</p>
+<p>When the package is <code>source()</code>'d the name of the environment defaults to
+the base name of <code>x</code> (file extension removed).  However, if the object
+<code>.AttachName</code> is found in the sourced file, then that is used as the
+environment name for the <code>search()</code> path.
+</p>
+<p><strong>Note:</strong> <code>include()</code> won't try to <em>attach</em> an environment a second time,
+however, when <code>package</code> is a path, it must be <code>source()</code>ed each time to
+check for the <code>.AttachName</code> object.  If there are any side effects, they
+will be repeated each time <code>include(path)</code> is called.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># include(package) will ensure that the entire package is attached
+include(fuj)
+head(ls("include:fuj"), 20)
+detach("include:fuj", character.only = TRUE)
+
+# include a single export
+include(fuj, "collapse")
+
+# include multiple exports, and alias
+include(fuj, c(
+  no_names = "remove_names",
+  match_any = "any_match"
+))
+
+# include an export where the alias has a warn conflict
+include(fuj, c(attr = "exattr"))
+
+# note that all 4 exports are included
+ls("include:fuj")
+
+# all exports are the same
+identical(collapse, fuj::collapse)
+identical(no_names, fuj::remove_names)
+identical(match_any, fuj::any_match)
+identical(attr, fuj::exattr)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.sfpl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Predictions for SFPLM
+</h2>
+
+<h3>Description</h3>
+
+<p><code>predict</code> method for the semi-functional partial linear  model (SFPLM) fitted using <code>sfpl.kernel.fit</code> or <code>sfpl.kNN.fit</code>. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'sfpl.kernel'
+predict(object, newdata.x = NULL, newdata.z = NULL,
+  y.test = NULL, option = NULL, ...)
+## S3 method for class 'sfpl.kNN'
+predict(object, newdata.x = NULL, newdata.z = NULL, 
+  y.test = NULL, option = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>Output of the functions mentioned in the <code>Description</code> (i.e. an object of the class <code>sfpl.kernel</code> or <code>sfpl.kNN</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata.x</code></td>
+<td>
+
+<p>Matrix containing new observations of the functional covariate collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata.z</code></td>
+<td>
+
+<p>Matrix containing the new observations of the scalar covariate collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.test</code></td>
+<td>
+
+<p>(optional) A vector containing the new observations of the response.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>option</code></td>
+<td>
+
+<p>Allows the selection among the choices 1 and 2 for <code>sfpl.kernel</code> objects, and 1, 2 and 3 for <code>sfpl.kNN</code> objects. The default setting is 1. See the section <code>Details</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The following options are provided to obtain the predictions of the response for <code>newdata.x</code> and <code>newdata.z</code>: 
+</p>
+
+<ul>
+<li>
+<p> If <code>option=1</code>, we maintain all the estimations (<code>k.opt</code> or <code>h.opt</code> and <code>beta.est</code>) to predict the functional nonparametric component of the model. 
+</p>
+</li>
+<li>
+<p> If <code>option=2</code>, we maintain <code>beta.est</code>, while the tuning parameter (<code class="reqn">h</code> or <code class="reqn">k</code>) is selected again to predict the functional nonparametric component of the model. This selection is performed using the leave-one-out cross-validation (LOOCV) criterion in the associated functional nonparametric model, obtaining a global selection for <code class="reqn">h</code> or <code class="reqn">k</code>.
+</p>
+</li>
+</ul>
+<p>In the case of <code>sfpl.kNN</code> objects if <code>option=3</code>, we maintain <code>beta.est</code>, while the tuning parameter <code class="reqn">k</code> is seleted again to predict the functional nonparametric component of the model. This selection is performed using the LOOCV criterion in the associated functional nonparametric model, performing a local selection for <code class="reqn">k</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns the predicted values of the response (<code>y</code>) for <code>newdata.x</code> and <code>newdata.z</code>. If <code>!is.null(y.test)</code>, it also provides the mean squared error of prediction (<code>MSEP</code>) computed as <code>mean((y-y.test)^2)</code>.
+If <code>is.null(newdata.x)</code> or <code>is.null(newdata.z)</code>, then the function returns the fitted values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>German Aneiros Perez <a href="mailto:german.aneiros@udc.es">german.aneiros@udc.es</a> 
+</p>
+<p>Silvia Novo Diaz  <a href="mailto:snovo@est-econ.uc3m.es">snovo@est-econ.uc3m.es</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sfpl.kernel.fit</code> and <code>sfpl.kNN.fit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("Tecator")
+y&lt;-Tecator$fat
+X&lt;-Tecator$absor.spectra
+z1&lt;-Tecator$protein       
+z2&lt;-Tecator$moisture
+
+#Quadratic, cubic and interaction effects of the scalar covariates.
+z.com&lt;-cbind(z1,z2,z1^2,z2^2,z1^3,z2^3,z1*z2)
+train&lt;-1:160
+test&lt;-161:215
+
+ 
+#Fit
+fit.kernel&lt;-sfpl.kernel.fit(x=X[train,], z=z.com[train,], y=y[train],q=2,
+  max.q.h=0.35,lambda.min.l=0.01, factor.pn=2,  
+  criterion="BIC", range.grid=c(850,1050), nknot=20, max.iter=5000)
+fit.kNN&lt;-sfpl.kNN.fit(y=y[train],x=X[train,], z=z.com[train,],q=2, 
+  max.knn=20,lambda.min.l=0.01, factor.pn=2, 
+  criterion="BIC",range.grid=c(850,1050), nknot=20, max.iter=5000)
+
+#Predictions
+predict(fit.kernel,newdata.x=X[test,],newdata.z=z.com[test,],y.test=y[test],
+  option=2)
+predict(fit.kNN,newdata.x=X[test,],newdata.z=z.com[test,],y.test=y[test],
+  option=2)
+
+</code></pre>
+
+
+</div>

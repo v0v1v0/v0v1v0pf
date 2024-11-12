@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotRCDF.byArm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot Characteristics of the Estimated Distribution of the Treatment Arm-Specific Number of Endpoints</h2>
+
+<h3>Description</h3>
+
+<p>Takes the output from the <code>completeTrial.byArm</code> function and generates a plot describing characteristics of the estimated distribution of the treatment arm-specific number of endpoints.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotRCDF.byArm(armLabel, trtNames, eventTimeFrame = NULL,
+  eventPPcohort = FALSE, eventPriorRate, eventPriorWeight, xlim = NULL,
+  xlab = NULL, ylab = NULL, fileDir)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>armLabel</code></td>
+<td>
+<p>a character string matching a treatment label in the <code>arm</code> variable in <code>interimData</code> that indicates the treatment arm for which the plot will be generated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trtNames</code></td>
+<td>
+<p>a character vector of all treatment labels listed in the same order as in <code>trtNames</code> in <code>completeTrial.byArm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eventTimeFrame</code></td>
+<td>
+<p>a time frame within which endpoints are counted, specified in weeks as <code>c(start, end)</code>. If <code>NULL</code> (default), then all endpoints are counted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eventPPcohort</code></td>
+<td>
+<p>a logical value. If <code>TRUE</code>, only endpoints in the per-protocol cohort are counted. The default value is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eventPriorRate</code></td>
+<td>
+<p>a numeric vector of treatment arm-specific prior mean incidence rates for the endpoint, expressed as numbers of events per person-year at risk, matching the order of treatment arms in <code>trtNames</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eventPriorWeight</code></td>
+<td>
+<p>a numeric vector in which each value represents a weight (i.e., a separate scenario) assigned to the prior gamma distribution of the treatment arm-specific event rate at the time when 50% of the estimated person-time at risk in the given <code>arm</code> has been accumulated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlim</code></td>
+<td>
+<p>a numeric vector of the form <code>c(xmin, xmax)</code> for the user-specified x-axis limits. If <code>NULL</code> (default), then the computed range of x-axis values will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab</code></td>
+<td>
+<p>a character string for the user-specified x-axis label. If <code>NULL</code> (default), then the label "Number of Infections in Group <code>armLabel</code> (n)" will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab</code></td>
+<td>
+<p>a character string for the user-specified y-axis label. If <code>NULL</code> (default), then the label "P(Number of Infections in Group <code>armLabel</code> &gt;= n ) x 100" will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fileDir</code></td>
+<td>
+<p>a character string specifying a path for the input directory</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>None. The function is called solely for plot generation.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>completeTrial.byArm</code> and <code>plotRCDF.pooledArms</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">arm &lt;- rep(c("C3","T1","T2"), each=250)
+schedule &lt;- rbinom(length(arm), 1, 0.01)
+entry &lt;- rpois(length(arm), lambda=60)
+entry &lt;- entry - min(entry)
+last_visit_dt &lt;- entry + runif(length(arm), min=0, max=80)
+event &lt;- rbinom(length(arm), 1, 0.01)
+dropout &lt;- rbinom(length(arm), 1, 0.02)
+dropout[event==1] &lt;- 0
+exit &lt;- rep(NA, length(arm))
+exit[event==1] &lt;- last_visit_dt[event==1] + 5
+exit[dropout==1] &lt;- last_visit_dt[dropout==1] + 5
+followup &lt;- ifelse(event==1 | dropout==1, 0, 1)
+interimData &lt;- data.frame(arm=arm, schedule2=schedule, entry=entry, exit=exit,
+last_visit_dt=last_visit_dt, event=event, dropout=dropout, complete=0, followup=followup)
+
+weights &lt;- c(0.2, 0.4, 0.6)
+for (j in 1:length(weights)){
+  completeTrial.byArm(interimData=interimData, nTrials=50,
+  trtNames=c("C3","T1","T2"),N=c(500,500,500),
+  enrollRatePeriod=24, eventPriorWeight=weights[j], eventPriorRate=c(0.06,0.03,0.03),
+  fuTime=80, visitSchedule=seq(0, 80, by=4), visitSchedule2=c(0,seq(from=8,to=80,by=12)),
+  saveDir="./", randomSeed=9)
+}
+
+pdf(file=paste0("./","rcdf_byArm_arm=T1_",
+"eventPriorRateC3=0.06_eventPriorRateT1=0.03_eventPriorRateT2=0.03.pdf"), width=6,
+height=5)
+plotRCDF.byArm(armLabel="T1", trtNames=c("C3","T1","T2"), eventPriorRate=c(0.06,0.03,0.03),
+eventPriorWeight=weights, fileDir="./")
+dev.off()
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,559 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flexrsurv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit Relative Survival Model</h2>
+
+<h3>Description</h3>
+
+<p><code>flexrsurv</code> is used to fit relative survival regression model. 
+Time dependent variables, non-proportionnal (time dependent) effects,
+non-linear effects are implemented using Splines (B-spline and truncated power basis).
+Simultaneously non linear and non proportional effects are implemented
+using approaches developed by Remontet et al.(2007) and Mahboubi et al. (2011). 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flexrsurv(formula=formula(data),
+   data=parent.frame(), 
+   knots.Bh,
+   degree.Bh=3,
+   Spline=c("b-spline", "tp-spline", "tpi-spline"), 
+   log.Bh=FALSE,
+   bhlink=c("log", "identity"),
+   Min_T=0,
+   Max_T=NULL,
+   model=c("additive","multiplicative"),
+   rate=NULL, 
+   weights=NULL,
+   na.action=NULL,
+   int_meth=c("GL", "CAV_SIM", "SIM_3_8", "BOOLE", "BANDS"),
+   npoints=20,   
+   stept=NULL,              
+   bands=NULL,
+   init=NULL,
+   initbyglm=TRUE,
+   initbands=bands,
+   optim.control=list(trace=100, REPORT=1, fnscale=-1, maxit=25), 
+   optim_meth=c("BFGS", "CG", "Nelder-Mead", "L-BFGS-B", "SANN", "Brent"),
+   control.glm=list(epsilon=1e-8, maxit=100, trace=FALSE, epsilon.glm=1e-1, maxit.glm=25),
+   vartype =  c("oim", "opg", "none"),
+   debug=FALSE
+   )
+
+
+flexrsurv.ll(formula=formula(data), 
+   data=parent.frame(), 
+   knots.Bh=NULL,   
+   degree.Bh=3,
+   Spline=c("b-spline", "tp-spline", "tpi-spline"), 
+   log.Bh=FALSE,
+   bhlink=c("log", "identity"),
+   Min_T=0,
+   Max_T=NULL,
+   model=c("additive","multiplicative"),
+   rate=NULL, 
+   weights=NULL,
+   na.action=NULL, 
+   int_meth=c("GL", "CAV_SIM", "SIM_3_8", "BOOLE", "GLM", "BANDS"),
+   npoints=20,   
+   stept=NULL,
+   bands=NULL,
+   init=NULL,
+   optim.control=list(trace=100, REPORT=1, fnscale=-1, maxit=25), 
+   optim_meth=c("BFGS", "CG", "Nelder-Mead", "L-BFGS-B", "SANN", "Brent"),
+   vartype =  c("oim", "opg", "none"),
+   debug=FALSE
+   )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>a formula object, with the response on the left of a ~ operator, and the terms on the
+right. The response must be a survival object as returned by the <code>Surv</code> function. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>a data.frame in which to interpret the variables named in the formula.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots.Bh</code></td>
+<td>
+
+<p>the internal breakpoints that define the spline used to estimate the baseline hazard. 
+Typical values are the mean or median for one knot, quantiles for more knots.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree.Bh</code></td>
+<td>
+
+<p>degree of the piecewise polynomial of the baseline hazard. Default is 3 for cubic splines.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Spline</code></td>
+<td>
+ 
+<p>a character string specifying the type of spline basis. "b-spline" for B-spline basis, 
+"tp-spline" for truncated power basis and "tpi-spline" for monotone (increasing) truncated power basis.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.Bh</code></td>
+<td>
+
+<p>logical value: if TRUE, an additional basis equal to log(time) is added to the spline bases of time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bhlink</code></td>
+<td>
+
+<p>logical value: if TRUE, log of baseline hazard is modelled, if FALSE, the baseline hazard is out of the log.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Min_T</code></td>
+<td>
+
+<p>minimum of time period which is analysed. Default is <code>max(0.0, min(bands) )</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Max_T</code></td>
+<td>
+
+<p>maximum of time period which is analysed. Default is <code>max(c(bands, timevar))</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>character string specifying the type of model for both non-proportionnal and non linear effects. 
+The model <code>method=="additive"</code> assumes effects as explained in Remontet et al.(2007), 
+the model <code>method=="multiplicative"</code> assumes effects as explained in Mahboubi et al. (2011).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rate</code></td>
+<td>
+
+<p>an optional vector of the background rate for a relevant comparative population to be used in the fitting process. 
+Should be a numeric vector (for relative survival model). 
+<code>rate</code> is evaluated in the same way as variables in <code>formula</code>, that is first 
+in <code>data</code> and then in the environment of <code>formula</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+
+<p>an optional vector of weights to be used in the fitting process. Should be NULL or a numeric vector. 
+If not null, the total likelihood is the weighted sum of individual likelihood. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>a missing-data filter function, applied to the model.frame, after any subset argument has been used. 
+Default is options()$na.action.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int_meth</code></td>
+<td>
+
+<p>character string specifying the the numerical integration method. Possible values are 
+"GL" for Gauss-Legendre quadrature, 
+"CAV_SIM" for Cavalieri-Simpson's rule, "SIM_3_8" for the Simpson's 3/8 rule, 
+"BOOLE" for the Boole's rule, or "BANDS" for the midpoint rule with specified bands.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npoints</code></td>
+<td>
+
+<p>number of points used in the Gauss-Legendre quadrature (when <code>int_meth="GL"</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stept</code></td>
+<td>
+
+<p>scalar value of the time-step in numerical integration. It is required only when  <code>int_meth="CAV_SIM"</code> or <code>"SIM_3_8"</code> or <code>"BOOLE"</code>. 
+If no value is supplied,  <code>Max_T/500</code> is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bands</code></td>
+<td>
+
+<p>bands used to split data in the numerical integration when <code>int_meth="BANDS"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+
+<p>starting values of the parameters.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initbyglm</code></td>
+<td>
+
+<p>a logical value indicating indicating how are found or refined init values. If TRUE, the fitting method described in Remontet 
+et al.(2007) is ued to find or refine starting values. This may speedup the fit. If FALSE, the maximisation of the likelihood 
+starts at values given in <code>init</code>. If <code>init=NULL</code>, the starting values correspond to a constant net hazard equal to 
+the ratio of the number of event over the total number of person-time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initbands</code></td>
+<td>
+
+<p>bands used to split data when <code>initbyglm=TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.control</code></td>
+<td>
+
+<p>a list of control parameters passed to the <code>optim()</code> function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim_meth</code></td>
+<td>
+
+<p>method to be used to optimize the likelihood. 
+See <code>optim</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.glm</code></td>
+<td>
+
+<p>a list of control parameters passed to the <code>glm()</code> function when <code>method="glm"</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vartype</code></td>
+<td>
+
+<p>character string specifying the type of variance matrix computed by <code>flexrsurv</code>: the inverse of the hessian matrix computed 
+at the MLE estimate (ie. the inverse of the observed information matrix) if <code>vartype="oim"</code>, the inverse of the outer 
+product of the gradients if <code>vartype="opg"</code>. The variance is not computed when <code>vartype="none"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+
+<p>control the volum of intermediate output
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A full description of the additive and the multiplicative both non-linear and non-proportional models is given respectively in Remontet (2007) and Mahboubi (2011).
+</p>
+<p><code>flexrsurv.ll</code> is the workhorse function: it is not normally called
+directly.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>flexrsurv</code> returns an object of class <code>"flexrsurv"</code>.
+An object of class <code>"flexrsurv"</code> is a list containing at least the following components: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+
+<p>a named vector of coefficients
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+
+<p>the log-likelihood
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+
+<p>estimated covariance matrix for the estimated coefficients
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>informationMatrix</code></td>
+<td>
+
+<p>estimated information matrix
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bhlink</code></td>
+<td>
+
+<p>the linkk of baseline hazard:
+if <code>"identity"</code> baseline = sum g0_i b_i(t);
+if <code>"log"</code> log(baseline) = sum g0_i b_i(t); 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+
+<p>vector of the starting values supplied
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+
+<p>logical, Was the optimlizer algorithm judged to have converged? 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linear.predictors</code></td>
+<td>
+
+<p>the linear fit on link scale (not including the baseline hazard term if <code>bhlink = "identity"</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+
+<p>the estimated value of the hazard rate at each event time, obtained by transforming the linear predictors by the inverse of the link function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cumulative.hazard</code></td>
+<td>
+
+<p>the estimated value of the cumulative hazard in the time interval
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+
+<p>the matched call
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>the formula supplied
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+
+<p>the <code>terms</code> object used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>the <code>data</code> argument
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rate</code></td>
+<td>
+
+<p>the rate vector used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+
+<p>the time vector used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>workingformula</code></td>
+<td>
+
+<p>the formula used by the fitter
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.control</code></td>
+<td>
+
+<p>the value of the <code>optim.control</code> argument supplied
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.glm</code></td>
+<td>
+
+<p>the value of the <code>control.glm</code> argument supplied
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>the name of the fitter function used
+</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Mahboubi, A., M. Abrahamowicz, et al. (2011). "Flexible modeling of the effects of continuous prognostic factors in relative survival." Stat Med 30(12): 1351-1365. <a href="https://doi.org/10.1002/sim.4208">doi:10.1002/sim.4208</a>
+</p>
+<p>Remontet, L., N. Bossard, et al. (2007). "An overall strategy based on regression models to estimate relative survival and model the effects of prognostic factors in cancer survival studies." Stat Med 26(10): 2214-2228. <a href="https://doi.org/10.1002/sim.2656">doi:10.1002/sim.2656</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.flexrsurv</code>, 
+<code>summary.flexrsurv</code>, 
+<code>logLik.flexrsurv</code>, 
+<code>predict.flexrsurv</code>, 
+
+<code>NPH</code>, 
+<code>NLL</code>, and 
+<code>NPHNLL</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+if (requireNamespace("relsurv", quietly = TRUE)) {
+
+	# data from package relsurv
+	data(rdata, package="relsurv")
+	
+	# rate table from package relsurv
+	data(slopop, package="relsurv")
+	
+	
+	# get the death rate at event (or end of followup) from slopop for rdata
+	rdata$iage &lt;- findInterval(rdata$age*365.24+rdata$time, attr(slopop, "cutpoints")[[1]])
+	rdata$iyear &lt;- findInterval(rdata$year+rdata$time, attr(slopop, "cutpoints")[[2]])
+	therate &lt;- rep(-1, dim(rdata)[1])
+	for( i in 1:dim(rdata)[1]){
+	  therate[i] &lt;- slopop[rdata$iage[i], rdata$iyear[i], rdata$sex[i]]
+	}
+	
+	rdata$slorate &lt;- therate
+	
+	# change sex coding
+	rdata$sex01 &lt;- rdata$sex -1
+	
+	# fit a relative survival model with a non linear effect of age
+	fit &lt;- flexrsurv(Surv(time,cens)~sex01+NLL(age, Knots=60, Degree=3,
+	                                           Boundary.knots = c(24, 95)), 
+	                 rate=slorate, data=rdata,
+	                 knots.Bh=1850,  # one interior knot at 5 years
+	                 degree.Bh=3,
+	                 Max_T=5400,
+	                 Spline = "b-spline",
+	                 initbyglm=TRUE,
+	                 initbands=seq(0, 5400, 100), 
+	                 int_meth= "BANDS",
+	                 bands=seq(0, 5400, 50)
+	                 )
+	summary(fit)
+	
+	# fit a relative survival model with a non linear &amp; non proportional effect of age
+	fit2 &lt;- flexrsurv(Surv(time,cens)~sex01+NPHNLL(age, time, Knots=60,
+	                                               Degree=3,
+	                                               Knots.t = 1850, Degree.t = 3), 
+	                 rate=slorate, data=rdata,
+	                 knots.Bh=1850,  # one interior knot at 5 years
+	                 degree.Bh=3,
+	                 Spline = "b-spline",
+	                 initbyglm=TRUE, 
+	                 int_meth= "BOOLE",
+	                 step=50
+	                 )
+	summary(fit2, correlation=TRUE)
+	
+}
+
+</code></pre>
+
+
+</div>

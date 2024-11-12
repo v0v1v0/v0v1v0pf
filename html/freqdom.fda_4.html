@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fts.dpca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Functional Dynamic Principal Components and dynamic Karhunen Loeve extepansion</h2>
+
+<h3>Description</h3>
+
+<p>Functional dynamic principal component analysis (FDPCA) decomposes functional time series to a vector time series with
+uncorrelated components. Compared to classical functional principal components, FDPCA decomposition outputs components which
+are uncorrelated in time, allowing simpler modeling of the processes and maximizing long run variance of the projection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fts.dpca(X, q = 30, freq = (-1000:1000/1000) * pi, Ndpc = X$basis$nbasis)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a functional time series as a <code>fd</code> object from <code>fda</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>window size for the kernel estimator, i.e. a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>a vector containing frequencies in <code class="reqn">[-\pi, \pi]</code> on which the spectral density should be evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ndpc</code></td>
+<td>
+<p>is the number of principal component filters to compute as in <code>fts.dpca.filters</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This convenient function applies the FDPCA methodology and returns filters (<code>fts.dpca.filters</code>), scores
+(<code>fts.dpca.scores</code>), the spectral density (<code>fts.spectral.density</code>), variances (<code>fts.dpca.var</code>) and
+Karhunen-Leove expansion (<code>fts.dpca.KLexpansion</code>).
+</p>
+<p>See the example for understanding usage, and help pages for details on individual functions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing
+</p>
+
+<ul>
+<li> <p><code>scores</code> <code class="reqn">\quad</code> DPCA scores (<code>fts.dpca.scores</code>)
+</p>
+</li>
+<li> <p><code>filters</code> <code class="reqn">\quad</code>  DPCA filters (<code>fts.dpca.filters</code>)
+</p>
+</li>
+<li> <p><code>spec.density</code> <code class="reqn">\quad</code>  spectral density of <code>X</code> (<code>fts.spectral.density</code>)
+</p>
+</li>
+<li> <p><code>var</code> <code class="reqn">\quad</code> amount of variance explained by dynamic principal components (<code>fts.dpca.var</code>)
+</p>
+</li>
+<li> <p><code>Xhat</code> <code class="reqn">\quad</code>  Karhunen-Loeve expansion using <code>Ndpc</code> dynamic principal components (<code>fts.dpca.KLexpansion</code>)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Hormann, S., Kidzinski, L., and Hallin, M.
+<em>Dynamic functional principal components.</em> Journal of the Royal
+Statistical Society: Series B (Statistical Methodology) 77.2 (2015): 319-348.
+</p>
+<p>Brillinger, D.
+<em>Time Series</em> (2001), SIAM, San Francisco.
+</p>
+<p>Shumway, R., and Stoffer, D.
+<em>Time series analysis and its applications: with R examples</em> (2010), Springer Science &amp; Business Media
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load example PM10 data from Graz, Austria
+data(pm10) # loads functional time series pm10 to the environment
+X = center.fd(pm10)
+
+# Compute functional dynamic principal components with only one component
+res.dpca = fts.dpca(X, Ndpc = 1, freq=(-25:25/25)*pi) # leave default freq for higher precision
+plot(res.dpca$Xhat)
+fts.plot.filters(res.dpca$filters)
+
+# Compute functional PCA with only one component
+res.pca = prcomp(t(X$coefs), center = TRUE)
+res.pca$x[,-1] = 0
+
+# Compute empirical variance explained
+var.dpca = (1 - sum( (res.dpca$Xhat$coefs - X$coefs)**2 ) / sum(X$coefs**2))*100
+var.pca = (1 - sum( (res.pca$x %*% t(res.pca$rotation) - t(X$coefs) )**2 ) / sum(X$coefs**2))*100
+
+cat("Variance explained by PCA (empirical):\t\t",var.pca,"%\n")
+cat("Variance explained by PCA (theoretical):\t",
+   (1 - (res.pca$sdev[1] / sum(res.pca$sdev)))*100,"%\n")
+cat("Variance explained by DPCA (empirical):\t\t",var.dpca,"%\n")
+cat("Variance explained by DPCA (theoretical):\t",(res.dpca$var[1])*100,"%\n")
+
+# Plot filters
+fts.plot.filters(res.dpca$filters)
+
+# Plot spectral density (note that in case of these data it's concentrated around 0)
+fts.plot.operators(res.dpca$spec.density,freq = c(-2,-3:3/30 * pi,2))
+
+# Plot covariance of X
+fts.plot.covariance(X)
+
+# Compare values of the first PC scores with the first DPC scores 
+plot(res.pca$x[,1],t='l',xlab = "Time",ylab="Score", lwd = 2.5)
+lines(res.dpca$scores[,1], col=2, lwd = 2.5)
+legend(0,4,c("first PC score","first DPC score"), # puts text in the legend
+       lty=c(1,1),lwd=c(2.5,2.5), col=1:2)
+</code></pre>
+
+
+</div>

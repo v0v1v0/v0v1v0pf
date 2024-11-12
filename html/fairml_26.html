@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nclm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Nonconvex Optimization for Regression with Fairness Constraints</h2>
+
+<h3>Description</h3>
+
+<p>Fair regression model based on nonconvex optimization from Komiyama
+et al. (2018).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nclm(response, predictors, sensitive, unfairness, covfun, lambda = 0,
+  save.auxiliary = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>a numeric vector, the response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictors</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sensitive</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the sensitive attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unfairness</code></td>
+<td>
+<p>a positive number in [0, 1], how unfair is the model allowed
+to be. A value of <code>0</code> means the model is completely fair, while a value
+of <code>1</code> means the model is not constrained to be fair at all.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covfun</code></td>
+<td>
+<p>a function computing covariance matrices. It defaults to the
+<code>cov()</code> function from the <span class="pkg">stats</span> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>a non-negative number, a ridge-regression penalty coefficient.
+It defaults to zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save.auxiliary</code></td>
+<td>
+<p>a logical value, whether to save the fitted values and
+the residuals of the auxiliary model that constructs the decorrelated
+predictors. The default value is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>nclm()</code> defines fairness as statistical parity. The model bounds the
+proportion of the variance that is explained by the sensitive attributes over
+the total explained variance.
+</p>
+<p>The algorithm proposed by Komiyama et al. (2018) works like this:
+</p>
+
+<ol>
+<li>
+<p> regresses the predictors against the sensitive attributes;
+</p>
+</li>
+<li>
+<p> constructs a new set of predictors that are decorrelated from the
+sensitive attributes using the residuals of this regression;
+</p>
+</li>
+<li>
+<p> regresses the response against the decorrelated predictors and the
+sensitive attributes, while
+</p>
+</li>
+<li>
+<p> bounding the proportion of variance the sensitive attributes can
+explain with respect to the overall explained variance of the model.
+</p>
+</li>
+</ol>
+<p>Both <code>sensitive</code> and <code>predictors</code> are standardized internally before
+estimating the regression coefficients, which are then rescaled back to match
+the original scales of the variables. <code>response</code> is only standardized if
+it has a variance smaller than <code>1</code>, as that seems to improve the
+stability of the solutions provided by the optimizer (as far as the data
+included in <span class="pkg">fairml</span> are concerned).
+</p>
+<p>The <code>covfun</code> argument makes it possible to specify a custom function to
+compute the covariance matrices used in the constrained optimization. Some
+examples are the kernel estimators described in Komiyama et al. (2018) and
+the shrinkage estimators in the <span class="pkg">corpcor</span> package.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>nclm()</code> returns an object of class <code>c("nclm", "fair.model")</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marco Scutari</p>
+
+
+<h3>References</h3>
+
+<p>Komiyama J, Takeda A, Honda J, Shimao H (2018). "Nonconvex Optimization for
+Regression with Fairness Constraints". Proceedints of the 35th International
+Conference on Machine Learning (ICML), PMLR <strong>80</strong>:2737–2746. <br><code>http://proceedings.mlr.press/v80/komiyama18a/komiyama18a.pdf</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>frrm, zlm</p>
+
+
+</div>

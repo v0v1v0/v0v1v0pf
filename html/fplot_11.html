@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pdf_fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>PDF export with guaranteed text size</h2>
+
+<h3>Description</h3>
+
+<p>(<em>This function is deprecated: Please use the functions <code>export_graph_start()</code>
+and <code>export_graph_end()</code> instead.</em>)
+This function is an alternative to <code>pdf</code>, it makes it easy
+to export figures of appropriate size that should end up in a document. Instead
+of providing the height and width of the figure, you provide the fraction of the
+text-width the figure should take, and the target font-size at which the plotting
+text should be rendered. The size of the plotting text, once the figure is
+in the final document, is guaranteed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pdf_fit(
+  file,
+  pt = 10,
+  width = 1,
+  height,
+  w2h = 1.75,
+  h2w,
+  sideways = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>The name of the file to which export the figure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pt</code></td>
+<td>
+<p>The size of the text, in pt, once the figure is inserted in your final document.
+The default is 10. This means that all text appearing in the plot with <code>cex = 1</code>
+will appear with 10pt-sized fonts in your document.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>The width of the graph, expressed in percentage of the width of
+the body-text of the document in which it will be inserted. Default is 1, which means
+that the graph will take 100% of the text width. It can also be equal to a character
+of the type <code>"100%"</code> or <code>"80%"</code>. Alternatively, the following units
+are valid. Relative sizes: <code>"pw"</code> (page width), <code>"tw"</code> (text width),
+<code>"ph"</code> (page height), <code>"th"</code> (text height).
+Absolute sizes: <code>"in"</code>, <code>"cm"</code>, and <code>"px"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height</code></td>
+<td>
+<p>Numeric between 0 and 1 or character scalar. The height of the graph,
+expressed in percentage of the height of the body-text of the document in which it
+will be inserted. Default is missing, and the height is determined by the other
+argument <code>w2h</code>. This argument should range between 0 and 1. It can also be
+equal to a character of the type <code>"100%"</code> or <code>"80%"</code>. Alternatively, the
+following units are valid. Relative sizes: <code>"pw"</code> (page width), <code>"tw"</code>
+(text width), <code>"ph"</code> (page height), <code>"th"</code> (text height). Absolute
+sizes: <code>"in"</code>, <code>"cm"</code>, and <code>"px"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w2h</code></td>
+<td>
+<p>Numeric scalar. Used to determine the height of the figure based on
+the width. By default it is equal to <code>1.75</code> which means that the graph
+will be 1.75 larger than tall. Note that when argument <code>sideways = TRUE</code>,
+the default for the height becomes <code style="white-space: pre;">⁠90%⁠</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h2w</code></td>
+<td>
+<p>Numeric scalar, default is missing. Used to determine the aspectr ratio of the figure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sideways</code></td>
+<td>
+<p>Logical, defaults to <code>FALSE</code>. If the figure will be placed in
+landscape in the final document, then <code>sideways</code> should be equal to <code>TRUE</code>.
+If TRUE, then the argument <code>width</code> now refers to the height of the text, and the
+argument <code>height</code> to its width.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to <code>pdf</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If you use <code>fit.off</code> instead of <code>dev.off</code> to close the graph,
+the resulting graph will be displayed in the viewer pane. So you don't have to open
+the document to see how it looks.
+</p>
+<p>To export a ggplot2 graph, remember that you need to <strong>print</strong> it!
+</p>
+<div class="sourceCode"><pre>library(ggplot2)
+data = data.frame(x = c(1, 2, 3, 4, 5), y = c(2, 4, 6, 8, 10))
+
+# NOT GOOD
+pdf_fit("test.pdf")
+ggplot(data, aes(x, y)) +
+  geom_point(color = "#54BF98") +
+  geom_line(color = "#d34661")
+fit.off()
+
+# GOOD
+my_graph = ggplot(data, aes(x, y)) +
+             geom_point(color = "#54BF98") +
+             geom_line(color = "#d34661")
+
+pdf_fit("test.pdf")
+print(my_graph)
+fit.off()
+</pre></div>
+
+
+<h3>Value</h3>
+
+<p>This function does not return anything. It connects the output of the R graphics
+engine to a file.
+</p>
+
+
+<h3>Setting the page size</h3>
+
+<p>You can set the page size with the function <code>setFplot_page</code>,
+which defines the size of the page and its margins to deduce the size of the body
+of the text in which the figures will be inserted. By default the page is considered
+to be US-letter with <em>normal</em> margins (not too big nor thin).
+</p>
+<p>It is important to set the page size appropriately to have a final plotting-text size
+guaranteed once the figure is inserted in the document.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>See Also</h3>
+
+<p>To set the geometry and the defaults: <code>setFplot_page</code>.
+To close the graph and display it on the viewer pane: <code>fit.off</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# This function creates figures made to be inserted
+# in a Latex document (US-letter with "normal" margins)
+# By default, the figures should take 100% of the
+# text width. If so, the size of the text in the figures
+# will be exact.
+
+# You need pdftools and knitr to display PDFs in the viewer pane with fit.off
+if(require(pdftools) &amp;&amp; require(knitr)){
+
+  tmpFile = file.path(tempdir(), "pdf_examples.pdf")
+
+  pdf_fit(tmpFile, pt = 8)
+  plot(1, 1, type = "n", ann = FALSE)
+  text(1, 1, "This text will be displayed in 8pt.")
+  fit.off()
+
+  pdf_fit(tmpFile, pt = 12)
+  plot(1, 1, type = "n", ann = FALSE)
+  text(1, 1, "This text will be displayed in 12pt.")
+  fit.off()
+
+  pdf_fit(tmpFile, pt = 12, sideways = TRUE)
+  plot(1, 1, type = "n", ann = FALSE)
+  text(1, 1, "This text will be displayed in 12pt if in sideways.")
+  fit.off()
+
+  # If we reduce the end plot width but keep font size constant
+  # this will lead to a very big font as compared to the plot
+  pdf_fit(tmpFile, pt = 8, width = "50%")
+  plot(1, 1, type = "n", ann = FALSE)
+  text(1, 1, "This text will be displayed in 8pt\nif in 50% of the text width.")
+  fit.off()
+}
+
+
+
+
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rimse</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Root Integrated Mean Squared Difference Between FMP IRFs</h2>
+
+<h3>Description</h3>
+
+<p>Compute the root integrated mean squared error (RIMSE) between two FMP IRFs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rimse(
+  bvec1,
+  bvec2,
+  ncat = 2,
+  c1 = NULL,
+  d1 = NULL,
+  c2 = NULL,
+  d2 = NULL,
+  int = int_mat()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bvec1</code></td>
+<td>
+<p>Either a vector of FMP item parameters or a function
+corresponding to a non-FMP IRF. Functions should have exactly one argument,
+corresponding to the latent trait.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bvec2</code></td>
+<td>
+<p>Either a vector of FMP item parameters or a function
+corresponding to a non-FMP IRF. Functions should have exactly one argument,
+corresponding to the latent trait.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncat</code></td>
+<td>
+<p>Number of response categories (first ncat - 1 elemnts of bvec1
+and bvec2 are intercepts)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1</code></td>
+<td>
+<p>Lower asymptote parameter for bvec1.
+Ignored if bvec1 is a function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d1</code></td>
+<td>
+<p>Upper asymptote parameter for bvec1.
+Ignored if bvec1 is a function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c2</code></td>
+<td>
+<p>Lower asymptote parameter for bvec2.
+Ignored if bvec2 is a function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d2</code></td>
+<td>
+<p>Upper asymptote parameter for bvec2.
+Ignored if bvec2 is a function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int</code></td>
+<td>
+<p>Matrix with two columns, used for numerical integration.
+Column 1 is a grid of theta values, column 2 are normalized densities
+associated with the column 1 values</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Root integrated mean squared difference between two IRFs
+(dichotomous items) or expected item scores (polytomous items).
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, J. O. (1991). Kernel smoothing approaches to
+nonparametric item characteristic curve estimation. <em>Psychometrika</em>,
+<em>56</em>, 611–630. doi: <a href="https://doi.org/10.1007/BF02294494">10.1007/BF02294494</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(2342)
+bmat &lt;- sim_bmat(n_items = 2, k = 2, ncat = c(2, 5))$bmat
+
+theta &lt;- rnorm(500)
+dat &lt;- sim_data(bmat = bmat, theta = theta, maxncat = 5)
+
+# k = 0
+fmp0a &lt;- fmp_1(dat = dat[, 1], k = 0, tsur = theta)
+fmp0b &lt;- fmp_1(dat = dat[, 2], k = 0, tsur = theta)
+
+
+# k = 1
+fmp1a &lt;- fmp_1(dat = dat[, 1], k = 1, tsur = theta)
+fmp1b &lt;- fmp_1(dat = dat[, 2], k = 1, tsur = theta)
+
+
+## compare estimated curves to the data-generating curve
+rimse(fmp0a$bmat, bmat[1, -c(2:4)])
+rimse(fmp0b$bmat, bmat[2, ], ncat = 5)
+
+
+rimse(fmp1a$bmat, bmat[1, -c(2:4)])
+rimse(fmp1b$bmat, bmat[2, ], ncat = 5)
+
+
+</code></pre>
+
+
+</div>

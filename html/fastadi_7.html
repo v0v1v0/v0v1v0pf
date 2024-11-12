@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adaptive_initialize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AdaptiveInitialize</h2>
+
+<h3>Description</h3>
+
+<p>An implementation of the <code>AdaptiveInitialize</code> algorithm for
+matrix imputation for sparse matrices. At the moment the implementation
+is only suitable for small matrices with on the order of thousands
+of rows and columns at most.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adaptive_initialize(
+  X,
+  rank,
+  ...,
+  p_hat = NULL,
+  alpha_method = c("exact", "approximate"),
+  additional = NULL
+)
+
+## S3 method for class 'sparseMatrix'
+adaptive_initialize(
+  X,
+  rank,
+  ...,
+  p_hat = NULL,
+  alpha_method = c("exact", "approximate"),
+  additional = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A sparse matrix of <code>sparseMatrix</code> class. Explicit (observed)
+zeroes in <code>X</code> can be dropped for</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>Desired rank (integer) to use in the low rank approximation.
+Must be at least <code>2L</code> and at most the rank of <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_hat</code></td>
+<td>
+<p>The portion of <code>X</code> that is observed. Defaults to <code>NULL</code>,
+in which case <code>p_hat</code> is set to the number of observed elements of
+<code>X</code>. Primarily for internal use in <code>citation_impute()</code> or
+advanced users.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_method</code></td>
+<td>
+<p>Either <code>"exact"</code> or <code>"approximate"</code>, defaulting to
+<code>"exact"</code>. <code>"exact"</code> is computationally expensive and requires taking
+a complete SVD of matrix of size <code>nrow(X)</code> x <code>nrow(X)</code>, and matches
+the <code>AdaptiveInitialize</code> algorithm exactly. <code>"approximate"</code>
+departs from the <code>AdaptiveInitialization</code> algorithm to compute
+a truncated SVD of rank <code>rank</code> + <code>additional</code> instead of a complete
+SVD. This reduces computational burden, but the resulting estimates
+of singular-ish values will not be penalized as much as in the
+<code>AdaptiveInitialize</code> algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>additional</code></td>
+<td>
+<p>Ignored except when <code>alpha_method = "approximate"</code>
+in which case it controls the precise of the approximation to <code>alpha</code>.
+The approximate computation of <code>alpha</code> will always understand <code>alpha</code>,
+but the approximation will be better for larger values of <code>additional</code>.
+We recommend making <code>additional</code> as large as computationally tolerable.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A low rank matrix factorization represented by an
+<code>adaptive_imputation()</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+mf &lt;- adaptive_initialize(
+  ml100k,
+  rank = 3,
+  alpha_method = "approximate",
+  additional = 2
+)
+
+mf
+
+</code></pre>
+
+
+</div>

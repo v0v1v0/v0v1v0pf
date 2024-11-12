@@ -1,0 +1,318 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate FMP Item Parameters</h2>
+
+<h3>Description</h3>
+
+<p>Estimate FMP item parameters for a single item using user-specified
+theta values (fixed-effects) using fmp_1, or estimate FMP item parameters
+for multiple items using fixed-effects or random-effects with fmp.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmp_1(
+  dat,
+  k,
+  tsur,
+  start_vals = NULL,
+  method = "CG",
+  priors = list(xi = c("none", NaN, NaN), omega = c("none", NaN, NaN), alpha =
+    c("none", NaN, NaN), tau = c("none", NaN, NaN)),
+  ...
+)
+
+fmp(
+  dat,
+  k,
+  start_vals = NULL,
+  em = TRUE,
+  eps = 1e-04,
+  n_quad = 49,
+  method = "CG",
+  max_em = 500,
+  priors = list(xi = c("none", NaN, NaN), omega = c("none", NaN, NaN), alpha =
+    c("none", NaN, NaN), tau = c("none", NaN, NaN)),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Vector of item responses for N (# subjects) examinees. Binary 
+data should be coded 0/1, and polytomous data should be coded 0, 1, 2, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Vector of item complexities for each item, see details. If
+k &lt; ncol(dat), k's will be recycled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tsur</code></td>
+<td>
+<p>Vector of N (# subjects) surrogate theta values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_vals</code></td>
+<td>
+<p>Start values, For fmp_1, a vector of length 2k+2 in the
+following order:
+</p>
+<p>If k = 0: (xi_1, ..., x_C_i - 1, omega)
+</p>
+<p>If k = 1: (xi_1, ..., x_C_i - 1, omega, alpha1, tau1)
+</p>
+<p>If k = 2: (xi_1, ..., x_C_i - 1, omega, alpha1, tau1, alpha2, tau2)
+</p>
+<p>and so forth. For fmp, add start values for item 1, followed by those for
+item 2, and so forth. For further help, first fit the model without start
+values, then inspect the outputted parmat data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Optimization method passed to optim.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priors</code></td>
+<td>
+<p>List of prior information used to estimate the item parameters.
+The list should have up to 4 elements named xi, omega, alpha, tau. Each list
+should be a vector of length 3: the name of the prior distribution ("norm" or
+"none"), the first parameter of the prior distribution, and the second
+parameter of the prior distribution. Currently, "norm" and 'none" are the
+only available prior distributions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>em</code></td>
+<td>
+<p>If "mirt", use the mirt (Chalmers, 2012) package to estimate
+item parameters. If TRUE, random-effects estimation is used via the EM
+algorithm. If FALSE, fixed effects estimation is used with theta
+surrogates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Covergence tolerance for the EM algorithm. The EM algorithm is
+said to converge is the maximum absolute difference between parameter
+estimates for successive iterations is less than eps. Ignored if em = FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_quad</code></td>
+<td>
+<p>Number of quadrature points for EM integration. Ignored if
+em = FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_em</code></td>
+<td>
+<p>Maximum number of EM iterations (for em = TRUE only).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to optim (if em != "mirt") or mirt
+(if em == "mirt").</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The FMP item response function for a single item <code class="reqn">i</code> with 
+responses in categories <code class="reqn">c = 0, ..., C_i - 1</code> is specified using the 
+composite function,
+</p>
+<p style="text-align: center;"><code class="reqn">P(X_i = c | \theta) = exp(\sum_{v=0}^c(b_0i_{v} + m_i(\theta))) / 
+(\sum_{u=0}^{C_i - 1} exp(\sum_{v=0}^u(b_{0i_{v}} + m_i(\theta)))) </code>
+</p>
+
+<p>where <code class="reqn">m(\theta)</code> is an unbounded and monotonically increasing polynomial
+function of the latent trait <code class="reqn">\theta</code>, excluding the intercept (s). 
+</p>
+<p>The item complexity parameter <code class="reqn">k</code> controls the degree of the polynomial:
+</p>
+<p style="text-align: center;"><code class="reqn">m(\theta)=b_1\theta+b_2\theta^{2}+...+b_{2k+1}
+\theta^{2k+1},</code>
+</p>
+
+<p>where <code class="reqn">2k+1</code> equals the order of the polynomial,
+<code class="reqn">k</code> is a nonnegative integer, and
+</p>
+<p style="text-align: center;"><code class="reqn">b=(b1,...,b(2k+1))'</code>
+</p>
+
+<p>are item parameters that define the location and shape of the IRF. The
+vector <code class="reqn">b</code> is called the b-vector parameterization of the FMP Model.
+When <code class="reqn">k=0</code>, the FMP IRF equals either the slope-threshold 
+parameterization of the two-parameter item response model (if maxncat = 2) 
+or Muraki's (1992) generalized partial credit model (if maxncat &gt; 2).
+</p>
+<p>For <code class="reqn">m(\theta)</code> to be a monotonic function, the FMP IRF can also be
+expressed as a function of the vector
+</p>
+<p style="text-align: center;"><code class="reqn">\gamma = (\xi, \omega, \alpha_1, \tau_1, \alpha_2, \tau_2,
+\cdots \alpha_k,\tau_k)'.</code>
+</p>
+
+<p>The <code class="reqn">\gamma</code> vector is called the Greek-letter parameterization of the
+FMP model. See Falk &amp; Cai (2016a), Feuerstahler (2016), or Liang &amp; Browne 
+(2015) for details about the relationship between the b-vector and 
+Greek-letter parameterizations.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bmat</code></td>
+<td>
+<p>Matrix of estimated b-matrix parameters, each row corresponds
+to an item, and contains b0, b1, ...b(max(k)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parmat</code></td>
+<td>
+<p>Data frame of parameter estimation information, including the
+Greek-letter parameterization, starting value, and parameter estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Vector of item complexities chosen for each item.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_lik</code></td>
+<td>
+<p>Model log likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+<p>If em == "mirt", the mirt object. Otherwise, optimization
+information, including output from optim.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC</code></td>
+<td>
+<p>Model AIC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BIC</code></td>
+<td>
+<p>Model BIC.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Chalmers, R. P. (2012). mirt: A multidimensional item response theory
+package for the R environment. <em>Journal of Statistical Software</em>,
+<em>48</em>, 1–29. doi: <a href="https://doi.org/10.18637/jss.v048.i06">10.18637/jss.v048.i06</a>
+</p>
+<p>Elphinstone, C. D. (1983). A target distribution model for nonparametric
+density estimation. <em>Communication in Statistics–Theory
+and Methods</em>, <em>12</em>, 161–198. doi: <a href="https://doi.org/10.1080/03610928308828450">10.1080/03610928308828450</a>
+</p>
+<p>Elphinstone, C. D. (1985). <em>A method of distribution and density
+estimation</em> (Unpublished dissertation). University of South Africa,
+Pretoria, South Africa.
+</p>
+<p>Falk, C. F., &amp; Cai, L. (2016a). Maximum marginal likelihood estimation of a
+monotonic polynomial generalized partial credit model with applications to
+multiple group analysis. <em>Psychometrika</em>, <em>81</em>, 434–460.
+doi: <a href="https://doi.org/10.1007/s11336-014-9428-7">10.1007/s11336-014-9428-7</a>
+</p>
+<p>Falk, C. F., &amp; Cai, L. (2016b). Semiparametric item response functions in
+the context of guessing. <em>Journal of Educational Measurement</em>,
+<em>53</em>, 229–247. doi: <a href="https://doi.org/10.1111/jedm.12111">10.1111/jedm.12111</a>
+</p>
+<p>Feuerstahler, L. M. (2016). <em>Exploring alternate latent trait metrics
+with the filtered monotonic polynomial IRT model</em> (Unpublished dissertation).
+University of Minnesota, Minneapolis, MN.
+<a href="http://hdl.handle.net/11299/182267">http://hdl.handle.net/11299/182267</a>
+</p>
+<p>Feuerstahler, L. M. (2019). Metric Transformations and the Filtered
+Monotonic Polynomial Item Response Model. <em>Psychometrika</em>, <em>84</em>,
+105–123. doi: <a href="https://doi.org/10.1007/s11336-018-9642-9">10.1007/s11336-018-9642-9</a>
+</p>
+<p>Liang, L. (2007). <em>A semi-parametric approach to estimating item
+response functions</em> (Unpublished dissertation). The Ohio
+State University, Columbus, OH. Retrieved from https://etd.ohiolink.edu/
+</p>
+<p>Liang, L., &amp; Browne, M. W. (2015). A quasi-parametric method for
+fitting flexible item response functions. <em>Journal of Educational
+and Behavioral Statistics</em>, <em>40</em>, 5–34. doi: <a href="https://doi.org/10.3102/1076998614556816">10.3102/1076998614556816</a>
+</p>
+<p>Muraki, E. (1992). A generalized partial credit model: Application of an EM
+algorithm. <em>Applied Psychological Measurement</em>, <em>16</em>, 159–176. 
+doi: <a href="https://doi.org/10.1177/014662169201600206">10.1177/014662169201600206</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(2345)
+bmat &lt;- sim_bmat(n_items = 5, k = 2, ncat = 4)$bmat
+
+theta &lt;- rnorm(50)
+dat &lt;- sim_data(bmat = bmat, theta = theta, maxncat = 4)
+
+## fixed-effects estimation for item 1
+
+tsur &lt;- get_surrogates(dat)
+
+# k = 0
+fmp0_it_1 &lt;- fmp_1(dat = dat[, 1], k = 0, tsur = tsur)
+
+# k = 1
+fmp1_it_1 &lt;- fmp_1(dat = dat[, 1], k = 1, tsur = tsur)
+
+## fixed-effects estimation for all items
+
+fmp0_fixed &lt;- fmp(dat = dat, k = 0, em = FALSE)
+
+## random-effects estimation
+
+
+fmp0_random &lt;- fmp(dat = dat, k = 0, em = TRUE)
+
+
+## random-effects estimation using mirt's estimation engine
+
+fmp0_mirt &lt;- fmp(dat = dat, k = 0, em = "mirt")
+
+
+</code></pre>
+
+
+</div>

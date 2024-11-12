@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit_ARHp_FPCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit an ARH(p) to a given functional time series</h2>
+
+<h3>Description</h3>
+
+<p>Fit an <code class="reqn">ARH(p)</code> model to a given functional
+time series. The fitted model is based on the model proposed
+in (Aue et al, 2015), first decomposing the original
+functional observations into a vector time series of <code>n_harm</code>
+FPCA scores, and then fitting a vector autoregressive
+model of order <code class="reqn">p</code> (<code class="reqn">VAR(p)</code>) to the time series
+of the scores. Once fitted, the Karhunen-Loève expansion
+is used to re-transform the fitted values into functional
+observations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_ARHp_FPCA(y, v, p, n_harm, show_varprop = T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Matrix containing the discretized values
+of the functional time series. The dimension of the
+matrix is <code class="reqn">(n x m)</code>, where <code class="reqn">n</code> is the
+number of curves and <code class="reqn">m</code> is the number of points
+observed in each curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Numeric vector that contains the 
+discretization points of the curves.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Numeric value specifying the order 
+of the functional autoregressive 
+model to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_harm</code></td>
+<td>
+<p>Numeric value specifying the number
+of functional principal components to be used when fitting
+the <code class="reqn">ARH(p)</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_varprop</code></td>
+<td>
+<p>Logical. If <code>show_varprop = TRUE</code>,
+a plot of the proportion of variance explained by the first
+<code>n_harm</code> functional principal components will be shown.
+By default <code>show_varprop = TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Aue, A., Norinho, D. D., Hormann, S. (2015).
+<em>On the Prediction of Stationary Functional 
+Time Series</em>
+Journal of the American Statistical Association, 
+110, 378–392. <a href="https://doi.org/10.1080/01621459.2014.909317">https://doi.org/10.1080/01621459.2014.909317</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1
+
+# Simulate an ARH(1) process
+N &lt;- 250
+dv &lt;- 20
+v &lt;- seq(from = 0, to = 1, length.out = 20)
+
+phi &lt;- 1.3 * ((v) %*% t(v))
+
+persp(v,v,phi, 
+      ticktype = "detailed", 
+      main = "Integral operator")
+
+set.seed(3)
+white_noise &lt;-  simulate_iid_brownian_bridge(N, v = v)
+
+y &lt;- matrix(nrow = N, ncol = dv)
+y[1,] &lt;- white_noise[1,]
+for(jj in 2:N){
+    y[jj,] &lt;- white_noise[jj,];
+    
+    y[jj,]=y[jj,]+integral_operator(operator_kernel = phi,
+                                    v = v,
+                                    curve = y[jj-1,])
+}
+
+# Fit an ARH(1) model
+mod &lt;- fit_ARHp_FPCA(y = y,
+                     v = v,
+                     p = 1,
+                     n_harm = 5)
+
+# Plot results
+plot(v, y[50,], type = "l", lty = 1, ylab = "")
+lines(v, mod$y_est[50,], col = "red")
+legend("bottomleft", legend = c("real","est"),
+       lty = 1, col = c(1,2))
+
+</code></pre>
+
+
+</div>

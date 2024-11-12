@@ -1,0 +1,81 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>print.all_cutoffs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Print all cutoffs</h2>
+
+<h3>Description</h3>
+
+<p>Print all cutoffs
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'all_cutoffs'
+print(x, ..., label = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>all_cuttofs</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other print parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>character, label of model to plot. Default NULL. If default prints all models.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200,
+  num.threads = 1
+)
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm, explainer_rf,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+ac &lt;- all_cutoffs(fobject,
+  fairness_metrics = c(
+    "TPR",
+    "FPR"
+  )
+)
+print(ac)
+</code></pre>
+
+
+</div>

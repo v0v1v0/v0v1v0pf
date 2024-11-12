@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mutestim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fluctuation Analysis parametric estimation</h2>
+
+<h3>Description</h3>
+
+<p>Estimates mean number of mutations, mutation probability, and fitness parameter, with different methods, under different models. Returns the estimated means and standard deviations for each parameter.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  mutestim(mc, fn = NULL, mfn = NULL, cvfn = NULL,
+                  fitness = NULL, death = 0., plateff = 1.,
+                  model = c("LD", "H", "I"), muinf = +Inf,
+                  method = c("ML", "GF", "P0"),
+                  winsor = 2000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mc</code></td>
+<td>
+<p> a (non-empty) numeric vector of mutants counts. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+<p> an optional (non-empty) numeric vector with same length as <code>mc</code> of final numbers of cells.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfn</code></td>
+<td>
+<p> mean final number of cells. Ignored if <code>fn</code> is non-missing. By default empty. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvfn</code></td>
+<td>
+<p> coefficient of variation of final number of cells. Ignored if <code>fn</code> is non-missing. By default empty. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitness</code></td>
+<td>
+<p> fitness parameter: ratio of growth rates of normal and mutant cells. If <code>fitness</code> is <code>NULL</code> (default), then the fitness will be estimated. Otherwise, the given value will
+be used to estimate the mean mutation number <code>mutations</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>death</code></td>
+<td>
+<p> death probability. Must be smaller than 0.5. By default 0. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plateff</code></td>
+<td>
+<p> plating efficiency parameter. Must be non-larger than 1. By default 1. Available for <code>GF</code> method, and for <code>ML</code> method under <code>LD</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p> statistical lifetime model. Must be one of "LD" (default) for Luria-Delbrück model (exponential lifetimes), "H" for Haldane model (constant lifetimes), or "I" for Inhomogeneous model </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muinf</code></td>
+<td>
+<p> parameter used only if <code>model</code> is <code>I</code>. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p> estimation method as a character string: one of <code>ML</code> (default), <code>P0</code>, or <code>GF</code>. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>winsor</code></td>
+<td>
+<p> winsorization parameter: positive integer. Only used when <code>method</code> is <code>ML</code> or when <code>method</code> is <code>P0</code> and <code>fitness</code> is NULL. See details. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Method <code>ML</code> is the classic maximum likelihood estimation method. The maximum is computed with a BFGS (bounded) algorithm.
+</p>
+<p>Method <code>P0</code> uses the number of null values in the sample, therefore it can be applied only if there is at least one zero in <code>mc</code>.
+The estimate of the fitness is computed by maximum likelihood.
+</p>
+<p>Method <code>GF</code> uses the empirical generating function of <code>mc</code>.
+Since this method is the fastest, <code>"GF"</code> is used to initialize the values of the estimates for methods <code>"ML"</code> and <code>"P0"</code> (if the fitness is estimated).
+</p>
+<p>If <code>fn</code>, <code>mfn</code> or <code>cvfn</code> is non-empty, then the mutation probability is estimated instead of the mean number of mutations.
+If <code>fn</code> is non-empty and <code>method</code> is <code>P0</code> or <code>GF</code>, then <code>mfn</code> and <code>cvfn</code> are computed from <code>fn</code>, and the estimate of
+of the mutation probability is deduced from the estimate of the mean number of mutations.
+If <code>fn</code> is non-empty and <code>method</code> is <code>ML</code>, the estimate of the mutation probability is directly computed.
+</p>
+<p><code>muinf</code> corresponds to the cumulative division rate on the interval [0 ; +Inf).
+If <code>model</code> is <code>I</code>, <code>muinf</code> has to be finite, else <code>model</code> is set to "LD"
+</p>
+<p>The winsorization parameter <code>winsor</code> is used as a threshold for values in <code>mc</code> when maximum likelihood estimates are computed.
+</p>
+
+
+<h3>Value</h3>
+
+<p> A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mutations</code></td>
+<td>
+<p> mean number of mutations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd.mutations</code></td>
+<td>
+<p> estimated standard deviation on mean number of mutations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutprob</code></td>
+<td>
+<p> mutation probability (if <code>fn</code>, <code>mfn</code> or <code>cvfn</code> is non-empty)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd.mutprob</code></td>
+<td>
+<p> estimated standard deviation on mutation probability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitness</code></td>
+<td>
+<p> estimated fitness (if argument <code>fitness</code> is NULL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd.fitness</code></td>
+<td>
+<p> estimated standard deviation on fitness</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>A. Mazoyer: Fluctuation analysis on mutation models with birth-date dependence.
+Math. Biosci 303(9): 83-100 (2018)
+</p>
+<p>B. Ycart and N. Veziris: Unbiased estimates of mutation rates under fluctuating final counts.
+PLoS one 9(7) e101434 (2014)
+</p>
+<p>B. Ycart: Fluctuation analysis with cell deaths.
+J. Applied Probab. Statist, 9(1):12-28 (2014)
+</p>
+<p>B. Ycart: Fluctuation analysis: can estimates be trusted?
+One PLoS one 8(12) e80958 (2013)
+</p>
+<p>A. Hamon and B. Ycart: Statistics for the Luria-Delbrück distribution.
+Elect. J. Statist., 6:1251-1272 (2012)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rflan, flan.test</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# realistic random sample of size 100: mutation probability 1e-9,
+# mean final number 1e9, coefficient of variation on final numbers 0.3,
+# fitness 0.9, lognormal lifetimes, 5% mutant deaths, plating efficiency 80%
+x &lt;- rflan(100, mutprob = 1e-9, mfn = 1e9, cvfn = 0.3, fitness = 0.9, death = 0.05, plateff = 0.8)
+
+# maximum likelihood estimates with mean final number
+meanfn &lt;- mutestim(x$mc, mfn = 1e9)
+
+# maximum likelihood estimates with final numbers
+withfn &lt;- mutestim(x$mc, x$fn)
+
+# change model
+Hmodel &lt;- mutestim(x$mc, x$fn, model = "H")
+
+# faster methods
+GFmethod &lt;- mutestim(x$mc, x$fn, method = "GF")
+P0method &lt;- mutestim(x$mc, x$fn, method = "P0")
+
+# take deaths into account
+withdeaths &lt;- mutestim(x$mc, x$fn, death = 0.05, method = "GF")
+
+# with plateff
+withpef &lt;- mutestim(x$mc, x$fn, death = 0.05, plateff = 0.8, method = "GF")
+
+# compare results
+rbind(meanfn, withfn, Hmodel, GFmethod, P0method, withdeaths, withpef)
+
+# extreme example
+x &lt;- rflan(1000, mutations = 50, fitness = 0.5, dist = "exp")$mc
+summary(x)
+mutestim(x, method = "GF")
+mutestim(x)
+mutestim(x, winsor = 5000)
+
+## Not run: 
+  # None null count in the sample: P0 can not be used.
+  mutestim(x, method = "P0")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

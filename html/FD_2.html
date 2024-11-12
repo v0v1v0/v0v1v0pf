@@ -1,0 +1,417 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dbFD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Distance-Based Functional Diversity Indices</h2>
+
+<h3>Description</h3>
+
+<p><code>dbFD</code> implements a flexible distance-based framework to compute multidimensional functional diversity (FD) indices. <code>dbFD</code> returns the three FD indices of Villéger et al. (2008): functional richness (FRic), functional evenness (FEve), and functional divergence (FDiv), as well functional dispersion (FDis; Laliberté and Legendre 2010), Rao's quadratic entropy (Q) (Botta-Dukát 2005), a posteriori functional group richness (FGR) (Petchey and Gaston 2006), and the community-level weighted means of trait values (CWM; e.g. Lavorel et al. 2008). Some of these FD indices consider species abundances. <code>dbFD</code> includes several options for flexibility.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dbFD(x, a, w, w.abun = TRUE, stand.x = TRUE,
+    ord = c("podani", "metric"), asym.bin = NULL,
+    corr = c("sqrt", "cailliez", "lingoes", "none"),
+    calc.FRic = TRUE, m = "max", stand.FRic = FALSE,
+    scale.RaoQ = FALSE, calc.FGR = FALSE, clust.type = "ward",
+    km.inf.gr = 2, km.sup.gr = nrow(x) - 1, km.iter = 100,
+    km.crit = c("calinski", "ssi"), calc.CWM = TRUE,
+    CWM.type = c("dom", "all"), calc.FDiv = TRUE, dist.bin = 2, 
+    print.pco = FALSE, messages = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>matrix or data frame of functional traits. Traits can be <code>numeric</code>, <code>ordered</code>, or <code>factor</code>. Binary traits should be <code>numeric</code> and only contain 0 and 1. <code>character</code> traits will be converted to <code>factor</code>. <code>NA</code>s are tolerated.
+</p>
+<p><code>x</code> can also be a species-by-species distance matrix of class <code>dist</code>, in which case <code>NAs</code> are not allowed.
+</p>
+<p>When there is only one trait, <code>x</code> can be also be a <code>numeric</code> vector, an <code>ordered</code> factor, or a unordered <code>factor</code>.
+</p>
+<p>In all cases, species labels are required.
+</p>
+</td>
+</tr></table>
+<p>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>matrix containing the abundances of the species in <code>x</code> (or presence-absence, i.e. 0 or 1). Rows are sites and species are columns. Can be missing, in which case <code>dbFD</code> assumes that there is only one community with equal abundances of all species. <code>NAs</code> will be replaced by 0.
+The number of species (columns) in <code>a</code> must match the number of species (rows) in <code>x</code>. In addition, the species labels in <code>a</code> and <code>x</code> must be identical and in the same order. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>vector listing the weights for the traits in <code>x</code>. Can be missing, in which case all traits have equal weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w.abun</code></td>
+<td>
+<p>logical; should FDis, Rao's Q, FEve, FDiv, and CWM be weighted by the relative abundances of the species?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stand.x</code></td>
+<td>
+<p>logical; if all traits are <code>numeric</code>, should they be standardized to mean 0 and unit variance? If not all traits are <code>numeric</code>, Gower's (1971) standardization by the range is automatically used; see <code>gowdis</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ord</code></td>
+<td>
+<p>character string specifying the method to be used for ordinal traits (i.e. <code>ordered</code>). <code>"podani"</code> refers to Eqs. 2a-b of Podani (1999), while <code>"metric"</code> refers to his Eq. 3. Can be abbreviated. See <code>gowdis</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asym.bin</code></td>
+<td>
+<p>vector listing the asymmetric binary variables in <code>x</code>. See <code>gowdis</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>character string specifying the correction method to use when the species-by-species distance matrix cannot be represented in a Euclidean space. Options are <code>"sqrt"</code>, <code>"cailliez"</code>, <code>"lingoes"</code>, or <code>"none"</code>. Can be abbreviated. Default is <code>"sqrt"</code>. See ‘details’ section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc.FRic</code></td>
+<td>
+<p>logical; should FRic be computed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>the number of PCoA axes to keep as ‘traits’ for calculating FRic (when FRic is measured as the convex hull volume) and FDiv. Options are: any integer <code class="reqn">&gt;1</code>, <code>"min"</code> (maximum number of traits that allows the <code class="reqn">s \geq 2^t</code> condition to be met, where <code class="reqn">s</code> is the number of species and <code class="reqn">t</code> the number of traits), or <code>"max"</code> (maximum number of axes that allows the <code class="reqn">s &gt; t</code> condition to be met). See ‘details’ section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stand.FRic</code></td>
+<td>
+<p>logical; should FRic be standardized by the ‘global’ FRic that include all species, so that FRic is constrained between 0 and 1?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale.RaoQ</code></td>
+<td>
+<p>logical; should Rao's Q be scaled by its maximal value over all frequency distributions? See <code>divc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc.FGR</code></td>
+<td>
+<p>logical; should FGR be computed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clust.type</code></td>
+<td>
+<p>character string specifying the clustering method to be used to create the dendrogram of species for FGR. Options are <code>"ward"</code>, <code>"single"</code>, <code>"complete"</code>, <code>"average"</code>, <code>"mcquitty"</code>, <code>"median"</code>, <code>"centroid"</code>, and <code>"kmeans"</code>. For <code>"kmeans"</code>, other arguments also apply (<code>km.inf.fr</code>, <code>km.sup.gr</code>, <code>km.iter</code>, and <code>km.crit</code>). See <code>hclust</code> and <code>cascadeKM</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>km.inf.gr</code></td>
+<td>
+<p>the number of groups for the partition with the smallest number of groups of the cascade (min). Only applies if <code>calc.FGR</code> is <code>TRUE</code> and <code>clust.type</code> is <code>"kmeans"</code>. See <code>cascadeKM</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>km.sup.gr</code></td>
+<td>
+<p>the number of groups for the partition with the largest number of groups of the cascade (max). Only applies if <code>calc.FGR</code> is <code>TRUE</code> and <code>clust.type</code> is <code>"kmeans"</code>. See <code>cascadeKM</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>km.iter</code></td>
+<td>
+<p>the number of random starting configurations for each value of <code class="reqn">K</code>. Only applies if <code>calc.FGR</code> is <code>TRUE</code> and <code>clust.type</code> is <code>"kmeans"</code>. See <code>cascadeKM</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>km.crit</code></td>
+<td>
+<p>criterion used to select the best partition. The default value is <code>"calinski"</code> (Calinski-Harabasz 1974). The simple structure index <code>"ssi"</code> is also available. Only applies if <code>calc.FGR</code> is <code>TRUE</code> and <code>clust.type</code> is <code>"kmeans"</code>. Can be abbreviated. See <code>cascadeKM</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc.CWM</code></td>
+<td>
+<p>logical; should the community-level weighted means of trait values (CWM) be calculated? Can be abbreviated. See <code>functcomp</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CWM.type</code></td>
+<td>
+<p>character string indicating how nominal, binary and ordinal traits should be handled for CWM. See <code>functcomp</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc.FDiv</code></td>
+<td>
+<p>logical; should FDiv be computed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.bin</code></td>
+<td>
+<p>only applies when <code>x</code> is a single unordered <code>factor</code>, in which case <code>x</code> is coded using dummy variables. <code>dist.bin</code> is an integer between 1 and 10 specifying the appropriate distance measure for binary data. 2 (the default) refers to the simple matching coefficient (Sokal and Michener 1958). See <code>dist.binary</code> for the other options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.pco</code></td>
+<td>
+<p>logical; should the eigenvalues and PCoA axes be returned?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>messages</code></td>
+<td>
+<p>logical; should warning messages be printed in the console?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Typical usage is
+</p>
+<pre>
+dbFD(x, a, \dots)
+</pre>
+<p>If <code>x</code> is a matrix or a data frame that contains only continuous traits, no <code>NAs</code>, and that no weights are specified (i.e. <code>w</code> is missing), a species-species Euclidean distance matrix is computed via <code>dist</code>. Otherwise, a Gower dissimilarity matrix is computed via <code>gowdis</code>. If <code>x</code> is a distance matrix, it is taken as is.
+</p>
+<p>When <code>x</code> is a single trait, species with <code>NAs</code> are first excluded to avoid <code>NAs</code> in the distance matrix. If <code>x</code> is a single continuous trait (i.e. of class <code>numeric</code>), a species-species Euclidean distance matrix is computed via <code>dist</code>. If <code>x</code> is a single ordinal trait (i.e. of class <code>ordered</code>), <code>gowdis</code> is used and argument <code>ord</code> applies. If <code>x</code> is a single nominal trait (i.e. an unordered <code>factor</code>), the trait is converted to dummy variables and a distance matrix is computed via <code>dist.binary</code>, following argument <code>dist.bin</code>.
+</p>
+<p>Once the species-species distance matrix is obtained, <code>dbFD</code> checks whether it is Euclidean. This is done via <code>is.euclid</code>. PCoA axes corresponding to negative eigenvalues are imaginary axes that cannot be represented in a Euclidean space, but simply ignoring these axes would lead to biased estimations of FD. Hence in <code>dbFD</code> one of four correction methods are used, following argument <code>corr</code>. <code>"sqrt"</code> simply takes the square root of the distances. However, this approach does not always work for all coefficients, in which case <code>dbFD</code> will stop and tell the user to select another correction method. <code>"cailliez"</code> refers to the approach described by Cailliez (1983) and is implemented via <code>cailliez</code>. <code>"lingoes"</code> refers to the approach described by Lingoes (1971) and is implemented via <code>lingoes</code>. <code>"none"</code> creates a distance matrix with only the positive eigenvalues of the Euclidean representation via <code>quasieuclid</code>. See Legendre and Legendre (1998) and Legendre and Anderson (1999) for more details on these corrections.
+</p>
+<p>Principal coordinates analysis (PCoA) is then performed (via <code>dudi.pco</code>) on the <em>corrected</em> species-species distance matrix. The resulting PCoA axes are used as the new ‘traits’ to compute the three indices of Villéger et al. (2008): FRic, FEve, and FDiv. For FEve, there is no limit on the number of traits that can be used, so all PCoA axes are used. On the other hand, FRic and FDiv both rely on finding the minimum convex hull that includes all species (Villéger et al. 2008). This requires more species than traits. To circumvent this problem, <code>dbFD</code> takes only a subset of the PCoA axes as traits via argument <code>m</code>. This, however, comes at a cost of loss of information. The quality of the resulting reduced-space representation is returned by <code>qual.FRic</code>, which is computed as described by Legendre and Legendre (1998) and can be interpreted as a <code class="reqn">R^2</code>-like ratio.
+</p>
+<p>In <code>dbFD</code>, FRic is generally measured as the convex hull volume, but when there is only one continuous trait it is measured as the range (or the range of the ranks for an ordinal trait). Conversely, when only nominal and ordinal traits are present, FRic is measured as the number of unique trait value combinations in a community. FEve and FDiv, but not FRic, can account for species relative abundances, as described by Villéger et al. (2008).
+</p>
+<p>Functional dispersion (FDis; Laliberté and Legendre 2010) is computed from the <em>uncorrected</em> species-species distance matrix via <code>fdisp</code>. Axes with negatives eigenvalues are corrected following the approach of Anderson (2006). When all species have equal abundances (i.e. presence-absence data), FDis is simply the average distance to the centroid (i.e. multivariate dispersion) as originally described by Anderson (2006). Multivariate dispersion has been proposed as an index of beta diversity (Anderson et al. 2006). However, Laliberté and Legendre (2010) have extended it to a FD index. FDis can account for relative abundances by shifting the position of the centroid towards the most abundant species, and then computing a weighted average distance to this new centroid, using again the relative abundances as weights (Laliberté and Legendre 2010). FDis has no upper limit and requires at least two species to be computed. For communities composed of only one species, <code>dbFD</code> returns a FDis value of 0. FDis is by construction unaffected by species richness, it can be computed from any distance or dissimilarity measure (Anderson et al. 2006), it can handle any number and type of traits (including more traits than species), and it is not strongly influenced by outliers.
+</p>
+<p>Rao's quadratic entropy (Q) is computed from the <em>uncorrected</em> species-species distance matrix via <code>divc</code>. See Botta-Dukát (2005) for details. Rao's Q is conceptually similar to FDis, and simulations (via <code>simul.dbFD</code>) have shown high positive correlations between the two indices (Laliberté and Legendre 2010). Still, one potential advantage of FDis over Rao's Q is that in the unweighted case (i.e. with presence-absence data), it opens possibilities for formal statistical tests for differences in FD between two or more communities through a distance-based test for homogeneity of multivariate dispersions (Anderson 2006); see  <code>betadisper</code> for more details.
+</p>
+<p>Functional group richness (FGR) is based on the classification of the species by the user from visual inspection of a dengrogram. Method <code>"kmeans"</code> is also available by calling <code>cascadeKM</code>. In that case, the Calinski-Harabasz (1974) criterion or the simple structure index (SSI) can be used to estimate the number of functional groups; see <code>cascadeKM</code> for more details. FGR returns the number of functional groups per community, as well as the abundance of each group in each community. 
+</p>
+<p>The community-level means of trait values (CWM) is an index of functional composition (Lavorel et al. 2008), and is computed via <code>functcomp</code>. Species with <code>NAs</code> for a given trait are excluded for that trait.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nbsp</code></td>
+<td>
+<p>vector listing the number of species in each community</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sing.sp</code></td>
+<td>
+<p>vector listing the number of functionally singular species in each community. If all species are functionally different, <code>sing.sp</code> will be identical to <code>nbsp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FRic</code></td>
+<td>
+<p>vector listing the FRic of each community</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qual.FRic</code></td>
+<td>
+<p>quality of the reduced-space representation required to compute FRic and FDiv.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FEve</code></td>
+<td>
+<p>vector listing the FEve of each community</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FDiv</code></td>
+<td>
+<p>vector listing the FDiv of each community. Only returned if <code>calc.FDiv</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FDis</code></td>
+<td>
+<p>vector listing the FDis of each community</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RaoQ</code></td>
+<td>
+<p>vector listing the Rao's quadratic entropy (Q) of each community</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FGR</code></td>
+<td>
+<p>vector listing the FGR of each community. Only returned if <code>calc.FGR</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spfgr</code></td>
+<td>
+<p>vector specifying functional group membership for each species. Only returned if <code>calc.FGR</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gr.abun</code></td>
+<td>
+<p>matrix containing the abundances of each functional group in each community. Only returned if <code>calc.FGR</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CWM</code></td>
+<td>
+<p>data frame containing the community-level weighted trait means (CWM). Only returned if <code>calc.CWM</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.values</code></td>
+<td>
+<p>eigenvalues from the PCoA. Only returned if <code>print.pco</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axes</code></td>
+<td>
+<p>PCoA axes. Only returned if <code>print.pco</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Warning</h3>
+
+<p>Users often report that <code>dbFD</code> crashed during their analysis. Generally this occurs under Windows, and is almost always due to the computation of convex hull volumes. Possible solutions are to choose <code>calc.FRic = "FALSE"</code>, or to reduce the dimensionality of the trait matrix using the <code>"m"</code> argument.</p>
+
+
+<h3>Note</h3>
+
+<p><code>dbFD</code> borrows code from the <code>F_RED</code> function of Villéger et al. (2008).</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Etienne Laliberté <a href="mailto:etiennelaliberte@gmail.com">etiennelaliberte@gmail.com</a> <a href="https://www.elaliberte.info/">https://www.elaliberte.info/</a></p>
+
+
+<h3>References</h3>
+
+<p>Anderson, M. J. (2006) Distance-based tests for homogeneity of multivariate dispersions. <em>Biometrics</em> <b>62</b>:245-253.
+</p>
+<p>Anderson, M. J., K. E. Ellingsen and B. H. McArdle (2006) Multivariate dispersion as a measure of beta diversity. <em>Ecology Letters</em> <b>9</b>:683-693.
+</p>
+<p>Botta-Dukát, Z. (2005) Rao's quadratic entropy as a measure of functional diversity based on multiple traits. <em>Journal of Vegetation Science</em> <b>16</b>:533-540.
+</p>
+<p>Cailliez, F. (1983) The analytical solution of the additive constant problem. <em>Psychometrika</em> <b>48</b>:305-310.
+</p>
+<p>Calinski, T. and J. Harabasz (1974) A dendrite method for cluster analysis. <em>Communications in Statistics</em> <b>3</b>:1-27.
+</p>
+<p>Gower, J. C. (1971) A general coefficient of similarity and some of its properties. <em>Biometrics</em> <b>27</b>:857-871.
+</p>
+<p>Laliberté, E. and P. Legendre (2010) A distance-based framework for measuring functional diversity from multiple traits. <em>Ecology</em> <b>91</b>:299-305.
+</p>
+<p>Lavorel, S., K. Grigulis, S. McIntyre, N. S. G. Williams, D. Garden, J. Dorrough, S. Berman, F. Quétier, A. Thebault and A. Bonis (2008) Assessing functional diversity in the field - methodology matters! <em>Functional Ecology</em> <b>22</b>:134-147.
+</p>
+<p>Legendre, P. and M. J. Anderson (1999) Distance-based redundancy analysis: testing multispecies responses in multifactorial ecological experiments. <em>Ecological Monographs</em> <b>69</b>:1-24.
+</p>
+<p>Legendre, P. and L. Legendre (1998) <em>Numerical Ecology</em>. 2nd English edition. Amsterdam: Elsevier.
+</p>
+<p>Lingoes, J. C. (1971) Some boundary conditions for a monotone analysis of symmetric matrices. <em>Psychometrika</em> <b>36</b>:195-203.
+</p>
+<p>Podani, J. (1999) Extending Gower's general coefficient of similarity to ordinal characters. <em>Taxon</em> <b>48</b>:331-340.
+</p>
+<p>Sokal, R. R. and C. D. Michener (1958) A statistical method for evaluating systematic relationships. <em>The University of Kansas Scientific Bulletin</em> <b>38</b>:1409-1438.
+</p>
+<p>Villéger, S., N. W. H. Mason and D. Mouillot (2008) New multidimensional functional diversity indices for a multifaceted framework in functional ecology. <em>Ecology</em> <b>89</b>:2290-2301.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gowdis</code>, <code>functcomp</code>, <code>fdisp</code>, <code>simul.dbFD</code>, <code>divc</code>, <code>treedive</code>, <code>betadisper</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># mixed trait types, NA's
+ex1 &lt;- dbFD(dummy$trait, dummy$abun)
+ex1
+
+# add variable weights
+# 'cailliez' correction is used because 'sqrt' does not work
+w&lt;-c(1, 5, 3, 2, 5, 2, 6, 1)
+ex2 &lt;- dbFD(dummy$trait, dummy$abun, w, corr="cailliez")
+
+# if 'x' is a distance matrix
+trait.d &lt;- gowdis(dummy$trait)
+ex3 &lt;- dbFD(trait.d, dummy$abun)
+ex3
+
+# one numeric trait, one NA
+num1 &lt;- dummy$trait[,1] ; names(num1) &lt;- rownames(dummy$trait)
+ex4 &lt;- dbFD(num1, dummy$abun)
+ex4
+
+# one ordered trait, one NA
+ord1 &lt;- dummy$trait[,5] ; names(ord1) &lt;- rownames(dummy$trait)
+ex5 &lt;- dbFD(ord1, dummy$abun)
+ex5
+
+# one nominal trait, one NA
+fac1 &lt;- dummy$trait[,3] ; names(fac1) &lt;- rownames(dummy$trait)
+ex6 &lt;- dbFD(fac1, dummy$abun)
+ex6
+
+# example with real data from New Zealand short-tussock grasslands
+# 'lingoes' correction used because 'sqrt' does not work in that case
+ex7 &lt;- dbFD(tussock$trait, tussock$abun, corr = "lingoes")
+
+
+## Not run: 
+# calc.FGR = T, 'ward'
+ex7 &lt;- dbFD(dummy$trait, dummy$abun, calc.FGR = T)
+ex7
+
+# calc.FGR = T, 'kmeans'
+ex8 &lt;- dbFD(dummy$trait, dummy$abun, calc.FGR = T,
+clust.type = "kmeans")
+ex8
+
+# ward clustering to compute FGR
+ex9 &lt;- dbFD(tussock$trait, tussock$abun,
+corr = "cailliez", calc.FGR = TRUE, clust.type = "ward")
+# choose 'g' for number of groups
+# 6 groups seems to make good ecological sense
+ex9
+
+# however, calinksi criterion in 'kmeans' suggests
+# that 6 groups may not be optimal
+ex10 &lt;- dbFD(tussock$trait, tussock$abun, corr = "cailliez",
+calc.FGR = TRUE, clust.type = "kmeans", km.sup.gr = 10)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

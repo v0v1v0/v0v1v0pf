@@ -1,0 +1,223 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FPTL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>First-Passage-Time Location Function</h2>
+
+<h3>Description</h3>
+
+<p><code>FPTL</code> computes values of the First-Passage-Time Location (FPTL) function of a diffusion process for a continuous boundary.
+</p>
+<p><code>is.fptl</code> tests if its argument is an object of class “fptl”.
+</p>
+<p><code>print.fptl</code> shows an object of class “fptl”.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FPTL(dp, t0, T, x0, S, env = NULL, n = 4000)
+
+is.fptl(obj)
+
+## S3 method for class 'fptl'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dp</code></td>
+<td>
+<p>an object of class “diffproc” defining a family of diffusion processes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> object to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class “fptl”, a result of a call to this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t0, T</code></td>
+<td>
+<p>lower and upper limits of the considered time interval. Must be finite.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x0</code></td>
+<td>
+<p>fixed initial value of process in the time instant specified in the <code>t0</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>numerical value of a constant boundary or character string with the mathematical expression of a time-dependent boundary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>a named list of objects of numeric or character type specifying the values of names which occur in
+the mathematical expressions in objects <code>dp</code> and <code>S</code>, or of names which occur in the specification of the previous values.
+Defaults to NULL, interpreted as an empty list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of points at which the FPTL function is evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments potentially passed (currently none is considered).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The FPTL function for the problem of the first-passage-time of a diffusion process <code class="reqn">\{X(t), t_0 \leq t \leq T \}</code>,  
+conditioned to <code class="reqn">X(t_0) = x_0</code>, through a continuous boundary <code class="reqn">S(t)</code> is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">FPTL(t) = \left\{
+\begin{array}{lll}
+P[ X(t)&gt;S(t) \, | \, X(t_0)=x_0] = 1 - F(S(t),t \, | \, x_0,t_0) &amp; &amp; if \ x_0 &lt; S(t_0) \\[7pt]
+P[ X(t)&lt;S(t) \, | \, X(t_0)=x_0] = F(S(t),t \, | \, x_0,t_0) &amp; &amp; if \ x_0 &gt; S(t_0)
+\end{array}
+ \right. ,</code>
+</p>
+
+<p>where <code class="reqn">F(x,t|y,s)</code> is the transition probability distribution function of the process.  <br></p>
+<p>Initially, the FPTL function is evaluated at a sequence of n equally spaced values from <code>t0</code> to <code>T</code>. 
+Then the <code>FPTL</code> function makes an internal call to the <code>growth.intervals</code> function in order to study the growth
+of the evaluation vector. Finally, the FPTL function is evaluated at a more adequate sequence of values from <code>t0</code> to <code>T</code> according 
+to the abovementioned study. <br></p>
+<p>The mathematical expression of the boundary <code>S</code> should be a function of <code class="reqn">t</code> and may include arguments <code>t0</code>,
+<code>x0</code> and the parameters specified in the <code>env</code> argument. The <code>FPTL</code> function checks if the mathematical expression 
+shows syntax errors and if <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> can compute its symbolic derivative with respect to <code class="reqn">t</code>. <br></p>
+<p>The <code>env</code> argument is a list of tagged values in <code>name = value</code> form with <code>name</code> other than <code class="reqn">x</code>, <code class="reqn">t</code>, <code class="reqn">y</code> and <code class="reqn">s</code>.
+To name the expression of a function <code class="reqn">h(u)</code> as a character string we can use <code>`h(u)` = value</code> if we want to show its dependence on <code class="reqn">u</code>, or <code>h = value</code> otherwise. <br></p>
+<p>The <code>env</code> argument is copied into a temporary environment for evaluating the mathematical expressions in objects <code>dp</code> and <code>S</code>. 
+<span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> looks for the objects not found into this temporary environment in the parent.frame() environment. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>FPTL</code> computes and returns an object of class “fptl”. It is a two-component list: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a sequence of n values from <code>t0</code> to <code>T</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the corresponding values of the FPTL function for the <code>x</code> sequence.</p>
+</td>
+</tr>
+</table>
+<p><br>
+It also includes three additional attributes:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+<code>Call</code> </td>
+<td style="text-align: left;"> the unevaluated function call, substituting each name in this call for its value when </td>
+</tr>
+<tr>
+<td style="text-align: right;"> 
+ </td>
+<td style="text-align: left;"> the latter has length 1. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<code>dp</code> </td>
+<td style="text-align: left;"> the object used as <code>dp</code> argument in the function call. </td>
+</tr>
+<tr>
+<td style="text-align: right;"> 
+<code>vars</code> </td>
+<td style="text-align: left;"> NULL or a list containing the values of names in the function call for those names </td>
+</tr>
+<tr>
+<td style="text-align: right;"> 
+ </td>
+<td style="text-align: left;"> with values of length greater than 1. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+</tr>
+</table>
+<p><code>is.fptl</code> returns <code>TRUE</code> or <code>FALSE</code> depending on whether its argument is an object of class “fptl” or not. <br></p>
+<p>Since n is usually large, the <code>print.fptl</code> function does not display an object of class “fptl” as a list, but in its ‘basic’
+structure instead. However, each component can be displayed separately in the usual way.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Patricia Román-Román, Juan J. Serrano-Pérez and Francisco Torres-Ruiz.</p>
+
+
+<h3>References</h3>
+
+<p>Román, P., Serrano, J. J., Torres, F. (2008) First-passage-time location function: Application to determine first-passage-time densities in diffusion processes. <em>Comput. Stat. Data Anal.</em>, <b>52</b>, 4132–4146.
+</p>
+<p>P. Román-Román, J.J. Serrano-Pérez, F. Torres-Ruiz. (2012) An R package for an efficient approximation of first-passage-time densities for diffusion processes based on the FPTL function. <em>Applied Mathematics and Computation</em>, <b>218</b>, 8408–8428.
+</p>
+<p>P. Román-Román, J.J. Serrano-Pérez, F. Torres-Ruiz. (2014) More general problems on first-passage times for diffusion processes: A new version of the fptdApprox R package. <em>Applied Mathematics and Computation</em>, <b>244</b>, 432–446.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>diffproc</code> about creation of class “diffproc” objects.
+</p>
+<p><code>summary.fptl</code> for summaries and <code>plot.fptl</code> for graphical display.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Continuing the diffproc(.) examples:
+
+## Specifying a boundary
+b &lt;- "4.5 + 4*t^2 + 7*t*sqrt(t)*sin(6*sqrt(t))"
+
+## Computing FPTL functions and creating objects of class fptl
+y &lt;- FPTL(dp = Lognormal, t0 = 0, T = 18, x0 = 1, S = b, env = list(m = 0.48,
+          sigma = 0.07))
+y
+
+z &lt;- FPTL(dp = LognormalFEx, t0 = 1, T = 10, x0 = 1, S = 15, env = list(sigma=0.1, 
+          `h(t)` = "t/4", `H(s,t)` = "(t^2-s^2)/8"))
+z
+          
+## Testing fptl objects
+is.fptl(y)
+is.fptl(z)
+</code></pre>
+
+
+</div>

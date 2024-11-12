@@ -1,0 +1,286 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FHtestics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Fleming-Harrington test for interval-censored data based on a score vector distribution</h2>
+
+<h3>Description</h3>
+
+<p>The <code>FHtestics</code> function performs a test for interval-censored data based on a score vector distribution. It uses the G-<code class="reqn">\rho</code> family of statistics (being <code class="reqn">\lambda = 0</code>) for testing the differences of two or more survival curves.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+FHtestics(L, R, group, rho = 0, lambda = 0, alternative, tol = 10^-8, icFIT = NULL,
+          initfit = NULL, icontrol = icfitControl(), Lin = NULL, Rin = NULL, ...)
+## S3 method for class 'formula'
+FHtestics(formula, data, subset, na.action, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>Numeric vector of the left endpoints of the censoring intervals (equivalent to the first element of <code>Surv</code> when <code>type = "interval2"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>Numeric vector of the right endpoints of the censoring intervals (equivalent to the second element of <code>Surv</code> when <code>type = "interval2"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>A vector denoting the group variable for which the test is desired. If <code>group</code> is a factor or character, then a k-sample test is performed, where k is the number of unique values of <code>group</code>. If <code>group</code> is numeric, then a trend ("correlation" type) test is performed. If there are only two groups, both methods give the same results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>A scalar parameter that controls the type of test (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A scalar parameter that controls the type of test. With this method, lambda has to be zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>Character giving the type of alternative hypothesis for two-sample and trend tests: <code>"different"</code>, <code>"increasing"</code> or <code>"decreasing"</code> survival functions. For the k-sample case, <code>"different"</code> should be chosen.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Tolerance for the calculation of the g-inverse. Values less than <code>tol</code> are set to zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>icFIT</code></td>
+<td>
+<p>A precalculated <code>icfit</code> object for increased computation speed. This should be the <code>icfit</code> from the pooled data. Normally <code>initfit</code> should be used instead (see Warning below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initfit</code></td>
+<td>
+<p>An object of class <code>icfit</code> or <code>icsurv</code> or a character vector giving a function name, used for the initial estimate (see Warning below). Ignored if <code>icFIT</code> is not <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>icontrol</code></td>
+<td>
+<p>List of arguments for controling the NPMLE algorithm in call to <code>icfit</code>. Default value is <code>icfitControl</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lin</code></td>
+<td>
+<p>Logical vector: should <code>L</code> be included in the interval?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rin</code></td>
+<td>
+<p>Logical vector: should <code>R</code> be included in the interval?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula with a numeric vector as response (which assumes no censoring) or <code>Surv</code> object. The right side of the formula is the group variable. No <code>strata()</code> is allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame for variables in <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>An optional vector specifying a subset of observations to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>A function that indicates what should happen if the data contain <code>NA</code>s. Default value is set to <code>getOption("na.action")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The appropriate selection of the parameter <code>rho</code> gives emphasis to early hazard differences. For instance, in a given clinical trial, if one would like to assess whether the effect of a treatment or therapy on the survival is stronger at the earlier phases of the therapy, we should choose <code>rho&gt;0</code> emphasizing stronger early differences.
+</p>
+<p>The censoring in the default case (when <code>Lin = Rin = NULL</code>) assumes there are n (<code>n = length(L)</code>) failure times, and the <em>i</em>th one is in the interval between <code>L[i]</code> and <code>R[i]</code>. The default is not to include <code>L[i]</code> in the interval unless <code>L[i] = R[i]</code>, and to include <code>R[i]</code> in the interval unless <code>R[i] = Inf</code>. When <code>Lin</code> and <code>Rin</code> are not <code>NULL</code> they describe whether to include <code>L</code> and <code>R</code> in the associated interval. If either <code>Lin</code> or <code>Rin</code> is length 1 then it is repeated n times, otherwise they should be logicals of length n.
+</p>
+<p>It is difficult to prove the asymptotic validity of the standard score tests for this likelihood, because the number of nuisance parameters typically grows with the sample size and often many of the parameters are equal at the nonparametric MLE, i.e., they are on the boundary of the parameter space (Fay, 1996). Specifically, when the score test is performed, an adjustment is made so that the nuisance parameters are defined based on the data and do not approach the boundary of the parameter space (see Fay, 1996). Theoretically, the score test should perform well when there are many individuals but few observation times, and its advantage in this situation is that it retains validity even when the censoring mechanism may depend on the treatment.</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>information</code></td>
+<td>
+<p>Full description of the test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>Description of data variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Number of observations in each group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>Object of class <code>icfit</code> giving the NPMLE of all responses combined (ignoring the group variable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff</code></td>
+<td>
+<p>The weighted observed minus expected number of events in each group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>Vector with the same length as <code>L</code> and <code>R</code>, containing the rank scores (see Oller and Gómez, 2012).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>Either the chi-square or Z statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>The variance matrix of the test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d2L.dB2</code></td>
+<td>
+<p>Second derivative of the log-likelihood with respect to <code class="reqn">\beta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d2L.dgam2</code></td>
+<td>
+<p>Second derivative of the log-likelihood with respect to <code class="reqn">\gamma</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d2L.dBdgam</code></td>
+<td>
+<p>Derivative of the log-likelihood with respect to <code class="reqn">\beta</code> and <code class="reqn">\gamma</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alt.phrase</code></td>
+<td>
+<p>Phrase used to describe the alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+<p><em>p</em>-value associated with the alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.conf.int</code></td>
+<td>
+<p>Confidence interval of <em>p</em>-value. For <code>method = "exact.mc"</code> only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+</table>
+<h3>Warning</h3>
+
+<p>Since the input of <code>icFIT</code> is only for saving computational time, no checks are carried out to determine if the <code>icFIT</code> is in fact the correct one. Thus, one may get wrong answers with no warnings if the wrong <code>icFIT</code> object is chosen. A safer way to save computational time is to choose for <code>initfit</code> either a precalculated <code>icfit</code> object or an <code>icsurv</code> object from a function in the <code>Icens</code> package such as <code>EMICM</code>. If this is done, either the correct answer or a warning will be returned even if a bad guess for <code>initfit</code> is chosen. Additionally, one may specify a function name for <code>initfit</code>. The default is <code>NULL</code> which uses a simple initial fit function (the weighted average of the <code>A</code> matrix, see the code of icfit.default (Package <code>interval</code>)). A fast but somewhat unstable function uses <code>initcomputeMLE</code> which uses function computeMLE of the 'MLEcens' package. See the help for <code>icfit</code> for details on the <code>initfit option.</code></p>
+
+
+<h3>Author(s)</h3>
+
+<p>R. Oller and K. Langohr</p>
+
+
+<h3>References</h3>
+
+<p>Fay, M. P. (1996). Rank invariant tests for interval-censored data under the grouped continuous model. Biometrics <b>52</b>, 811–822.
+</p>
+<p>Fay, M. P. (1999). Comparing several score tests for interval-censored data. Statistics in Medicine <b>18</b>, 273–285.
+</p>
+<p>Gómez, G., Calle, M. L., Oller, R. and Langohr, K. (2009). Tutorial on methods for interval-censored data and their implementation in R. Statistical Modelling <b>9</b>, 259–297.
+</p>
+<p>Oller, R. and Gómez, G. (2012). A generalized Fleming and Harrington's class of tests for interval-censored data. The Canadian Journal of Statistics <b>40</b>, 501–516.
+</p>
+<p>Oller, R. and Langohr, K. (2017). FHtest: An R Package for the Comparison of Survival Curves with Censored Data. Journal of Statistical Software <b>81</b>, 1–25.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>FHtesticp, icfit (Package <code>interval</code>), icsurv (Package <code>Icens</code>).</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Two-sample tests
+data(bcos)
+FHtestics(Surv(left, right, type = "interval2") ~ treatment, data = bcos)
+FHtestics(Surv(left, right, type = "interval2") ~ treatment, data = bcos, rho = 1)
+
+data(duser)
+FHtestics(Surv(left, right, type = "interval2") ~ as.numeric(age &gt; 21), data = duser, 
+          rho = 1, Lin = TRUE, Rin = TRUE, subset = (zper == 3), 
+          icontrol = icfitControl(maxit = 100000))
+
+## Trend test
+data(illust3)
+FHtestics(Surv(left, right, type = "interval2") ~ group, data = illust3,
+          subset = c(1:100, 601:700, 1201:1300), rho = 2, Lin = TRUE, Rin = TRUE,
+          alternative = "increasing")
+
+## K-sample test
+FHtestics(Surv(left, right, type = "interval2") ~ as.factor(group), data = illust3,
+          subset = c(1:100, 601:700, 1201:1300), rho = 3, Lin = TRUE, Rin = TRUE)
+</code></pre>
+
+
+</div>

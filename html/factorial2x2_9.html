@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>powerPA2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Power of the Proportional Allocation 2 procedure</h2>
+
+<h3>Description</h3>
+
+<p>Computes the Proportional Allocation 2 procedure's power to
+detect the overall A effect or the simple AB effect, respectively.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">powerPA2(n, hrA, hrB, hrAB, avgprob, probAB_C, critPA2A, critPA2ab, dig)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>total subjects with n/4 subjects in each of the C, A, B, and AB groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrA</code></td>
+<td>
+<p>group A to group C hazard ratio; <code>hrA</code> &lt; 1 corresponds to group A superiority</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrB</code></td>
+<td>
+<p>group B to group C hazard ratio; <code>hrA</code> &lt; 1 corresponds to group A superiority</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrAB</code></td>
+<td>
+<p>group AB to group C hazard ratio; <code>hrAB</code> &lt; 1 corresponds to group AB superiority</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>avgprob</code></td>
+<td>
+<p>event probability averaged across the C, A, B, and AB groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probAB_C</code></td>
+<td>
+<p>event probability averaged across the AB and C groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>critPA2A</code></td>
+<td>
+<p>rejection critical value for the overall A stratified logrank statistic</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>critPA2ab</code></td>
+<td>
+<p>rejection critical value for the simple AB ordinary logrank statistic</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dig</code></td>
+<td>
+<p>number of decimal places to which we <code>roundDown</code> the critical value
+for the overall A test as calculated in <code>powerPA2</code>
+by <code>strLgrkPower</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Proportional Allocation 2 procedure uses a two-sided
+2/3 * alpha significance level to test the overall A effect and the
+remaining Dunnett-corrected type 1 error to thest the simple AB effect.
+When  the familywise error is alpha = 0.05, this corresponds to a
+critical value <code>critPA2A</code> = -2.13.
+Then <code>crit2x2</code> is used to compute a critical value
+<code>critPA2ab</code> = -2.24 to test the simple AB effect.  This corresponds to
+a two-sided 0.0251 significance level.  This controls the
+asymptotic familywise type I error for the two hypothesis tests at the
+two-sided 0.05 level.  This is because of the <code>1/sqrt(2)</code> asymptotic
+correlation between the logrank test statistics for the overall A
+and simple AB effects (Slud, 1994).  The overall A effect's significance
+level 2/3 * 0.05 is prespecified and the simple AB effect's significance
+level 0.0251 is computed using <code>crit2x2</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>powerPA2overallA </code></td>
+<td>
+<p>power to detect the overall A effect</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>powerPA2simpleAB </code></td>
+<td>
+<p>power to detect the simple AB effect</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Eric Leifer, James Troendle
+</p>
+
+
+<h3>References</h3>
+
+<p>Leifer, E.S., Troendle, J.F., Kolecki, A., Follmann, D.
+Joint testing of overall and simple effect for the two-by-two factorial design. (2020). Submitted.
+</p>
+<p>Lin, D-Y., Gong, J., Gallo, P., et al. Simultaneous inference on treatment effects
+in survival studies with factorial designs. Biometrics. 2016; 72: 1078-1085.
+</p>
+<p>Slud, E.V. Analysis of factorial survival experiments. Biometrics. 1994; 50: 25-38.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>crit2x2</code>, <code>eventProb</code>, <code>lgrkPower</code>, <code>strLgrkPower</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> # Corresponds to scenario 4 in Table 2 from Leifer, Troendle, et al. (2020).
+ rateC &lt;- 0.0445  # one-year C group event rate
+ hrA &lt;- 0.80
+ hrB &lt;- 0.80
+ hrAB &lt;- 0.72
+ mincens &lt;- 4.0
+ maxcens &lt;- 8.4
+ evtprob &lt;- eventProb(rateC, hrA, hrB, hrAB, mincens, maxcens)
+ avgprob &lt;- evtprob$avgprob
+ probAB_C &lt;- evtprob$probAB_C
+ dig &lt;- 2
+ alpha &lt;- 0.05
+ corAa  &lt;- 1/sqrt(2)
+ corAab &lt;- 1/sqrt(2)
+ coraab &lt;- 1/2
+ critvals &lt;- crit2x2(corAa, corAab, coraab, dig, alpha)
+ critPA2A &lt;- critvals$critPA2A
+ critPA2ab &lt;- critvals$critPA2ab
+ n &lt;- 4600
+ powerPA2(n, hrA, hrB, hrAB, avgprob, probAB_C,
+            critPA2A, critPA2ab, dig)
+# $powerPA2overallA
+# [1] 0.6582819
+
+# $powerPA2simpleAB
+# [1] 0.9197286
+</code></pre>
+
+
+</div>

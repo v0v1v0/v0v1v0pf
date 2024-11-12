@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FDR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+False Discovery Rate
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the false discovery rate (type I error) under repeated testing and determine which variables to select and to exclude from multivariate analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FDR(data = NULL, sp.cols = NULL, var.cols = NULL, pvalues = NULL,  
+model.type = NULL, family = "auto", correction = "fdr", q = 0.05, 
+verbose = NULL, verbosity = 1, simplif = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing the response and predictor variables
+(one in each column).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sp.cols</code></td>
+<td>
+<p>name or index number of the column containing the response variable
+(currently implemented for only one response variable at a time).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.cols</code></td>
+<td>
+<p>names or index numbers of the columns containing the predictor variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalues</code></td>
+<td>
+<p>optionally, instead of 'data', 'sp.cols' and 'var.cols',
+a data frame with the names of the predictor variables in the first column and
+their bivariate p-values (obtained elsewhere) in the second column. Example:
+pvalues &lt;- data.frame(var = letters[1:5], pval = c(0.02, 0.004, 0.07, 0.03, 0.05)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.type</code></td>
+<td>
+<p>this argument (previously a character value, either "LM" or "GLM") is now deprecated and ignored with a warning if provided. This information is now included in argument 'family' – e.g., if you want linear models (LM), you can set 'family = "gaussian"'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>The error distribution and (optionally) the link function to use (see <code>glm</code> or <code>family</code> for details). The default "auto" automatically uses "binomial" family for response variables containing only values of 0 and 1; "poisson" for positive integer responses (i.e. count data); "Gamma" for positive non-integer; and "gaussian" (i.e., linear models) otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>the correction procedure to apply to the p-values; see
+<code>p.adjust.methods</code> for available options and <code>p.adjust</code>
+for more information. The default is "fdr".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>the threshold value of FDR-corrected significance above which to
+reject variables. Defaults to 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>deprecated argument, replaced by 'verbosity' (below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbosity</code></td>
+<td>
+<p>integer value indicating the amount of messages to display. The default is 1, for a medium amount of messages. Use 2 for more messages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplif</code></td>
+<td>
+<p>logical value indicating if simplified results should be provided (see Value).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is common in ecology to search for statistical relationships between species' occurrence and a set of predictor variables. However, when a large number of variables is analysed (compared to the number of observations), false findings may arise due to repeated testing. Garcia (2003) recommended controlling the false discovery rate (FDR; Benjamini &amp; Hochberg 1995) in ecological studies. The <code>p.adjust</code> R function performs this and other corrections to the significance (p) values of variables under repeated testing. The 'FDR' function performs repeated regressions (either linear or logistic) or uses already-obtained p values for a set of variables; calculates the FDR with 'p.adjust'; and shows which variables should be retained for or excluded from further multivariate analysis according to their corrected p values (see, for example, Barbosa, Real &amp; Vargas 2009).
+</p>
+<p>The FDR function uses the Benjamini &amp; Hochberg ("BH", alias "fdr") correction by default, but check the <code>p.adjust</code> documentation for other available methods, namely "BY", which allows for non-independent data. Input data may be the response variable (for example, the presence-absence or abundance of a species) and the predictors (a table with one independent variable in each column, with the same number of rows and in the same order as the response); there should be no missing values in the data. Alternatively, you may already have performed the univariate regressions and have a set of variables and corresponding p values which you want to correct with FDR; in this case, get a table with your variables' names in the first column and their p values in the second column, and supply it as the 'pvalues' argument (no need to provide response or predictors in this case).
+</p>
+
+
+<h3>Value</h3>
+
+<p>If simplif = TRUE, this function returns a data frame with the variables' names as row names and 4 columns containing, respectively, their individual (bivariate) coefficients against the response, their individual AIC (Akaike's Information Criterion; Akaike, 1973), BIC (Bayesian Information Criterion, also known as Schwarz criterion, SBC, SBIC; Schwarz, 1978), p-value and adjusted p-value according to the applied 'correction'.
+If simplif = FALSE (the default), the result is a list of two such data frames:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>exclude</code></td>
+<td>
+<p>with the variables to exclude.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>with the variables to select (under the given 'q' value).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>A. Marcia Barbosa
+</p>
+
+
+<h3>References</h3>
+
+<p>Akaike, H. (1973) Information theory and an extension of the maximum likelihood principle. In: Petrov B.N. &amp; Csaki F., 2nd International Symposium on Information Theory, Tsahkadsor, Armenia, USSR, September 2-8, 1971, Budapest: Akademiai Kiado, p. 267-281.
+</p>
+<p>Barbosa A.M., Real R. &amp; Vargas J.M (2009) Transferability of environmental favourability models in geographic space: The case of the Iberian desman (Galemys pyrenaicus) in Portugal and Spain. Ecological Modelling 220: 747-754
+</p>
+<p>Benjamini Y. &amp; Hochberg Y. (1995) Controlling the false discovery rate: a practical and powerful approach to multiple testing. Journal of the Royal Statistical Society, Series B 57: 289-300
+</p>
+<p>Garcia L.V. (2003) Controlling the false discovery rate in ecological research. Trends in Ecology and Evolution 18: 553-554
+</p>
+<p>Schwarz, G.E. (1978) Estimating the dimension of a model. Annals of Statistics, 6 (2): 461-464.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>p.adjust</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(rotif.env)
+
+names(rotif.env)
+
+FDR(data = rotif.env, sp.cols = 18, var.cols = 5:17)
+
+FDR(data = rotif.env, sp.cols = 18, var.cols = 5:17, simplif = TRUE)
+
+my_pvalues &lt;- data.frame(var = letters[1:5], pval = c(0.02, 0.004, 0.07, 0.03, 0.05))
+FDR(pvalues = my_pvalues)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predloglikWB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluates the predictive log likelihood using the Woodbury identity</h2>
+
+<h3>Description</h3>
+
+<p><code>predloglikWB</code> approximates the predictive log likelihood exploiting
+the factor structure and using the Woodbury idenitity and the
+corresponding matrix determinant lemma. This is recommended only
+if many series and few factors are present.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predloglikWB(x, y, ahead = 1, each = 1, alldraws = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>'fsvdraws'</code>, usually resulting from a call
+to <code>fsvsample</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Matrix of dimension <code>length(ahead)</code> times <code>m</code> where the
+predictive density should be evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ahead</code></td>
+<td>
+<p>Vector of timepoints, indicating how many steps
+to predict ahead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>each</code></td>
+<td>
+<p>Single integer (or coercible to such) indicating how
+often should be drawn from the posterior predictive distribution
+for each draw that has been stored during MCMC sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alldraws</code></td>
+<td>
+<p>Should all the draws be returned or just the final results?
+(Can be useful to assess convergence.)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Vector of length <code>length(ahead)</code> with log predictive
+likelihoods.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Currently crudely implemented as a triple loop in pure R,
+may be slow.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Uses <code>predprecWB</code>. If <code>m</code> is small
+or many factors are used, consider also using
+<code>predcov</code>.
+</p>
+<p>Other predictors: 
+<code>predcond()</code>,
+<code>predcor()</code>,
+<code>predcov()</code>,
+<code>predh()</code>,
+<code>predloglik()</code>,
+<code>predprecWB()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+
+# Simulate a time series of length 1100:
+sim &lt;- fsvsim(n = 1100, series = 3, factors = 1)
+y &lt;- sim$y
+
+# Estimate using only 1000 days:
+res &lt;- fsvsample(y[seq_len(1000),], factors = 1)
+
+# Evaluate the 1, 10, and 100 days ahead predictive log
+# likelihood:
+ahead &lt;- c(1, 10, 100)
+scores &lt;- predloglikWB(res, y[1000+ahead,], ahead = ahead, each = 10)
+print(scores)
+
+
+</code></pre>
+
+
+</div>

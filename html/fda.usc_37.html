@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>classif.kfold</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Classification usign k-fold CV</h2>
+
+<h3>Description</h3>
+
+<p>Computes Functional Classification using k-fold cross-validation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">classif.kfold(
+  formula,
+  data,
+  classif = "classif.glm",
+  par.classif,
+  kfold = 10,
+  param.kfold = NULL,
+  measure = "accuracy",
+  cost,
+  models = FALSE,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class <code>formula</code> (or one that can be coerced to that class):
+a symbolic description of the model to be fitted. The procedure only considers functional covariates (not implemented for non-functional covariates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p><code>list</code>, it contains the variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classif</code></td>
+<td>
+<p>character,  name of classification method to be used in fitting the model, see <code>Details</code> section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.classif</code></td>
+<td>
+<p><code>list</code> of arguments used in the classification method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kfold</code></td>
+<td>
+<p><code>integer</code>, number of k-fold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param.kfold</code></td>
+<td>
+<p><code>list</code>,  arguments related to number of k-folds for each covariate, see <code>Details</code> section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>measure</code></td>
+<td>
+<p><code>character</code>, type of measure of accuracy used, see <code>cat2meas</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cost</code></td>
+<td>
+<p><code>numeric</code>, see <code>cat2meas</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p><code>logical</code>. If <code>TRUE</code>, return a list of the fitted models used,  (k-fold -1) X (number of parameters)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>logical</code>. If <code>TRUE</code>, print some internal results.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Parameters for k-fold cross validation:
+</p>
+
+<ol>
+<li>
+<p> Number of basis elements: 
+</p>
+
+<ul>
+<li>
+<p> Data-driven basis such as Functional Principal Componetns (PC). No implemented for PLS basis yet.
+</p>
+</li>
+<li>
+<p> Fixed basis (bspline, fourier, etc.).  
+</p>
+</li>
+</ul>
+<p>Option used in some classifiers such as <code>classif.glm</code>, <code>classif.gsam</code>, <code>classif.svm</code>, etc.
+</p>
+</li>
+<li>
+<p> Bandwidth parameter.  Option used in  non-parametric classificiation models such as  <code>classif.np</code> and <code>classif.gkam</code>.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>Best fitted model computed by the k-fold CV  using the method indicated 
+in the <code>classif</code> argument and also returns:
+</p>
+
+<ol>
+<li> <p><code>param.min</code>, value of parameter (or parameters) selected by k-fold CV. 
+</p>
+</li>
+<li> <p><code>params.error</code>, k-fold CV error for each parameter combination. 
+</p>
+</li>
+<li> <p><code>pred.kfold</code>, predicted response computed by k-fold CV.
+</p>
+</li>
+<li> <p><code>model</code>, if <code>TRUE</code>, list of models for each parameter combination.
+</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente <a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(tecator)    
+cutpoint &lt;- 18
+tecator$y$class &lt;- factor(ifelse(tecator$y$Fat&lt;cutpoint,0,1))
+table(tecator$y$class )
+x &lt;- tecator[[1]]
+x2 &lt;- fdata.deriv(tecator[[1]],2)
+data  &lt;-   list("df"=tecator$y,x=x,x2=x2)
+formula  &lt;-   formula(class~x+x2)
+
+# ex: default excution of classifier (no k-fold CV)
+classif="classif.glm"
+out.default &lt;- classif.kfold(formula, data, classif = classif)
+out.default
+out.default$param.min
+out.default$params.error
+summary(out.default)
+
+# ex: Number of PC basis elements selected by 10-fold CV
+# Logistic classifier
+kfold = 10
+param.kfold   &lt;-   list("x"=list("pc"=c(1:8)),"x2"=list("pc"=c(1:8)))
+out.kfold1   &lt;-   classif.kfold(formula, data, classif = classif,
+                            kfold = kfold,param.kfold = param.kfold)
+out.kfold1$param.min
+min(out.kfold1$params.error)
+summary(out.kfold1)
+
+# ex: Number of PC basis elements selected by 10-fold CV
+# Logistic classifier with inverse weighting
+out.kfold2 &lt;- classif.kfold(formula, data, classif = classif,
+                            par.classif=list("weights"="inverse"),
+                            kfold = kfold,param.kfold = param.kfold)
+out.kfold2$param.min
+min(out.kfold2$params.error)
+summary(out.kfold2)
+
+# ex: Number of fourier  basis elements selected by 10-fold CV
+# Logistic classifier 
+ibase = seq(5,15,by=2)
+param.kfold &lt;- list("x"=list("fourier"=ibase),
+                    "x2"=list("fourier"=ibase))
+out.kfold3 &lt;- classif.kfold(formula, data, classif = classif,
+                            kfold = kfold,param.kfold = param.kfold)
+out.kfold3$param.min
+min(out.kfold3$params.error)
+summary(out.kfold3)
+
+# ex: Number of k-nearest neighbors selected by 10-fold CV
+# non-parametric classifier  (only for a functional covariate)
+
+output &lt;- classif.kfold( class ~ x, data, classif = "classif.knn",
+                       param.kfold= list("x"=list("knn"=c(3,5,9,13))))
+output$param.min
+output$params.error
+
+output &lt;- classif.kfold( class ~ x2, data, classif = "classif.knn",
+                       param.kfold= list("x2"=list("knn"=c(3,5,9,13))))
+output$param.min
+output$params.error 
+
+## End(Not run)
+ 
+</code></pre>
+
+
+</div>

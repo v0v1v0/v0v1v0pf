@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>census_2014_bw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Michigan Big Woods research plot data</h2>
+
+<h3>Description</h3>
+
+<p>The <a href="https://deepblue.lib.umich.edu/data/concern/data_sets/ht24wj48w">Big Woods</a>
+data come from three censuses of a 23 ha forest research plots. All
+free-standing vegetation greater than 1 cm diameter at 1.3 m height (diameter
+at breast height; DBH) were tagged, identified, spatially mapped and had
+their DBH measured. The original census took place in 2003 and covered only
+12 ha. A second census took place from 2008-2010 and expanded the plot to its
+current 23 ha. In the first and second censuses trees larger than 3.1 cm DBH
+were included. Finally a third census took place in 2014. In this census
+trees larger than 1 cm DBH were included. In the second and third censuses
+the original trees were found, recorded for survival, remeasured, and new
+individuals were tagged. This data frame has data from the third census
+(2014).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">census_2014_bw
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 48371 rows and 8 variables:
+</p>
+
+<dl>
+<dt>treeID</dt>
+<dd>
+<p>Tree identification number. This identifies an individual tree and
+can be used to connect trees between the two censuses.</p>
+</dd>
+<dt>stemID</dt>
+<dd>
+<p>Stem number for a multi-stemmed individual. For all trees this starts
+at 1 and continues up from there. To uniquely identify a stem across the plot this
+value must be combined with <code>treeID</code>.</p>
+</dd>
+<dt>sp</dt>
+<dd>
+<p>Code for the species. See <code>species_bw</code> for scientific name.</p>
+</dd>
+<dt>dbh</dt>
+<dd>
+<p>Diameter at breast</p>
+</dd>
+<dt>gx</dt>
+<dd>
+<p>x-coordinate meters from reference point</p>
+</dd>
+<dt>gy</dt>
+<dd>
+<p>y-coordinate meters from reference point</p>
+</dd>
+<dt>date</dt>
+<dd>
+<p>Approximate date the stem was measured</p>
+</dd>
+<dt>codes</dt>
+<dd>
+<p>Code for additional information on the stem: M means the main stem
+of the individual tree; AL means the stem is alive but leaning or completely fallen
+over; B means the stem is broken and over half the canopy is assumed to be missing;
+and R means the stem was lost, but the tag was moved to another stem greater than DBH cutoff,
+this stands for resprout.</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>This plot is part of the Smithsonian Institution's Forest Global Earth
+Observatory <a href="https://forestgeo.si.edu/">(ForestGEO)</a> global network of
+forest research sites. For complete details on this dataset see its
+<a href="https://deepblue.lib.umich.edu/data/concern/data_sets/ht24wj48w">Deep Blue Data repository page</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Big Woods data: 
+<code>census_2008_bw</code>,
+<code>species_bw</code>,
+<code>study_region_bw</code>
+</p>
+<p>Other example data objects: 
+<code>blocks_ex</code>,
+<code>census_1_ex</code>,
+<code>census_2008_bw</code>,
+<code>census_2_ex</code>,
+<code>comp_bayes_lm_ex</code>,
+<code>focal_vs_comp_ex</code>,
+<code>growth_ex</code>,
+<code>growth_spatial_ex</code>,
+<code>growth_toy</code>,
+<code>species_bw</code>,
+<code>study_region_bw</code>,
+<code>study_region_ex</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+library(sf)
+library(dplyr)
+
+# Convert all 2008 plot stems to sf object
+census_2008_bw_sf &lt;- census_2008_bw %&gt;%
+  st_as_sf(coords = c("gx", "gy"))
+
+# Plot stems with plot boundary
+ggplot() +
+  geom_sf(data = census_2008_bw_sf, size = 0.25)
+
+# Species-specific mortality between 2008 and 2014 censuses
+census_2008_bw %&gt;%
+  left_join(census_2014_bw, by = c("treeID", "stemID"), suffix = c("_2008", "_2014")) %&gt;%
+  mutate(mortality = ifelse(is.na(dbh_2014), 1, 0)) %&gt;%
+  group_by(sp_2008) %&gt;%
+  summarize(mortality = mean(mortality), n = n()) %&gt;%
+  arrange(desc(n))
+</code></pre>
+
+
+</div>

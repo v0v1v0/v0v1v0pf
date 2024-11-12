@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>geo_join</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Join two tables based on a geo distance of longitudes and latitudes</h2>
+
+<h3>Description</h3>
+
+<p>This allows joining based on combinations of longitudes and latitudes. If
+you are using a distance metric that is *not* based on latitude and
+longitude, use <code>distance_join</code> instead. Distances are
+calculated based on the <code>distHaversine</code>, <code>distGeo</code>,
+<code>distCosine</code>, etc methods in the geosphere package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">geo_join(
+  x,
+  y,
+  by = NULL,
+  max_dist,
+  method = c("haversine", "geo", "cosine", "meeus", "vincentysphere",
+    "vincentyellipsoid"),
+  unit = c("miles", "km"),
+  mode = "inner",
+  distance_col = NULL,
+  ...
+)
+
+geo_inner_join(
+  x,
+  y,
+  by = NULL,
+  method = "haversine",
+  max_dist = 1,
+  distance_col = NULL,
+  ...
+)
+
+geo_left_join(
+  x,
+  y,
+  by = NULL,
+  method = "haversine",
+  max_dist = 1,
+  distance_col = NULL,
+  ...
+)
+
+geo_right_join(
+  x,
+  y,
+  by = NULL,
+  method = "haversine",
+  max_dist = 1,
+  distance_col = NULL,
+  ...
+)
+
+geo_full_join(
+  x,
+  y,
+  by = NULL,
+  method = "haversine",
+  max_dist = 1,
+  distance_col = NULL,
+  ...
+)
+
+geo_semi_join(
+  x,
+  y,
+  by = NULL,
+  method = "haversine",
+  max_dist = 1,
+  distance_col = NULL,
+  ...
+)
+
+geo_anti_join(
+  x,
+  y,
+  by = NULL,
+  method = "haversine",
+  max_dist = 1,
+  distance_col = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A tbl</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A tbl</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>Columns by which to join the two tables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_dist</code></td>
+<td>
+<p>Maximum distance to use for joining</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method to use for computing distance: one of
+"haversine" (default), "geo", "cosine", "meeus", "vincentysphere",
+"vincentyellipsoid"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit</code></td>
+<td>
+<p>Unit of distance for threshold (default "miles")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>One of "inner", "left", "right", "full" "semi", or "anti"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distance_col</code></td>
+<td>
+<p>If given, will add a column with this
+name containing the geographical distance between the two</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra arguments passed on to the distance method</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>"Haversine" was chosen as default since in some tests it is
+approximately the fastest method. Note that by far the slowest method is
+vincentyellipsoid, and on fuzzy joins should only be used when there are
+very few pairs and accuracy is imperative.
+</p>
+<p>If you need to use a custom geo method, you may want to write it directly
+with the <code>multi_by</code> and <code>multi_match_fun</code> arguments to
+<code>fuzzy_join</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+data("state")
+
+# find pairs of US states whose centers are within
+# 200 miles of each other
+states &lt;- data_frame(state = state.name,
+                     longitude = state.center$x,
+                     latitude = state.center$y)
+
+s1 &lt;- rename(states, state1 = state)
+s2 &lt;- rename(states, state2 = state)
+
+pairs &lt;- s1 %&gt;%
+ geo_inner_join(s2, max_dist = 200) %&gt;%
+ filter(state1 != state2)
+
+pairs
+
+# plot them
+library(ggplot2)
+ggplot(pairs, aes(x = longitude.x, y = latitude.x,
+                  xend = longitude.y, yend = latitude.y)) +
+  geom_segment(color = "red") +
+  borders("state") +
+  theme_void()
+
+# also get distances
+s1 %&gt;%
+  geo_inner_join(s2, max_dist = 200, distance_col = "distance")
+
+</code></pre>
+
+
+</div>

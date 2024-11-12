@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flow-class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Describing the flow class</h2>
+
+<h3>Description</h3>
+
+<p>Internal function (used by to_flow), which aids in creating a flow object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flow(
+  jobs = list(new("job")),
+  name = "newflow",
+  desc = "my_super_flow",
+  mode = c("scheduler", "local"),
+  flow_run_path = opts_flow$get("flow_run_path"),
+  trigger_path = "",
+  flow_path = "",
+  version = "0.0",
+  status = "created",
+  module_cmds = opts_flow$get("module_cmds"),
+  execute = ""
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>jobs</code></td>
+<td>
+<p><code>list</code>: A list of jobs to be included in this flow</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p><code>character</code>: Name of the flow. ['newflow']</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>desc</code></td>
+<td>
+<p><code>character</code> Description of the flow, used to uniquely identify a 
+flow instance. ['my_super_flow']</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p><code>character</code> Mode of submission of the flow (depreciated). ['scheduler']</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flow_run_path</code></td>
+<td>
+<p>The base path of all the flows you would submit. [~/flows]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trigger_path</code></td>
+<td>
+<p><code>character</code> [<code>~/flows/trigger</code>].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flow_path</code></td>
+<td>
+<p><code>character</code>: A unique path identifying a flow instance, populated by submit_flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+<p>version of flowr used to create and execute this flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p><code>character</code>: Status of the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>module_cmds</code></td>
+<td>
+<p>[advanced use] a character vector of cmds which will be pre-pended to all script of this pipeline. 
+Could be cmds like <code>`module load mytool1;module load mytool2`</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>execute</code></td>
+<td>
+<p>execution status of flow object. [FALSE]</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">cmds = rep("sleep 5", 10)
+qobj &lt;- queue(platform='torque')
+## run the 10 commands in parallel
+jobj1 &lt;- job(q_obj=qobj, cmd = cmds, submission_type = "scatter", name = "job1")
+
+## run the 10 commands sequentially, but WAIT for the previous job to complete
+## Many-To-One
+jobj2 &lt;- job(q_obj=qobj, cmd = cmds, submission_type = "serial",
+ dependency_type = "gather", previous_job = "job1", name = "job2")
+
+## As soon as first job on 'job1' is complete
+## One-To-One
+jobj3 &lt;- job(q_obj=qobj, cmd = cmds, submission_type = "scatter",
+ dependency_type = "serial", previous_job = "job1", name = "job3")
+
+fobj &lt;- flow(jobs = list(jobj1, jobj2, jobj3))
+
+## plot the flow
+plot_flow(fobj)
+## Not run: 
+## dry run, only create the structure without submitting jobs
+submit_flow(fobj)
+
+## execute the jobs: ONLY works on computing cluster, would fail otherwise
+submit_flow(fobj, execute = TRUE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

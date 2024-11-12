@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLLat.PVE</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Choosing the Number of Features for the Fused Lasso Latent Feature
+Model</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the percentage of variation explained (PVE) for
+a range of values of <code class="reqn">J</code> (the number of features) for the Fused
+Lasso Latent Feature (FLLat) model.  Also plots the PVE against <code class="reqn">J</code>,
+which can be used for choosing the value of <code class="reqn">J</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLLat.PVE(Y, J.seq=seq(1,min(15,floor(ncol(Y)/2)),by=2), B=c("pc","rand"),
+          lams=c("same","diff"), thresh=10^(-4), maxiter=100, maxiter.B=1,
+          maxiter.T=1)
+
+## S3 method for class 'PVE'
+plot(x, xlab="Number of Features", ylab="PVE", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A matrix of data from an aCGH experiment (usually in the form
+of log intensity ratios) or some other type of copy number data.  Rows
+correspond to the probes and columns correspond to the samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J.seq</code></td>
+<td>
+<p>A vector of values of <code class="reqn">J</code> (the number of features) for
+which to calculate the PVE.  The default values are every second
+integer between <code class="reqn">1</code> and smaller of either <code class="reqn">15</code> or the number
+of samples divided by <code class="reqn">2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>The initial values for the features to use in the FLLat
+algorithm for each value of <code class="reqn">J</code>.  Can be one of <code>"pc"</code> (the
+first <code class="reqn">J</code> principal components of <code>Y</code>) or <code>"rand"</code> (a
+random selection of <code class="reqn">J</code> columns of <code>Y</code>).  The default is
+<code>"pc"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lams</code></td>
+<td>
+<p>The choice of whether to use the same values of the tuning
+parameters in the FLLat algorithm for each value of <code class="reqn">J</code>
+(<code>"same"</code>) or to calculate the optimal tuning parameters for each
+value of <code class="reqn">J</code> (<code>"diff"</code>).  When using the same values, the
+optimal tuning parameters are calculated once for the default value of
+<code class="reqn">J</code> in the FLLat algorithm.  The default is <code>"same"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>The threshold for determining when the solutions have
+converged in the FLLat algorithm.  The default is <code class="reqn">10^{-4}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of iterations for the outer loop of
+the FLLat algorithm.  The default is <code class="reqn">100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter.B</code></td>
+<td>
+<p>The maximum number of iterations for the inner loop
+of the FLLat algorithm for estimating the features <code class="reqn">B</code>.  The default is
+<code class="reqn">1</code>.  Increasing this may decrease the number of iterations for the
+outer loop but may still increase total run time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter.T</code></td>
+<td>
+<p>The maximum number of iterations for the inner loop
+of the FLLat algorithm for estimating the weights <code class="reqn">\Theta</code>.  The default
+is <code class="reqn">1</code>.  Increasing this may decrease the number of iterations for the
+outer loop but may still increase total run time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class <code>PVE</code>, as returned by
+<code>FLLat.PVE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab</code></td>
+<td>
+<p>The title for the <code class="reqn">x</code>-axis of the PVE plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab</code></td>
+<td>
+<p>The title for the <code class="reqn">y</code>-axis of the PVE plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further graphical parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function calculates the PVE for each value of <code class="reqn">J</code> as
+specified by <code>J.seq</code>.  The PVE is defined to be: </p>
+<p style="text-align: center;"><code class="reqn">PVE = 1 -
+  \frac{RSS}{TSS}</code>
+</p>
+<p> where RSS and TSS denote the
+residual sum of squares and the total sum of squares, respectively.
+For each value of <code class="reqn">J</code>, the PVE is calculated by fitting the FLLat
+model with that value of <code class="reqn">J</code>.
+</p>
+<p>There are two choices for how the tuning parameters are chosen when
+fitting the FLLat model for each value of <code class="reqn">J</code>.  The first choice,
+given by <code>lams="same"</code>, applies the <code>FLLat.BIC</code>
+function just once for the default value of <code class="reqn">J</code>.  The resulting
+optimal tuning parameters are then used for all values of <code class="reqn">J</code> in
+<code>J.seq</code>.  The second choice, given by <code>lams="diff"</code>, applies
+the <code>FLLat.BIC</code> function for each value of <code class="reqn">J</code> in
+<code>J.seq</code>.  Although this second choice will give a more accurate
+measure of the PVE, it will take much longer to run than the first
+choice.
+</p>
+<p>When the PVE is plotted against <code class="reqn">J</code>, as <code class="reqn">J</code> increases the PVE
+will begin to plateau after a certain point, indicating that
+additional features are not improving the model.  Therefore, the value
+of <code class="reqn">J</code> to use in the FLLat algorithm can be chosen as the point at
+which the PVE plot begins to plateau.
+</p>
+<p>For more details, please see Nowak and others (2011) and the package
+vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>PVE</code> with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>PVEs</code></td>
+<td>
+<p>The PVE for each value of <code class="reqn">J</code> in <code>J.seq</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J.seq</code></td>
+<td>
+<p>The sequence of <code class="reqn">J</code> values used.</p>
+</td>
+</tr>
+</table>
+<p>There is a <code>plot</code> method for <code>PVE</code> objects.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gen Nowak <a href="mailto:gen.nowak@gmail.com">gen.nowak@gmail.com</a>, Trevor Hastie, Jonathan
+R. Pollack, Robert Tibshirani and Nicholas Johnson.</p>
+
+
+<h3>References</h3>
+
+<p>G. Nowak, T. Hastie, J. R. Pollack and R. Tibshirani.  A
+Fused Lasso Latent Feature Model for Analyzing Multi-Sample aCGH
+Data. <em>Biostatistics</em>, 2011, doi: 10.1093/biostatistics/kxr012</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FLLat</code>, <code>FLLat.BIC</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load simulated aCGH data.
+data(simaCGH)
+
+## Generate PVEs for J ranging from 1 to the number of samples divided by 2.
+result.pve &lt;- FLLat.PVE(simaCGH,J.seq=1:(ncol(simaCGH)/2))
+
+## Generate PVE plot.
+plot(result.pve)
+</code></pre>
+
+
+</div>

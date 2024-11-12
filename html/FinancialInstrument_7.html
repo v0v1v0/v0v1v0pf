@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>to_secBATV</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert tick data to one-second data</h2>
+
+<h3>Description</h3>
+
+<p>This is like taking a snapshot of the market at the end of every second, 
+except the volume over the second is summed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">to_secBATV(x)
+
+alltick2sec(getdir = "~/TRTH/tick/", savedir = "~/TRTH/sec/",
+  Symbols = list.files(getdir), overwrite = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the xts series to convert to 1 minute BATV</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getdir</code></td>
+<td>
+<p>Directory that contains tick data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedir</code></td>
+<td>
+<p>Directory in which to save converted data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Symbols</code></td>
+<td>
+<p>String names of instruments to convert</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>TRUE/FALSE. If file already exists in savedir, should it be 
+overwritten?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>From tick data with columns: “Price”, “Volume”, 
+“Bid.Price”, “Bid.Size”, “Ask.Price”, “Ask.Size”, 
+to data of one second frequency with columns “Bid.Price”, 
+“Bid.Size”, “Ask.Price”, “Ask.Size”,
+“Trade.Price”, and “Volume”
+</p>
+<p>The primary purpose of these functions is to reduce the amount of data on 
+disk so that it will take less time to load the data into memory.
+</p>
+<p>If there are no trades or bid/ask price updates in a given second, we will 
+not make a row for that timestamp.  If there were no trades, but the bid or 
+ask price changed, then we _will_ have a row but the Volume and Trade.Price 
+will be NA.
+</p>
+<p>If there are multiple trades in the same second, Volume will be the sum of 
+the volume, but only the last trade price in that second will be printed. 
+Similarly, if there is a trade, and then later in the same second, there is 
+a bid/ask update, the last Bid/Ask Price/Size will be used.
+</p>
+<p><code>alltick2sec</code> is used to convert the data of several files from tick to 
+one second frequency data.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>to_secBATV</code> returns an xts object of one second frequency.
+<code>alltick2sec</code> returns a list of files that were converted.
+</p>
+
+
+<h3>Note</h3>
+
+<p><code>to_secBATV</code> is used by the TRTH_BackFill.R script in the 
+inst/parser directory of the FinancialInstrument package.  These functions
+are specific to to data created by that script and are not intended for
+more general use.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>gsee
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+getSymbols("CLU1")
+system.time(xsec &lt;- to_secBATV(CLU1))
+convert.log &lt;- alltick2sec()
+
+## End(Not run)
+</code></pre>
+
+
+</div>

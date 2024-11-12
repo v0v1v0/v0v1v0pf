@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simMat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Pair-wise (fuzzy) similarity matrix
+</h2>
+
+<h3>Description</h3>
+
+<p><code>simMat</code> takes a matrix or data frame containing species occurrence data or regional species composition, either categorical (0 or 1) or fuzzy (between 0 and 1), and uses the <code>fuzSim</code> function to calculate a square matrix of pair-wise similarities between them, using a fuzzy logic version (Barbosa, 2015) of the specified similarity index.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simMat(data, method, diag = TRUE, upper = TRUE, verbosity = 2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>a matrix or data frame containing (optionally fuzzy) species presence-absence data (in wide format, i.e. one column per species), with 1 meaning presence, 0 meaning absence, and values in between for fuzzy presence (or the degree to which each locality belongs to the set of species presences; see Zadeh, 1965). Fuzzy presence-absence can be obtained, for example, with <code>multGLM</code>, <code>distPres</code> or <code>multTSA</code>. These data can also be <code>transpose</code>d for comparing regional species compositions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>the similarity index whose fuzzy version to use. See <code>fuzSim</code> for available options.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diag</code></td>
+<td>
+
+<p>logical value indicating whether the diagonal of the matrix should be filled (with ones). Defaults to TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+
+<p>logical value indicating whether the upper triangle of the matrix (symmetric to the lower triangle) should be filled. Defaults to TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbosity</code></td>
+<td>
+
+<p>integer value indicating the amount of messages to display; currently meaningful values are 0, 1, and 2 (the default).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The fuzzy versions of species occurrence data and of binary similarity indices introduce tolerance for small spatial differences in species' occurrence localities, allow for uncertainty about species occurrence, and may compensate for under-sampling and geo-referencing errors (Barbosa, 2015).
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns a square matrix of pair-wise similarities among the species distributions (columns) in <code>data</code>. Similarity is calculated with the fuzzy version of the index specified in <code>method</code>, which yields traditional binary similarity if the data are binary (0 or 1), or fuzzy similarity if the data are fuzzy (between 0 and 1) (Barbosa, 2015).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A. Marcia Barbosa
+</p>
+
+
+<h3>References</h3>
+
+<p>Barbosa A.M. (2015) fuzzySim: applying fuzzy logic to binary similarity indices in ecology. Methods in Ecology and Evolution, 6: 853-858.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fuzSim</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# load and look at the rotif.env presence-absence data:
+
+data(rotif.env)
+
+head(rotif.env)
+
+names(rotif.env)
+
+
+# build a matrix of similarity among these binary data
+# using e.g. Jaccard's index:
+
+bin.sim.mat &lt;- simMat(rotif.env[ , 18:47], method = "Jaccard")
+
+head(bin.sim.mat)
+
+
+# calculate a fuzzy version of the presence-absence data
+# based on inverse distance to presences:
+
+rotifers.invd &lt;- distPres(rotif.env, sp.cols = 18:47,
+coord.cols = c("Longitude", "Latitude"), id.col = 1, suffix = ".d", 
+p = 1, inv = TRUE)
+
+head(rotifers.invd)
+
+
+# build a matrix of fuzzy similarity among these fuzzy 
+# distribution data, using the fuzzy version of Jaccard's index:
+
+fuz.sim.mat &lt;- simMat(rotifers.invd[ , -1], method = "Jaccard")
+
+head(fuz.sim.mat)
+
+
+# plot the similarity matrices as colours:
+
+image(x = 1:ncol(bin.sim.mat), y = 1:nrow(bin.sim.mat), 
+z = bin.sim.mat, col = rev(heat.colors(256)), xlab = "", ylab = "", 
+axes = FALSE, main = "Binary similarity")
+axis(side = 1, at = 1:ncol(bin.sim.mat), tick = FALSE,
+labels = colnames(bin.sim.mat), las = 2)
+axis(side = 2, at = 1:nrow(bin.sim.mat), tick = FALSE,
+labels = rownames(bin.sim.mat), las = 2)
+
+image(x = 1:ncol(fuz.sim.mat), y = 1:nrow(fuz.sim.mat), 
+z = fuz.sim.mat, col = rev(heat.colors(256)), xlab = "", ylab = "", 
+axes = FALSE, main = "Fuzzy similarity")
+axis(side = 1, at = 1:ncol(fuz.sim.mat), tick = FALSE,
+labels = colnames(fuz.sim.mat), las = 2, cex = 0.5)
+axis(side = 2, at = 1:nrow(fuz.sim.mat), tick = FALSE,
+labels = rownames(fuz.sim.mat), las = 2)
+
+
+# plot a UPGMA dendrogram from each similarity matrix:
+
+plot(hclust(as.dist(1 - bin.sim.mat), method = "average"),
+main = "Binary cluster dendrogram")
+
+plot(hclust(as.dist(1 - fuz.sim.mat), method = "average"),
+main = "Fuzzy cluster dendrogram")
+
+
+# you can get fuzzy chorotypes from these similarity matrices
+# (or fuzzy biotic regions if you transpose 'data'),
+# so that localities are in columns and species in rows)
+# using the RMACOQUI package (Olivero et al. 2011)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>obtain_autocovariance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the autocovariance function of the series</h2>
+
+<h3>Description</h3>
+
+<p>Obtain the empirical autocovariance function for
+lags <code class="reqn">= 0,...,</code><code>nlags</code> of the functional time
+series. Given <code class="reqn">Y_{1},...,Y_{T}</code> a functional time
+series, the sample autocovariance functions
+<code class="reqn">\hat{C}_{h}(u,v)</code> are given by:
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{C}_{h}(u,v) =  \frac{1}{T} \sum_{i=1}^{T-h}(Y_{i}(u) - \overline{Y}_{T}(u))(Y_{i+h}(v) - \overline{Y}_{T}(v))</code>
+</p>
+
+<p>where
+<code class="reqn"> \overline{Y}_{T}(u) = \frac{1}{T} \sum_{i = 1}^{T} Y_{i}(t)</code>
+denotes the sample mean function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">obtain_autocovariance(Y, nlags)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Matrix containing the discretized values
+of the functional time series. The dimension of the
+matrix is <code class="reqn">(n x m)</code>, where <code class="reqn">n</code> is the
+number of curves and <code class="reqn">m</code> is the number of points
+observed in each curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlags</code></td>
+<td>
+<p>Number of lagged covariance operators
+of the functional time series that will be used
+to estimate the autocorrelation function.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Return a list with the lagged autocovariance
+functions estimated from the data. Each function is given
+by a <code class="reqn">(m x m)</code> matrix, where <code class="reqn">m</code> is the
+number of points observed in each curve.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1
+
+N &lt;- 100
+v &lt;- seq(from = 0, to = 1, length.out = 10)
+sig &lt;- 2
+bbridge &lt;- simulate_iid_brownian_bridge(N, v, sig)
+nlags &lt;- 1
+lagged_autocov &lt;- obtain_autocovariance(Y = bbridge,
+                                        nlags = nlags)
+image(x = v, y = v, z = lagged_autocov$Lag0)
+
+
+# Example 2
+
+N &lt;- 500
+v &lt;- seq(from = 0, to = 1, length.out = 50)
+sig &lt;- 2
+bbridge &lt;- simulate_iid_brownian_bridge(N, v, sig)
+nlags &lt;- 10
+lagged_autocov &lt;- obtain_autocovariance(Y = bbridge,
+                                        nlags = nlags)
+image(x = v, y = v, z = lagged_autocov$Lag0)
+image(x = v, y = v, z = lagged_autocov$Lag10)
+
+# Example 3
+
+require(fields)
+N &lt;- 500
+v &lt;- seq(from = 0, to = 1, length.out = 50)
+sig &lt;- 2
+bbridge &lt;- simulate_iid_brownian_bridge(N, v, sig)
+nlags &lt;- 4
+lagged_autocov &lt;- obtain_autocovariance(Y = bbridge,
+                                        nlags = nlags)
+z_lims &lt;- range(lagged_autocov$Lag0)
+colors &lt;- heat.colors(12)
+opar &lt;- par(no.readonly = TRUE)
+par(mfrow = c(1,5))
+par(oma=c( 0,0,0,6)) 
+for(k in 0:nlags){
+   image(x=v,
+         y=v,
+         z = lagged_autocov[[paste0("Lag",k)]],
+         main = paste("Lag",k),
+         col = colors,
+         xlab = "u",
+         ylab = "v")
+}
+par(oma=c( 0,0,0,2.5)) # reset margin to be much smaller.
+image.plot( legend.only=TRUE, legend.width = 2,zlim=z_lims, col = colors)
+par(opar)
+
+</code></pre>
+
+
+</div>

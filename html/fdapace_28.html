@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FOptDes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal Designs for Functional and Longitudinal Data
+for Trajectory Recovery or Scalar Response Prediction</h2>
+
+<h3>Description</h3>
+
+<p>Optimal Designs for Functional and Longitudinal Data
+for Trajectory Recovery or Scalar Response Prediction
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FOptDes(
+  Ly,
+  Lt,
+  Resp,
+  p = 3,
+  optns = list(),
+  isRegression = !missing(Resp),
+  isSequential = FALSE,
+  RidgeCand = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ly</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual. Missing values specified by <code>NA</code>s are supported for dense case (<code>dataType='dense'</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual corresponding to y. Each vector should be sorted in ascending order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Resp</code></td>
+<td>
+<p>A vector of response values, keep void for trajectory recovery, only necessary for scalar response prediction task.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>A fixed positive integer indicating the number of optimal design points requested, with default: 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code> for FPCA, with default: list().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isRegression</code></td>
+<td>
+<p>A logical argument, indicating the purpose of the optimal designs: TRUE for scalar response prediction, FALSE for trajectory recovery, with default value !missing(Resp).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isSequential</code></td>
+<td>
+<p>A logical argument, indicating whether to use the sequential optimization procedure for faster computation, recommended for relatively large p (default: FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RidgeCand</code></td>
+<td>
+<p>A vector of positive numbers as ridge penalty candidates for regularization. The final value is selected via cross validation. If only 1 ridge parameter is specified, CV procedure is skipped.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To select a proper RidgeCand, check with the returned optimal ridge parameter. If the selected parameter is the maximum/minimum values in the candidates, it is possible that the selected one is too small/big.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>OptDes</code></td>
+<td>
+<p>The vector of optimal design points of the regular time grid of the observed data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2</code></td>
+<td>
+<p>Coefficient of determination. (Check the paper for details.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2adj</code></td>
+<td>
+<p>Adjusted coefficient of determination.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OptRidge</code></td>
+<td>
+<p>The selected ridge parameter.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Ji, H., Müller, H.G. (2017) "Optimal Designs for Longitudinal and Functional Data" 
+Journal of the Royal Statistical Society: Series B 79, 859-876.</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 50
+pts &lt;- seq(0, 1, by=0.05)
+sampWiener &lt;- Wiener(n, pts)
+sampWiener &lt;- MakeFPCAInputs(IDs = rep(1:n, each=length(pts)), 
+                             tVec = rep(pts, times = n), 
+                             yVec = t(sampWiener))
+res &lt;- FOptDes(Ly=sampWiener$Ly, Lt=sampWiener$Lt, p=2,
+               isSequential=FALSE, RidgeCand = seq(0.02,0.2,0.02))
+</code></pre>
+
+
+</div>

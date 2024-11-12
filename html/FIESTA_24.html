@@ -1,0 +1,316 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DBgetXY</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Database - Extracts plot coordinates.</h2>
+
+<h3>Description</h3>
+
+<p>Extracts public plot coordinates for an FIA evaluation or a custom 
+evaluation. Plots are extracted from FIA's public Datamart 
+(https://apps.fs.usda.gov/fia/datamart/datamart.html) or other defined
+datasource.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">DBgetXY(
+  states = NULL,
+  RS = NULL,
+  xy_datsource,
+  xy_dsn = NULL,
+  xy = "PLOT",
+  xy_opts = xy_options(),
+  datsource = NULL,
+  data_dsn = NULL,
+  dbTabs = dbTables(),
+  pjoinid = "CN",
+  eval = "FIA",
+  eval_opts = eval_options(),
+  invtype = "ANNUAL",
+  coordType = "PUBLIC",
+  intensity1 = FALSE,
+  pvars2keep = NULL,
+  issp = FALSE,
+  returndata = TRUE,
+  savedata = FALSE,
+  exportsp = FALSE,
+  savedata_opts = NULL,
+  PLOT = NULL,
+  POP_PLOT_STRATUM_ASSGN = NULL,
+  SURVEY = NULL,
+  dbconnopen = FALSE,
+  evalInfo = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+<p>String or numeric vector. Name (e.g., 'Arizona','New Mexico')
+or code (e.g., 4, 35) of state(s) for evalid. If all states in one or more
+FIA Research Station is desired, set states=NULL and use RS argument to
+define RS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RS</code></td>
+<td>
+<p>String vector. Name of research station(s) to get public XY
+coordinates for ('RMRS','SRS','NCRS','NERS','PNWRS'). Do not use if states 
+is populated. See FIESTA::ref_statecd for reference to RS and states.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy_datsource</code></td>
+<td>
+<p>Source of XY data ('datamart', 'sqlite', 'obj', 'csv').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy_dsn</code></td>
+<td>
+<p>If datsource='sqlite', the file name (data source name) of
+the sqlite database (*.db) where XY data reside.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>sf R object or String. If xy_dsn = 'datamart', name of xy table 
+in FIA DataMart. If xy_dsn = 'sqlite', name of xy layer in database. If 
+datsource = 'csv', full pathname of xy CSV file(s). If datsource = 'obj', 
+name of xy R object. If datsource = 'shp', full pathname of shapefile.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy_opts</code></td>
+<td>
+<p>List of xy data options for xy (e.g., xy_opts = list(xvar='LON', 
+yvar='LAT'). See xy_options() for more options and defaults.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datsource</code></td>
+<td>
+<p>String. Source of FIA data for defining FIA evaluations or 
+appending variables ('datamart', 'sqlite', 'obj', 'csv'). If datsource = NULL, 
+datsource = xy_datsource. If datsource = 'datamart', data are downloaded
+extracted from FIA DataMart (http://apps.fs.usda.gov/fia/datamart/datamart.html). 
+If datsource='sqlite', specify database name(s) in data_dsn and table name(s) 
+in dbTabs() argument. If datsource = ('obj','csv'), specify *.csv file name in 
+dbTabs argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_dsn</code></td>
+<td>
+<p>String. Name of database with plot_layer and/or ppsa_layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbTabs</code></td>
+<td>
+<p>String or R Object. If data_dsn = 'datamart', name of table(s) 
+in FIA DataMart. If data_dsn = 'sqlite', name of layer(s) in database. If 
+datsource = 'csv', name of CSV file(s). If datsource = 'obj', name of R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pjoinid</code></td>
+<td>
+<p>String. Variable in plot table to join to XY data, if 
+plot_layer is not NULL. Not necessary to be unique. If using most current 
+XY coordinates, use identifier for a plot (e.g., PLOT_ID).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval</code></td>
+<td>
+<p>String. Type of evaluation time frame for data extraction 
+('FIA', 'custom'). See eval_opts for more further options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_opts</code></td>
+<td>
+<p>List of evaluation options for 'FIA' or 'custom'
+evaluations to determine the set of data returned. See help(eval_options)
+for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invtype</code></td>
+<td>
+<p>String. Type of FIA inventory to extract ('PERIODIC',
+'ANNUAL').  Only one inventory type (PERIODIC/ANNUAL) at a time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coordType</code></td>
+<td>
+<p>String. c('PUBLIC', 'ACTUAL'). Defines type of coordinates and is
+used for the output name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intensity1</code></td>
+<td>
+<p>Logical. If TRUE, includes only XY coordinates where 
+INTENSITY = 1 (FIA base grid).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvars2keep</code></td>
+<td>
+<p>String vector. One or more variables in plot_layer to append 
+to output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>issp</code></td>
+<td>
+<p>Logical. If TRUE, returns spatial XY data as a list object with
+query.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returndata</code></td>
+<td>
+<p>Logical. If TRUE, returns XY data as a list object with
+query.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves XY data. Specify outfolder and 
+format using savedata_opts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exportsp</code></td>
+<td>
+<p>Logical. If TRUE, exports data as spatial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE or exportsp = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PLOT</code></td>
+<td>
+<p>Data frame. The name of the PLOT data frame object if 
+it is already downloaded and stored in environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>POP_PLOT_STRATUM_ASSGN</code></td>
+<td>
+<p>Data frame. The name of the 
+POP_PLOT_STRATUM_ASSGN data frame object if it is already downloaded 
+and stored in environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SURVEY</code></td>
+<td>
+<p>Data frame. The name of the SURVEY data frame object
+if it has been already downloaded and stored in environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbconnopen</code></td>
+<td>
+<p>Logical. If TRUE, the dbconn connection is not closed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evalInfo</code></td>
+<td>
+<p>List. List object output from DBgetEvalid or DBgetXY 
+FIESTA functions.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>if returndata=TRUE, a list of the following objects: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p> Data frame. XY data from database. The output name is based on
+coordType parameter (e.g., xy_PUBLIC). the data frame include xy.uniqueid,
+xvar, yvar and appended plot variables in pvars2keep if plot_layer is not 
+NULL. The default plot variables included are 'STATECD','UNITCD','COUNTYCD',
+'PLOT','PLOT_ID' (ID+STATECD+UNTCD+COUNTYCD+PLOT), 'COUNTYFIPS'. 
+If issp=TRUE, returns an sf object. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xyqry</code></td>
+<td>
+<p> String. Query to extract coordinates. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xvar</code></td>
+<td>
+<p> String. Name of X variable in xy*. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yvar</code></td>
+<td>
+<p> String. Name of Y variable in xy*. </p>
+</td>
+</tr>
+</table>
+<p>If savedata=TRUE, outputs the xy* based on savedata_opts. 
+If exportsp=TRUE, the output xy saved as spatial layer based on savedata_opts.
+</p>
+
+
+<h3>Note</h3>
+
+<p>If no parameters are included, the user is prompted for input. If partial
+parameters, the default parameter values are used for those not specified.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Most current evaluation and shapefile with public coordinates
+COxylst &lt;- DBgetXY(states = "Colorado",
+                   eval = "FIA",
+                   eval_opts=eval_options(Endyr = 2019))
+names(COxylst)
+
+head(COxylst$xy_PUBLIC)
+COxylst$xyqry
+
+## End(Not run)
+</code></pre>
+
+
+</div>

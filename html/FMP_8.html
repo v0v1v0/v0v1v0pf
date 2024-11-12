@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>irf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot item response functions for polynomial IRT models.</h2>
+
+<h3>Description</h3>
+
+<p>Plot model-implied (and possibly empirical) item response function for polynomial IRT models.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"> irf(data, bParams, item, plotERF = TRUE, thetaEAP = NULL, 
+                 minCut = -3, maxCut = 3, NCuts = 9)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>N(subjects)-by-p(items) matrix of 0/1 item response data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bParams</code></td>
+<td>
+<p>p(items)-by-9 matrix.  The first 8 columns of the matrix should contain the FMP or FUP polynomial 
+coefficients for the p items.  The 9th column contains the value of k for each item (where the item specific 
+order of the polynomial is 2k+1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>item</code></td>
+<td>
+<p>The IRF for <code>item</code> will be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotERF</code></td>
+<td>
+<p>A logical that determines whether to plot discrete values of the empirical response function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thetaEAP</code></td>
+<td>
+<p>If <code>plotERF=TRUE</code>, the user must supply previously calculated eap trait estimates to <code>thetaEAP</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minCut, maxCut</code></td>
+<td>
+<p>If <code>plotERF=TRUE</code>, the program will (attempt to) plot <code>NCuts</code> points of the 
+empirical response function between trait values of <code>minCut</code> and <code>maxCut</code> Default minCut = -3. Default maxCut = 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NCuts</code></td>
+<td>
+<p>Desired number of bins for the empirical response function.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Niels Waller</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">NSubjects &lt;- 2000
+NItems &lt;- 15
+
+itmParameters &lt;- matrix(c(
+ #  b0    b1     b2    b3    b4  b5,    b6,  b7,  k
+ -1.05, 1.63,  0.00, 0.00, 0.00,  0,     0,  0,   0, #1
+ -1.97, 1.75,  0.00, 0.00, 0.00,  0,     0,  0,   0, #2
+ -1.77, 1.82,  0.00, 0.00, 0.00,  0,     0,  0,   0, #3
+ -4.76, 2.67,  0.00, 0.00, 0.00,  0,     0,  0,   0, #4
+ -2.15, 1.93,  0.00, 0.00, 0.00,  0,     0,  0,   0, #5
+ -1.25, 1.17, -0.25, 0.12, 0.00,  0,     0,  0,   1, #6
+  1.65, 0.01,  0.02, 0.03, 0.00,  0,     0,  0,   1, #7
+ -2.99, 1.64,  0.17, 0.03, 0.00,  0,     0,  0,   1, #8
+ -3.22, 2.40, -0.12, 0.10, 0.00,  0,     0,  0,   1, #9
+ -0.75, 1.09, -0.39, 0.31, 0.00,  0,     0,  0,   1, #10
+ -1.21, 9.07,  1.20,-0.01,-0.01,  0.01,  0,  0,   2, #11
+ -1.92, 1.55, -0.17, 0.50,-0.01,  0.01,  0,  0,   2, #12
+ -1.76, 1.29, -0.13, 1.60,-0.01,  0.01,  0,  0,   2, #13
+ -2.32, 1.40,  0.55, 0.05,-0.01,  0.01,  0,  0,   2, #14
+ -1.24, 2.48, -0.65, 0.60,-0.01,  0.01,  0,  0,   2),#15
+ 15, 9, byrow=TRUE)
+ 
+  
+ex1.data&lt;-genFMPData(NSubj = NSubjects, bParams = itmParameters, 
+                     seed = 345)$data
+
+## compute initial theta surrogates
+thetaInit &lt;- svdNorm(ex1.data)
+
+## For convenience we assume that the item parameter
+## estimates equal their population values.  In practice,
+## item parameters would be estimated at this step. 
+itmEstimates &lt;- itmParameters
+
+## calculate eap estimates for mixed models
+thetaEAP &lt;- eap(data = ex1.data, bParams = itmEstimates, NQuad = 21, 
+                priorVar = 2, 
+                mintheta = -4, maxtheta = 4)
+
+## plot irf and erf for item 1
+irf(data = ex1.data, bParams = itmEstimates, 
+    item = 1, 
+    plotERF = TRUE, 
+    thetaEAP)
+
+## plot irf and erf for item 12
+irf(data = ex1.data, bParams = itmEstimates, 
+    item = 12, 
+    plotERF = TRUE, 
+    thetaEAP)  
+
+</code></pre>
+
+
+</div>

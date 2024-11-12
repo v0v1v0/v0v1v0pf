@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>geom_fm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ggplot2 geomes for fmesher related objects</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+<p><code>geom_fm</code> is a generic function for generating geomes from various kinds of
+<code>fmesher</code> objects, e.g. <code>fm_segm</code> and <code>fm_mesh_2d</code>.
+The function invokes particular methods which depend
+on the class of the <code>data</code> argument.
+Requires the <code>ggplot2</code> package.
+</p>
+<p>Note: <code>geom_fm</code> is not yet a "proper" <code>ggplot2</code> geom method; the interface
+may therefore change in the future.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">geom_fm(mapping = NULL, data = NULL, ...)
+
+## S3 method for class 'fm_mesh_2d'
+geom_fm(
+  mapping = NULL,
+  data = NULL,
+  mapping_int = NULL,
+  mapping_bnd = NULL,
+  defs_int = NULL,
+  defs_bnd = NULL,
+  ...,
+  crs = NULL
+)
+
+## S3 method for class 'fm_segm'
+geom_fm(mapping = NULL, data = NULL, ..., crs = NULL)
+
+## S3 method for class 'fm_mesh_1d'
+geom_fm(
+  mapping = NULL,
+  data = NULL,
+  ...,
+  xlim = NULL,
+  basis = TRUE,
+  knots = TRUE,
+  derivatives = FALSE,
+  weights = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mapping</code></td>
+<td>
+<p>an object for which to generate a geom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an object for which to generate a geom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed on to the geom method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mapping_int</code></td>
+<td>
+<p><code>aes</code> for interior constraint edges.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mapping_bnd</code></td>
+<td>
+<p><code>aes</code> for boundary edges.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>defs_int</code></td>
+<td>
+<p>additional settings for interior constraint edges.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>defs_bnd</code></td>
+<td>
+<p>additional settings for boundary edges.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crs</code></td>
+<td>
+<p>Optional crs to transform the object to before plotting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlim</code></td>
+<td>
+<p>numeric 2-vector; specifies the interval for which to compute
+functions. Default is <code>data$interval</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis</code></td>
+<td>
+<p>logical; if <code>TRUE</code> (default), show the spline basis functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p>logical; if <code>TRUE</code> (default), show the spline knot locations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>derivatives</code></td>
+<td>
+<p>logical; if <code>TRUE</code> (not default), draw first order
+derivatives instead of function values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>numeric vector; if provided, draw weighted basis functions and
+the resulting weighted sum.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A combination of <code>ggplot2</code> geoms.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>geom_fm(fm_mesh_2d)</code>: Converts an <code>fm_mesh_2d()</code> object to <code>sf</code> with <code>fm_as_sfc()</code> and uses
+<code>geom_sf</code> to visualize the triangles and edges.
+</p>
+</li>
+<li> <p><code>geom_fm(fm_segm)</code>: Converts an <code>fm_segm()</code> object to <code>sf</code> with <code>fm_as_sfc()</code> and uses
+<code>geom_sf</code> to visualize it.
+</p>
+</li>
+<li> <p><code>geom_fm(fm_mesh_1d)</code>: Evaluates and plots the basis functions defined by an <code>fm_mesh_1d()</code> object.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ggplot() +
+  geom_fm(data = fmexample$mesh)
+
+
+m &lt;- fm_mesh_2d(
+  cbind(10, 20),
+  boundary = fm_extensions(cbind(10, 20), c(25, 65)),
+  max.edge = c(4, 10),
+  crs = fm_crs("+proj=longlat")
+)
+ggplot() +
+  geom_fm(data = m)
+ggplot() +
+  geom_fm(data = m, crs = fm_crs("epsg:27700"))
+
+# Compute a mesh vertex based function on a different grid
+px &lt;- fm_pixels(fm_transform(m, fm_crs("mollweide_globe")))
+px$fun &lt;- fm_evaluate(m,
+  loc = px,
+  field = sin(m$loc[, 1] / 5) * sin(m$loc[, 2] / 5)
+)
+ggplot() +
+  geom_tile(aes(geometry = geometry, fill = fun),
+    data = px,
+    stat = "sf_coordinates"
+  ) +
+  geom_fm(
+    data = m, alpha = 0.2, linewidth = 0.05,
+    crs = fm_crs("mollweide_globe")
+  )
+
+
+
+m &lt;- fm_mesh_1d(c(1, 2, 4, 6, 10), boundary = c("n", "d"), degree = 2)
+ggplot() +
+  geom_fm(data = m, weights = c(4, 2, 4, -1))
+
+
+m &lt;- fm_mesh_1d(
+  c(1, 2, 3, 5, 7),
+  boundary = c("dirichlet", "neumann"),
+  degree = 2
+)
+ggplot() +
+  geom_fm(data = m)
+
+</code></pre>
+
+
+</div>

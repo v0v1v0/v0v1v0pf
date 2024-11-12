@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fuzzyOverlay</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Row-wise overlay operations based on fuzzy logic
+</h2>
+
+<h3>Description</h3>
+
+<p>Logical and set operations are useful for comparative distribution modelling, to assess consensus or mismatches between the predictions of different models, and to quantify differences between models obtained for different time periods. Fuzzy set theory (Zadeh 1965, Barbosa &amp; Real 2012) allows performing such operations without converting model predictions from continuous to binary, thus avoiding the application of arbitrary thresholds and the distortion or over-simplification of those predictions. The result is a continuous numerical value quantifying the intersection, union, sum, or other operation among model predictions, whether binary or continuous.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fuzzyOverlay(data, overlay.cols = 1:ncol(data), op = "intersection",
+na.rm = FALSE, round.digits = 2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>matrix or data frame containing the model predictions to compare.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overlay.cols</code></td>
+<td>
+
+<p>vector of the names or index numbers of the columns to compare. The default is all columns in <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>op</code></td>
+<td>
+
+<p>character value indicating the operation to perform between the prediction columns in 'data'. Can be "consensus" for the arithmetic mean of predictions (or the fuzzy equivalent of the proportion of models that agree that the species occurs at each site), "fuzzy_and" or "intersection" for fuzzy intersection; "fuzzy_or" or "union" for fuzzy union; "prob_and" or "prob_or" for probabilistic and/or, respectively (see Details); "maintenance" for the values where all predictions for the same row (rounded to the number of digits specified in the next argument) are the same. If 'data' has only two columns to compare, you can also calculate"xor" for exclusive 'or', "AnotB"" for the the occurrence of the species in column 1 in detriment of that in column 2, "expansion" for the prediction increase in rows where column 2 has higher values than column 1, "contraction" for the prediction decrease in rows where column 2 has lower values than column 1, or "change" for a mix of the latter two,  with positive values where there has been an increase and negative values where there was decrease in favourability from columns 1 to 2. For expansion, contraction and maintenance, rows where the values do not satisfy the condition (i.e. second column larger, smaller, or roughly equal to the first column) get a value of zero.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+
+<p>logical value indicating if NA values should be ignored. The default is FALSE, so rows with NA in any of the prediction columns get NA as a result.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>round.digits</code></td>
+<td>
+
+<p>integer value indicating the number of decimal places to be used if op = "maintenance". The default is 2.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If your predictions are probabilities, "prob_and" (probabilistic 'and') gives the probability of all species in 'data' occurring simultaneously by multiplying all probabilities; and "prob_or" (probabilistic 'or') gives the probability of any of them occurring at each site. These can be quite restrictive, though; probabilistic "and" can give particularly irrealistically small values.
+</p>
+<p>If you have (or convert your probabilities to) favourability predictions, which can be used directly with fuzzy logic (Real et al. 2006; see <code>Fav</code> function), you can use "fuzzy_and" or "intersection" to get the favourability for all species co-occurring at each site, and "fuzzy_or" or "union" to get favourability for any of them to occur at each site (Barbosa &amp; Real 2012).
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns a vector, with length equal to the number of rows in <code>data</code>, containing the row-wise result of the operation performed.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A. Marcia Barbosa</p>
+
+
+<h3>References</h3>
+
+<p>Barbosa A.M. &amp; Real R. (2012) Applying fuzzy logic to comparative distribution modelling: a case study with two sympatric amphibians. The Scientific World Journal, 2012, Article ID 428206
+</p>
+<p>Real R., Barbosa A.M. &amp; Vargas J.M. (2006) Obtaining environmental favourability functions from logistic regression. Environmental and Ecological Statistics 13: 237-245.
+</p>
+<p>Zadeh, L.A. (1965) Fuzzy sets. Information and Control, 8: 338-353
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fuzSim</code>, <code>modOverlap</code> and <code>fuzzyRangeChange</code> for overall (not row-wise) comparisons among model predictions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(rotif.env)
+
+names(rotif.env)
+
+
+# get model predictions for 3 of the species in rotif.env:
+
+mods &lt;- multGLM(rotif.env, sp.cols = 18:20, var.cols = 5:17, id.col = 1,
+step = TRUE, FDR = TRUE, trim = TRUE)
+
+preds &lt;- mods$predictions[ , c("Abrigh_F", "Afissa_F", "Apriod_F")]
+
+
+# calculate intersection and union among those predictions:
+
+preds$intersect &lt;- fuzzyOverlay(preds, op = "intersection")
+
+preds$union &lt;- fuzzyOverlay(preds, op = "union")
+
+head(preds)
+
+
+# imagine you have a model prediction for species 'Abrigh' in a future time
+# (here we will create one by randomly jittering the current predictions)
+
+preds$Abrigh_imag &lt;- jitter(preds[ , "Abrigh_F"], amount = 0.2)
+preds$Abrigh_imag[preds$Abrigh_imag &lt; 0] &lt;- 0
+preds$Abrigh_imag[preds$Abrigh_imag &gt; 1] &lt;- 1
+
+
+# you can calculate row-wise prediction changes from Abrigh to Abrigh_imag:
+
+preds$Abrigh_exp &lt;- fuzzyOverlay(preds, overlay.cols = c("Abrigh_F",
+"Abrigh_imag"), op = "expansion")
+
+preds$Abrigh_contr &lt;- fuzzyOverlay(preds, overlay.cols = c("Abrigh_F",
+"Abrigh_imag"), op = "contraction")
+
+preds$Abrigh_chg &lt;- fuzzyOverlay(preds, overlay.cols = c("Abrigh_F",
+"Abrigh_imag"), op = "change")
+
+preds$Abrigh_maint &lt;- fuzzyOverlay(preds, overlay.cols = c("Abrigh_F",
+"Abrigh_imag"), op = "maintenance")
+
+head(preds)
+</code></pre>
+
+
+</div>

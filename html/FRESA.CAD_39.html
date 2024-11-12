@@ -1,0 +1,423 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FRESA.Model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automated model selection</h2>
+
+<h3>Description</h3>
+
+<p>This function uses a wrapper procedure to select the best features of a non-penalized linear model that best predict the outcome, given the formula of an initial model template (linear, logistic, or Cox proportional hazards), an optimization procedure, and a data frame.
+A filter scheme may be enabled to reduce the search space of the wrapper procedure.
+The false selection rate may be empirically controlled by enabling bootstrapping, and model shrinkage can be evaluated by cross-validation. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	FRESA.Model(formula,
+	            data,
+	            OptType = c("Binary", "Residual"),
+	            pvalue = 0.05,
+	            filter.p.value = 0.10,
+	            loops = 32,
+	            maxTrainModelSize = 20,
+	            elimination.bootstrap.steps = 100,
+	            bootstrap.steps = 100,
+	            print = FALSE,
+	            plots = FALSE,
+	            CVfolds = 1,
+	            repeats = 1,
+	            nk = 0,
+	            categorizationType = c("Raw",
+	                                   "Categorical",
+	                                   "ZCategorical",
+	                                   "RawZCategorical",
+	                                   "RawTail",
+	                                   "RawZTail",
+	                                   "Tail",
+	                                   "RawRaw"),
+	            cateGroups = c(0.1, 0.9),
+	            raw.dataFrame = NULL,
+	            var.description = NULL,
+	            testType = c("zIDI",
+	                         "zNRI",
+	                         "Binomial",
+	                         "Wilcox",
+	                         "tStudent",
+	                         "Ftest"),
+	            lambda="lambda.1se",
+	            equivalent=FALSE,
+	            bswimsCycles=20,
+	            usrFitFun=NULL
+	            )
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>An object of class <code>formula</code> with the formula to be fitted
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame where all variables are stored in different columns
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OptType</code></td>
+<td>
+
+<p>Optimization type: Based on the integrated discrimination improvement (Binary) index for binary classification ("Binary"), or based on the net residual improvement (NeRI) index for linear regression ("Residual") 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+
+<p>The maximum <em>p</em>-value, associated to the <code>testType</code>, allowed for a term in the model (it will control the false selection rate)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter.p.value</code></td>
+<td>
+
+<p>The maximum <em>p</em>-value, for a variable to be included to the feature selection procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loops</code></td>
+<td>
+
+<p>The number of bootstrap loops for the forward selection procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxTrainModelSize</code></td>
+<td>
+
+<p>Maximum number of terms that can be included in the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elimination.bootstrap.steps</code></td>
+<td>
+
+<p>The number of bootstrap loops for the backwards elimination procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap.steps</code></td>
+<td>
+
+<p>The number of bootstrap loops for the bootstrap validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>, information will be displayed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plots</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>, plots are displayed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CVfolds</code></td>
+<td>
+
+<p>The number of folds for the final cross-validation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repeats</code></td>
+<td>
+
+<p>The number of times that the cross-validation procedure will be repeated
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nk</code></td>
+<td>
+
+<p>The number of neighbors used to generate a <em>k</em>-nearest neighbors (KNN) classification. If zero, <em>k</em> is set to the square root of the number of cases. If less than zero, it will not perform the KNN classification
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorizationType</code></td>
+<td>
+
+<p>How variables will be analyzed: As given in <code>data</code> ("Raw"); broken into the <em>p</em>-value categories given by <code>cateGroups</code> ("Categorical"); broken into the <em>p</em>-value categories given by <code>cateGroups</code>, and weighted by the <em>z</em>-score ("ZCategorical"); broken into the <em>p</em>-value categories given by <code>cateGroups</code>, weighted by the <em>z</em>-score, plus the raw values ("RawZCategorical"); raw values, plus the tails ("RawTail"); or raw values, weighted by the <em>z</em>-score, plus the tails ("RawZTail")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cateGroups</code></td>
+<td>
+
+<p>A vector of percentiles to be used for the categorization procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw.dataFrame</code></td>
+<td>
+
+<p>A data frame similar to <code>data</code>, but with unadjusted data, used to get the means and variances of the unadjusted data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.description</code></td>
+<td>
+
+<p>A vector of the same length as the number of columns of <em>data</em>, containing a description of the variables
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testType</code></td>
+<td>
+
+<p>For an Binary-based optimization, the type of index to be evaluated by the <code>improveProb</code> function (<code>Hmisc</code> package): <em>z</em>-value of Binary or of NRI. For a NeRI-based optimization, the type of non-parametric test to be evaluated by the <code>improvedResiduals</code> function: Binomial test ("Binomial"), Wilcoxon rank-sum test ("Wilcox"), Student's <em>t</em>-test ("tStudent"), or <em>F</em>-test ("Ftest")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>The passed value to the s parameter of the glmnet cross validation coefficient
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equivalent</code></td>
+<td>
+
+<p>Is set to TRUE CV will compute the equivalent model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bswimsCycles</code></td>
+<td>
+
+<p>The maximum number of models to be returned by <code>BSWiMS.model</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>usrFitFun</code></td>
+<td>
+
+<p>An optional user provided fitting function to be evaluated by the cross validation procedure: fitting: usrFitFun(formula,data), with a predict function
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This important function of FRESA.CAD will model or cross validate the models. Given an outcome formula, and a data.frame this function will do an univariate analysis of the data (<code>univariateRankVariables</code>),
+then it will select the top ranked variables; after that it will select the model that best describes the outcome. At output it will return the bootstrapped performance of the model 
+(<code>bootstrapValidation_Bin</code> or <code>bootstrapValidation_Res</code>). It can be set to report the cross-validation performance of the selection process which will return either 
+a  <code>crossValidationFeatureSelection_Bin</code> or a <code>crossValidationFeatureSelection_Res</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>BSWiMS.model</code></td>
+<td>
+
+<p>An object of class <code>lm</code>, <code>glm</code>, or <code>coxph</code> containing the final model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reducedModel</code></td>
+<td>
+
+<p>The resulting object of the backward elimination procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>univariateAnalysis</code></td>
+<td>
+
+<p>A data frame with the results from the univariate analysis
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forwardModel</code></td>
+<td>
+
+<p>The resulting object of the feature selection function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>updatedforwardModel</code></td>
+<td>
+
+<p>The resulting object of the the update procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrappedModel</code></td>
+<td>
+
+<p>The resulting object of the bootstrap procedure on <code>final.model</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvObject</code></td>
+<td>
+
+<p>The resulting object of the cross-validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>used.variables</code></td>
+<td>
+
+<p>The number of terms that passed the filter procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+
+<p>the function call
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena and Antonio Martinez-Torteya</p>
+
+
+<h3>References</h3>
+
+<p>Pencina, M. J., D'Agostino, R. B., &amp; Vasan, R. S. (2008). Evaluating the added predictive ability of a new marker: from area under the ROC curve to reclassification and beyond. <em>Statistics in medicine</em> <b>27</b>(2), 157-172.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	## Not run: 
+
+		# Start the graphics device driver to save all plots in a pdf format
+		pdf(file = "FRESA.Model.Example.pdf",width = 8, height = 6)
+		# Get the stage C prostate cancer data from the rpart package
+		data(stagec,package = "rpart")
+		options(na.action = 'na.pass')
+		stagec_mat &lt;- cbind(pgstat = stagec$pgstat,
+		    pgtime = stagec$pgtime,
+		    as.data.frame(model.matrix(Surv(pgtime,pgstat) ~ .,stagec))[-1])
+
+		data(cancerVarNames)
+		dataCancerImputed &lt;- nearestNeighborImpute(stagec_mat)
+
+		# Get a Cox proportional hazards model using:
+		# - The default parameters
+		md &lt;- FRESA.Model(formula = Surv(pgtime, pgstat) ~ 1,
+						  data = dataCancerImputed,
+						  var.description = cancerVarNames[,2])
+		pt &lt;- plot(md$bootstrappedModel)
+		sm &lt;- summary(md$BSWiMS.model)
+		print(sm$coefficients)
+
+
+		# Get a 10 fold CV Cox proportional hazards model using:
+		# - Repeat 10 times de CV
+		md &lt;- FRESA.Model(formula = Surv(pgtime, pgstat) ~ 1,
+						  data = dataCancerImputed, CVfolds = 10, 
+						  repeats = 10,
+						  var.description = cancerVarNames[,2])
+		pt &lt;- plotModels.ROC(md$cvObject$Models.testPrediction,theCVfolds = 10)
+		print(pt$predictionTable)
+
+		pt &lt;- plotModels.ROC(md$cvObject$LASSO.testPredictions,theCVfolds = 10)
+		pt &lt;- plotModels.ROC(md$cvObject$KNN.testPrediction,theCVfolds = 10)
+
+		# Get a  regression of the survival time
+
+		timeSubjects &lt;- dataCancerImputed
+		timeSubjects$pgtime &lt;- log(timeSubjects$pgtime)
+
+		md &lt;- FRESA.Model(formula = pgtime ~ 1,
+						  data = timeSubjects,
+						  var.description = cancerVarNames[,2])
+		pt &lt;- plot(md$bootstrappedModel)
+		sm &lt;- summary(md$BSWiMS.model)
+		print(sm$coefficients)
+
+		# Get a logistic regression model using
+		# - The default parameters and removing time as possible predictor
+
+		dataCancerImputed$pgtime &lt;- NULL
+
+		md &lt;- FRESA.Model(formula = pgstat ~ 1,
+						  data = dataCancerImputed,
+						  var.description = cancerVarNames[,2])
+		pt &lt;- plot(md$bootstrappedModel)
+		sm &lt;- summary(md$BSWiMS.model)
+		print(sm$coefficients)
+
+		# Get a logistic regression model using:
+		# - residual-based optimization
+		md &lt;- FRESA.Model(formula = pgstat ~ 1,
+						  data = dataCancerImputed,
+						  OptType = "Residual",
+						  var.description = cancerVarNames[,2])
+		pt &lt;- plot(md$bootstrappedModel)
+		sm &lt;- summary(md$BSWiMS.model)
+		print(sm$coefficients)
+
+
+		# Shut down the graphics device driver
+		dev.off()
+
+	
+## End(Not run)
+</code></pre>
+
+
+</div>

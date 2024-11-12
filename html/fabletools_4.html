@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>accuracy.mdl_df</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate accuracy of a forecast or model</h2>
+
+<h3>Description</h3>
+
+<p>Summarise the performance of the model using accuracy measures. Accuracy
+measures can be computed directly from models as the one-step-ahead fitted
+residuals are available. When evaluating accuracy on forecasts, you will
+need to provide a complete dataset that includes the future data and data
+used to train the model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'mdl_df'
+accuracy(object, measures = point_accuracy_measures, ...)
+
+## S3 method for class 'mdl_ts'
+accuracy(object, measures = point_accuracy_measures, ...)
+
+## S3 method for class 'fbl_ts'
+accuracy(object, data, measures = point_accuracy_measures, ..., by = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A model or forecast object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>measures</code></td>
+<td>
+<p>A list of accuracy measure functions to compute (such as <code>point_accuracy_measures</code>, <code>interval_accuracy_measures</code>, or <code>distribution_accuracy_measures</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to measures that use it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A dataset containing the complete model dataset (both training and test data). The training portion of the data will be used in the computation of some accuracy measures, and the test data is used to compute the forecast errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>Variables over which the accuracy is computed (useful for computing across forecast horizons in cross-validation). If <code>by</code> is <code>NULL</code>, groups will be chosen automatically from the key structure.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><a href="https://otexts.com/fpp3/accuracy.html">Evaluating forecast accuracy</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fable)
+library(tsibble)
+library(tsibbledata)
+library(dplyr)
+
+fit &lt;- aus_production %&gt;%
+  filter(Quarter &lt; yearquarter("2006 Q1")) %&gt;% 
+  model(ets = ETS(log(Beer) ~ error("M") + trend("Ad") + season("A")))
+
+# In-sample training accuracy does not require extra data provided.
+accuracy(fit)
+
+# Out-of-sample forecast accuracy requires the future values to compare with.
+# All available future data will be used, and a warning will be given if some
+# data for the forecast window is unavailable.
+fc &lt;- fit %&gt;% 
+  forecast(h = "5 years")
+fc %&gt;% 
+  accuracy(aus_production)
+  
+# It is also possible to compute interval and distributional measures of
+# accuracy for models and forecasts which give forecast distributions.
+fc %&gt;% 
+  accuracy(
+    aus_production,
+    measures = list(interval_accuracy_measures, distribution_accuracy_measures)
+  )
+
+</code></pre>
+
+
+</div>

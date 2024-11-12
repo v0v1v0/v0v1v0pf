@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>GLARMA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a GLARMA model</h2>
+
+<h3>Description</h3>
+
+<p>Estimate Generalized Linear Autoregressive Moving Average  model
+with Poisson or Negative Binomial distribution.
+Also is provide a automatic parameter algorithm selection for the Autorregressive and Moving Average params
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">GLARMA(
+  formula,
+  ic = c("aic", "bic"),
+  distr = c("Poi", "NegBin"),
+  method = c("FS", "NR"),
+  residuals = c("Pearson", "Score"),
+  trace = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>Character, can be 'AIC','BIC'. The information criterion used in selecting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distr</code></td>
+<td>
+<p>Character, can be 'poisson' or 'nbinom'. The probabilty distribution used for the generalized model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Character, can be 'FS' (Fisher scoring) or 'NR' (Newton-Raphson). The method of iteration to be used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Character, can be 'Pearson' or 'Score'. The type of residuals to be used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>Logical. If the automatic parameter algorithm is runnig, print the path to the best model estimation</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+
+
+<h3>Specials</h3>
+
+
+
+<h4>pq</h4>
+
+<p>pq defines the non-seasonal autoregressive and moving avarages terms,
+it can be define by the user,
+or if it's omited, the automatic parameter selection algorithm is trigered
+The automatic parameter selection algorithm gonna fit the best model based on the information criterion
+</p>
+
+
+
+<h4>PQ</h4>
+
+<p>PQ defines the seasonal autoregressive and moving avarages terms,
+it can be define by the user,
+or if it's omited, the automatic parameter selection algorithm is trigered (only for 'arma_to_GLARMA' algorithm)
+The automatic parameter selection algorithm gonna fit the best model based on the information criterion
+</p>
+
+
+
+<h4>xreg</h4>
+
+<p>Exogenous regressors can be included in an GLARMA model without explicitly using the 'xreg()' special.
+Common exogenous regressor specials as specified in ['common_xregs'] can also be used.
+These regressors are handled using [stats::model.frame()],
+and so interactions and other functionality behaves similarly to [stats::lm()].
+</p>
+<p>The inclusion of a constant in the model follows the similar rules to ['stats::lm()'],
+where including '1' will add a constant and '0' or '-1' will remove the constant.
+If left out, the inclusion of a constant will be determined by minimising 'ic'.
+</p>
+<p>If a xreg is provided, the model forecast is not avaliable
+</p>
+<pre>
+xreg(..., fixed = list())
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+  `...`      </td>
+<td style="text-align: left;"> Bare expressions for the exogenous regressors (such as `log(x)`)</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  `fixed`    </td>
+<td style="text-align: left;"> A named list of fixed parameters for coefficients. The names identify the coefficient, and should match the name of the regressor. For example, `fixed = list(constant = 20)`.
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Manual GLARMA specification
+tsibbledata::aus_production |&gt;
+  fabletools::model(manual_gla = GLARMA(Beer ~ pq(1,0)))
+
+# Automatic GLARMA specification
+tsibbledata::aus_production |&gt;
+  fabletools::model(auto_gla = GLARMA(Beer, ic = 'aic'))
+
+
+</code></pre>
+
+
+</div>

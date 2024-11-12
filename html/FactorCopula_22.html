@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mle.FactorTree</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Maximum likelhood estimation of factor tree copula models</h2>
+
+<h3>Description</h3>
+
+<p>We use a two-stage estimation approach  toward the estimation  of  factor tree copula models for item response data.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mle1FactorTree(y, A, cop, gl, hessian, print.level) 
+mle2FactorTree(y, A, cop, gl, hessian, print.level) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code class="reqn">n \times d</code> matrix with the ordinal reponse data, where <code class="reqn">n</code> and <code class="reqn">d</code> is the number of observations and ordinal variables, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p><code class="reqn">d \times d</code> vine array with <code class="reqn">1,...,d</code> on diagonal, note only the first row and diagnoal values are used for the 1-truncated vine model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cop</code></td>
+<td>
+<p><code class="reqn">(2d-1)</code>-vector with the names of bivariate copulas that link each of the oberved variabels with the 1st factor (1-factor part of the model), and conditional dependence of variables given the latent factor (1-truncated vine tree part of the model) . Choices are “bvn” for BVN, “bvt<code class="reqn">\nu</code>” with <code class="reqn">\nu = \{1, \ldots, 9\}</code> degrees of freedom for t-copula, “frk” for Frank, “gum” for Gumbel, “rgum” for reflected Gumbel, “1rgum” for 1-reflected Gumbel, “2rgum” for 2-reflected Gumbel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gl</code></td>
+<td>
+<p>Gauss legendre quardrature nodes and weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>If TRUE, the hessian of the negative log-likelihood is calculated during the minimization process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.level</code></td>
+<td>
+<p>Determines the level of printing which is done during the minimization process; same as in <code>nlm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Estimation is achieved by maximizing  the joint log-likelihood 
+over the copula parameters  with the univariate cutpoints fixed as estimated at the first step of the proposed two-step estimation approach. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cutpoints</code></td>
+<td>
+<p>The estimated univariate cutpoints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>The maximized joint log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taus</code></td>
+<td>
+<p>The estimated copula parameters in Kendall's tau scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SEs</code></td>
+<td>
+<p>The SEs of the Kendall's tau estimates.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sayed H. Kadhem <br>
+Aristidis K. Nikoloulopoulos <a href="mailto:a.nikoloulopoulos@uea.ac.uk">a.nikoloulopoulos@uea.ac.uk</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Joe, H. (2014).
+<em>Dependence Modelling with Copulas</em>. Chapman &amp; Hall, London.
+</p>
+<p>Kadhem, S.H. and Nikoloulopoulos, A.K. (2022b)
+Factor tree copula models for item response data.
+<em>Arxiv e-prints</em>, &lt;arXiv: 2201.00339&gt;. <a href="https://arxiv.org/abs/2201.00339">https://arxiv.org/abs/2201.00339</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#------------------------------------------------
+# Setting quadreture points
+nq &lt;- 5  
+gl &lt;- gauss.quad.prob(nq) 
+#------------------------------------------------
+#                    PTSD Data
+#------------------             -----------------
+data(PTSD)
+ydat=PTSD
+n=nrow(ydat)
+d=ncol(ydat)
+#------------------------------------------------
+#                   Estimation
+#------------------             -----------------
+#selecting vine tree based on polychoric
+rmat=polychoric0(ydat)$p
+A.polychoric=selectFactorTrVine(y=ydat,rmat,alg=3)
+
+#---------------- 1-factor tree  ----------------
+# 1-factor tree copula model
+copf1 &lt;- rep("frk",d)
+coptree &lt;- rep("frk",d-1)
+cop &lt;- c(copf1,coptree)
+est1factortree &lt;- mle1FactorTree(y=ydat, A=A.polychoric$VineTreeA, cop, 
+gl, hessian=FALSE, print.level=2) 
+
+#---------------- 2-factor tree  ----------------
+# 2-factor tree copula model
+copf1 &lt;- rep("frk",d)
+copf2 &lt;- rep("frk",d)
+coptree &lt;- rep("frk",d-1)
+cop &lt;- c(copf1,copf2,coptree)
+
+est2factortree &lt;- mle2FactorTree(y=ydat, A=A.polychoric$VineTreeA, 
+cop, gl, hessian=FALSE, print.level=2)
+     
+
+</code></pre>
+
+
+</div>

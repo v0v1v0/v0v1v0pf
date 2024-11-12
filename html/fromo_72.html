@@ -1,0 +1,319 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>t_running_centered</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compare data to moments computed over a time sliding window.</h2>
+
+<h3>Description</h3>
+
+<p>Computes moments over a sliding window, then adjusts the data accordingly, centering, or scaling,
+or z-scoring, and so on.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">t_running_centered(v, time = NULL, time_deltas = NULL, window = NULL,
+  wts = NULL, na_rm = FALSE, min_df = 0L, used_df = 1, lookahead = 0,
+  restart_period = 100L, variable_win = FALSE, wts_as_delta = TRUE,
+  check_wts = FALSE, normalize_wts = TRUE)
+
+t_running_scaled(v, time = NULL, time_deltas = NULL, window = NULL,
+  wts = NULL, na_rm = FALSE, min_df = 0L, used_df = 1, lookahead = 0,
+  restart_period = 100L, variable_win = FALSE, wts_as_delta = TRUE,
+  check_wts = FALSE, normalize_wts = TRUE)
+
+t_running_zscored(v, time = NULL, time_deltas = NULL, window = NULL,
+  wts = NULL, na_rm = FALSE, min_df = 0L, used_df = 1, lookahead = 0,
+  restart_period = 100L, variable_win = FALSE, wts_as_delta = TRUE,
+  check_wts = FALSE, normalize_wts = TRUE)
+
+t_running_sharpe(v, time = NULL, time_deltas = NULL, window = NULL,
+  wts = NULL, lb_time = NULL, na_rm = FALSE, compute_se = FALSE,
+  min_df = 0L, used_df = 1, restart_period = 100L, variable_win = FALSE,
+  wts_as_delta = TRUE, check_wts = FALSE, normalize_wts = TRUE)
+
+t_running_tstat(v, time = NULL, time_deltas = NULL, window = NULL,
+  wts = NULL, lb_time = NULL, na_rm = FALSE, compute_se = FALSE,
+  min_df = 0L, used_df = 1, restart_period = 100L, variable_win = FALSE,
+  wts_as_delta = TRUE, check_wts = FALSE, normalize_wts = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>a vector of data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>an optional vector of the timestamps of <code>v</code>. If given, must be
+the same length as <code>v</code>. If not given, we try to infer it by summing the
+<code>time_deltas</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_deltas</code></td>
+<td>
+<p>an optional vector of the deltas of timestamps. If given, must be
+the same length as <code>v</code>. If not given, and <code>wts</code> are given and <code>wts_as_delta</code> is true,
+we take the <code>wts</code> as the time deltas.  The deltas must be positive. We sum them to arrive
+at the times.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window</code></td>
+<td>
+<p>the window size, in time units. if given as finite integer or double, passed through.
+If <code>NULL</code>, <code>NA_integer_</code>, <code>NA_real_</code> or <code>Inf</code> are given, 
+and <code>variable_win</code> is true, then we infer the window from the lookback times: the
+first window is infinite, but the remaining is the deltas between lookback times.
+If <code>variable_win</code> is false, then these undefined values are equivalent to an
+infinite window.
+If negative, an error will be thrown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wts</code></td>
+<td>
+<p>an optional vector of weights. Weights are ‘replication’
+weights, meaning a value of 2 is shorthand for having two observations
+with the corresponding <code>v</code> value. If <code>NULL</code>, corresponds to
+equal unit weights, the default. Note that weights are typically only meaningfully defined
+up to a multiplicative constant, meaning the units of weights are
+immaterial, with the exception that methods which check for minimum df will,
+in the weighted case, check against the sum of weights. For this reason,
+weights less than 1 could cause <code>NA</code> to be returned unexpectedly due
+to the minimum condition. When weights are <code>NA</code>, the same rules for checking <code>v</code>
+are applied. That is, the observation will not contribute to the moment
+if the weight is <code>NA</code> when <code>na_rm</code> is true. When there is no
+checking, an <code>NA</code> value will cause the output to be <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_rm</code></td>
+<td>
+<p>whether to remove NA, false by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_df</code></td>
+<td>
+<p>the minimum df to return a value, otherwise <code>NaN</code> is returned.
+This can be used to prevent <em>e.g.</em> Z-scores from being computed on only 3
+observations. Defaults to zero, meaning no restriction, which can result in 
+infinite Z-scores during the burn-in period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>used_df</code></td>
+<td>
+<p>the number of degrees of freedom consumed, used in the denominator
+of the centered moments computation. These are subtracted from the number of
+observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lookahead</code></td>
+<td>
+<p>for some of the operations, the value is compared to 
+mean and standard deviation possibly using 'future' or 'past' information
+by means of a non-zero lookahead. Positive values mean data are taken from
+the future. This is in time units, and so should be a real.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restart_period</code></td>
+<td>
+<p>the recompute period. because subtraction of elements can cause
+loss of precision, the computation of moments is restarted periodically based on 
+this parameter. Larger values mean fewer restarts and faster, though less accurate
+results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable_win</code></td>
+<td>
+<p>if true, and the <code>window</code> is not a concrete number,
+the computation window becomes the time between lookback times.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wts_as_delta</code></td>
+<td>
+<p>if true and the <code>time</code> and <code>time_deltas</code> are not
+given, but <code>wts</code> are given, we take <code>wts</code> as the <code>time_deltas</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_wts</code></td>
+<td>
+<p>a boolean for whether the code shall check for negative
+weights, and throw an error when they are found. Default false for speed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize_wts</code></td>
+<td>
+<p>a boolean for whether the weights should be
+renormalized to have a mean value of 1. This mean is computed over elements
+which contribute to the moments, so if <code>na_rm</code> is set, that means non-NA
+elements of <code>wts</code> that correspond to non-NA elements of the data
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb_time</code></td>
+<td>
+<p>a vector of the times from which lookback will be performed. The output should
+be the same size as this vector. If not given, defaults to <code>time</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compute_se</code></td>
+<td>
+<p>for <code>running_sharpe</code>, return an extra column of the
+standard error, as computed by Mertens' correction.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given the length <code class="reqn">n</code> vector <code class="reqn">x</code>, for
+a given index <code class="reqn">i</code>, define <code class="reqn">x^{(i)}</code>
+as the elements of <code class="reqn">x</code> defined by the sliding time window (see the section
+on time windowing).
+Then define <code class="reqn">\mu_i</code>, <code class="reqn">\sigma_i</code>
+and <code class="reqn">n_i</code> as, respectively, the sample mean, standard deviation and number of
+non-NA elements in <code class="reqn">x^{(i)}</code>. 
+</p>
+<p>We compute output vector <code class="reqn">m</code> the same size as <code class="reqn">x</code>. 
+For the 'centered' version of <code class="reqn">x</code>, we have <code class="reqn">m_i = x_i - \mu_i</code>.
+For the 'scaled' version of <code class="reqn">x</code>, we have <code class="reqn">m_i = x_i / \sigma_i</code>.
+For the 'z-scored' version of <code class="reqn">x</code>, we have <code class="reqn">m_i = (x_i - \mu_i) / \sigma_i</code>.
+For the 't-scored' version of <code class="reqn">x</code>, we have <code class="reqn">m_i = \sqrt{n_i} \mu_i / \sigma_i</code>.
+</p>
+<p>We also allow a 'lookahead' for some of these operations.
+If positive, the moments are computed using data from larger indices;
+if negative, from smaller indices.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a vector the same size as the input consisting of the adjusted version of the input.
+When there are not sufficient (non-nan) elements for the computation, <code>NaN</code> are returned.
+</p>
+
+
+<h3>Time Windowing </h3>
+
+<p>This function supports time (or other counter) based running computation. 
+Here the input are the data <code class="reqn">x_i</code>, and optional weights vectors, <code class="reqn">w_i</code>, defaulting to 1,
+and a vector of time indices, <code class="reqn">t_i</code> of the same length as <code class="reqn">x</code>. The
+times must be non-decreasing:
+</p>
+<p style="text-align: center;"><code class="reqn">t_1 \le t_2 \le \ldots</code>
+</p>
+
+<p>It is assumed that <code class="reqn">t_0 = -\infty</code>.
+The window, <code class="reqn">W</code> is now a time-based window. 
+An optional set of <em>lookback times</em> are also given, <code class="reqn">b_j</code>, which
+may have different length than the <code class="reqn">x</code> and <code class="reqn">w</code>. 
+The output will correspond to the lookback times, and should be the same
+length. The <code class="reqn">j</code>th output is computed over indices <code class="reqn">i</code> such that
+</p>
+<p style="text-align: center;"><code class="reqn">b_j - W &lt; t_i \le b_j.</code>
+</p>
+
+<p>For comparison functions (like Z-score, rescaling, centering), which compare
+values of <code class="reqn">x_i</code> to local moments, the lookbacks may not be given, but
+a lookahead <code class="reqn">L</code> is admitted. In this case, the <code class="reqn">j</code>th output is computed over
+indices <code class="reqn">i</code> such that
+</p>
+<p style="text-align: center;"><code class="reqn">t_j - W + L &lt; t_i \le t_j + L.</code>
+</p>
+
+<p>If the times are not given, ‘deltas’ may be given instead. If
+<code class="reqn">\delta_i</code> are the deltas, then we compute the times as
+</p>
+<p style="text-align: center;"><code class="reqn">t_i = \sum_{1 \le j \le i} \delta_j.</code>
+</p>
+
+<p>The deltas must be the same length as <code class="reqn">x</code>.  
+If times and deltas are not given, but weights are given and the ‘weights as deltas’
+flag is set true, then the weights are used as the deltas.
+</p>
+<p>Some times it makes sense to have the computational window be the space
+between lookback times. That is, the <code class="reqn">j</code>th output is to be
+computed over indices <code class="reqn">i</code> such that
+</p>
+<p style="text-align: center;"><code class="reqn">b_{j-1} - W &lt; t_i \le b_j.</code>
+</p>
+
+<p>This can be achieved by setting the ‘variable window’ flag true
+and setting the window to null. This will not make much sense if
+the lookback times are equal to the times, since each moment computation
+is over a set of a single index, and most moments are underdefined.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The moment computations provided by fromo are 
+numerically robust, but will often <em>not</em> provide the
+same results as the 'standard' implementations,
+due to differences in roundoff. We make every attempt to balance
+speed and robustness. User assumes all risk from using
+the fromo package.
+</p>
+<p>Note that when weights are given, they are treated as replication weights.
+This can have subtle effects on computations which require minimum
+degrees of freedom, since the sum of weights will be compared to
+that minimum, not the number of data points. Weight values
+(much) less than 1 can cause computations to return <code>NA</code>
+somewhat unexpectedly due to this condition, while values greater
+than one might cause the computation to spuriously return a value
+with little precision.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Steven E. Pav <a href="mailto:shabbychef@gmail.com">shabbychef@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Terriberry, T. "Computing Higher-Order Moments Online."
+<a href="http://people.xiph.org/~tterribe/notes/homs.html">http://people.xiph.org/~tterribe/notes/homs.html</a>
+</p>
+<p>J. Bennett, et. al., "Numerically Stable, Single-Pass, 
+Parallel Statistics Algorithms," Proceedings of IEEE
+International Conference on Cluster Computing, 2009.
+<a href="https://www.semanticscholar.org/paper/Numerically-stable-single-pass-parallel-statistics-Bennett-Grout/a83ed72a5ba86622d5eb6395299b46d51c901265">https://www.semanticscholar.org/paper/Numerically-stable-single-pass-parallel-statistics-Bennett-Grout/a83ed72a5ba86622d5eb6395299b46d51c901265</a>
+</p>
+<p>Cook, J. D. "Accurately computing running variance."
+<a href="http://www.johndcook.com/standard_deviation.html">http://www.johndcook.com/standard_deviation.html</a>
+</p>
+<p>Cook, J. D. "Comparing three methods of computing 
+standard deviation."
+<a href="http://www.johndcook.com/blog/2008/09/26/comparing-three-methods-of-computing-standard-deviation">http://www.johndcook.com/blog/2008/09/26/comparing-three-methods-of-computing-standard-deviation</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>running_centered</code>, <code>scale</code>
+</p>
+
+
+</div>

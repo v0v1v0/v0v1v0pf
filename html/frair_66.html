@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fr_hollingsII</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Holling's Original Type II Response</h2>
+
+<h3>Description</h3>
+
+<p>Holling's Type II predator-prey function.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    hollingsII_fit(data, samp, start, fixed, boot=FALSE, windows=FALSE)
+    hollingsII_nll(a, h, T, X, Y)
+    hollingsII(X, a, h, T)
+    </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>A dataframe containing X and Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp </code></td>
+<td>
+<p>A vector specifying the rows of data to use in the fit. Provided by <code>boot()</code> or manually, as required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>A named list. Starting values for items to be optimised.  Usually 'a' and 'h'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed </code></td>
+<td>
+<p>A names list. 'Fixed data' (not optimised). Usually 'T'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot </code></td>
+<td>
+<p>A logical. Is the function being called for use by <code>boot()</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows </code></td>
+<td>
+<p>A logical. Is the operating system Microsoft Windows?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a, h </code></td>
+<td>
+<p>Capture rate and handling time. Usually items to be optimised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T </code></td>
+<td>
+<p><em>T</em>, the total time available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>The X variable. Usually prey density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>The Y variable.  Usually the number of prey consumed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This implements the Hollings original type-II functional response, otherwise known as the 'disc equation'. An important assumption of this equation is that prey density remains constant (<em>i.e.</em> a 'replacement' experimental design). In practice this is often not the case and often the Roger's 'random predator' equation may be more appropriate (see <code>rogersII</code>).
+</p>
+<p>In Holling's original formulation the number of prey eaten (<em>Ne</em>) follows the relationship:
+</p>
+<p style="text-align: center;"><code class="reqn">N_e=\frac{a N_0 T}{1+a N_0 h}</code>
+</p>
+
+<p>Where <code class="reqn">N_0</code> is the initial number of prey and <em>a</em>, <em>h</em> and <em>T</em> are the capture rate, handling time and the total time available, receptively. It is implemented internally in FRAIR as: 
+</p>
+<p><code>Ne &lt;- (a*X*T)/(1+a*X*h)</code>
+</p>
+<p>where <code class="reqn">X = N_0</code>. 
+</p>
+<p>None of these functions are designed to be called directly, though they are all exported so that the user can call them directly if desired. The intention is that they are called via <code>frair_fit</code>, which calls them in the order they are specified above.
+</p>
+<p><code>rogersII_fit</code> does the heavy lifting and also pulls double duty as the <code>statistic</code> function for bootstrapping (<em>via</em> <code>boot()</code> in the boot package).  The <code>windows</code> argument if required to prevent needless calls to <code>require(frair)</code> on platforms that can manage sane parallel processing.
+</p>
+<p>The core fitting is done by <code>mle2</code> from the <code>bbmle</code> package and users are directed there for more information. <code>mle2</code> uses the <code>rogersII_nll</code> function to optimise <code>rogersII</code>.
+</p>
+<p>Further references and recommended reading can be found on the help page for frair_fit.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>References</h3>
+
+<p>Bolker BM (2008) <em>Ecological Models and Data in R</em>. Princeton University Press, Princeton, NJ.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">datx &lt;- rep(c(1,2,3,4,6,12,24,50,100), times=10)
+daty1 &lt;- round(hollingsII(X=datx, 
+            a=0.75*rnorm(length(datx), mean=1, sd=0.1), 
+            h=0.1*rnorm(length(datx), mean=1, sd=0.1), 
+            T=1),0)
+daty2 &lt;- round(hollingsII(X=datx, 
+            a=0.75*rnorm(length(datx), mean=1, sd=0.1), 
+            h=0.01*rnorm(length(datx), mean=1, sd=0.1), 
+            T=1),0)
+dat &lt;- data.frame(datx,daty1,daty2)
+
+hollII_1 &lt;- frair_fit(daty1~datx, data=dat, response='hollingsII', 
+        start=list(a=1, h=0.1), fixed=list(T=1))
+hollII_2 &lt;- frair_fit(daty2~datx, data=dat, response='hollingsII', 
+        start=list(a=1, h=0.01), fixed=list(T=1))
+
+plot(c(0,100), c(0,40), type='n', xlab='Density', ylab='No. Eaten')
+points(hollII_1)
+points(hollII_2, col=4)
+lines(hollII_1)
+lines(hollII_2, col=4)
+
+frair_compare(hollII_1, hollII_2)
+</code></pre>
+
+
+</div>

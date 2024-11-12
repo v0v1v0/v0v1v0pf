@@ -1,0 +1,307 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wassersteinCluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Soft clustering of covariance operators.
+</h2>
+
+<h3>Description</h3>
+
+
+<p>Computes the soft cluster solutions for different values of the number of clusters K. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">wassersteinCluster(data, grp, 
+                   kmin = 2, kmax = 10, 
+                   E = -0.75 * (0.95 * log(0.95) + 
+                        0.05 * log(0.05)) + 0.25 * log(2), 
+                   nstart = 5, nrefine = 5, ntry = 0, 
+                   max.iter = 20, tol = 0.001, 
+                   nreduced = length(unique(grp)), 
+                   nperm = 0, 
+                   add.sigma = FALSE, 
+                   use.future = FALSE, verbose = TRUE)
+
+trimmedAverageSilhouette(a, plot = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A N times M matrix containing the N sample curves; M denotes the number of points of the grid on which the curves are available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grp</code></td>
+<td>
+
+<p>A vector or factor of length N; a covariance operator is estimated for
+each level of grp.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmin,kmax</code></td>
+<td>
+
+<p>A pair of integer defining the desired number of clusters. A solution is computed for K=kmin,...,kmax.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>E</code></td>
+<td>
+
+<p>The desired average entropy.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart, nrefine, ntry</code></td>
+<td>
+
+<p>The integers used during the initialization search. If ntry=0, then 'ntry' is set to 'round(1+N/K)'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+
+<p>Maximum number of block descend iterations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+
+<p>Iterations stop when the relative decrease of the objective function in two consecutive iterations is less than 'tol'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nreduced</code></td>
+<td>
+
+<p>The number of covariances used to estimate the cluster barycenters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nperm</code></td>
+<td>
+
+<p>The number of permutation used to approximate the reference distribution of max TASW.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.sigma</code></td>
+<td>
+
+<p>Should the sample covariances be returned?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.future</code></td>
+<td>
+
+<p>Use or not use package 'future' to parallelize the computation? See note.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>If 'verbose==TRUE', information on the progress of the optimization are shown.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+
+<p>A list returned by 'wassersteinCluster'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+
+<p>If 'plot==TRUE', the TASW profile is plotted.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Masarotto &amp; Masarotto (2023) for the algorithm details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>'wassersteinCluster' returns a list of length kmax-kmin+1. 
+The ith element is a list describing the cluster solution obtained for k=kmin+i-1, and containing: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>K,E,eta</code></td>
+<td>
+<p>the number of cluster, the average entropy and the corresponding value of 'eta';</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>the N times K soft partition matrix;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>a M times M times K array with the cluster barycenters;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>a N times K matrices containing the distances between the N sample covariances and the K cluster barycenters;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>'obj': the minimum value of the objective function.</p>
+</td>
+</tr>
+</table>
+<p>The list may have the following attributes:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>the degree of freedom of the sample operators (a vector). Always present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample.covariances</code></td>
+<td>
+<p>a list contaning the sample operators (as a
+3-dimensional array); only present if add.sigma=TRUE;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tasw.test</code></td>
+<td>
+<p>a list containing the value of maxTASW computed from the data (a scalar), the nperm values of of maxTASW obtained by permutation (a vector), and the corresponding p-value (a scalar); only present if nperm&gt;0.</p>
+</td>
+</tr>
+</table>
+<p>'trimmedAverageSilhouette' returns a numeric vector with the TASW values.
+</p>
+
+
+<h3>Note</h3>
+
+<p>To distribute the computation on more than a cpu 
+</p>
+
+<ol>
+<li>
+<p> install the package 'future'
+</p>
+</li>
+<li>
+<p>  execute in the R session
+</p>
+
+<ul>
+<li>
+<p> library(future)
+</p>
+</li>
+<li>
+<p> plan(multissession)
+</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>For more options, see the future's documentation
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Valentina Masarotto, Guido Masarotto
+</p>
+
+
+<h3>References</h3>
+
+<p>Masarotto, V. &amp; Masarotto, G. (2023) "Covariance-based soft clustering
+of functional data based on the Wasserstein-Procrustes metric", 
+<em>Scandinavian Journal of Statistics</em>, <a href="https://doi.org/10.1111/sjos.12692">doi:10.1111/sjos.12692</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Example phoneme.R (simplified) from https://doi.org/10.1111/sjos.12692. 
+data(phoneme)
+# resampling the log-periodograms
+# 15 sample covariances for each phoneme
+set.seed(12345)
+nsubsamples &lt;- 15
+n &lt;- 40
+gg &lt;- unique(Phoneme)
+nphonemes &lt;- length(gg)
+N &lt;- n*nsubsamples*nphonemes
+M &lt;- NCOL(logPeriodogram)
+X &lt;- matrix(NA, N, M)
+gr &lt;- integer(N)
+r &lt;- 1
+first &lt;- 1
+last &lt;- n
+for (l in gg) {
+  for (i in 1:nsubsamples) {
+    X[first:last, ] &lt;- logPeriodogram[sample(which(Phoneme==l),n), ]
+    gr[first:last] &lt;- r
+    r &lt;- r+1
+    first &lt;- first+n
+    last &lt;- last+n
+  }
+}
+# soft clustering
+a &lt;- wassersteinCluster(X, gr)
+# how many cluster?
+trimmedAverageSilhouette(a)
+# the membership weigths show that the
+# algorithm reconstructed the five phoneme
+w &lt;- ts(a[[4]]$w)
+colnames(w) &lt;- paste("Cluster", 1:5)
+plot(w, xlab="Sample covariances", main="")
+
+</code></pre>
+
+
+</div>

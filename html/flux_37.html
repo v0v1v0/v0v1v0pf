@@ -1,0 +1,286 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reco.bulk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Bulk fitting of Reco and GPP models
+</h2>
+
+<h3>Description</h3>
+
+<p>The function allows for bulk fitting of <code class="reqn">R_{eco}</code> and GPP models with the respective functions <code>reco</code> and <code>gpp</code>. This is often appropriate because data are gathered over a season, a year or longer...
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reco.bulk(formula, data, INDEX, window = 1, hook = "mean", remove.outliers = FALSE, 
+fall.back = TRUE, ...)
+
+gpp.bulk(formula, data, INDEX, window = 1, hook = "mean", oot.id = c("D", "T"), 
+min.dp = 5, Reco.m = NULL, ts.Reco = NULL, fall.back = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>An object of class "<code>formula</code>" (or one that can be coerced to that class): a symbolic description of the terms that are used in bulk <code class="reqn">R_{eco}</code> and GPP model fitting. Choices of terms are more restricted than typically (see details). For instance, a timestamp always has to be provided. Also, temperature variables are required for <code>gpp.bulk</code> if <code class="reqn">R_{eco}</code> values are predicted from models.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame (or an object that can be coerced to that class by <code>as.data.frame</code>) containing at least all the 'model' terms specified in <code>formula</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>INDEX</code></td>
+<td>
+
+<p>A vector of length <code>nrow(data)</code> that is used to extract and compile data, for instance according to measurement campaign in the field. Internally <code>split</code> is used with <code>f = INDEX</code> to create a list of <code>data.frame</code>s of which each contains all flux measurements for one model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window</code></td>
+<td>
+
+<p>Both functions can fit the respective models across a moving window of adjacent <code>INDEX</code> values. Not advisable for GPP while <code class="reqn">R_{eco}</code> modelling can really profit because more data points often lead to better models.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hook</code></td>
+<td>
+
+<p>Character string specifiying the kind of summary statistics used to fix a date and time to which  the fitted model shall refer. Up to now this is simply achieved by doing one of these summary statistics on the timestamp: <code>mean</code>, <code>min</code>, <code>max</code> or <code>median</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove.outliers</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code> the function searches for outliers in the data points of the <code class="reqn">R_{eco}</code> models and eliminates them. Per model the <code>boxplot.stats</code> of the residuals are obtained and if outliers are present they are eliminated and the model is fitted again. This is done twice. If the function fails in fitting the model to the new data set it falls back to the original data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oot.id</code></td>
+<td>
+
+<p>Vector of length 2 that specifies which of the flux values derive from opaque (first value, i.e. <code class="reqn">R_{eco}</code> measurements) and which derive from transparent (second value, i.e. NEE measurements) chamber measurements when <code>data</code> contains both. This is one of several approaches to GPP modeling here. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.dp</code></td>
+<td>
+
+<p>Numeric. Specifies the minimum number of data points that are accepted per model. Defaults to 5 which is already quite a small number.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reco.m</code></td>
+<td>
+
+<p>Either an object of class "<code>reco</code>" resulting from <code>reco</code> with one <code class="reqn">R_{eco}</code> model or an object of class "<code>breco</code>" resulting from <code>reco.bulk</code> with several <code class="reqn">R_{eco}</code> models or a vector with estimated half hourly or hourly (or whatever interval you have) <code class="reqn">R_{eco}</code> values. In case of the latter <code>ts.Reco</code> has to be specified as well because it is also used as a switch between internal <code class="reqn">R_{eco}</code> modeling and assigning existing <code class="reqn">R_{eco}</code> values. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ts.Reco</code></td>
+<td>
+
+<p>POSIXlt or POSIXct vector with timestamps of the fluxes in <code>Reco.m</code>. Further, the default (<code>ts.Reco</code> = NULL) lets the function expect model object(s) in <code>Reco.m</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fall.back</code></td>
+<td>
+
+<p>Logical. When TRUE the function falls back to linear mean models when the non linear approach did not work out (for <code>reco.bulk</code>: the slope of the linear relationship between Reco and temperature is &lt; 0; for <code>gpp.bulk</code>: either no model could be fit or the starting slope parameter <code>alpha</code> is &gt; 0). To do so a virtual data set is created with 50 random <code>GPP</code> values that have the same mean and sd as the original data and with a sequence of 50 <code>PAR</code> values spanning from 0 to 2000. A linear model is fit to these data with <code>lm(GPP ~ PAR)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments passed to <code>reco</code> or <code>gpp</code> e.g., the method for fitting the model when not using the respective defaults.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Models are - comparable to regression models - specified symbolically. Accordingly, the basic form is <code>response ~ terms</code> with <code>response</code> always referring to <code class="reqn">CO_2</code> exchange rates. For <code>terms</code> requirements differ between the two methods. In contrast to other <code>formula</code>e the <code>response</code> and all <code>terms</code> have to be in <code>data</code>.
+</p>
+<p><code>reco.bulk</code> expects a <code>formula</code> of the form <code>Reco</code> ~ <code>T1</code> +  <code>...</code> + <code>timestamp</code> with <code>Reco</code> referring to <code class="reqn">CO_2</code> fluxes estimated based on opaque chamber measurements (for instance with <code>flux</code>), <code>T1</code> referring to temperature readings relevant for <code>Reco</code> (e.g. air temperature) and taken during the corresponding chamber measurements. The <code>...</code> symbolizes that several more temperature readings can be specified if available (e.g. temperature in soil at 2cm), as many as you want. When more than one temperature is specified models are fit for each temperature and the best one is determined via <code>AIC</code> and reported together with the name of the corresponding temperature variable. Finally, <code>timestamp</code> is referring to the <code>POSIXt</code> timestamps that represent the dates and times of the corresponding measurements. <code>timestamp</code> always has to be specified as the last term of the <code>formula</code>. Models are fit using <code>reco</code>.
+</p>
+<p><code>gpp.bulk</code> expects a <code>formula</code> of the form <code>NEE</code> ~ <code>PAR</code> +  <code>timestamp</code> + <code>...</code> with <code>NEE</code> referring to <code class="reqn">CO_2</code> fluxes estimated based on transparent chamber measurements (for instance with <code>flux</code>), <code>PAR</code> referring to readings of the photosynthetically active radiation relevant for <code>NEE</code> and taken during the corresponding chamber measurements. The <code>...</code> symbolizes that several more terms can or have to be specified. This depends on the approach to the <code class="reqn">R_{eco}</code> part of the GPP modeling (see <code>gpp</code>).
+</p>
+<p>Approaches to estimate GPP values from measured NEE data using corresponding <code class="reqn">R_{eco}</code> values:
+</p>
+<p><b>Approach 1:</b> Extract corresponding <code class="reqn">R_{eco}</code> fluxes from the provided data that are assigned to corresponding NEE values via their timestamp: For this approach <code>data</code> has to contain both NEE and <code class="reqn">R_{eco}</code> fluxes and the model formula is specified as <code>NEE</code> ~ <code>PAR</code> +  <code>timestamp</code> + <code>oot</code> with the latter referring to a variable that indicates whether the respective fluxes were measured as <code>NEE</code> (transparent chamber) or <code>Reco</code> (opaque chamber or low PAR). In addition <code>oot.id</code> may have to be changed accordingly. <code>gpp2</code> is used for fitting the models. 
+</p>
+<p><b>Approach 2:</b> Provide measured <code class="reqn">R_{eco}</code> fluxes that are assigned to corresponding NEE values via their timestamp: To do this set <code>ts.Reco</code> != <code>NULL</code> and <code>Reco.m</code> a vector of <code class="reqn">R_{eco}</code> fluxes and specifiy model with: <code>NEE</code> ~ <code>PAR</code> +  <code>timestamp</code>. <code>gpp</code> is used for fitting the models.
+</p>
+<p><b>Approach 3:</b> Provide one <code class="reqn">R_{eco}</code> model to predict <code class="reqn">R_{eco}</code> fluxes at the time of the NEE measurements using the same temperature variable that was used to construct the model (with <code>reco</code>). Specify model with: <code>NEE</code> ~ <code>PAR</code> +  <code>timestamp</code> + <code>temperature</code>. <code>gpp</code> is used for fitting the models.
+</p>
+<p><b>Approach 4:</b> Provide several <code class="reqn">R_{eco}</code> models to predict <code class="reqn">R_{eco}</code> fluxes at the time of the NEE measurements using the same temperature variables that were used to construct the models (with <code>reco.bulk</code>). The corresponding models are assigned to the NEE data via the timestamps that they carry. Specify model with: <code>NEE</code> ~ <code>PAR</code> +  <code>timestamp</code> + <code>temperature1</code> + <code>temperature2</code> + <code>temperature3</code> + <code>...</code>. All temperatures that may have been used for fitting the <code class="reqn">R_{eco}</code> models (see above) should be given. <code>gpp</code> is used for fitting the models.
+</p>
+<p><code>remove.outliers</code> may result in better <code class="reqn">R_{eco}</code> models. One should be careful with this and watch out for cases in which too many data points are eliminated. The function returns the number of skipped outliers per model to do just that.
+</p>
+<p>If <code>fall.back</code> = <code>TRUE</code> no failed model fits are reported. That's quite useful when further bulk methods like <code>budget.reco</code> or <code>budget.gpp</code> are used to get annual or seasonal budgets.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Both functions return complex list structures with models. 
+</p>
+<p>Output of <code>reco.bulk</code>:
+Object of class "<code>breco</code>", a list with <code>length(unique(INDEX))</code> elements, each containing 3 elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ts </code></td>
+<td>
+<p> Timestamp of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod </code></td>
+<td>
+<p> Has itself two elements. The first contains the model object as returned by <code>reco</code> and is named according to the method used. The second, <code>n.out</code>, is optional (only reported when <code>remove.outliers = TRUE</code> and there were indeed outliers identified and skipped) and gives the number of omitted data points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which.Temp </code></td>
+<td>
+<p> Character string that identifies the temperature variable that was finally used for constructing the best model</p>
+</td>
+</tr>
+</table>
+<p>Output of <code>gpp.bulk</code>:
+Object of class "<code>bgpp</code>", a list with <code>length(unique(INDEX))</code> elements each containing itself 2 entries:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ts </code></td>
+<td>
+<p> Timestamp of the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod </code></td>
+<td>
+<p> Either an object of class "<code>gpp</code>" or of class "<code>gpp2</code>" depending on the approach used. Approaches 1 and 2 return "<code>gpp2</code>" objects, Approaches 3 and 4 return "<code>gpp</code>" objects. See <code>gpp</code> and <code>gpp2</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gerald Jurasinski, <a href="mailto:gerald.jurasinski@uni-rostock.de">gerald.jurasinski@uni-rostock.de</a>,
+</p>
+<p>with suggestions by Sascha Beetz, <a href="mailto:sascha.beetz@uni-rostock.de">sascha.beetz@uni-rostock.de</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Beetz S, Liebersbach H, Glatzel S, Jurasinski G, Buczko U, Hoper H (2013) Effects of land use intensity on the full greenhouse gas balance in an Atlantic peat bog. Biogeosciences 10:1067-1082
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>reco</code>, <code>gpp</code>, <code>gpp2</code>, <code>fluxx</code>, <code>modjust</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Whole example is consecutive and largely marked as
+## not run because parts take longer than
+## accepted by CRAN incoming checks.
+## Remove first hash in each line to run them.
+data(amd)
+data(amc)
+
+### Reco ###
+## do reco models with 3 campaign wide window and 
+## outlier removal (outliers according to models)
+# first extract opaque (dark) chamber measurements 
+amr &lt;- amd[amd$kind=="D",]
+
+## Nor run ##
+## do bulk fitting of reco models (all specified temperatures 
+## are tested and the best model (per campaign) is finally stored)
+#r.models &lt;- reco.bulk(flux ~ t.air + t.soil2 + t.soil5 + 
+#t.soil10 + timestamp, amr, amr$campaign, window=3, 
+#remove.outliers=TRUE, method="arr", min.dp=2)
+#
+## adjust models (BEWARE: stupid models with t1 &gt;= 20 are skipped 
+## within the function, this can be changed)
+#r.models &lt;- modjust(r.models, alpha=0.1, min.dp=3)
+#
+## make data.frame (table) for overview of model parameters
+## the temperature with which the best model could be fit is reported
+## this information also resides in the model objects in r.models
+#tbl8(r.models)
+#
+#### GPP ###
+### fit GPP models using method = Falge and min.dp = 5
+### and take opaque (dark, i.e. reco) measurements from data
+## the function issues a warning because some campaigns have
+## not enough data points
+#g.models &lt;- gpp.bulk(flux ~ PAR + timestamp + kind, amd, amd$campaign, 
+#method="Falge", min.dp=5)
+#tbl8(g.models)
+#
+### alternative approaches to acknowledge reco when fitting GPP models
+## we need only fluxes based on transparent chamber measurements (NEE)
+#amg &lt;- amd[amd$kind=="T",]
+## fit gpp models and predict reco from models
+#g.models.a1 &lt;- gpp.bulk(flux ~ PAR + timestamp + t.air + t.soil2 + 
+#t.soil5 + t.soil10, amg, amg$campaign, method="Falge", min.dp=5, 
+#Reco.m=r.models)
+#tbl8(g.models.a1)
+## have a look the model fits (first 10)
+#par(mfrow=c(5,6))
+## select only non linear fits
+#sel &lt;- sapply(g.models.a1, function(x) class(x$mod$mg)=="nls")
+#lapply(g.models.a1[sel][1:10], function(x) plot(x$mod, single.pane=FALSE))
+#
+## fit gpp models with providing reco data
+## to do so, rerun budget.reco with other start and end points
+#set.back &lt;- data.frame(timestamp = c("2009-09-01 00:30", "2011-12-31 23:30"), 
+#value = c(-999, -9999))
+#set.back$timestamp &lt;- strptime(set.back$timestamp, format="%Y-%m-%d %H:%M")
+#r.bdgt.a2 &lt;- budget.reco(r.models, amc, set.back)
+## now fit the models
+#g.models.a2 &lt;- gpp.bulk(flux ~ PAR + timestamp, amg, amg$campaign, 
+#method="Falge", units = "30mins", min.dp=5, Reco.m=r.bdgt.a2$reco.flux, 
+#ts.Reco = r.bdgt.a2$timestamp)
+#tbl8(g.models.a2)
+#
+## End not run ##
+
+</code></pre>
+
+
+</div>

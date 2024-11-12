@@ -1,0 +1,84 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>read.fs.annot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read file in FreeSurfer annotation format</h2>
+
+<h3>Description</h3>
+
+<p>Read a data annotation file in FreeSurfer format. Such a file assigns a label and a color to each vertex of a brain surface. The assignment of labels to vertices is based on at atlas or brain parcellation file. Typically the atlas is available for some standard template subject, and the labels are assigned to another subject by registering it to the template.
+For a subject (MRI image pre-processed with FreeSurfer) named 'bert', an example file would be 'bert/label/lh.aparc.annot', which contains the annotation based on the Desikan-Killiany Atlas for the left hemisphere of bert.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read.fs.annot(
+  filepath,
+  empty_label_name = "empty",
+  metadata = list(),
+  default_label_name = ""
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filepath</code></td>
+<td>
+<p>string. Full path to the input annotation file. Note: gzipped files are supported and gz format is assumed if the filepath ends with ".gz".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empty_label_name</code></td>
+<td>
+<p>character string, a base name to use to rename regions with empty name in the label table. This should not occur, and you can ignore this parameter setting. A warning will be thrown if this ever triggers. Not to be confused with parameter <code>default_label_name</code>, see below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metadata</code></td>
+<td>
+<p>named list of arbitrary metadata to store in the instance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default_label_name</code></td>
+<td>
+<p>character string, the label name to use for vertices which have a label code that does not occur in the label table. This is typically the case for the 'unknown' region, which often has code <code>0</code>. You can set this to avoid empty region label names. The typical setting would be 'unknown', however by default we leave the names as-is, so that annots which are read and then written back to files with this library do not differ.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>named list, entries are: "vertices" vector of n vertex indices, starting with 0. "label_codes": vector of n integers, each entry is a color code, i.e., a value from the 5th column in the table structure included in the "colortable" entry (see below). "label_names": the n brain structure names for the vertices, already retrieved from the colortable using the code. "hex_colors_rgb": Vector of hex color for each vertex.
+The "colortable" is another named list with 3 entries: "num_entries": int, number of brain structures. "struct_names": vector of strings, the brain structure names. "table": numeric matrix with num_entries rows and 5 colums. The 5 columns are: 1 = color red channel, 2=color blue channel, 3=color green channel, 4=color alpha channel, 5=unique color code. "colortable_df": The same information as a dataframe. Contains the extra columns "hex_color_string_rgb" and "hex_color_string_rgba" that hold the color as an RGB(A) hex string, like "#rrggbbaa".
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other atlas functions: 
+<code>colortable.from.annot()</code>,
+<code>read.fs.colortable()</code>,
+<code>write.fs.annot.gii()</code>,
+<code>write.fs.annot()</code>,
+<code>write.fs.colortable()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    annot_file = system.file("extdata", "lh.aparc.annot.gz",
+                               package = "freesurferformats",
+                               mustWork = TRUE);
+    annot = read.fs.annot(annot_file);
+    print(annot);
+
+</code></pre>
+
+
+</div>

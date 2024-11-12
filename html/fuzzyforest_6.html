@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ff.formula</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuzzy forests algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Implements formula interface for <code>ff</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+ff(formula, data = NULL, module_membership, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data used in the analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>module_membership</code></td>
+<td>
+<p>A character vector giving the module membership
+of each feature.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of type <code>fuzzy_forest</code>.  This
+object is a list containing useful output of fuzzy forests.
+In particular it contains a data.frame with list of selected features.
+It also includes the random forest fit using the selected features.
+</p>
+
+
+<h3>Note</h3>
+
+<p>See <code>ff</code> for additional arguments.
+Note that the matrix, <code>Z</code>, of features that do not go through
+the screening step must specified separately from the formula.
+<code>test_features</code> and <code>test_y</code> are not supported in formula
+interface.  As in the <code>randomForest</code> package, for large data sets
+the formula interface may be substantially slower.
+</p>
+<p>This work was partially funded by NSF IIS 1251151 and AMFAR 8721SC.
+</p>
+
+
+<h3>References</h3>
+
+<p>Conn, D., Ngun, T., Ramirez C.M., Li, G. (2019).
+"Fuzzy Forests: Extending Random Forest Feature Selection for Correlated, High-Dimensional Data."
+<em>Journal of Statistical Software</em>, <strong>91</strong>(9).
+doi: <a href="https://doi.org/10.18637/jss.v091.i09">10.18637/jss.v091.i09</a>
+</p>
+<p>Breiman, L. (2001).
+"Random Forests."
+<em>Machine Learning</em>, <strong>45</strong>(1), 5-32.
+doi: <a href="https://doi.org/10.1023/A:1010933404324">10.1023/A:1010933404324</a>
+</p>
+<p>Zhang, B. and Horvath, S. (2005).
+"A General Framework for Weighted Gene Co-Expression Network Analysis."
+<em>Statistical Applications in Genetics and Molecular Biology</em>, <strong>4</strong>(1).
+doi: <a href="https://doi.org/10.2202/1544-6115.1128">10.2202/1544-6115.1128</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ff</code>,
+<code>print.fuzzy_forest</code>,
+<code>predict.fuzzy_forest</code>,
+<code>modplot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#ff requires that the partition of the covariates be previously determined.
+#ff is also handy if the user wants to test out multiple settings of WGCNA
+#prior to running fuzzy forests.
+library(mvtnorm)
+gen_mod &lt;- function(n, p, corr) {
+  sigma &lt;- matrix(corr, nrow=p, ncol=p)
+  diag(sigma) &lt;- 1
+  X &lt;- rmvnorm(n, sigma=sigma)
+  return(X)
+}
+
+gen_X &lt;- function(n, mod_sizes, corr){
+  m &lt;- length(mod_sizes)
+  X_list &lt;- vector("list", length = m)
+  for(i in 1:m){
+    X_list[[i]] &lt;- gen_mod(n, mod_sizes[i], corr[i])
+  }
+  X &lt;- do.call("cbind", X_list)
+  return(X)
+}
+
+err_sd &lt;- .5
+n &lt;- 500
+mod_sizes &lt;- rep(25, 4)
+corr &lt;- rep(.8, 4)
+X &lt;- gen_X(n, mod_sizes, corr)
+beta &lt;- rep(0, 100)
+beta[c(1:4, 76:79)] &lt;- 5
+y &lt;- X%*%beta + rnorm(n, sd=err_sd)
+X &lt;- as.data.frame(X)
+dat &lt;- as.data.frame(cbind(y, X))
+
+Xtest &lt;- gen_X(n, mod_sizes, corr)
+ytest &lt;- Xtest%*%beta + rnorm(n, sd=err_sd)
+Xtest &lt;- as.data.frame(Xtest)
+
+cdist &lt;- as.dist(1 - cor(X))
+hclust_fit &lt;- hclust(cdist, method="ward.D")
+groups &lt;- cutree(hclust_fit, k=4)
+
+screen_c &lt;- screen_control(keep_fraction = .25,
+                           ntree_factor = 1,
+                           min_ntree = 250)
+select_c &lt;- select_control(number_selected = 10,
+                           ntree_factor = 1,
+                           min_ntree = 250)
+
+ff_fit &lt;- ff(y ~ ., data=dat,
+             module_membership = groups,
+             screen_params = screen_c,
+             select_params = select_c,
+             final_ntree = 250)
+#extract variable importance rankings
+vims &lt;- ff_fit$feature_list
+
+#plot results
+modplot(ff_fit)
+
+#obtain predicted values for a new test set
+preds &lt;- predict(ff_fit, new_data=Xtest)
+
+#estimate test set error
+test_err &lt;- sqrt(sum((ytest - preds)^2)/n)
+
+</code></pre>
+
+
+</div>

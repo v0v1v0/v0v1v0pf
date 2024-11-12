@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fuzz_function</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuzz-test a function</h2>
+
+<h3>Description</h3>
+
+<p>Evaluate how a function responds to unexpected or non-standard inputs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fuzz_function(fun, arg_name, ..., tests = test_all(), check_args = TRUE,
+  progress = interactive())
+
+p_fuzz_function(fun, .l, check_args = TRUE, progress = interactive())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>A function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arg_name</code></td>
+<td>
+<p>Quoted name of the argument to fuzz test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other non-dynamic arguments to pass to <code>fun</code>. These will be
+repeated for every one of the <code>tests</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tests</code></td>
+<td>
+<p>Which fuzz tests to run. Accepts a named list of inputs,
+defaulting to <code>test_all</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_args</code></td>
+<td>
+<p>Check if <code>arg_name</code> and any arguments passed as
+<code>...</code> are accepted by <code>fun</code>. Set to <code>FALSE</code> if you need to
+pass arguments to a function that accepts arguments via <code>...</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>Show a progress bar while running tests?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.l</code></td>
+<td>
+<p>A named list of tests.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fuzz_function</code> provides a simple interface to fuzz test a single
+argument of a function by passing the function, name of the argument, static
+values of other required arguments, and a named list of test values.
+</p>
+<p><code>p_fuzz_function</code> takes a nested list of arguments paired with lists of
+tests to run on each argument, and will evaluate every combination of
+argument and provided test.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>fuzz_results</code> object.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The user will be asked to confirm before proceeding if the combinations
+of potential tests exceeds 500,000.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fuzz_results</code> and
+<code>as.data.frame.fuzz_results</code> to access fuzz test results.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Evaluate the 'formula' argument of lm, passing additional required variables
+fr &lt;- fuzz_function(lm, "formula", data = iris)
+
+# When evaluating a function that takes ..., set check_args to FALSE
+fr &lt;- fuzz_function(paste, "x", check_args = FALSE)
+
+# Pass tests to multiple arguments via a named list
+test_args &lt;- list(
+   data = test_df(),
+   subset = test_all(),
+   # Specify custom tests with a new named list
+   formula = list(all_vars = Sepal.Length ~ ., one_var = mpg ~ .))
+fr &lt;- p_fuzz_function(lm, test_args)
+</code></pre>
+
+
+</div>

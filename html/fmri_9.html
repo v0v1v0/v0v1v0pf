@@ -1,0 +1,260 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmri.lm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Linear Model for fMRI data </h2>
+
+<h3>Description</h3>
+
+<p>Estimate the parameters and variances in a linear model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  fmri.lm(ds, z, mask = NULL,
+          actype = c("smooth", "noac", "ac", "accalc"),
+          contrast = c(1), verbose = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ds</code></td>
+<td>
+<p> Data object of class "fmridata" </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p> Design matrix specifying the expected BOLD response(s)
+and additional components for trend and other effects. This can
+either be a matrix (in case that no slice timing is required at
+this stage) or an 3D - array with 3rd dimension corresponding
+to the slice number. It can be interpreted as stacked array of
+of design matrices for the individual slices.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p> Array of dimensionality of the data describing a (brain) mask
+the computation should be restricted to. The default is the
+mask given with the data. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>actype</code></td>
+<td>
+<p> String describing the type of handling autocorrelation
+of time series. One of "smooth", "nonac", "ac", "accalc".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrast</code></td>
+<td>
+<p> Contrast vector for the covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p> Verbose mode, default is <code>FALSE</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function performs parameter estimation in the linear model.
+It implements a two step procedure. After primary estimation of the
+parameters in the first step residuals are obtained. If <code>actype</code>
+<code>%in%</code> <code>c("ac", "accalc", "smooth")</code> an AR(1) model is
+fitted, in each voxel, to the time series of residuals. The estimated
+AR-coefficients are corrected for bias. If <code>actype=="smooth"</code>
+the estimated AR-coefficients are spatially smoothed. If <code>actype</code>
+<code>%in%</code> <code>c("ac", "smooth")</code> the linear model is pre-whitened
+using the estimated (and possibly smoothed) AR-coefficients. Parameter
+and variance estimates are then obtained from the pre-whitened
+data. The argument <code>keep</code> describes the amount of data which is
+returned. The estimated effects
+</p>
+<p style="text-align: center;"><code class="reqn">\tilde{\gamma}_i = C^T\tilde{\beta}_i</code>
+</p>
+
+<p>and their estimated variances are returned as well as the
+residuals and temporal autocorrelation.
+<code>cbeta</code> then contains the corresponding parameter
+estimates and thus is a vector of corresponding length in each voxel.
+</p>
+<p>If <code>z</code> is an 3-dimensional array the third component is assumed to
+code the design matrix information for the corresponding slice, i.e.
+design matrices to differ with respect to slice timing effects. Note that
+if motion correction needs to be performed in preprocessing slice time
+correction may be better carried out on the data before image registration
+using, e.g., function <code>slicetiming</code>.
+</p>
+<p>If warning "Local smoothness characterized by large bandwidth" occurs,
+check <code>scorr</code> elements. If correlation drops with lag towards
+zero, data has been pre-smoothed. Adaptive smoothing the SPM can then
+only be of limited use. If correlation does not go to zero, check the
+residuals of the linear model for unexplained structure (spin saturation
+in first scans? discard them!).
+</p>
+
+
+<h3>Value</h3>
+
+<p>object with class attributes "fmrispm" and "fmridata"
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>estimated parameters </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cbeta</code></td>
+<td>
+<p>estimated contrast of parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>estimated variance of the contrast of parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varm</code></td>
+<td>
+<p>covariance matrix of the parameters given by <code>vvector</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>raw (integer size 2) vector containing residuals of the estimated linear model
+up to scale factor resscale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resscale</code></td>
+<td>
+<p><code>resscale*extractData(object,"residuals")</code> are the residuals. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p>dimension of the data cube and residuals</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arfactor</code></td>
+<td>
+<p>estimated autocorrelation parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rxyz</code></td>
+<td>
+<p>array of smoothness from estimated correlation for each
+voxel in resel space (for analysis without smoothing)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr</code></td>
+<td>
+<p>array of spatial correlations with maximal lags 5, 5, 3 in x,y and z-direction. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>vector of bandwidths (in FWHM) corresponding to the spatial correlation within the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>ratio of voxel dimensions </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vwghts</code></td>
+<td>
+<p>ratio of estimated variances for the stimuli given by
+<code>vvector</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p>head mask.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Degrees of freedom for t-statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrf</code></td>
+<td>
+<p>expected BOLD response for contrast </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Karsten Tabelow <a href="mailto:tabelow@wias-berlin.de">tabelow@wias-berlin.de</a>,
+Joerg Polzehl <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a>  </p>
+
+
+<h3>References</h3>
+
+<p> Worsley, K.J. (2005). Spatial smoothing of autocorrelations
+to control the degrees of freedom in fMRI analysis. NeuroImage,
+26:635-641.
+</p>
+<p>Worsley, K.J., Liao, C., Aston, J., Petre, V., Duncan,
+G.H., Morales, F., Evans, A.C. (2002). A general statistical analysis
+for fMRI data. NeuroImage, 15:1-15.
+</p>
+<p>Tabelow, K., Polzehl, J., Voss, H.U., and Spokoiny, V. (2006).
+<em>Analysing fMRI
+experiments with structure adaptive smoothing procedures</em>,
+NeuroImage, 33:55-62.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>fmri.design</code>, <code>fmri.stimulus</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Not run: 
+  # Example 1
+  data &lt;- list(ttt=writeBin(rnorm(32*32*32*107), raw(), 4),
+               mask=array(TRUE, c(32, 32, 32)), dim=c(32, 32, 32, 107))
+  class(data) &lt;- "fmridata"
+  hrf &lt;- fmri.stimulus(107, c(18, 48, 78), 15, 2)
+  z &lt;- fmri.design(hrf,2)
+  model &lt;- fmri.lm(data, z, verbose=TRUE)
+  plot(extractData(data)[16, 16, 16,])
+  lines(extractData(data)[16, 16, 16, ] - extractData(model, "residuals")[16, 16, 16, ], col=2)
+  
+## End(Not run)
+</code></pre>
+
+
+</div>

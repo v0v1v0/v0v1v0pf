@@ -1,0 +1,302 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tune_sim_anneal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimization of model parameters via simulated annealing</h2>
+
+<h3>Description</h3>
+
+<p><code>tune_sim_anneal()</code> uses an iterative search procedure to generate new
+candidate tuning parameter combinations based on previous results. It uses
+the generalized simulated annealing method of Bohachevsky, Johnson, and
+Stein (1986).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tune_sim_anneal(object, ...)
+
+## S3 method for class 'model_spec'
+tune_sim_anneal(
+  object,
+  preprocessor,
+  resamples,
+  ...,
+  iter = 10,
+  param_info = NULL,
+  metrics = NULL,
+  eval_time = NULL,
+  initial = 1,
+  control = control_sim_anneal()
+)
+
+## S3 method for class 'workflow'
+tune_sim_anneal(
+  object,
+  resamples,
+  ...,
+  iter = 10,
+  param_info = NULL,
+  metrics = NULL,
+  eval_time = NULL,
+  initial = 1,
+  control = control_sim_anneal()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>parsnip</code> model specification or a <code>workflows::workflow()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not currently used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preprocessor</code></td>
+<td>
+<p>A traditional model formula or a recipe created using
+<code>recipes::recipe()</code>. This is only required when <code>object</code> is not a workflow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resamples</code></td>
+<td>
+<p>An <code>rset()</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>The maximum number of search iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param_info</code></td>
+<td>
+<p>A <code>dials::parameters()</code> object or <code>NULL</code>. If none is given,
+a parameter set is derived from other arguments. Passing this argument can
+be useful when parameter ranges need to be customized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>A <code>yardstick::metric_set()</code> object containing information on how
+models will be evaluated for performance. The first metric in <code>metrics</code> is the
+one that will be optimized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_time</code></td>
+<td>
+<p>A numeric vector of time points where dynamic event time
+metrics should be computed (e.g. the time-dependent ROC curve, etc). The
+values must be non-negative and should probably be no greater than the
+largest event time in the training set (See Details below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>An initial set of results in a tidy format (as would the result
+of <code>tune_grid()</code>, <code>tune_bayes()</code>, <code>tune_race_win_loss()</code>, or
+<code>tune_race_anova()</code>) or a positive integer. If the initial object was a
+sequential search method, the simulated annealing iterations start after the
+last iteration of the initial results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>The results of <code>control_sim_anneal()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Simulated annealing is a global optimization method. For model tuning, it
+can be used to iteratively search the parameter space for optimal tuning
+parameter combinations. At each iteration, a new parameter combination is
+created by perturbing the current parameters in some small way so that they
+are within a small neighborhood. This new parameter combination is used to
+fit a model and that model's performance is measured using resampling (or a
+simple validation set).
+</p>
+<p>If the new settings have better results than the current settings, they are
+accepted and the process continues.
+</p>
+<p>If the new settings has worse performance, a probability threshold is
+computed for accepting these sub-optimal values. The probability is a
+function of <em>how</em> sub-optimal the results are as well as how many iterations
+have elapsed. This is referred to as the "cooling schedule" for the
+algorithm. If the sub-optimal results are accepted, the next iterations
+settings are based on these inferior results. Otherwise, new parameter
+values are generated from the previous iteration's settings.
+</p>
+<p>This process continues for a pre-defined number of iterations and the
+overall best settings are recommended for use. The <code>control_sim_anneal()</code>
+function can specify the number of iterations without improvement for early
+stopping. Also, that function can be used to specify a <em>restart</em> threshold;
+if no globally best results have not be discovered within a certain number
+if iterations, the process can restart using the last known settings that
+globally best.
+</p>
+
+
+<h4>Creating new settings</h4>
+
+<p>For each numeric parameter, the range of possible values is known as well
+as any transformations. The current values are transformed and scaled to
+have values between zero and one (based on the possible range of values). A
+candidate set of values that are on a sphere with random radii between
+<code>rmin</code> and <code>rmax</code> are generated. Infeasible values are removed and one value
+is chosen at random. This value is back transformed to the original units
+and scale and are used as the new settings. The argument <code>radius</code> of
+<code>control_sim_anneal()</code> controls the range neighborhood sizes.
+</p>
+<p>For categorical and integer parameters, each is changes with a pre-defined
+probability. The <code>flip</code> argument of <code>control_sim_anneal()</code> can be used to
+specify this probability. For integer parameters, a nearby integer value is
+used.
+</p>
+<p>Simulated annealing search may not be the preferred method when many of the
+parameters are non-numeric or integers with few unique values. In these
+cases, it is likely that the same candidate set may be tested more than
+once.
+</p>
+
+
+
+<h4>Cooling schedule</h4>
+
+<p>To determine the probability of accepting a new value, the percent
+difference in performance is calculated. If the performance metric is to be
+maximized, this would be <code>d = (new-old)/old*100</code>. The probability is
+calculated as <code>p = exp(d * coef * iter)</code> were <code>coef</code> is a user-defined
+constant that can be used to increase or decrease the probabilities.
+</p>
+<p>The <code>cooling_coef</code> of <code>control_sim_anneal()</code> can be used for this purpose.
+</p>
+
+
+
+<h4>Termination criterion</h4>
+
+<p>The restart counter is reset when a new global best results is found.
+</p>
+<p>The termination counter resets when a new global best is located or when a
+suboptimal result is improved.
+</p>
+
+
+
+<h4>Parallelism</h4>
+
+<p>The <code>tune</code> and <code>finetune</code> packages currently parallelize over resamples.
+Specifying a parallel back-end will improve the generation of the initial
+set of sub-models (if any). Each iteration of the search are also run in
+parallel if a parallel backend is registered.
+</p>
+
+
+
+<h4>Censored regression models</h4>
+
+<p>With dynamic performance metrics (e.g. Brier or ROC curves), performance is
+calculated for every value of <code>eval_time</code> but the <em>first</em> evaluation time
+given by the user (e.g., <code>eval_time[1]</code>) is used to guide the optimization.
+</p>
+<p>Also, values of <code>eval_time</code> should be less than the largest observed event
+time in the training data. For many non-parametric models, the results beyond
+the largest time corresponding to an event are constant (or <code>NA</code>).
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A tibble of results that mirror those generated by <code>tune_grid()</code>.
+However, these results contain an <code>.iter</code> column and replicate the <code>rset</code>
+object multiple times over iterations (at limited additional memory costs).
+</p>
+
+
+<h3>References</h3>
+
+<p>Bohachevsky, Johnson, and Stein (1986) "Generalized Simulated Annealing for
+Function Optimization", <em>Technometrics</em>, 28:3, 209-217
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tune::tune_grid()</code>, <code>control_sim_anneal()</code>, <code>yardstick::metric_set()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(finetune)
+library(rpart)
+library(dplyr)
+library(tune)
+library(rsample)
+library(parsnip)
+library(workflows)
+library(ggplot2)
+
+## -----------------------------------------------------------------------------
+if (rlang::is_installed("modeldata")) {
+  data(two_class_dat, package = "modeldata")
+
+  set.seed(5046)
+  bt &lt;- bootstraps(two_class_dat, times = 5)
+
+  ## -----------------------------------------------------------------------------
+
+  cart_mod &lt;-
+    decision_tree(cost_complexity = tune(), min_n = tune()) %&gt;%
+    set_engine("rpart") %&gt;%
+    set_mode("classification")
+
+  ## -----------------------------------------------------------------------------
+
+  # For reproducibility, set the seed before running.
+  set.seed(10)
+  sa_search &lt;-
+    cart_mod %&gt;%
+    tune_sim_anneal(Class ~ ., resamples = bt, iter = 10)
+
+  autoplot(sa_search, metric = "roc_auc", type = "parameters") +
+    theme_bw()
+
+  ## -----------------------------------------------------------------------------
+  # More iterations. `initial` can be any other tune_* object or an integer
+  # (for new values).
+
+  set.seed(11)
+  more_search &lt;-
+    cart_mod %&gt;%
+    tune_sim_anneal(Class ~ ., resamples = bt, iter = 10, initial = sa_search)
+
+  autoplot(more_search, metric = "roc_auc", type = "performance") +
+    theme_bw()
+}
+
+</code></pre>
+
+
+</div>

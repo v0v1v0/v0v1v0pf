@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>TVAM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Iterative Smooth Backfitting Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Smooth backfitting procedure for time-varying additive models
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">TVAM(
+  Lt,
+  Ly,
+  LLx,
+  gridT = NULL,
+  x = NULL,
+  ht = NULL,
+  hx = NULL,
+  K = "epan",
+  suppT = NULL,
+  suppX = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>An <em>n</em>-dimensional list of <em>N_i</em>-dimensional vector whose elements consist of longitudinal time points for each <em>i</em>-th subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ly</code></td>
+<td>
+<p>An <em>n</em>-dimensional list of <em>N_i</em>-dimensional vector whose elements consist of longitudinal response observations of each <em>i</em>-subject corresponding to <em>Lt</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LLx</code></td>
+<td>
+<p>A tuple of <em>d</em>-lists, where each list represents longitudinal covariate observations of the <em>j</em>-th component corresponding to <em>Lt</em> and <em>Ly</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gridT</code></td>
+<td>
+<p>An <em>M</em>-dimensional sequence of evaluation time points for additive surface estimators. (Must be sorted in increasing orders.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <em>N</em> by <em>d</em> matrix whose column vectors consist of <em>N</em> vectors of evaluation points for additive surface component estimators at each covariate value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ht</code></td>
+<td>
+<p>A bandwidth for kernel smoothing in time component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hx</code></td>
+<td>
+<p>A <em>d</em> vector of bandwidths for kernel smoothing covariate components, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>A <code>function</code> object representing the kernel to be used in the smooth backfitting (default is 'epan', the the Epanechnikov kernel.).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppT</code></td>
+<td>
+<p>A 2-dimensional vector consists of the lower and upper limits of estimation intervals for time component (default is <em>[0,1]</em>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppX</code></td>
+<td>
+<p>A <em>d</em> by 2 matrix whose row vectors consist of the lower and upper limits of estimation intervals for each component function (default is the <em>d</em>-dimensional unit rectangle of <em>[0,1]</em>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>TVAM</code> estimates component surfaces of time-varying additive models for longitudinal observations based on the smooth backfitting algorithm proposed by Zhang et al. (2013). <code>TVAM</code> only focuses on the local constant smooth backfitting in contrast to the original development as in Zhang et al. (2013). However, the local polynomial version can be extended similarly, so that those are omitted in the development. Especially in this development, one can designate an estimation support of additive surfaces when the additive modeling is only allowed over restricted intervals or one is interested in the modeling over the support (see Han et al., 2016).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>tvamComp</code></td>
+<td>
+<p>A tuple of <em>d</em>-lists, where each list is given by  <em>M</em> by <em>N</em> matrix whose elements represents the smooth backfitting surface estimator of the <em>j</em>-component evaluated at <code>gridT</code> and the <em>j</em>-th column of <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvamMean</code></td>
+<td>
+<p>An <em>M</em>-dimensional vector whose elements consist of the marginal time regression function estimated at <code>gridT</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Zhang, X., Park, B. U. and Wang, J.-L. (2013), "Time-varying additive models for longitudinal data", Journal of the 
+American Statistical Association, Vol.108, No.503, p.983-998.</cite>
+</p>
+<p><cite>Han, K., Müller, H.-G. and Park, B. U. (2018), "Smooth backfitting for additive modeling with 
+small errors-in-variables, with an application to additive functional regression for multiple predictor functions", Bernoulli, Vol.24, No.2, p.1233-1265.</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1000)
+
+n &lt;- 30
+Lt &lt;- list()
+Ly &lt;- list()
+Lx1 &lt;- list()
+Lx2 &lt;- list()
+
+for (i in 1:n) {
+  Ni &lt;- sample(10:15,1)
+  
+  Lt[[i]] &lt;- sort(runif(Ni,0,1))
+  Lx1[[i]] &lt;- runif(Ni,0,1)
+  Lx2[[i]] &lt;- runif(Ni,0,1)
+  Ly[[i]] &lt;- Lt[[i]]*(cos(2*pi*Lx1[[i]]) + sin(2*pi*Lx2[[i]])) + rnorm(Ni,0,0.1)
+  
+}
+
+LLx &lt;- list(Lx1,Lx2)
+
+gridT &lt;- seq(0,1,length.out=31)
+x0 &lt;- seq(0,1,length.out=31)
+x &lt;- cbind(x0,x0)
+
+ht &lt;- 0.1
+hx &lt;- c(0.1,0.1)
+
+tvam &lt;- TVAM(Lt,Ly,LLx,gridT=gridT,x=x,ht=ht,hx=hx,K='epan')
+
+g0Sbf &lt;- tvam$tvamMean
+gjSbf &lt;- tvam$tvamComp
+
+op &lt;- par(mfrow=c(1,2), mar=c(1,1,1,1)+0.1)
+persp(gridT,x0,gjSbf[[1]],theta=60,phi=30,
+      xlab='time',ylab='x1',zlab='g1(t, x1)')
+persp(gridT,x0,gjSbf[[2]],theta=60,phi=30,
+      xlab='time',ylab='x2',zlab='g1(t, x2)')
+par(op)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,254 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FAM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Additive Models</h2>
+
+<h3>Description</h3>
+
+<p>Functional additive models with a single predictor process
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FAM(
+  Y,
+  Lx,
+  Lt,
+  nEval = 51,
+  newLx = NULL,
+  newLt = NULL,
+  bwMethod = 0,
+  alpha = 0.7,
+  supp = c(-2, 2),
+  optns = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>An <em>n</em>-dimensional vector whose elements consist of scalar responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lx</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual. See <code>FPCA</code> for detail.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual. Each vector should be sorted in ascending order. See <code>FPCA</code> for detail.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nEval</code></td>
+<td>
+<p>The number of evaluation grid points for kernel smoothing (default is 51. If it is specified as 0, then estimated FPC scores in the training set are used for evaluation grid instead of equal grid).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newLx</code></td>
+<td>
+<p>A list of the observed values for test set. See <code>predict.FPCA</code> for detail.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newLt</code></td>
+<td>
+<p>A list of the observed time points for test set. See <code>predict.FPCA</code> for detail.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bwMethod</code></td>
+<td>
+<p>The method of bandwidth selection for kernel smoothing, a positive value for designating K-fold cross-validtaion and zero for GCV (default is 50)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The shrinkage factor (positive number) for bandwidth selection. See Han et al. (2016) (default is 0.7).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>supp</code></td>
+<td>
+<p>The lower and upper limits of kernel smoothing domain for studentized FPC scores, which FPC scores are divided by the square roots of eigenvalues (default is [-2,2]).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by list(name=value). See <code>FPCA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>FAM</code> fits functional additive models for a scalar response and single predictor process proposed by Müller and Yao (2007) that </p>
+<p style="text-align: center;"><code class="reqn">E(Y | \mathbf{X}) = \sum_{k=1}^K g_{k}(\xi_{k}),</code>
+</p>
+<p> where <code class="reqn">\xi_{k}</code> stand for the k-th FPC score of the the predictor process.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>Mean estimator of <code class="reqn">EY</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fam</code></td>
+<td>
+<p>A <em>N</em> by <em>K</em> matrix whose column vectors consist of the component function estimators at the given estimation points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>An <em>N</em> by <em>K</em> matrix whose column vectors consist of <em>N</em> vectors of estimation points for each component function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>A <em>K</em>-dimensional bandwidth vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A <em>K</em>-dimensional vector containing eigenvalues.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>An <em>nWorkGrid</em> by <em>K</em> matrix containing eigenfunctions, supported by <code>WorkGrid</code>. See <code>FPCA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>workGrid</code></td>
+<td>
+<p>An <em>nWorkGrid</em> by <em>K_j</em> working grid, the internal regular grid on which the eigen analysis is carried on. See <code>FPCA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Müller, H.-G. and Yao, F. (2005), "Functional additive models", JASA, Vol.103, No.484, p.1534-1544.</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1000)
+
+library(MASS)
+
+f1 &lt;- function(t) 0.5*t
+f2 &lt;- function(t) 2*cos(2*pi*t/4)
+f3 &lt;- function(t) 1.5*sin(2*pi*t/4)
+f4 &lt;- function(t) 2*atan(2*pi*t/4)
+
+n &lt;- 100
+N &lt;- 100
+
+sig &lt;- diag(c(4.0,2.0,1.5,1.2))
+
+scoreX &lt;- mvrnorm(n,mu=rep(0,4),Sigma=sig)
+scoreXTest &lt;- mvrnorm(N,mu=rep(0,4),Sigma=sig)
+
+Y &lt;- f1(scoreX[,1]) + f2(scoreX[,2]) + f3(scoreX[,3]) + f4(scoreX[,4]) + rnorm(n,0,0.1)
+YTest &lt;- f1(scoreXTest[,1]) + f2(scoreXTest[,2]) + 
+  f3(scoreXTest[,3]) + f4(scoreXTest[,4]) + rnorm(N,0,0.1)
+
+phi1 &lt;- function(t) sqrt(2)*sin(2*pi*t)
+phi2 &lt;- function(t) sqrt(2)*sin(4*pi*t)
+phi3 &lt;- function(t) sqrt(2)*cos(2*pi*t)
+phi4 &lt;- function(t) sqrt(2)*cos(4*pi*t)
+
+grid &lt;- seq(0,1,length.out=21)
+Lt &lt;- Lx &lt;- list()
+for (i in 1:n) {
+  Lt[[i]] &lt;- grid
+  Lx[[i]] &lt;- scoreX[i,1]*phi1(grid) + scoreX[i,2]*phi2(grid) + 
+    scoreX[i,3]*phi3(grid) + scoreX[i,4]*phi4(grid) + rnorm(1,0,0.01)
+}
+
+LtTest &lt;- LxTest &lt;- list()
+for (i in 1:N) {
+  LtTest[[i]] &lt;- grid
+  LxTest[[i]] &lt;- scoreXTest[i,1]*phi1(grid) + scoreXTest[i,2]*phi2(grid) + 
+    scoreXTest[i,3]*phi3(grid) + scoreXTest[i,4]*phi4(grid) + rnorm(1,0,0.01)
+}
+
+
+# estimation
+fit &lt;- FAM(Y=Y,Lx=Lx,Lt=Lt)
+
+xi &lt;- fit$xi
+
+op &lt;- par(mfrow=c(2,2))
+j &lt;- 1
+g1 &lt;- f1(sort(xi[,j]))
+tmpSgn &lt;- sign(sum(g1*fit$fam[,j]))
+plot(sort(xi[,j]),g1,type='l',col=2,ylim=c(-2.5,2.5),xlab='xi1')
+points(sort(xi[,j]),tmpSgn*fit$fam[order(xi[,j]),j],type='l')
+
+j &lt;- 2
+g2 &lt;- f2(sort(xi[,j]))
+tmpSgn &lt;- sign(sum(g2*fit$fam[,j]))
+plot(sort(xi[,j]),g2,type='l',col=2,ylim=c(-2.5,2.5),xlab='xi2')
+points(sort(xi[,j]),tmpSgn*fit$fam[order(xi[,j]),j],type='l')
+
+j &lt;- 3
+g3 &lt;- f3(sort(xi[,j]))
+tmpSgn &lt;- sign(sum(g3*fit$fam[,j]))
+plot(sort(xi[,j]),g3,type='l',col=2,ylim=c(-2.5,2.5),xlab='xi3')
+points(sort(xi[,j]),tmpSgn*fit$fam[order(xi[,j]),j],type='l')
+
+j &lt;- 4
+g4 &lt;- f4(sort(xi[,j]))
+tmpSgn &lt;- sign(sum(g4*fit$fam[,j]))
+plot(sort(xi[,j]),g4,type='l',col=2,ylim=c(-2.5,2.5),xlab='xi4')
+points(sort(xi[,j]),tmpSgn*fit$fam[order(xi[,j]),j],type='l')
+par(op)
+
+# fitting
+fit &lt;- FAM(Y=Y,Lx=Lx,Lt=Lt,nEval=0)
+yHat &lt;- fit$mu+apply(fit$fam,1,'sum')
+plot(yHat,Y)
+abline(coef=c(0,1),col=2)
+
+
+# R^2
+R2 &lt;- 1-sum((Y-yHat)^2)/sum((Y-mean(Y))^2)
+R2
+
+
+# prediction
+fit &lt;- FAM(Y=Y,Lx=Lx,Lt=Lt,newLx=LxTest,newLt=LtTest)
+yHat &lt;- fit$mu+apply(fit$fam,1,'sum')
+plot(yHat,YTest,xlim=c(-10,10))
+abline(coef=c(0,1),col=2)
+</code></pre>
+
+
+</div>

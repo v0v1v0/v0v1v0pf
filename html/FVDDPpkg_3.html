@@ -1,0 +1,83 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>error.estimate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compare the performance of a Monte-Carlo estimate with respect to the exact result.</h2>
+
+<h3>Description</h3>
+
+<p>Compare the performance of a Monte-Carlo estimate with respect to the exact result.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">error.estimate(fvddp.exact, fvddp.approx, remove.unmatched = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fvddp.exact</code></td>
+<td>
+<p>An instance of class <code>fvddp</code> obtained via smoothing
+(<code>smooth()</code>) or propagation (<code>propagate()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fvddp.approx</code></td>
+<td>
+<p>An instance of class <code>fvddp</code> obtained using the approximating
+algorithms for smoothing or propagation, with the same input as <code>fvddp.exact</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove.unmatched</code></td>
+<td>
+<p>Choose whether the weights associated to multiplicities
+that are in <code>fvddp.exact</code> but not in <code>fvddp.approx</code> should be removed in the
+computation (<code>TRUE</code>) or considered to be 0 (<code>FALSE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector whose j-th element is the difference (in absolute value) between
+the weight of the j-th row of the matrix <code>M</code> of <code>fvddp.exact</code> and the weight
+of the row of the matrix <code>M</code> of <code>fvddp.approx</code> equal to it. The length depends
+on the value of <code>remove.unmathced</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#iniialize the process
+FVDDP = initialize(3, function(x) rgamma(x, 2,2),
+                   function(x) dgamma(x, 2,2), FALSE)
+FVDDP = update(FVDDP, c(rep(abs(rnorm(2,1, 4)), 2), rexp(2, 0.5)))
+#perform n exact propagation and an approximate one
+EXACT = propagate(FVDDP, 0.7)
+APPROX = approx.propagate(FVDDP, 0.7, 10000)
+#measure the error with this function
+error.estimate(fvddp.exact = EXACT, fvddp.approx = APPROX, TRUE)
+
+#in order to smoot, create and propagate the signal from the past and from the future
+FVDDP=initialize(3, function(x) rbinom(x, 10, 0.2),
+                 function(x) dbinom(x, 10, 0.2), TRUE)
+FVDDP.PAST = update(FVDDP, c(2,3))
+FVDDP.FUTURE = update(FVDDP, c(4))
+FVDDP.FUTURE = propagate(FVDDP.FUTURE, 0.5)
+FVDDP.FUTURE = update(FVDDP.FUTURE, c(1))
+#compute an exact and an approximate smoothing
+EXACT = smooth(FVDDP.PAST, FVDDP.FUTURE, 0.4, 0.3, c(1,3))
+APPROX = approx.smooth(FVDDP.PAST, FVDDP.FUTURE, 0.4, 0.3, c(1,3), 20000)
+#compute the error again
+error.estimate(fvddp.exact = EXACT, fvddp.approx = APPROX)
+</code></pre>
+
+
+</div>

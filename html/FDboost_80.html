@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update.FDboost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to update FDboost objects</h2>
+
+<h3>Description</h3>
+
+<p>Function to update FDboost objects
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FDboost'
+update(
+  object,
+  weights = NULL,
+  oobweights = NULL,
+  risk = NULL,
+  trace = NULL,
+  ...,
+  evaluate = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>fitted FDboost-object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights, oobweights, risk, trace</code></td>
+<td>
+<p>see <code>?FDboost</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to the call, or arguments with changed values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evaluate</code></td>
+<td>
+<p>If true evaluate the new call else return the call.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns the call of (<code>evaluate = FALSE</code>) or the updated (<code>evaluate = TRUE</code>) FDboost model
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Ruegamer
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">######## Example from \code{?FDboost}
+data("viscosity", package = "FDboost") 
+## set time-interval that should be modeled
+interval &lt;- "101"
+
+## model time until "interval" and take log() of viscosity
+end &lt;- which(viscosity$timeAll == as.numeric(interval))
+viscosity$vis &lt;- log(viscosity$visAll[,1:end])
+viscosity$time &lt;- viscosity$timeAll[1:end]
+# with(viscosity, funplot(time, vis, pch = 16, cex = 0.2))
+
+mod1 &lt;- FDboost(vis ~ 1 + bolsc(T_C, df = 2) + bolsc(T_A, df = 2),
+               timeformula = ~ bbs(time, df = 4),
+               numInt = "equal", family = QuantReg(),
+               offset = NULL, offset_control = o_control(k_min = 9),
+               data = viscosity, control=boost_control(mstop = 10, nu = 0.4))
+               
+# update nu
+mod2 &lt;- update(mod1, control=boost_control(nu = 1)) # mstop will stay the same
+# update mstop
+mod3 &lt;- update(mod2, control=boost_control(mstop = 100)) # nu=1 does not get changed
+mod4 &lt;- update(mod1, formula = vis ~ 1 + bolsc(T_C, df = 2)) # drop one term
+</code></pre>
+
+
+</div>

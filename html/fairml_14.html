@@ -1,0 +1,209 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fairml.cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-Validation for Fair Models</h2>
+
+<h3>Description</h3>
+
+<p>Cross-validation for the models in the <span class="pkg">fairml</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fairml.cv(response, predictors, sensitive, method = "k-fold", ..., unfairness,
+  model, model.args = list(), cluster)
+
+cv.loss(x)
+cv.unfairness(x)
+cv.folds(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>a numeric vector, the response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictors</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sensitive</code></td>
+<td>
+<p>a numeric matrix or a data frame containing numeric and
+factor columns; the sensitive attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string, either <code>k-fold</code>, <code>custom-folds</code>
+or <code>hold-out</code>. See below for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments for the cross-validation <code>method</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unfairness</code></td>
+<td>
+<p>a positive number in [0, 1], the proportion of the explained
+variance that can be attributed to the sensitive attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a character string, the label of the model. Currently
+<code>"nclm"</code>, <code>"frrm"</code>, <code>"fgrrm"</code>, <code>"zlm"</code> and <code>"zlrm"</code>
+are available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.args</code></td>
+<td>
+<p>additional arguments passed to model estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>an optional cluster object from package <span class="pkg">parallel</span>, to
+process folds or subsamples in parallel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>fair.kcv</code> or <code>fair.kcv.list</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The following cross-validation methods are implemented:
+</p>
+
+<ul>
+<li> <p><em>k-fold</em>: the data are split in <code>k</code> subsets of equal size.
+For each subset in turn, <code>model</code> is fitted on the other <code>k - 1</code>
+subsets and the loss function is then computed using that subset. Loss
+estimates for each of the <code>k</code> subsets are then combined to give an
+overall loss for data.
+</p>
+</li>
+<li> <p><em>custom-folds</em>: the data are manually partitioned by the user
+into subsets, which are then used as in k-fold cross-validation. Subsets
+are not constrained to have the same size, and every observation must be
+assigned to one subset.
+</p>
+</li>
+<li> <p><em>hold-out</em>: <code>k</code> subsamples of size <code>m</code> are sampled
+independently without replacement from the data. For each subsample,
+<code>model</code> is fitted on the remaining <code>m - length(response)</code>
+samples and the loss function is computed on the <code>m</code> observations in
+the subsample. The overall loss estimate is the average of the <code>k</code>
+loss estimates from the subsamples.
+</p>
+</li>
+</ul>
+<p>Cross-validation methods accept the following optional arguments:
+</p>
+
+<ul>
+<li> <p><code>k</code>: a positive integer number, the number of groups into which
+the data will be split (in k-fold cross-validation) or the number of times
+the data will be split in training and test samples (in hold-out
+cross-validation).
+</p>
+</li>
+<li> <p><code>m</code>: a positive integer number, the size of the test set in
+hold-out cross-validation.
+</p>
+</li>
+<li> <p><code>runs</code>: a positive integer number, the number of times
+k-fold or hold-out cross-validation will be run.
+</p>
+</li>
+<li> <p><code>folds</code>: a list in which element corresponds to one fold and
+contains the indices for the observations that are included to that fold;
+or a list with an element for each run, in which each element is itself a
+list of the folds to be used for that run.
+</p>
+</li>
+</ul>
+<p>If cross-validation is used with multiple <code>runs</code>, the overall loss is the
+average of the loss estimates from the different runs.
+</p>
+<p>The predictive performance of the models is measured using the mean square
+error as the loss function.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fairml.cv()</code> returns an object of class <code>fair.kcv.list</code> if
+<code>runs</code> is at least 2, an object of class <code>fair.kcv</code> if <code>runs</code>
+is equal to 1.
+</p>
+<p><code>cv.loss()</code> returns a numeric vector or a numeric matrix containing the
+values of the loss function computed for each run of cross-validation.
+</p>
+<p><code>cv.unfairness()</code> returns a numeric vectors containing the values of the
+unfairness criterion computed on the validation folds for each run of
+cross-validation.
+</p>
+<p><code>cv.folds()</code> returns a list containing the indexes of the observations in
+each of the cross-validation folds. In the case of k-fold cross-validation,
+if <code>runs</code> is larger than <code>1</code>, each element of the list is itself a
+list with the indexes for the observations in each fold in each run.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marco Scutari</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">kcv = fairml.cv(response = vu.test$gaussian, predictors = vu.test$X,
+        sensitive = vu.test$S, unfairness = 0.10, model = "nclm",
+        method = "k-fold", k = 10, runs = 10)
+kcv
+cv.loss(kcv)
+cv.unfairness(kcv)
+
+# run a second cross-validation with the same folds.
+fairml.cv(response = vu.test$gaussian, predictors = vu.test$X,
+        sensitive = vu.test$S, unfairness = 0.10, model = "nclm",
+        method = "custom-folds", folds = cv.folds(kcv))
+
+# run cross-validation in parallel.
+## Not run: 
+library(parallel)
+cl = makeCluster(2)
+fairml.cv(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, unfairness = 0.10, model = "nclm",
+  method = "k-fold", k = 10, runs = 10, cluster = cl)
+stopCluster(cl)
+
+## End(Not run)</code></pre>
+
+
+</div>

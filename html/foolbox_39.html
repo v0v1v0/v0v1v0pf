@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rewrite_callbacks</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Default expression-transformation callbacks.</h2>
+
+<h3>Description</h3>
+
+<p>Callbacks must be functions that take three arguments: The expression to
+rewrite, the environment of the function we are rewriting (i.e. the
+environment it is defined in, not the function call frame), and a list of
+formal parameters of the function we are translating.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rewrite_callbacks()
+
+analysis_callbacks()
+
+with_atomic_callback(callbacks, fn)
+
+with_pairlist_callback(callbacks, fn)
+
+with_symbol_callback(callbacks, fn, include_missing = FALSE)
+
+with_primitive_callback(callbacks, fn)
+
+with_call_callback(callbacks, fn)
+
+with_topdown_pairlist_callback(callbacks, fn)
+
+with_topdown_call_callback(callbacks, fn)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>callbacks</code></td>
+<td>
+<p>The list of callbacks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+<p>A function to install as a callback.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_missing</code></td>
+<td>
+<p>For symbols, it is possible that the expression is
+missing. This can happen in pair-lists if a function parameter does not
+have a default argument. By default, the callback is not invoked on missing
+expressions–there is very little you can do with them – but you can
+include them by setting this parameter to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The flow of a depth-first traversal is as follows:
+</p>
+<p>For expressions that are atomic, i.e. are either atomic values, pairlists,
+symbols, or primitives, the corresponding callback is called with the
+expression. The callbacks are called with the expression, <code>expr</code>, the
+environment of the function we are traversing, <code>env</code>, the parameters of that
+function, <code>params</code>, information collected top-down in <code>topdown</code>, warning
+flags through the <code>wflags</code> parameter, and any additional user-provided
+arguments through <code>...</code>. If the callbacks are used in a rewrite traversal,
+see <code>depth_first_rewrite_function()</code>, they must return an expression. This
+expression will be inserted as a substitute of the <code>expr</code> argument in the
+function being rewritten. If the callback is part of an analysis, see
+<code>depth_first_analyse_function()</code>, then it can return any data; what it
+returns will be provided to the callbacks on the enclosing expression via the
+<code>bottomup</code> parameter.
+</p>
+<p>For <code>call</code> expressions, the <code>topdown</code> callback is invoked before the call is
+traversed. It is provided with the same arguments as the other callbacks and
+in addition a thunk <code>skip</code> that it can use to prevent the depth-first
+traversal to explore the call further. Whatever the <code>topdown</code> callback
+returns will be provided to the call callback via the argument <code>topdown</code> it
+it is called (i.e. if the <code>topdown</code> callback doesn't invoke <code>skip</code>).
+</p>
+<p>After the <code>topdown</code> callback is executed, if it doesn't call <code>skip</code>, the
+<code>call</code> callback is called on the expression. It is called with the same
+arguments as the other callbacks, and must return an expression if part of a
+rewrite traversal or any collected information if part of an analysis
+traversal.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>rewrite_callbacks</code>: Default callbacks for rewriting expressions
+</p>
+</li>
+<li> <p><code>analysis_callbacks</code>: Default callbacks for analysing expressions
+</p>
+</li>
+<li> <p><code>with_atomic_callback</code>: Set the atomic callback function.
+</p>
+</li>
+<li> <p><code>with_pairlist_callback</code>: Set the pairlist callback function.
+</p>
+</li>
+<li> <p><code>with_symbol_callback</code>: Set the symbol callback function.
+</p>
+</li>
+<li> <p><code>with_primitive_callback</code>: Set the primitive callback function.
+</p>
+</li>
+<li> <p><code>with_call_callback</code>: Set the call callback function.
+</p>
+</li>
+<li> <p><code>with_topdown_pairlist_callback</code>: Set the topdown information-passing callback
+function for pair-lists
+</p>
+</li>
+<li> <p><code>with_topdown_call_callback</code>: Set the topdown information-passing callback
+function for calls.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>with_atomic_callback
+</p>
+<p>with_symbol_callback
+</p>
+<p>with_primitive_callback
+</p>
+<p>with_pairlist_callback
+</p>
+<p>with_call_callback
+</p>
+<p>with_topdown_pairlist_callback
+</p>
+<p>with_topdown_call_callback
+</p>
+<p>warning_flags
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">f &lt;- function(x) 2 + x
+cb &lt;- rewrite_callbacks() %&gt;%
+   add_call_callback(f, function(expr, ...) {
+       quote(2 + x)
+   })
+tr_f &lt;- . %&gt;% rewrite() %&gt;% rewrite_with(cb)
+
+g &lt;- function(y) y + f(y)
+tr_f(g)
+
+collect_symbols &lt;- function(expr, ...) {
+   list(symbols = as.character(expr))
+}
+callbacks &lt;- analysis_callbacks() %&gt;% with_symbol_callback(collect_symbols)
+f %&gt;% analyse() %&gt;% analyse_with(callbacks)
+
+</code></pre>
+
+
+</div>

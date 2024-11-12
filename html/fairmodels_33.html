@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.stacked_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot stacked Metrics</h2>
+
+<h3>Description</h3>
+
+<p>Stacked metrics is like plot for <code>chosen_metric</code> but with all unique metrics stacked on top of each other.
+Metrics containing NA's will be dropped to enable fair comparison.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'stacked_metrics'
+plot(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>stacked_metrics</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other plot parameters</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ggplot2</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+sm &lt;- stack_metrics(fobject)
+plot(sm)
+
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200
+)
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_rf, fobject)
+
+sm &lt;- stack_metrics(fobject)
+plot(sm)
+
+
+</code></pre>
+
+
+</div>

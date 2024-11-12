@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>par.lrpc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parametric estimation of long-run partial correlations of factor-adjusted VAR processes</h2>
+
+<h3>Description</h3>
+
+<p>Returns a parametric estimate of long-run partial correlations of the VAR process
+from the VAR parameter estimates and the inverse of innovation covariance matrix obtained via constrained <code>l1</code>-minimisation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">par.lrpc(
+  object,
+  eta = NULL,
+  tuning.args = list(n.folds = 1, path.length = 10),
+  lrpc.adaptive = FALSE,
+  eta.adaptive = NULL,
+  do.correct = TRUE,
+  do.threshold = FALSE,
+  n.cores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p><code>fnets</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p><code>l1</code>-regularisation parameter; if <code>eta = NULL</code>, it is selected by cross validation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tuning.args</code></td>
+<td>
+<p>a list specifying arguments for the cross validation procedure
+for selecting the tuning parameter involved in long-run partial correlation matrix estimation. It contains:
+</p>
+
+<dl>
+<dt><code>n.folds</code></dt>
+<dd>
+<p> positive integer number of folds</p>
+</dd>
+<dt><code>path.length</code></dt>
+<dd>
+<p> positive integer number of regularisation parameter values to consider; a sequence is generated automatically based in this value</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lrpc.adaptive</code></td>
+<td>
+<p>whether to use the adaptive estimation procedure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta.adaptive</code></td>
+<td>
+<p><code>l1</code>-regularisation parameter for Step 1 of the adaptive estimation procedure; if <code>eta.adaptive = NULL</code>, the default choice is <code>2 * sqrt(log(dim(x)[1])/dim(x)[2])</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.correct</code></td>
+<td>
+<p>whether to correct for any negative entries in the diagonals of the inverse of long-run covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.threshold</code></td>
+<td>
+<p>whether to perform adaptive thresholding of <code>Delta</code> and <code>Omega</code> parameter estimators with threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>number of cores to use for parallel computing, see makePSOCKcluster</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Barigozzi, Cho and Owens (2024+) for further details, and Cai, Liu and Zhou (2016) for further details on the adaptive estimation procedure.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list containing
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Delta</code></td>
+<td>
+<p> estimated inverse of the innovation covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Omega</code></td>
+<td>
+<p> estimated inverse of the long-run covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc</code></td>
+<td>
+<p> estimated innovation partial correlation matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lrpc</code></td>
+<td>
+<p> estimated long-run partial correlation matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+ <p><code>l1</code>-regularisation parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lrpc.adaptive</code></td>
+<td>
+<p> input argument </p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Barigozzi, M., Cho, H. &amp; Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business &amp; Economic Statistics (to appear).
+</p>
+<p>Cai, T. T., Liu, W., &amp; Zhou, H. H. (2016) Estimating sparse precision matrix: Optimal rates of convergence and adaptive estimation. The Annals of Statistics, 44(2), 455-488.
+</p>
+<p>Owens, D., Cho, H. &amp; Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+out &lt;- fnets(data.unrestricted, do.lrpc = FALSE, var.args = list(n.cores = 2))
+plrpc &lt;- par.lrpc(out, n.cores = 2)
+out$lrpc &lt;- plrpc
+out$do.lrpc &lt;- TRUE
+plot(out, type = "pc", display = "network")
+plot(out, type = "lrpc", display = "heatmap")
+
+</code></pre>
+
+
+</div>

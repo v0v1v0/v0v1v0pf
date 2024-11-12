@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsi_eval</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate a point inference query</h2>
+
+<h3>Description</h3>
+
+<p><code>fsi_eval()</code> evaluates a point inference query.
+Considering an FSI model, it answers the following question: what is the inferred value for a given single point location?
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsi_eval(fsi, point, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fsi</code></td>
+<td>
+<p>An FSI model built with the <code>fsi_create()</code> and populated by <code>fsi_add_fsa()</code>, <code>fsi_add_cs()</code>, and <code>fsi_add_rules()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>point</code></td>
+<td>
+<p>An <code>sfg</code> object of the type <code>POINT</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>&lt;<code>dynamic-dots</code>&gt; Informs the <code>fsi_eval</code> how the elements of the resulting fuzzy set should be discretized if the user does not want the default configuration (see below). Default values: <code>discret_by</code> is 0.5 and <code>discret_length</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>fsi_eval()</code> function evaluates a point inference query by using an FSI model populated with its fuzzy spatial antecedent, consequent, and fuzzy rules set.
+This evaluation is based on the algorithm specified by the references below.
+</p>
+<p>The default behavior of <code>fsi_eval()</code> in the parameter <code>...</code> is to consider a discrete interval of values with an increment of 0.5 between lower and upper values for the consequent domain (i.e., defined by <code>fsi_add_cs()</code> with the parameter <code>bounds</code>).
+</p>
+<p>The user can modify the default behavior by using one of the following two ways:
+</p>
+
+<ul>
+<li>
+<p> define a value for the parameter <code>discret_by</code> by changing the incremental value.
+</p>
+</li>
+<li>
+<p> define a desired length for the sequence of values domain of the consequent by using the parameter <code>discret_length</code>.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A numeric value that belongs to the domain of the consequent of the FSI model and represents the result of a point inference query
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://dl.acm.org/doi/10.1145/3474717.3484255">Carniel, A. C.; Galdino, F.; Philippsen, J. S.; Schneider, M. Handling Fuzzy Spatial Data in R Using the fsr Package. In Proceedings of the 29th International Conference on Advances in Geographic Information Systems (AM SIGSPATIAL 2021), pp. 526-535, 2021.</a>
+</p>
+<p>Underlying concepts and definitions on the evaluation of point inference queries are introduced in:
+</p>
+
+<ul>
+<li> <p><a href="https://ieeexplore.ieee.org/document/9882658">Carniel, A. C.; Galdino, F.; Schneider, M. Evaluating Region Inference Methods by Using Fuzzy Spatial Inference Models. In Proceedings of the 2022 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2022), pp. 1-8, 2022.</a>
+</p>
+</li>
+<li> <p><a href="https://ieeexplore.ieee.org/document/8015707">Carniel, A. C.; Schneider, M. Fuzzy inference on fuzzy spatial objects (FIFUS) for spatial decision support systems. In Proceedings of the 2017 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2017), pp. 1-6, 2017.</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(sf)
+
+# Creating the FSI model from an example
+fsi &lt;- visitation()
+
+# Creating a vector of fuzzy rules
+## note that we make use of the linguistic variables and linguistic values previously defined
+rules &lt;- c(
+ "IF accommodation review is reasonable AND 
+    food safety is low 
+  THEN visiting experience is awful",
+ "IF accommodation price is expensive AND 
+    accommodation review is reasonable 
+  THEN visiting experience is awful",
+ "IF accommodation price is affordable AND 
+    accommodation review is good AND 
+    food safety is medium 
+  THEN visiting experience is average",
+ "IF accommodation price is affordable AND 
+    accommodation review is excellent AND 
+    food safety is high 
+  THEN visiting experience is great",
+ "IF accommodation price is cut-rate AND 
+    accommodation review is excellent AND 
+    food safety is high 
+  THEN visiting experience is great")
+
+# Adding these rules to the FSI model previously instantiated
+fsi &lt;- fsi_add_rules(fsi, rules)
+
+# Evaluating a point inference query
+fsi_eval(fsi, st_point(c(-74.0, 40.7)))
+## Not run: 
+# Changing the default discretization
+fsi_eval(fsi, st_point(c(-74.0, 40.7)), discret_by = 0.8)
+fsi_eval(fsi, st_point(c(-74.0, 40.7)), discret_length = 200)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

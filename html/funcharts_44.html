@@ -1,0 +1,184 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regr_cc_fof</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Regression Control Chart</h2>
+
+<h3>Description</h3>
+
+<p>It builds a data frame needed to plot the
+Functional Regression Control Chart
+introduced in Centofanti et al. (2021),
+for monitoring a functional quality characteristic adjusted for
+by the effect of multivariate functional covariates,
+based on a fitted
+function-on-function linear regression model.
+The training data have already been used to fit the model.
+An optional tuning data set can be provided that is used to estimate
+the control chart limits.
+A phase II data set contains the observations to be monitored
+with the control charts.
+It also allows to jointly monitor the multivariate functional covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regr_cc_fof(
+  object,
+  mfdobj_y_new,
+  mfdobj_x_new,
+  mfdobj_y_tuning = NULL,
+  mfdobj_x_tuning = NULL,
+  alpha = 0.05,
+  include_covariates = FALSE,
+  absolute_error = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A list obtained as output from <code>fof_pc</code>,
+i.e. a fitted function-on-function linear regression model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_y_new</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the phase II data set of the functional response
+observations to be monitored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_new</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the phase II data set of the functional covariates
+observations to be monitored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_y_tuning</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the tuning data set of the functional response observations,
+used to estimate the control chart limits.
+If NULL, the training data, i.e. the data used to fit the
+function-on-function linear regression model,
+are also used as the tuning data set, i.e.
+<code>mfdobj_y_tuning=object$pca_y$data</code>.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_tuning</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the tuning data set of the functional covariates observations,
+used to estimate the control chart limits.
+If NULL, the training data, i.e. the data used to fit the
+function-on-function linear regression model,
+are also used as the tuning data set, i.e.
+<code>mfdobj_x_tuning=object$pca_x$data</code>.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>If it is a number between 0 and 1,
+it defines the overall type-I error probability.
+By default, it is equal to 0.05 and the Bonferroni correction
+is applied by setting the type-I error probabilities equal to
+<code>alpha/2</code> in the Hotelling's T2 and SPE control charts.
+If <code>include_covariates</code> is <code>TRUE</code>, i.e.,
+the Hotelling's T2 and SPE control charts are built
+also on the multivariate functional covariates, then the Bonferroni
+correction is applied by setting the type-I error probability
+in the four control charts equal to <code>alpha/4</code>.
+If you want to set manually the Type-I error probabilities,
+then the argument <code>alpha</code> must be a named list
+with elements named as <code>T2</code>, <code>spe</code>,
+<code>T2_x</code> and, <code>spe_x</code>, respectively, containing
+the desired Type I error probability of
+the T2 and SPE control charts for the functional response and
+the multivariate functional covariates, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_covariates</code></td>
+<td>
+<p>If TRUE, also functional covariates are monitored through
+<code>control_charts_pca</code>,.
+If FALSE, only the functional response, conditionally on the covariates,
+is monitored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absolute_error</code></td>
+<td>
+<p>A logical value that, if <code>include_covariates</code> is TRUE, is passed
+to <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> containing the output of the
+function <code>control_charts_pca</code> applied to
+the prediction errors.
+</p>
+
+
+<h3>References</h3>
+
+<p>Centofanti F, Lepore A, Menafoglio A, Palumbo B, Vantini S. (2021)
+Functional Regression Control Chart.
+<em>Technometrics</em>, 63(3), 281–294. <a href="doi:10.1080/00401706.2020.1753581">doi:10.1080/00401706.2020.1753581</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>control_charts_pca</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air &lt;- lapply(air, function(x) x[1:100, , drop = FALSE])
+fun_covariates &lt;- c("CO", "temperature")
+mfdobj_x &lt;- get_mfd_list(air[fun_covariates],
+                         n_basis = 15,
+                         lambda = 1e-2)
+mfdobj_y &lt;- get_mfd_list(air["NO2"],
+                         n_basis = 15,
+                         lambda = 1e-2)
+mfdobj_y1 &lt;- mfdobj_y[1:60]
+mfdobj_y_tuning &lt;- mfdobj_y[61:90]
+mfdobj_y2 &lt;- mfdobj_y[91:100]
+mfdobj_x1 &lt;- mfdobj_x[1:60]
+mfdobj_x_tuning &lt;- mfdobj_x[61:90]
+mfdobj_x2 &lt;- mfdobj_x[91:100]
+mod_fof &lt;- fof_pc(mfdobj_y1, mfdobj_x1)
+cclist &lt;- regr_cc_fof(mod_fof,
+                      mfdobj_y_new = mfdobj_y2,
+                      mfdobj_x_new = mfdobj_x2,
+                      mfdobj_y_tuning = NULL,
+                      mfdobj_x_tuning = NULL)
+plot_control_charts(cclist)
+
+</code></pre>
+
+
+</div>

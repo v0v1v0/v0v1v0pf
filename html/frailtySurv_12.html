@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simfrail</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate survival data and fit models
+</h2>
+
+<h3>Description</h3>
+
+<p>Generates simulated clustered survival data by repeatedly generating data, using a shared frailty model, and fitting the models. Respective arguments are passed to genfrail and fitfrail, and the resulting parameter estimates are aggregated and summarized.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simfrail(reps, genfrail.args, fitfrail.args, Lambda.times, 
+         vcov.args = list(), cores = 0, skip.SE = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>reps</code></td>
+<td>
+<p>number of times to repeat the simulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genfrail.args</code></td>
+<td>
+<p>list of arguments to pass to <code>genfrail</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitfrail.args</code></td>
+<td>
+<p>list of arguments to pass to <code>fitfrail</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lambda.times</code></td>
+<td>
+<p>vector of time points to obtain baseline hazard estimates at</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov.args</code></td>
+<td>
+<p>list of arguments to pass to vcov.fitfrail for variance estimates. This is mainly used to specify whether bootstrap or estimated variances should be obtained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>integer; if &gt; 0, the number of cores to use; if &lt; 0, the number of cores not to use; if 0, use all available cores</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip.SE</code></td>
+<td>
+<p>logical value, whether to skip the standard error estimates (saves time)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>simfrail</code> object that is essentially a <code>data.frame</code> of the resulting parameter estimates. Each row is a single run, and columns are as follows.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>the seed used for the run</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runtime</code></td>
+<td>
+<p>the time it took to fit the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>number of clusters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.K</code></td>
+<td>
+<p>average cluster size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cens</code></td>
+<td>
+<p>empirical censorship</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>true regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hat.beta</code></td>
+<td>
+<p>estimated regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.beta</code></td>
+<td>
+<p>standard error of each regression coefficient</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>true frailty distribution parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hat.theta</code></td>
+<td>
+<p>estimated frailty distribution parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.theta</code></td>
+<td>
+<p>standard error of each frailty distribution parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lambda</code></td>
+<td>
+<p>true cumulative baseline hazard at each Lambda.times point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hat.Lambda</code></td>
+<td>
+<p>estimated cumulative baseline hazard at each Lambda.times point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.Lambda</code></td>
+<td>
+<p>standard error at each Lambda.times point</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>John. V Monaco, Malka Gorfine, Li Hsu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>genfrail</code>, <code>fitfrail</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+sim &lt;- simfrail(reps=100,
+                genfrail.args=alist(
+                  N=50, K=2,
+                  beta=c(log(2),log(3)), 
+                  frailty="gamma", theta=2,
+                  Lambda_0 = function(t, tau=4.6, C=0.01) (C*t)^tau), 
+                fitfrail.args=alist(
+                  formula=Surv(time, status) ~ Z1 + Z2 + cluster(family), 
+                  frailty="gamma"),
+                Lambda.times=1:120, cores = 0)
+
+# Summarize the results
+summary(sim)
+
+# Plot the residuals
+plot(sim, "residuals")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

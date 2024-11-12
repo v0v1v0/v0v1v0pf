@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CWindowCluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Window-Level Time Series Clustering</h2>
+
+<h3>Description</h3>
+
+<p>Cluster time series at a window level,
+based on Algorithm 2 of Ciampi et al. (2010).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CWindowCluster(
+  X,
+  Alpha = NULL,
+  Beta = NULL,
+  Delta = NULL,
+  Theta = 0.8,
+  p,
+  w,
+  s,
+  Epsilon = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a matrix of time series observed within a slide (time series in columns).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Alpha</code></td>
+<td>
+<p>lower limit of the time-series domain,
+passed to <code>CSlideCluster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Beta</code></td>
+<td>
+<p>upper limit of the time-series domain passed to <code>CSlideCluster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Delta</code></td>
+<td>
+<p>closeness parameter passed to <code>CSlideCluster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Theta</code></td>
+<td>
+<p>connectivity parameter passed to <code>CSlideCluster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>number of layers (time-series observations) in each slide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>number of slides in each window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>step to shift a window, calculated in the number of slides. The recommended
+values are 1 (overlapping windows) or equal to <code>w</code> (non-overlapping windows).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Epsilon</code></td>
+<td>
+<p>a real value in <code class="reqn">[0,1]</code> used to identify each pair of time series
+that are clustered together over at least <code>w*Epsilon</code> slides within a window;
+see Definition 7 by Ciampi et al. (2010). Default is 1.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is the upper-level function for time series clustering. It exploits
+the function <code>CSlideCluster</code> to cluster time series within each slide
+based on closeness and homogeneity measures. Then, it uses slide-level cluster
+assignments to cluster time series within each window.
+</p>
+<p>The total length of time series (number of levels, i.e., <code>nrow(X)</code>)
+should be divisible by <code>p</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector (if <code>X</code> contains only one window) or matrix with cluster
+labels for each time series (columns) and window (rows).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Vyacheslav Lyubchich
+</p>
+
+
+<h3>References</h3>
+
+<p>Ciampi A, Appice A, Malerba D (2010).
+“Discovering trend-based clusters in spatially distributed data streams.”
+In <em>International Workshop of Mining Ubiquitous and Social Environments</em>, 107–122.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CSlideCluster</code>, <code>CWindowCluster</code>,
+and <code>BICC</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#For example, weekly data come in slides of 4 weeks
+p &lt;- 4 #number of layers in each slide (data come in a slide)
+    
+#We want to analyze the trend clusters within a window of 1 year
+w &lt;- 13 #number of slides in each window
+s &lt;- w  #step to shift a window
+
+#Simulate 26 autoregressive time series with two years of weekly data (52*2 weeks), 
+#with a 'burn-in' period of 300.
+N &lt;- 26
+T &lt;- 2*p*w
+    
+set.seed(123) 
+phi &lt;- c(0.5) #parameter of autoregression
+X &lt;- sapply(1:N, function(x) arima.sim(n = T + 300, 
+     list(order = c(length(phi), 0, 0), ar = phi)))[301:(T + 300),]
+colnames(X) &lt;- paste("TS", c(1:dim(X)[2]), sep = "")
+ 
+tmp &lt;- CWindowCluster(X, Delta = NULL, Theta = 0.8, p = p, w = w, s = s, Epsilon = 1)
+
+#Time series were simulated with the same parameters, but based on the clustering parameters,
+#not all time series join the same cluster. We can plot the main cluster for each window, and 
+#time series out of the cluster:
+par(mfrow = c(2, 2))
+ts.plot(X[c(1:(p*w)), tmp[1,] == 1], ylim = c(-4, 4), 
+        main = "Time series cluster 1 in window 1")
+ts.plot(X[c(1:(p*w)), tmp[1,] != 1], ylim = c(-4, 4), 
+        main = "The rest of the time series in window 1")
+ts.plot(X[c(1:(p*w)) + s*p, tmp[2,] == 1], ylim = c(-4, 4), 
+        main = "Time series cluster 1 in window 2")
+ts.plot(X[c(1:(p*w)) + s*p, tmp[2,] != 1], ylim = c(-4, 4), 
+        main = "The rest of the time series in window 2")
+
+</code></pre>
+
+
+</div>

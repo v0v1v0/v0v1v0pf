@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>filearray_bind</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge and bind homogeneous file arrays</h2>
+
+<h3>Description</h3>
+
+<p>The file arrays to be merged must be homogeneous:
+same data type, partition size, and partition length
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">filearray_bind(
+  ...,
+  .list = list(),
+  filebase = tempfile(),
+  symlink = FALSE,
+  overwrite = FALSE,
+  cache_ok = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>..., .list</code></td>
+<td>
+<p>file array instances</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filebase</code></td>
+<td>
+<p>where to create merged array</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symlink</code></td>
+<td>
+<p>whether to use <code>file.symlink</code>; if true,
+then partition files will be symbolic-linked to the original arrays,
+otherwise the partition files will be copied over. If you want your data
+to be portable, do not use symbolic-links. The default value is <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>whether to overwrite when <code>filebase</code> already exists;
+default is false, which raises errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cache_ok</code></td>
+<td>
+<p>see 'Details', only used if <code>overwrite</code> is true.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The input arrays must share the same data type and partition size.
+The dimension for each partition should also be the same. For example
+an array <code>x1</code> has dimension <code class="reqn">100x20x30</code> with partition size 
+<code>1</code>, then each partition dimension is <code class="reqn">100x20x1</code>, and there are 
+<code>30</code> partitions. <code>x1</code> can bind with another array of the same 
+partition size. This means if <code>x2</code> has dimension
+<code class="reqn">100x20x40</code> and each partition size is <code>1</code>, then <code>x1</code> and 
+<code>x2</code> can be merged.
+</p>
+<p>If <code>filebase</code> exists and <code>overwrite</code> is <code>FALSE</code>, an error will 
+always raise. If <code>overwrite=TRUE</code> and <code>cache_ok=FALSE</code>, then
+the existing <code>filebase</code> will be erased and any data stored within will
+be lost. 
+If both <code>overwrite</code> and <code>cache_ok</code> are <code>TRUE</code>, then 
+, before erasing <code>filebase</code>, the function validates the existing
+array header and compare the header signatures. If the existing header
+signature is the same as the array to be created, then the existing array 
+will be returned. This <code>cache_ok</code> could be extremely useful when
+binding large arrays with <code>symlink=FALSE</code> as the cache might avoid
+moving files around. However, <code>cache_ok</code> should be enabled with caution.
+This is because only the header information will be compared, but the 
+partition data will not be compared. If the existing array was generated from
+an old versions of the source arrays, but the data from the source arrays
+has been altered, then the <code>cache_ok=TRUE</code> is rarely proper as the cache
+is outdated.
+</p>
+<p>The <code>symlink</code> option should be used with extra caution. Creating 
+symbolic links is definitely faster than copying partition files. However, 
+since the partition files are simply linked to the original partition files, 
+changing to the input arrays will also affect the merged arrays, and 
+vice versa; see 'Examples'. Also for arrays created from symbolic links, if 
+the original 
+arrays are deleted, while the merged arrays will not be invalidated, 
+the corresponding partitions will no longer be accessible. Attempts to 
+set deleted partitions will likely result in failure. Therefore
+<code>symlink</code> should be set to true when creating merged arrays are
+temporary for read-only purpose, and when speed and disk space is in
+consideration. For extended reading, please check <code>files</code> 
+for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A bound array in <code>'FileArray'</code> class.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">partition_size &lt;- 1
+type &lt;- "double"
+x1 &lt;- filearray_create(
+    tempfile(), c(2,2), type = type,
+    partition_size = partition_size)
+x1[] &lt;- 1:4
+x2 &lt;- filearray_create(
+    tempfile(), c(2,1), type = type,
+    partition_size = partition_size)
+x2[] &lt;- 5:6
+
+y1 &lt;- filearray_bind(x1, x2, symlink = FALSE)
+y2 &lt;- filearray_bind(x1, x2)
+
+# y1 copies partition files, and y2 simply creates links 
+# if symlink is supported
+
+y1[] - y2[]
+
+# change x1
+x1[1,1] &lt;- NA
+
+# y1 is not affected
+y1[]
+
+# y2 changes 
+y2[]
+
+
+</code></pre>
+
+
+</div>

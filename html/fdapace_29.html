@@ -1,0 +1,355 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FPCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Principal Component Analysis</h2>
+
+<h3>Description</h3>
+
+<p>FPCA for dense or sparse functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FPCA(Ly, Lt, optns = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ly</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observed values for each individual. Missing values specified by <code>NA</code>s are supported for dense case (<code>dataType='Dense'</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>A list of <em>n</em> vectors containing the observation time points for each individual corresponding to y. Each vector should be sorted in ascending order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code>. See ‘Details’.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the input is sparse data, make sure you check the design plot is dense and the 2D domain is well covered
+by support points, using <code>plot</code> or <code>CreateDesignPlot</code>. Some study design such as snippet data (where each subject is 
+observed only on a sub-interval of the period of study) will have an ill-covered design plot, in which case the nonparametric 
+covariance estimate will be unreliable.
+WARNING! Slow computation times may occur if the dataType argument is incorrect. If FPCA is taking a while, please double check that a dense design is not mistakenly coded as 'Sparse'. Applying FPCA to a mixture of very dense and sparse curves may result in computational issues.
+</p>
+<p>Available control options are 
+</p>
+
+<dl>
+<dt>userBwCov</dt>
+<dd>
+<p>The bandwidth value for the smoothed covariance function; positive numeric - default: determine automatically based on 'methodBwCov'</p>
+</dd>
+<dt>methodBwCov</dt>
+<dd>
+<p>The bandwidth choice method for the smoothed covariance function; 'GMeanAndGCV' (the geometric mean of the GCV bandwidth and the minimum bandwidth),'CV','GCV' - default: 10% of the support</p>
+</dd>
+<dt>userBwMu</dt>
+<dd>
+<p>The bandwidth value for the smoothed mean function (using 'CV' or 'GCV'); positive numeric - default: determine automatically based on 'methodBwMu'</p>
+</dd>
+<dt>methodBwMu</dt>
+<dd>
+<p>The bandwidth choice method for the mean function; 'GMeanAndGCV' (the geometric mean of the GCV bandwidth and the minimum bandwidth),'CV','GCV' - default: 5% of the support</p>
+</dd> 
+<dt>dataType</dt>
+<dd>
+<p>The type of design we have (usually distinguishing between sparse or dense functional data); 'Sparse', 'Dense', 'DenseWithMV', 'p&gt;&gt;n' - default:  determine automatically based on 'IsRegular'</p>
+</dd>
+<dt>diagnosticsPlot</dt>
+<dd>
+<p>Deprecated. Same as the option 'plot'</p>
+</dd>
+<dt>plot</dt>
+<dd>
+<p>Plot FPCA results (design plot, mean, scree plot and first K (&lt;=3) eigenfunctions); logical - default: FALSE</p>
+</dd>
+<dt>error</dt>
+<dd>
+<p>Assume measurement error in the dataset; logical - default: TRUE</p>
+</dd>
+<dt>fitEigenValues</dt>
+<dd>
+<p>Whether also to obtain a regression fit of the eigenvalues - default: FALSE</p>
+</dd>
+<dt>FVEthreshold</dt>
+<dd>
+<p>Fraction-of-Variance-Explained threshold used during the SVD of the fitted covariance function; numeric (0,1] - default: 0.99</p>
+</dd>
+<dt>FVEfittedCov</dt>
+<dd>
+<p>Fraction-of-Variance explained by the components that are used to construct fittedCov; numeric (0,1] - default: NULL (all components available will be used)</p>
+</dd>
+<dt>kernel</dt>
+<dd>
+<p>Smoothing kernel choice, common for mu and covariance; "rect", "gauss", "epan", "gausvar", "quar" - default: "gauss"; dense data are assumed noise-less so no smoothing is performed. </p>
+</dd>
+<dt>kFoldMuCov</dt>
+<dd>
+<p>The number of folds to be used for mean and covariance smoothing. Default: 10</p>
+</dd>
+<dt>lean</dt>
+<dd>
+<p>If TRUE the 'inputData' field in the output list is empty. Default: FALSE</p>
+</dd>
+<dt>maxK</dt>
+<dd>
+<p>The maximum number of principal components to consider - default: min(20, N-2,nRegGrid-2), N:# of curves, nRegGrid:# of support points in each direction of covariance surface</p>
+</dd>
+<dt>methodXi</dt>
+<dd>
+<p>The method to estimate the PC scores; 'CE' (Conditional Expectation), 'IN' (Numerical Integration) - default: 'CE' for sparse data and dense data with missing values, 'IN' for dense data. If time points are irregular but spacing is small enough, 'IN' method is utilized by default.</p>
+</dd>
+<dt>methodMuCovEst</dt>
+<dd>
+<p>The method to estimate the mean and covariance in the case of dense functional data; 'cross-sectional', 'smooth' - default: 'cross-sectional'</p>
+</dd>
+<dt>nRegGrid</dt>
+<dd>
+<p>The number of support points in each direction of covariance surface; numeric - default: 51</p>
+</dd>
+<dt>numBins</dt>
+<dd>
+<p>The number of bins to bin the data into; positive integer &gt; 10, default: NULL</p>
+</dd>
+<dt>methodSelectK</dt>
+<dd>
+<p>The method of choosing the number of principal components K; 'FVE','AIC','BIC', or a positive integer as specified number of components: default 'FVE')</p>
+</dd>
+<dt>shrink</dt>
+<dd>
+<p>Whether to use shrinkage method to estimate the scores in the dense case (see Yao et al 2003) - default FALSE</p>
+</dd>
+<dt>outPercent</dt>
+<dd>
+<p>A 2-element vector in [0,1] indicating the percentages of the time range to be considered as left and right boundary regions of the time window of observation - default (0,1) which corresponds to no boundary</p>
+</dd>
+<dt>methodRho</dt>
+<dd>
+<p>The method of regularization (add to diagonal of covariance surface) in estimating principal component scores; 'trunc': rho is truncation of sigma2, 'ridge': rho is a ridge parameter, 'vanilla': vanilla approach - default "vanilla".</p>
+</dd>
+<dt>rotationCut</dt>
+<dd>
+<p>The 2-element vector in [0,1] indicating the percent of data truncated during sigma^2 estimation; default  (0.25, 0.75))</p>
+</dd>
+<dt>useBinnedData</dt>
+<dd>
+<p>Should the data be binned? 'FORCE' (Enforce the # of bins), 'AUTO' (Select the # of  bins automatically), 'OFF' (Do not bin) - default: 'AUTO'</p>
+</dd>
+<dt>useBinnedCov</dt>
+<dd>
+<p>Whether to use the binned raw covariance for smoothing; logical - default:TRUE</p>
+</dd>
+<dt>usergrid</dt>
+<dd>
+<p>Whether to use observation grid for fitting, if false will use equidistant grid. logical - default:FALSE</p>
+</dd>
+<dt>userCov</dt>
+<dd>
+<p>The user-defined smoothed covariance function; list of two elements: numerical vector 't' and matrix 'cov', 't' must cover the support defined by 'Ly' - default: NULL</p>
+</dd>
+<dt>userMu</dt>
+<dd>
+<p>The user-defined smoothed mean function; list of two numerical vector 't' and 'mu' of equal size, 't' must cover the support defined 'Ly' - default: NULL</p>
+</dd>
+<dt>userSigma2</dt>
+<dd>
+<p>The user-defined measurement error variance. A positive scalar. If specified then the vanilla approach is used (methodRho is set to 'vanilla', unless specified otherwise). Default to 'NULL'</p>
+</dd>
+<dt>userRho</dt>
+<dd>
+<p>The user-defined measurement truncation threshold used for the calculation of functional principal components scores. A positive scalar. Default to 'NULL'</p>
+</dd>
+<dt>useBW1SE</dt>
+<dd>
+<p>Pick the largest bandwidth such that CV-error is within one Standard Error from the minimum CV-error, relevant only if methodBwMu ='CV' and/or methodBwCov ='CV'; logical - default: FALSE</p>
+</dd>
+<dt>imputeScores</dt>
+<dd>
+<p>Whether to impute the FPC scores or not; default: 'TRUE'</p>
+</dd>
+<dt>verbose</dt>
+<dd>
+<p>Display diagnostic messages; logical - default: FALSE</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>Variance for measurement error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A vector of length <em>K</em> containing eigenvalues.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>An nWorkGrid by <em>K</em> matrix containing eigenfunctions, supported on workGrid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xiEst</code></td>
+<td>
+<p>A <em>n</em> by <em>K</em> matrix containing the FPC estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xiVar</code></td>
+<td>
+<p>A list of length <em>n</em>, each entry containing the variance estimates for the FPC estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsGrid</code></td>
+<td>
+<p>The (sorted) grid points where all observation points are pooled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>A vector of length nWorkGrid containing the mean function estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>workGrid</code></td>
+<td>
+<p>A vector of length nWorkGrid. The internal regular grid on which the eigen analysis is carried on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smoothedCov</code></td>
+<td>
+<p>A nWorkGrid by nWorkGrid matrix of the smoothed covariance surface.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fittedCov</code></td>
+<td>
+<p>A nWorkGrid by nWorkGrid matrix of the fitted covariance surface, which is guaranteed to be non-negative definite.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fittedCorr</code></td>
+<td>
+<p>A nWorkGrid by nWorkGrid matrix of the fitted correlation surface computed from fittedCov.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of actually used options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timings</code></td>
+<td>
+<p>A vector with execution times for the basic parts of the FPCA call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bwMu</code></td>
+<td>
+<p>The selected (or user specified) bandwidth for smoothing the mean function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bwCov</code></td>
+<td>
+<p>The selected (or user specified) bandwidth for smoothing the covariance function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>A regularizing scalar for the measurement error variance estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cumFVE</code></td>
+<td>
+<p>A vector with the fraction of the cumulative total variance explained with each additional FPC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FVE</code></td>
+<td>
+<p>A fraction indicating the total variance explained by chosen FPCs with corresponding 'FVEthreshold'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selectK</code></td>
+<td>
+<p>Number <em>K</em> of selected components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterionValue</code></td>
+<td>
+<p>A scalar specifying the criterion value obtained by the selected number of components with specific methodSelectK: FVE, AIC, BIC values or NULL for fixed K.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputData</code></td>
+<td>
+<p>A list containing the original 'Ly' and 'Lt' lists used as inputs to FPCA. NULL if 'lean' was specified to be TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Yao, F., Müller, H.G., Clifford, A.J., Dueker, S.R., Follett, J., Lin, Y., Buchholz, B., Vogel, J.S. (2003). "Shrinkage estimation 
+for functional principal component scores, with application to the population kinetics of plasma folate." Biometrics 59, 676-685. (Shrinkage estimates for dense data)</cite>
+</p>
+<p><cite>Yao, Fang, Müller, Hans-Georg and Wang, Jane-Ling (2005). "Functional data analysis for sparse longitudinal data." 
+Journal of the American Statistical Association 100, no. 470  577-590. (Sparse data FPCA)</cite>
+</p>
+<p><cite>Liu, Bitao  and Müller, Hans-Georg (2009). "Estimating derivatives for samples of sparsely observed functions, 
+with application to online auction dynamics." Journal of the American Statistical Association 104, no. 486 704-717. (Sparse data FPCA)</cite>
+</p>
+<p><cite>Castro, P. E., Lawton, W.H. and Sylvestre, E.A. (1986). "Principal modes of variation for processes with continuous 
+sample curves." Technometrics 28, no. 4, 329-337. (modes of variation for dense data FPCA)</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 20
+pts &lt;- seq(0, 1, by=0.05)
+sampWiener &lt;- Wiener(n, pts)
+sampWiener &lt;- Sparsify(sampWiener, pts, 10)
+res &lt;- FPCA(sampWiener$Ly, sampWiener$Lt, 
+            list(dataType='Sparse', error=FALSE, kernel='epan', verbose=TRUE))
+plot(res) # The design plot covers [0, 1] * [0, 1] well.
+CreateCovPlot(res, 'Fitted')
+CreateCovPlot(res, corr = TRUE)
+</code></pre>
+
+
+</div>

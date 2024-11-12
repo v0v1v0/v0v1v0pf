@@ -1,0 +1,715 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsvsample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Markov Chain Monte Carlo (MCMC) Sampling for the Factor Stochastic
+Volatility Model.</h2>
+
+<h3>Description</h3>
+
+<p><code>fsvsample</code> simulates from the joint posterior distribution and returns
+the MCMC draws. It is the main workhorse to conduct inference for factor
+stochastic volatility models in this package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsvsample(
+  y,
+  factors = 1,
+  draws = 1000,
+  thin = 1,
+  burnin = 1000,
+  restrict = "none",
+  zeromean = TRUE,
+  priorfacloadtype = "rowwiseng",
+  priorfacload = 0.1,
+  facloadtol = 1e-18,
+  priorng = c(1, 1),
+  priormu = c(0, 10),
+  priorphiidi = c(10, 3),
+  priorphifac = c(10, 3),
+  priorsigmaidi = 1,
+  priorsigmafac = 1,
+  priorh0idi = "stationary",
+  priorh0fac = "stationary",
+  priorbeta = c(0, 10000),
+  keeptime = "last",
+  heteroskedastic = TRUE,
+  priorhomoskedastic = NA,
+  runningstore = 6,
+  runningstorethin = 10,
+  runningstoremoments = 2,
+  signident = TRUE,
+  signswitch = FALSE,
+  interweaving = 4,
+  quiet = FALSE,
+  samplefac = TRUE,
+  startfac,
+  startpara,
+  startlogvar,
+  startlatent,
+  startlogvar0,
+  startlatent0,
+  startfacload,
+  startfacloadvar,
+  expert
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Data matrix. Each of <code>m</code> columns is assumed to contain a single
+(univariate) series of length <code>n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+<p>Number of latent factors to be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>draws</code></td>
+<td>
+<p>Number of MCMC draws kept after burn-in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thin</code></td>
+<td>
+<p>Single number greater or equal to 1, coercible to integer.
+Every <code>thin</code>th MCMC draw is kept and returned. The default value
+is 1, corresponding to no thinning of the draws, i.e. every draw is
+stored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>Number of initial MCMC draws to be discarded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restrict</code></td>
+<td>
+<p>Either "upper", "none", or "auto", indicating whether
+the factor loadings
+matrix should be restricted to have zeros above the diagonal ("upper"),
+whether all elements should be estimated from the data ("none"), or
+whether the function <code>findrestrict</code> should be invoked for a
+priori finding suitable zeros. Setting
+<code>restrict</code> to "upper" or "auto" often stabilizes MCMC
+estimation and can be important for identifying the factor loadings matrix,
+however, it generally is a strong prior assumption. Setting
+<code>restrict</code> to "none" is usually the preferred option if identification
+of the factor loadings matrix is of less concern but covariance estimation
+or prediction is the goal. Alternatively, <code>restrict</code> can be a
+logical matrix
+of dimension <code>c(m, r)</code> indicating which elements should be unrestricted
+(where <code>restrict</code> is <code>FALSE</code>) or zero (where <code>restrict</code> is
+<code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeromean</code></td>
+<td>
+<p>Logical. If <code>FALSE</code>, a constant mean is included in
+the model for each of the <code>m</code> univariate series.
+If <code>TRUE</code>, the mean is not modeled. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorfacloadtype</code></td>
+<td>
+<p>Can be <code>"normal"</code>, <code>"rowwiseng"</code>,
+<code>"colwiseng"</code>.
+</p>
+
+<dl>
+<dt>
+<code>"normal"</code>: </dt>
+<dd>
+<p>Normal prior. The value of <code>priorfacload</code>
+is interpreted as the standard deviations of the
+Gaussian prior distributions for the factor loadings.</p>
+</dd>
+<dt>
+<code>"rowwiseng"</code>: </dt>
+<dd>
+<p>Row-wise Normal-Gamma prior. The value of <code>priorfacload</code>
+is interpreted as the shrinkage parameter <code>a</code>.</p>
+</dd>
+<dt>
+<code>"colwiseng"</code>: </dt>
+<dd>
+<p>Column-wise Normal-Gamma prior. The value of <code>priorfacload</code>
+is interpreted as the shrinkage parameter <code>a</code>.</p>
+</dd>
+</dl>
+<p>For details please see Kastner (2019).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorfacload</code></td>
+<td>
+<p>Either a matrix of dimensions <code>m</code> times <code>factors</code>
+with positive elements or a single number (which will be recycled accordingly).
+The meaning of <code>priorfacload</code> depends on the setting of <code>priorfacloadtype</code>
+and is explained there.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facloadtol</code></td>
+<td>
+<p>Minimum number that the absolute value of a factor loadings draw can take.
+Prevents numerical issues that can appear when strong shrinkage is enforced if chosen
+to be greater than zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorng</code></td>
+<td>
+<p>Two-element vector with positive entries indicating the Normal-Gamma
+prior's hyperhyperparameters <code>c</code> and <code>d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priormu</code></td>
+<td>
+<p>Vector of length 2 denoting prior mean and standard deviation
+for unconditional levels of the idiosyncratic log variance processes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorphiidi</code></td>
+<td>
+<p>Vector of length 2, indicating the shape parameters for the
+Beta prior distributions of the transformed parameters <code>(phi+1)/2</code>, where
+<code>phi</code> denotes the persistence of the idiosyncratic log variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorphifac</code></td>
+<td>
+<p>Vector of length 2, indicating the shape parameters for the
+Beta prior distributions of the transformed parameters <code>(phi+1)/2</code>, where
+<code>phi</code> denotes the persistence of the factor log variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorsigmaidi</code></td>
+<td>
+<p>Vector of length <code>m</code> containing the
+prior volatilities of log variances. If <code>priorsigmaidi</code> has exactly
+one element, it will be recycled for all idiosyncratic log variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorsigmafac</code></td>
+<td>
+<p>Vector of length <code>factors</code> containing the
+prior volatilities of log variances. If <code>priorsigmafac</code> has exactly
+one element, it will be recycled for all factor log variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorh0idi</code></td>
+<td>
+<p>Vector of length 1 or <code>m</code>, containing
+information about the Gaussian prior for the initial idiosyncratic
+log variances.
+If an element of <code>priorh0idi</code> is a nonnegative number, the conditional
+prior of the corresponding initial log variance h0 is assumed to be Gaussian
+with mean 0 and standard deviation <code>priorh0idi</code> times $sigma$.
+If an element of
+<code>priorh0idi</code> is the string 'stationary', the prior of the corresponding
+initial log volatility is taken to be from the stationary distribution, i.e.
+h0 is assumed to be Gaussian with mean 0 and variance $sigma^2/(1-phi^2)$.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorh0fac</code></td>
+<td>
+<p>Vector of length 1 or <code>factors</code>, containing
+information about the Gaussian prior for the initial factor
+log variances.
+If an element of <code>priorh0fac</code> is a nonnegative number, the conditional
+prior of the corresponding initial log variance h0 is assumed to be Gaussian
+with mean 0 and standard deviation <code>priorh0fac</code> times $sigma$.
+If an element of
+<code>priorh0fac</code> is the string 'stationary', the prior of the corresponding
+initial log volatility is taken to be from the stationary distribution, i.e.
+h0 is assumed to be Gaussian with mean 0 and variance $sigma^2/(1-phi^2)$.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorbeta</code></td>
+<td>
+<p>numeric vector of length 2, indicating the mean and
+standard deviation of the Gaussian prior for the regression parameters. The
+default value is <code>c(0, 10000)</code>, which constitutes a very vague prior
+for many common datasets. Not used if <code>zeromean</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keeptime</code></td>
+<td>
+<p>Either a number coercible to a positive integer, or a string
+equal to "all" or "last". If a number different from 1 is provided, only every
+<code>keeptime</code>th latent log-volatility is being monitored. If, e.g.,
+<code>keeptime = 3</code>, draws for the latent log variances
+<code>h_1,h_4,h_7,...</code> will
+be kept. If <code>keeptime</code> is set to "all", this is equivalent to setting it
+to 1. If
+<code>keeptime</code> is set to "last" (the default), only draws for the very last
+latent log variances h_n are kept.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heteroskedastic</code></td>
+<td>
+<p>Vector of length 1, 2, or <code>m + factors</code>,
+containing logical values indicating whether time-varying
+(<code>heteroskedastic = TRUE</code>) or constant (<code>heteroskedastic = FALSE</code>)
+variance should be estimated.
+If <code>heteroskedastic</code> is of length 2 it will be recycled accordingly,
+whereby the first element is used for all idiosyncratic variances and
+the second element is used for all factor variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorhomoskedastic</code></td>
+<td>
+<p>Only used if at least one element of
+<code>heteroskedastic</code> is set to <code>FALSE</code>. In that case,
+<code>priorhomoskedastic</code> must be a matrix with positive entries
+and dimension c(m, 2). Values in column 1 will be interpreted as the
+shape and values in column 2 will be interpreted as the rate parameter
+of the corresponding inverse gamma prior distribution of the idisyncratic
+variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runningstore</code></td>
+<td>
+<p>Because most machines these days do not have enough memory
+to store all draws for all points in time, setting <code>runningstore</code> to an
+integer greater than 0 will cause <code>fsvsample</code> to store the first
+<code>runningstoremoments</code>
+ergodic moments of certain variables of interest. More specifically, mean,
+variance, skewness, etc. will be stored for certain variables
+if <code>runningstore</code> is set to a value...
+</p>
+
+<dl>
+<dt>
+<code>&gt;= 1</code>: </dt>
+<dd>
+<p>Latent log variances <code>h_1,h_2,...,h_(n+r)</code>.</p>
+</dd>
+<dt>
+<code>&gt;= 2</code>: </dt>
+<dd>
+<p>Latent factors <code>f_1,...,f_r</code>.</p>
+</dd>
+<dt>
+<code>&gt;= 3</code>: </dt>
+<dd>
+<p>Latent volatilities <code>sqrt(exp(h_1,h_2,...,h_(n+r)))</code>.</p>
+</dd>
+<dt>
+<code>&gt;= 4</code>: </dt>
+<dd>
+<p>Conditional covariance matrix and the square roots of its
+diagonal elements.</p>
+</dd>
+<dt>
+<code>&gt;= 5</code>: </dt>
+<dd>
+<p>Conditional correlation matrix.</p>
+</dd>
+<dt>
+<code>&gt;= 6</code>: </dt>
+<dd>
+<p>Communalities, i.e. proportions of variances explained
+through the common factors.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runningstorethin</code></td>
+<td>
+<p>How often should the calculation of running moments be
+conducted? Set to a value &gt; 1 if you want to avoid time consuming calculations
+at every MCMC iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runningstoremoments</code></td>
+<td>
+<p>Selects how many running moments (up to 4) should be
+calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signident</code></td>
+<td>
+<p>If set to <code>FALSE</code>, no ex-post sign-identification is
+performed. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signswitch</code></td>
+<td>
+<p>Set to <code>TRUE</code> to turn on a random sign switch of
+factors and loadings. Note that the signs of each factor loadings matrix column
+and the corresponding factor cannot be identified from the likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interweaving</code></td>
+<td>
+<p>The following values for interweaving the factor loadings
+are accepted:
+</p>
+
+<dl>
+<dt>0: </dt>
+<dd>
+<p>No interweaving.</p>
+</dd>
+<dt>1: </dt>
+<dd>
+<p>Shallow interweaving through the diagonal entries.</p>
+</dd>
+<dt>2: </dt>
+<dd>
+<p>Deep interweaving through the diagonal entries.</p>
+</dd>
+<dt>3: </dt>
+<dd>
+<p>Shallow interweaving through the largest absolute entries in each column.</p>
+</dd>
+<dt>4: </dt>
+<dd>
+<p>Deep interweaving through the largest absolute entries in each column.</p>
+</dd>
+</dl>
+<p>For details please see Kastner et al. (2017).
+A value of 4 is the highly recommended default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Logical value indicating whether the progress bar and other
+informative output during sampling should be omitted. The default
+value is <code>FALSE</code>, implying verbose output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samplefac</code></td>
+<td>
+<p>If set to <code>FALSE</code>, the factors are not sampled (but
+remain at their starting values forever). This might be useful if one
+wants to include observed factors instead of latent ones.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startfac</code></td>
+<td>
+<p><em>optional</em> numeric matrix of dimension
+<code>c(factors, n)</code>, containing the starting values of the
+latent factors.
+In case of a single factor model, a numeric vector of length <code>n</code> is also accepted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startpara</code></td>
+<td>
+<p><em>optional</em> numeric matrix of dimension
+<code>c(3, m + factors)</code>, containing the starting values
+for the parameter draws. The first <code>m</code> columns must contain
+parameters values corresponding to the idiosyncratic volatilities,
+the subsequent <code>factor</code> columns must contain parameter values
+corresponding to the factor volatilities. The first row of <code>startpara</code>
+corresponds to <code>mu</code>, the level of the log variances (can be arbitrary
+numerical values), the second row corresponds to <code>phi</code>, the persistence
+parameters of the log variances (numeric values between <code>-1</code> and <code>1</code>),
+and the third row corresponds to <code>sigma</code> (positive numeric values).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startlogvar</code></td>
+<td>
+<p><em>optional</em> numeric matrix of dimension
+<code>c(n, m + factors)</code>, containing the starting values of the
+latent log variances.
+The first <code>m</code> rows correspond to the idiosyncratic log variances,
+the subsequent <code>factor</code> rows correspond to the factor log variances.
+Was previously called startlatent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startlatent</code></td>
+<td>
+<p><em>Deprecated.</em> Please use <code>startlogvar</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startlogvar0</code></td>
+<td>
+<p><em>optional</em> numeric vector of length
+<code>m + factors</code>, containing the starting values of the initial latent
+log variances.
+The first <code>m</code> elements correspond to the idiosyncratic log variances,
+the subsequent <code>factor</code> elements correspond to the factor log variances.
+Was previously called startlatent0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startlatent0</code></td>
+<td>
+<p><em>Deprecated.</em> Please use <code>startlogvar0</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startfacload</code></td>
+<td>
+<p><em>optional</em> numeric matrix of dimension
+<code>c(m, factors)</code>, containing the starting values of the
+factor loadings.
+In case of a single factor model, a numeric vector of length <code>n</code> is also accepted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startfacloadvar</code></td>
+<td>
+<p><em>optional</em> numeric matrix of dimension
+<code>c(m, factors)</code>, containing the starting values of the
+factor loadings variances <code class="reqn">\tau_{ij}^2</code>. Used only when the normal-gamma
+prior is employed (priorfacloadtype != "normal") while ignored when static
+loadings variances are used (priorfacloadtype == "normal").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expert</code></td>
+<td>
+<p><em>optional</em> named list of expert parameters for the
+univariate SV models (will be transformed and passed to the <code>stochvol</code> package). For most
+applications, the default values probably work best. Interested users are
+referred to Kastner and Frühwirth-Schnatter (2014), the package vignette, and Kastner (2016). If
+<code>expert</code> is provided, it may contain the following named elements:
+</p>
+
+<dl>
+<dt>
+<code>parameterization</code>: </dt>
+<dd>
+<p>Character string equal to <code>"centered"</code>,
+<code>"noncentered"</code>, <code>"GIS_C"</code>, or <code>"GIS_NC"</code>. Defaults to
+<code>"GIS_C"</code>.</p>
+</dd>
+<dt>
+<code>mhcontrol</code>: </dt>
+<dd>
+<p>Single numeric value controlling the proposal
+density of a Metropolis-Hastings (MH) update step when sampling
+<code>sigma</code>. If <code>mhcontrol</code> is smaller than 0, an independence
+proposal will be used, while values greater than zero control the
+stepsize of a log-random-walk proposal. Defaults to <code>-1</code>.</p>
+</dd>
+<dt>
+<code>gammaprior</code>: </dt>
+<dd>
+<p>Single logical value indicating whether a Gamma
+prior for <code>sigma^2</code> should be used. If set to <code>FALSE</code>,
+an Inverse Gamma prior is employed. Defaults to <code>TRUE</code>.</p>
+</dd>
+<dt>
+<code>truncnormal</code>: </dt>
+<dd>
+<p>Single logical value indicating whether a
+truncated Gaussian distribution should be used as proposal for
+draws of <code>phi</code>. If set to <code>FALSE</code>, a regular Gaussian
+prior is employed and the draw is immediately discarded when values
+outside the unit ball happen to be drawn. Defaults to <code>FALSE</code>.</p>
+</dd>
+<dt>
+<code>mhsteps</code>: </dt>
+<dd>
+<p>Either <code>1</code>, <code>2</code>, or <code>3</code>. Indicates
+the number of blocks used for drawing from the posterior of the
+parameters. Defaults to <code>2</code>.</p>
+</dd>
+<dt>
+<code>proposalvar4sigmaphi</code>: </dt>
+<dd>
+<p>Single positive number indicating the
+conditional prior variance of <code>sigma*phi</code> in the ridge
+<em>proposal</em> density for sampling <code>(mu, phi)</code>.
+Defaults to <code>10^8</code>.</p>
+</dd>
+<dt>
+<code>proposalvar4sigmatheta</code>: </dt>
+<dd>
+<p>Single positive number indicating
+the conditional prior variance of <code>sigma*theta</code> in the ridge
+<em>proposal</em> density for sampling <code>(mu, phi)</code>.
+Defaults to <code>10^12</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For details concerning the factor SV algorithm please see
+Kastner et al. (2017), details about the univariate SV estimation
+can be found in Kastner and Frühwirth-Schnatter (2014).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The value returned is a list object of class <code>fsvdraws</code> holding
+</p>
+
+<dl>
+<dt>
+<code>facload</code>: </dt>
+<dd>
+<p>Array containing draws from the posterior distribution of the
+factor loadings matrix.</p>
+</dd>
+<dt>
+<code>fac</code>: </dt>
+<dd>
+<p>Array containing factor draws from the posterior distribution.</p>
+</dd>
+<dt>
+<code>logvar</code>: </dt>
+<dd>
+<p>Array containing idiosyncratic and factor initial log variance draws.</p>
+</dd>
+<dt>
+<code>logvar0</code>: </dt>
+<dd>
+<p>Array containing idiosyncratic and factor log variance draws.</p>
+</dd>
+<dt>
+<code>para</code>: </dt>
+<dd>
+<p>Array containing parameter draws form the posterior distribution.</p>
+</dd>
+<dt>
+<code>y</code>: </dt>
+<dd>
+<p>Matrix containing the data supplied.</p>
+</dd>
+<dt>
+<code>latestauxiliary</code>: </dt>
+<dd>
+<p>List containing the latest draws of auxiliary quantities used for
+sampling the factor loadings matrix.</p>
+</dd>
+<dt>
+<code>runningstore</code>: </dt>
+<dd>
+<p>List whose elements contain ergodic moments of certain
+variables of interest. See argument
+<code>runningstore</code> for details about what
+is being stored here.</p>
+</dd>
+<dt>
+<code>config</code>: </dt>
+<dd>
+<p>List containing information on configuration parameters.</p>
+</dd>
+<dt>
+<code>priors</code>: </dt>
+<dd>
+<p>List containing prior hyperparameter values.</p>
+</dd>
+<dt>
+<code>identifier</code>: </dt>
+<dd>
+<p>Matrix containing the indices of the series used for
+ex-post sign-identification along with the corresponding minimum distances to zero.
+See <code>signident</code> for details.</p>
+</dd>
+</dl>
+<p>To display the output, use <code>print</code>, <code>plot</code>, and in particular specialized
+extractors and printing functions.
+The <code>print</code> method prints a high-level overview; specialized extractors such as
+<code>covmat</code> or <code>runningcovmat</code> are also available.
+The <code>plot</code> method invokes a simple covariance matrix plot; specialized plotting
+functions are linked in the documentation of <code>plot.fsvdraws</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Kastner, G., Frühwirth-Schnatter, S., and Lopes, H.F. (2017).
+Efficient Bayesian Inference for Multivariate Factor Stochastic Volatility Models.
+<em>Journal of Computational and Graphical Statistics</em>, <b>26</b>(4), 905–917,
+<a href="https://doi.org/10.1080/10618600.2017.1322091">doi:10.1080/10618600.2017.1322091</a>.
+</p>
+<p>Kastner, G. (2019).
+Sparse Bayesian Time-Varying Covariance Estimation in Many Dimensions
+<em>Journal of Econometrics</em>, <b>210</b>(1), 98–115,
+<a href="https://doi.org/10.1016/j.jeconom.2018.11.007">doi:10.1016/j.jeconom.2018.11.007</a>
+</p>
+<p>Kastner, G. (2016).
+Dealing with stochastic volatility in time series using the R package
+stochvol.
+<em>Journal of Statistical Software</em>, <b>69</b>(5), 1–30,
+<a href="https://doi.org/10.18637/jss.v069.i05">doi:10.18637/jss.v069.i05</a>.
+</p>
+<p>Kastner, G. and Frühwirth-Schnatter, S. (2014).
+Ancillarity-Sufficiency Interweaving Strategy (ASIS) for Boosting MCMC
+Estimation of Stochastic Volatility Models.
+<em>Computational Statistics &amp; Data Analysis</em>, <b>76</b>, 408–423,
+<a href="https://doi.org/10.1016/j.csda.2013.01.002">doi:10.1016/j.csda.2013.01.002</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load exchange rate data (ships with stochvol):
+data(exrates, package = "stochvol")
+exrates$date &lt;- NULL
+
+# Compute the percentage log returns:
+dat &lt;- 100 * logret(exrates)
+
+# We are going to fit a one-factor model so the ordering is irrelevant
+# NOTE that these are very few draws, you probably want more...
+res &lt;- fsvsample(dat, factors = 2, draws = 2000, burnin = 1000,
+  runningstore = 6, zeromean = FALSE)
+
+voltimeplot(res)
+
+corimageplot(res, nrow(dat), plotCI = 'circle')
+
+oldpar &lt;- par(ask = TRUE)
+plot(res)
+par(oldpar)
+pairs(t(res$beta[1:4, ]))
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,96 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Fpop</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fpop</h2>
+
+<h3>Description</h3>
+
+<p>Function calling the fpop algorithm, use functional pruning and
+optimal partioning to recover the best segmentation with respect
+to the L2 loss with a per change-point penalty of lambda. More
+precisely, this function computes the solution to argmin_m
+sum_i=1^n (x_i-m_i)^2 + lambda * sum_i=1^n-1 I(m_i !=
+m_i+1), where the indicator function I counts the number of
+changes in the mean vector m.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Fpop(x, lambda, mini = min(x), maxi = max(x))</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of double : the signal to be segmented</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Value of the penalty</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mini</code></td>
+<td>
+<p>Min value for the mean parameter of the segment</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxi</code></td>
+<td>
+<p>Max value for the mean parameter of the segment</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Named list with the following elements: input data (signal, n,
+lambda, min, max), path (best previous segment end up to each data
+point), cost (optimal penalized cost up to each data point), t.est
+(vector of overall optimal segment ends), K (optimal number of
+segments), J.est (total un-penalized cost of optimal model). To
+see how cost relates to J.est, see definition of J.est in the R
+source code for this function.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Guillem Rigaill, Toby Dylan Hocking</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+N &lt;- 100
+data.vec &lt;- c(rnorm(N), rnorm(N, 2), rnorm(N))
+fit &lt;- Fpop(data.vec, N)
+end.vec &lt;- fit$t.est
+change.vec &lt;- end.vec[-length(end.vec)]
+start.vec &lt;- c(1, change.vec+1)
+segs.list &lt;- list()
+for(seg.i in seq_along(start.vec)){
+  start &lt;- start.vec[seg.i]
+  end &lt;- end.vec[seg.i]
+  seg.data &lt;- data.vec[start:end]
+  seg.mean &lt;- mean(seg.data)
+  segs.list[[seg.i]] &lt;- data.frame(
+    start, end,
+    mean=seg.mean,
+    seg.cost=sum((seg.data-seg.mean)^2))
+}
+segs &lt;- do.call(rbind, segs.list)
+plot(data.vec)
+with(segs, segments(start-0.5, mean, end+0.5, mean, col="green"))
+with(segs[-1,], abline(v=start-0.5, col="green", lty="dotted"))
+</code></pre>
+
+
+</div>

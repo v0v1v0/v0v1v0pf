@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cttd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-temporal top-down reconciliation</h2>
+
+<h3>Description</h3>
+
+<p>Top-down forecast reconciliation for cross-temporal hierarchical/grouped
+time series, where the forecast of a ‘Total’ (top-level series, expected
+to be positive) is disaggregated according to a proportional scheme (weights).
+Besides fulfilling any aggregation constraint, the top-down reconciled
+forecasts should respect two main properties:
+</p>
+
+<ul>
+<li>
+<p> the top-level value remains unchanged;
+</p>
+</li>
+<li>
+<p> all the bottom time series reconciled forecasts are non-negative.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">cttd(base, agg_mat, agg_order, weights, tew = "sum", normalize = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>A (<code class="reqn">hm \times 1</code>) numeric vector containing top- and <code class="reqn">m</code> temporal
+aggregated level base forecasts; <code class="reqn">m</code> is the max aggregation order, and <code class="reqn">h</code> is
+the forecast horizon for the lowest frequency time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_mat</code></td>
+<td>
+<p>A (<code class="reqn">n_a \times n_b</code>) numeric matrix representing the cross-sectional
+aggregation matrix. It maps the <code class="reqn">n_b</code> bottom-level (free)
+variables into the <code class="reqn">n_a</code> upper (constrained) variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_order</code></td>
+<td>
+<p>Highest available sampling frequency per seasonal cycle (max. order
+of temporal aggregation, <code class="reqn">m</code>), or a vector representing a subset of <code class="reqn">p</code> factors
+of <code class="reqn">m</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>A (<code class="reqn">n_b \times hm</code>) numeric matrix containing the proportions for each
+high-frequency bottom time series; <code class="reqn">n_b</code> is the total number of high-frequency
+bottom variables, <code class="reqn">m</code> is the max aggregation order, and <code class="reqn">h</code> is the forecast horizon
+for the lowest frequency time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tew</code></td>
+<td>
+<p>A string specifying the type of temporal aggregation. Options include:
+"<code>sum</code>" (simple summation, <em>default</em>), "<code>avg</code>" (average),
+"<code>first</code>" (first value of the period), and "<code>last</code>"
+(last value of the period).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>If <code>TRUE</code> (<em>default</em>), the <code>weights</code> will sum to 1.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix of cross-temporal reconciled forecasts.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Top-down reconciliation: 
+<code>cstd()</code>,
+<code>tetd()</code>
+</p>
+<p>Cross-temporal framework: 
+<code>ctboot()</code>,
+<code>ctbu()</code>,
+<code>ctcov()</code>,
+<code>ctlcc()</code>,
+<code>ctmo()</code>,
+<code>ctrec()</code>,
+<code>cttools()</code>,
+<code>iterec()</code>,
+<code>tcsrec()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# (3 x 1) top base forecasts vector (simulated), forecast horizon = 3
+topf &lt;- rnorm(3, 10)
+A &lt;- t(c(1,1)) # Aggregation matrix for Z = X + Y
+
+# Same weights for different forecast horizons, agg_order = 4
+fix_weights &lt;- matrix(runif(4*2), 2, 4)
+reco &lt;- cttd(base = topf, agg_mat = A, agg_order = 4, weights = fix_weights)
+
+# Different weights for different forecast horizons
+h_weights &lt;- matrix(runif(4*2*3), 2, 3*4)
+recoh &lt;- cttd(base = topf, agg_mat = A, agg_order = 4, weights = h_weights)
+
+</code></pre>
+
+
+</div>

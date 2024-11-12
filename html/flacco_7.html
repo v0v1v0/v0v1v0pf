@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FeatureObject</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a Feature Object</h2>
+
+<h3>Description</h3>
+
+<p>Create a <code>FeatureObject</code>, which will be used as input for all
+the feature computations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">createFeatureObject(
+  init,
+  X,
+  y,
+  fun,
+  minimize,
+  lower,
+  upper,
+  blocks,
+  objective,
+  force = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>[<code>data.frame</code>]<br>
+A <code>data.frame</code>, which can be used as initial design. If not provided,
+it will be created either based on the initial sample <code>X</code> and the
+objective values <code>y</code> or <code>X</code> and the function definition <code>fun</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>[<code>data.frame</code> or <code>matrix</code>]<br>
+A <code>data.frame</code> or <code>matrix</code> containing the initial sample. If not
+provided, it will be extracted from <code>init</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>[<code>numeric</code> or <code>integer</code>]<br>
+A vector containing the objective values of the initial design.
+If not provided, it will be extracted from <code>init</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>[<code>function</code>]<br>
+A function, which allows the computation of the objective values. If it is
+not provided, features that require additional function evaluations, can't
+be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimize</code></td>
+<td>
+<p>[<code>logical(1)</code>]<br>
+Should the objective function be minimized? The default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>[<code>numeric</code> or <code>integer</code>]<br>
+The lower limits per dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>[<code>numeric</code> or <code>integer</code>]<br>
+The upper limits per dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blocks</code></td>
+<td>
+<p>[<code>integer</code>]<br>
+The number of blocks per dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+The name of the feature, which contains the objective values. The
+default is <code>"y"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force</code></td>
+<td>
+<p>[<code>logical(1)</code>]<br>
+Only change this parameter IF YOU KNOW WHAT YOU ARE DOING! Per default
+(<code>force = FALSE</code>), the function checks whether the total number of
+cells that you are trying to generate, is below the (hard-coded) internal
+maximum of 25,000 cells. If you set this parameter to <code>TRUE</code>, you
+agree that you want to exceed that internal limit.<br>
+Note: *Exploratory Landscape Analysis (ELA)* is only useful when you are
+limited to a small budget (i.e., a small number of function evaluations)
+and in such scenarios, the number of cells should also be kept low!</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>[<code>FeatureObject</code>].
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># (1a) create a feature object using X and y:
+X = createInitialSample(n.obs = 500, dim = 3,
+  control = list(init_sample.lower = -10, init_sample.upper = 10))
+y = apply(X, 1, function(x) sum(x^2))
+feat.object1 = createFeatureObject(X = X, y = y, 
+  lower = -10, upper = 10, blocks = c(5, 10, 4))
+
+# (1b) create a feature object using X and fun:
+feat.object2 = createFeatureObject(X = X, 
+  fun = function(x) sum(sin(x) * x^2),
+  lower = -10, upper = 10, blocks = c(5, 10, 4))
+
+# (1c) create a feature object using a data.frame:
+feat.object3 = createFeatureObject(iris[,-5], blocks = 5, 
+  objective = "Petal.Length")
+
+# (2) have a look at the feature objects:
+feat.object1
+feat.object2
+feat.object3
+
+# (3) now, one could calculate features
+calculateFeatureSet(feat.object1, "ela_meta")
+calculateFeatureSet(feat.object2, "cm_grad")
+library(plyr)
+calculateFeatureSet(feat.object3, "cm_angle", control = list(cm_angle.show_warnings = FALSE))
+
+</code></pre>
+
+
+</div>

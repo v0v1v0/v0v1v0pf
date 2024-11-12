@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FAVAR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>FAVAR</h2>
+
+<h3>Description</h3>
+
+<p>Estimate a FAVAR model by Bernanke et al. (2005).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FAVAR(
+  Y,
+  X,
+  fctmethod = "BBE",
+  slowcode,
+  K = 2,
+  plag = 2,
+  factorprior = list(b0 = 0, vb0 = NULL, c0 = 0.01, d0 = 0.01),
+  varprior = list(b0 = 0, vb0 = 0, nu0 = 0, s0 = 0, mn = list(kappa0 = NULL, kappa1 =
+    NULL)),
+  nburn = 5000,
+  nrep = 15000,
+  standardize = TRUE,
+  ncores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a matrix. Observable economic variables assumed to drive the dynamics of the economy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a matrix. A large macro data set. The meanings of <code>X</code> and <code>Y</code> is same as ones of Bernanke et al. (2005).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fctmethod</code></td>
+<td>
+<p><code>'BBE'</code> or <code>'BGM'</code>. <code>'BBE'</code>(default) means the factors extracted method by Bernanke et al. (2005),
+and <code>'BGM'</code> means the factors extracted method by Boivin et al. (2009).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slowcode</code></td>
+<td>
+<p>a logical vector that identifies which columns of X are slow
+moving. Only when <code>fctmethod</code> is set as <code>'BBE'</code>, <code>slowcode</code> is valid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>the number of factors extracted from <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plag</code></td>
+<td>
+<p>the lag order in the VAR equation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factorprior</code></td>
+<td>
+<p>A list whose elements is named sets the prior for the factor equation.
+<code>b0</code> is the prior of mean of regression coefficients <code class="reqn">\beta</code>,and <code>vb0</code> is the prior of the variance
+of <code class="reqn">\beta</code>, and <code>c0/2</code> and <code>d0/2</code> are prior parameters of the variance of the error
+<code class="reqn">\sigma^{-2}</code>, and they are
+the shape and scale parameters of Gamma distribution, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varprior</code></td>
+<td>
+<p>A list whose elements is named sets the prior of VAR equations.
+<code>b0</code> is the prior of mean of VAR coefficients <code class="reqn">\beta</code>, and <code>vb0</code> is the prior
+of the variance of <code class="reqn">\beta</code>, it's a scalar that means priors of variance is same, or a
+vector whose length equals the length of <code class="reqn">\beta</code>. <code>nu0</code> is the degree of freedom
+of Wishart distribution for <code class="reqn">\Sigma^{-1}</code>, i.e., a shape parameter, and <code>s0</code> is a inverse
+scale parameter for the Wishart distribution, and it's a matrix with
+<code>ncol(s0)=nrow(s0)=</code>the number of endogenous variables in VAR. If it's a scalar, it means
+the entry of the matrix is same. <code>mn</code> sets the Minnesota prior. If
+<code>varprior$mn$kappa0</code> is not <code>NULL</code>, <code>b0,vb0</code> is neglected.
+<code>mn</code>'s element <code>kappa0</code> controls the
+tightness of the prior variance for self-variables lag coefficients, the prior variance
+is <code class="reqn">\kappa_0/lag^2</code>, another element <code>kappa1</code> controls the cross-variables lag
+coefficients spread, the prior variance is
+<code class="reqn">\frac{\kappa_0\kappa_1}{lag^2}\frac{\sigma_m^2}{\sigma_n^2}, m\ne n</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nburn</code></td>
+<td>
+<p>the number of the first random draws discarded in MCMC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+<p>the number of the saved draws in MCMC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Whether standardize? We suggest it does, because in the function
+VAR equation and factor equation both don't include intercept.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>the number of CPU cores in parallel computations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Here we simply state the prior distribution setting of VAR. VAR could be written by (Koop and Korobilis, 2010),
+</p>
+<p style="text-align: center;"><code class="reqn">y_t= Z_t\beta + \varepsilon_t, \varepsilon_t\sim N(0,\Sigma)</code>
+</p>
+
+<p>You can write down it according to data matrix,
+</p>
+<p style="text-align: center;"><code class="reqn">Y= Z\beta + \varepsilon, \varepsilon\sim N(0,I\otimes \Sigma)</code>
+</p>
+
+<p>where <code class="reqn">Y = (y_1,y_2,\cdots, y_T)',Z=(Z_,Z_2,\cdots,Z_T)',\varepsilon=(\varepsilon_1,\varepsilon_2,\cdots,\varepsilon_T)</code>. We assume that prior distribution of <code class="reqn">\beta</code> and <code class="reqn">\Sigma^{-1}</code> is,
+</p>
+<p style="text-align: center;"><code class="reqn">\beta\sim N(b0,V_{b0}), \Sigma^{-1}\sim W(S_0^{-1},\nu_0)</code>
+</p>
+
+<p>Or you can set the Minnesota prior for variance of <code class="reqn">\beta</code>, for example,
+for the <code class="reqn">m</code>th equation in <code class="reqn">y_t= Z_t\beta + \varepsilon_t</code>,
+</p>
+
+<ul>
+<li> <p><code class="reqn">\frac{\kappa_0}{l^2},l</code> is lag order, for won lags of endogenous variables
+</p>
+</li>
+<li> <p><code class="reqn">\frac{\kappa_0\kappa_1}{l^2}\frac{\sigma_m^2}{\sigma_n^2}, m\ne n</code>,for lags of other endogenous variables in the mth equation,
+where <code class="reqn">\sigma_m</code> is the standard error for residuals of the mth equation.
+</p>
+</li>
+</ul>
+<p>Based on the priors, you could get corresponding post distribution for the parameters
+by Markov Chain Monte Carlo (MCMC) algorithm.  More details, see Koop and Korobilis (2010).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "favar" containing the following components:
+</p>
+
+<dl>
+<dt>varrlt</dt>
+<dd>
+<p>A list. The estimation results of VAR including estimated coefficients
+<code>A</code>, their variance-covariance matrix <code>sigma</code>, and other statistical summary for <code>A</code>.</p>
+</dd>
+<dt>Lamb</dt>
+<dd>
+<p>A array with 3 dimension. and <code>Lamb[i,,]</code> is factor loading matrix
+for factor equations in the <code class="reqn">i</code>th sample of MCMC.</p>
+</dd>
+<dt>factorx</dt>
+<dd>
+<p>Extracted factors from <code>X</code></p>
+</dd>
+</dl>
+<p>.
+</p>
+<dl>
+<dt>model_info</dt>
+<dd>
+<p>Model information containing <code>nburn,nrep,X,Y</code> and <code>p</code>, the number of endogenous variables
+in the VAR.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> Bernanke, B.S., J. Boivin and P. Eliasz, Measuring the Effects of Monetary Policy:
+A Factor-Augmented Vector Autoregressive (FAVAR) Approach. Quarterly Journal of Economics, 2005. 120(1): p. 387-422.
+</p>
+</li>
+<li>
+<p> Boivin, J., M.P. Giannoni and I. Mihov, Sticky Prices and Monetary Policy: Evidence
+from Disaggregated US Data. American Economic Review, 2009. 99(1): p. 350-384.
+</p>
+</li>
+<li>
+<p> Koop, G. and D. Korobilis, Bayesian Multivariate Time Series Methods for Empirical Macroeconomics. 2010: Now Publishers.
+</p>
+</li>
+</ol>
+<h3>See Also</h3>
+
+<p><code>summary.favar</code>, <code>coef.favar</code> and <code>irf</code>. All of them are
+S3 methods of the "favar" object, and
+<code>summary.favar</code> that prints the estimation results of a FAVAR model, and
+<code>coef.favar</code> that extracts the coefficients in a FAVAR model, and
+<code>irf</code> that computes the impulse response in a FAVAR model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># data('regdata')
+# fit &lt;- FAVAR(Y = regdata[,c("Inflation","Unemployment","Fed_funds")],
+#              X = regdata[,1:115], slowcode = slowcode,fctmethod = 'BBE',
+#              factorprior = list(b0 = 0, vb0 = NULL, c0 = 0.01, d0 = 0.01),
+#              varprior = list(b0 = 0,vb0 = 10, nu0 = 0, s0 = 0),
+#              nrep = 15000, nburn = 5000, K = 2, plag = 2)
+##---- print FAVAR estimation results------
+# summary(fit,xvar = c(3,5))
+##---- or extract coefficients------
+# coef(fit)
+##---- plot impulse response figure------
+# library(patchwork)
+# dt_irf &lt;- irf(fit,resvar = c(2,9,10))
+</code></pre>
+
+
+</div>

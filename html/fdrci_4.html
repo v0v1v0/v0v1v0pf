@@ -1,0 +1,336 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fdrTbl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>FDR Estimate and Confidence Interval Sequence Table</h2>
+
+<h3>Description</h3>
+
+<p>Computes FDR estimates and confidence intervals for a sequence of potential
+significance thresholds.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fdrTbl(
+  obs.vec,
+  perm.list = NULL,
+  pname,
+  ntests,
+  lowerbound,
+  upperbound,
+  incr = 0.1,
+  cl = 0.95,
+  c1 = NA,
+  correct = "none",
+  meff = TRUE,
+  seff = TRUE,
+  mymat,
+  nperms = 5
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs.vec</code></td>
+<td>
+<p>observed vector of p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm.list</code></td>
+<td>
+<p>list of dataframes that include a column of permutation
+p-values (or statistics) in each. The length of the list permp = number of
+permutations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pname</code></td>
+<td>
+<p>name of column in each list component dataframe that includes
+p-values (or statistics).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntests</code></td>
+<td>
+<p>total number of observed tests, which is usually the same as
+the length of obs.vec and the number of rows in each perm.list dataframe.
+However, this may not be the case if results were filtered by a p-value
+threshold or statistic threshold. If filtering was conducted then lowerbound
+must be greater (more extreme) than the filtering criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowerbound</code></td>
+<td>
+<p>lowerbound refers to the range of -log10(p-value) over
+which fdr is computed for a sequence of thresholds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upperbound</code></td>
+<td>
+<p>upperbound refers to the range of -log10(p-value) over
+which fdr is computed for a sequence of thresholds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>incr</code></td>
+<td>
+<p>value by which to increment the sequence from lowerbound to
+upperbound on a -log10(p-value) scale. Default is 0.1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>confidence level (default is .95).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1</code></td>
+<td>
+<p>overdispersion parameter to account for dependencies among tests. If 
+all tests are known to be independent, then this parameter should be set to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correct</code></td>
+<td>
+<p>"none", "BH", should confidence intervals be corrected for 
+multiplicity using a modification of the Benjamini and Yekutieli (2005) approach 
+for selecting and correcting intervals? (default is "none")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meff</code></td>
+<td>
+<p>(For parametric estimation, if <code>perm.list = NULL</code>.) Logical. To be passed into <code>fdr_od</code>. <code>TRUE</code> implies the calculation of the effective number of tests based on the JM estimator (Default is <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seff</code></td>
+<td>
+<p>(For parametric estimation, if <code>perm.list = NULL</code>.) Logical. To be passed into <code>fdr_od</code>. <code>TRUE</code> implies the calculation of the effective number of rejected hypotheses based on the JM estimator (Default is <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mymat</code></td>
+<td>
+<p>(For parametric estimation, if <code>perm.list = NULL</code>.) Matrix. To be passed into <code>fdr_od</code>. Design matrix used to calculate the p-values provided in <code>obsp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nperms</code></td>
+<td>
+<p>(For parametric estimation, if <code>perm.list = NULL</code>.) Integer. To be passed into <code>fdr_od</code>. Number of permutations needed to estimate the effective number of (rejected) tests. (Must be non-zero, default is 5)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>fdrTbl calls fdr_od for a series of discovery thresholds. 
+Output from fdrTbl() can be used for FDRplot() input.
+</p>
+<p>If correct = "BH", then confidence intervals will be corrected according to
+the thresholds specified by lowerbound, upperbound, and incr. Thresholds will 
+be selected if FDR is determined to be significantly different than 1. First
+a Z-score test is conducted using the Millstein &amp; Volfson standard error estimate.
+Then BH FDR is computed according to the Benjamini and Yekutieli (2005) approach.
+CIs for selected thresholds will be adjusted to account for multiple CI estimation.
+For thresholds that are not selected, NA values are returned.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe is returned where rows correspond to p-value thresholds
+in the sequence from lowerbound to upperbound and columns are:
+</p>
+<p>If permutation:
+c("threshold","fdr","ll","ul","pi0","odp","S","Sp") </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>threshold
+</code></td>
+<td>
+<p>p-value threshold chosen to define positive tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdr </code></td>
+<td>
+<p>estimated
+FDR at the chosen p-value threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll </code></td>
+<td>
+<p>estimated lower 95%
+confidence bound for the FDR estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ul </code></td>
+<td>
+<p>estimated upper 95%
+confidence bound for the FDR estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi0 </code></td>
+<td>
+<p>estimated percent of true
+null hypotheses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>odp </code></td>
+<td>
+<p>estimated over-dispersion parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S
+</code></td>
+<td>
+<p>observed number of positive tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sp </code></td>
+<td>
+<p>total number of positive
+tests summed across all permuted result sets</p>
+</td>
+</tr>
+</table>
+<p>If parametric:
+c("threshold","fdr","ll","ul","M","M.eff","S","S.eff") </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>threshold
+</code></td>
+<td>
+<p>p-value threshold chosen to define positive tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdr </code></td>
+<td>
+<p>estimated
+FDR at the chosen p-value threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll </code></td>
+<td>
+<p>estimated lower 95%
+confidence bound for the FDR estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ul </code></td>
+<td>
+<p>estimated upper 95%
+confidence bound for the FDR estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M </code></td>
+<td>
+<p>total number of tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M.eff</code></td>
+<td>
+<p>Effective number of tests via the JM estimator</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S
+</code></td>
+<td>
+<p>observed number of positive tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.eff </code></td>
+<td>
+<p>effective number of positive tests via the JM estimator</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Joshua Millstein, Eric S. Kawaguchi
+</p>
+
+
+<h3>References</h3>
+
+<p>Millstein J, Volfson D. 2013. Computationally efficient
+permutation-based confidence interval estimation for tail-area FDR.
+Frontiers in Genetics | Statistical Genetics and Methodology 4(179):1-11.
+</p>
+<p>Benjamini, Yoav, and Daniel Yekutieli. "False discovery rate adjusted multiple 
+confidence intervals for selected parameters." Journal of the American Statistical 
+Association 100.469 (2005): 71-81.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+n.row=100
+n.col=100
+X = as.data.frame(matrix(rnorm(n.row*n.col),nrow=n.row,ncol=n.col))
+e = as.data.frame(matrix(rnorm(n.row*n.col),nrow=n.row,ncol=n.col))
+Y = .1*X + e
+nperm = 10
+
+myanalysis = function(X,Y){
+	ntests = ncol(X)
+	rslts = as.data.frame(matrix(NA,nrow=ntests,ncol=2))
+	names(rslts) = c("ID","pvalue")
+	rslts[,"ID"] = 1:ntests
+	for(i in 1:ntests){
+		fit = cor.test(X[,i],Y[,i],na.action="na.exclude",
+			alternative="two.sided",method="pearson")
+		rslts[i,"pvalue"] = fit$p.value
+	}
+	return(rslts)
+} # End myanalysis
+
+## Generate observed results
+obs = myanalysis(X,Y)
+
+## Generate permuted results
+perml = vector('list',nperm)
+for(perm in 1:nperm){
+	X1 = X[order(runif(n.col)),]
+	perml[[perm]] = myanalysis(X1,Y)
+}
+
+## FDR results table
+fdrTbl(obs$pvalue,perml,"pvalue",n.col,1,2)
+fdrTbl(obs$pvalue,perml,"pvalue",n.col,1,2,correct="BH")
+
+## FDR results table (parametric)
+fdrTbl(obs$pvalue, NULL, "pvalue",n.col,1,2,meff = TRUE, seff = TRUE, mymat = X, nperms = 5)
+
+</code></pre>
+
+
+</div>

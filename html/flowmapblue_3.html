@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flowmapblue</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an interactive flow map</h2>
+
+<h3>Description</h3>
+
+<p>Creates an interactive flow map visualizing flows between various locations and outputs it as an HTML widget. This function utilizes the <a href="https://www.flowmap.blue/"><code>FlowmapBlue</code></a> library to create maps with customizable options such as clustering, animation, and dark mode. The widget can be rendered in R Markdown, Shiny, or viewed in a browser. It can also be saved to <code>html</code> file with <code>htmlwidgets:saveWidget()</code>. See examples for more details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flowmapblue(
+  locations,
+  flows,
+  mapboxAccessToken = NULL,
+  clustering = TRUE,
+  animation = FALSE,
+  darkMode = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>locations</code></td>
+<td>
+<p>A <code>data.frame</code> containing the location data. The <code>data.frame</code> should have the following columns:
+</p>
+
+<dl>
+<dt>id</dt>
+<dd>
+<p>A character vector representing the unique identifier for each location (e.g., "JU", "LU").</p>
+</dd>
+<dt>name</dt>
+<dd>
+<p>(Optional) A character vector representing the name of each location (e.g., "Jura", "Luzern").</p>
+</dd>
+<dt>lat</dt>
+<dd>
+<p>A numeric vector representing the latitude of each location in WGS84 (EPSG: 4326) coordinate reference system.</p>
+</dd>
+<dt>lon</dt>
+<dd>
+<p>A numeric vector representing the longitude of each location in WGS84 (EPSG: 4326) coordinate reference system.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flows</code></td>
+<td>
+<p>A <code>data.frame</code> containing the flow data between locations. The <code>data.frame</code> should have the following columns:
+</p>
+
+<dl>
+<dt>origin</dt>
+<dd>
+<p>A <code>character</code> vector representing the origin location identifier (must match the <code>id</code> in <code>locations</code>).</p>
+</dd>
+<dt>dest</dt>
+<dd>
+<p>A <code>character</code> vector representing the destination location identifier (must match the <code>id</code> in <code>locations</code>).</p>
+</dd>
+<dt>count</dt>
+<dd>
+<p>An <code>integer</code> vector representing the flow count between the origin and destination locations.</p>
+</dd>
+<dt>time</dt>
+<dd>
+<p>(Optional) A vector of <code>POSIXct</code> or <code>Date</code> objects representing the date or date and time of the flow.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mapboxAccessToken</code></td>
+<td>
+<p>A <code>character</code> string representing the Mapbox access token. This is required to render the map using Mapbox tiles. You can obtain a free token at <a href="https://account.mapbox.com/">https://account.mapbox.com/</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustering</code></td>
+<td>
+<p>A <code>logical</code> value indicating whether to enable clustering of locations on the map. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>animation</code></td>
+<td>
+<p>A <code>logical</code> value indicating whether to enable animation of flows on the map. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>darkMode</code></td>
+<td>
+<p>A <code>logical</code> value indicating whether to enable dark mode for the map. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An HTML widget of class <code>flowmapblue</code> and <code>htmlwidget</code> that can be rendered in R Markdown, Shiny, or viewed in a browser. It can also be saved to <code>html</code> file with <code>htmlwidgets:saveWidget()</code>. See examples for more details.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# example 1, normal flows
+# set your Mapbox access token
+Sys.setenv(MAPBOX_API_TOKEN = "YOUR_MAPBOX_ACCESS_TOKEN")
+
+# load locations and flows for Switzerland
+locations &lt;- data(ch_locations)
+flows &lt;- data(ch_flows)
+
+flowmap &lt;- flowmapblue(
+ locations,
+ flows,
+ mapboxAccessToken = Sys.getenv('MAPBOX_API_TOKEN'),
+ clustering = TRUE,
+ darkMode = TRUE,
+ animation = FALSE
+)
+
+# view the map
+flowmap
+
+# or save it as an HTML file
+htmlwidgets::saveWidget(flowmap, file = "flowmap.html")
+
+# example 2, flows with date in time column
+# set your Mapbox access token
+Sys.setenv(MAPBOX_API_TOKEN = "YOUR_MAPBOX_ACCESS_TOKEN")
+
+# load locations and flows for Switzerland
+locations &lt;- data(ch_locations)
+flows &lt;- data(ch_flows)
+
+# generate fake datetime
+flows$time &lt;- seq(from =as.POSIXct("2020-01-01"),
+  to = as.POSIXct("2020-01-05"), length.out = nrow(flows))
+
+flowmap &lt;- flowmapblue(
+ locations,
+ flows,
+ mapboxAccessToken = Sys.getenv('MAPBOX_API_TOKEN'),
+ clustering = TRUE,
+ darkMode = TRUE,
+ animation = FALSE
+)
+
+# view the map
+flowmap
+
+# example 3, flows with date in time column
+# set your Mapbox access token
+Sys.setenv(MAPBOX_API_TOKEN = "YOUR_MAPBOX_ACCESS_TOKEN")
+
+# load locations and flows for Switzerland
+locations &lt;- data(ch_locations)
+flows &lt;- data(ch_flows)
+# generate fake dates
+flows$time &lt;- seq(from = as.Date("2020-01-01"),
+  to = as.Date("2020-06-01"), length.out = nrow(flows))
+
+flowmap &lt;- flowmapblue(
+ locations,
+ flows,
+ mapboxAccessToken = Sys.getenv('MAPBOX_API_TOKEN'),
+ clustering = TRUE,
+ darkMode = TRUE,
+ animation = FALSE
+)
+
+# view the map
+flowmap
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

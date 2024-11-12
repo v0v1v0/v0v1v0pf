@@ -1,0 +1,314 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IDeA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Decorrelation of data frames</h2>
+
+<h3>Description</h3>
+
+<p>All continous features that with significant correlation will be decorrelated
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  ILAA(data=NULL,
+                thr=0.80,
+                method=c("pearson","spearman"),
+                Outcome=NULL,
+                drivingFeatures=NULL,
+                maxLoops=100,
+                verbose=FALSE,
+                bootstrap=0
+                )
+                
+  IDeA(data=NULL,thr=0.80,
+                       method=c("fast","pearson","spearman","kendall"),
+                       Outcome=NULL,
+                       refdata=NULL,
+                       drivingFeatures=NULL,
+                       useDeCorr=TRUE,
+                       relaxed=TRUE,
+                       corRank=TRUE,
+                       maxLoops=100,
+                       unipvalue=0.05,
+                       verbose=FALSE,
+                       ...)
+
+  
+  predictDecorrelate(decorrelatedobject,testData)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The dataframe whose features will de decorrelated
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thr</code></td>
+<td>
+
+<p>The maximum allowed correlation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refdata</code></td>
+<td>
+
+<p>Option: A data frame that may be used to decorrelate the target dataframe 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The target outcome for supervised basis
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drivingFeatures</code></td>
+<td>
+
+<p>A vector of features to be used as basis vectors. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unipvalue</code></td>
+<td>
+
+<p>Maximum p-value for correlation significance
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useDeCorr</code></td>
+<td>
+
+<p>if TRUE, the transformation matrix (UPLTM) will be computed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxLoops</code></td>
+<td>
+
+<p>the maxumum number of iteration loops
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>if TRUE, it will display internal evolution of algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>if not set to "fast" the method will be pased to the <code>cor()</code> function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relaxed</code></td>
+<td>
+
+<p>is set to TRUE it will use relaxed convergence
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corRank</code></td>
+<td>
+
+<p>is set to TRUE it will correlation matrix to break ties.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>parameters passed to the <code>featureAdjustment</code> function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decorrelatedobject</code></td>
+<td>
+
+<p>The returned dataframe of the <code>IDeA</code> function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testData</code></td>
+<td>
+
+<p>The new dataframe to be decorrelated
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+
+<p>If greater than 1 the number of boostrapping loops
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The dataframe will be analyzed and significantly correlated features whose correlation 
+is larger than the user supplied threshold will be decorrelated. 
+Basis feature selection may be based on Outcome association or by an unsupervised method. 
+The default options will run the decorrelation using fast matrix operations using <code>Rfast</code>;
+hence, Pearson correlation will be used to estimate the unit-preserving spatial transformation matrix (UPLTM).
+ILAA is a wrapper of the more comprensive IDeA method. It estimates linear transforms and allows for boosted transform estimations 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>decorrelatedDataframe</code></td>
+<td>
+
+<p>The decorrelated data frame with the follwing attributes 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr:UPLTM</code></td>
+<td>
+
+<p>Attribute of decorrelatedDataframe: The Decorrelation matrix with the beta coefficients
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr:fscore</code></td>
+<td>
+
+<p>Attribute of decorrelatedDataframe: The score of each feature.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr:drivingFeatures</code></td>
+<td>
+
+<p>Attribute of decorrelatedDataframe: The list of features used as base features for supervised basis
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr:unipvalue</code></td>
+<td>
+
+<p>Attribute of decorrelatedDataframe: The p-value used to check for fit significance
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr:R.critical</code></td>
+<td>
+
+<p>Attribute of decorrelatedDataframe: The pearson correlation critical value
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr:IDeAEvolution</code></td>
+<td>
+
+<p>Attribute of decorrelatedDataframe: The R measure history and the sparcity
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr:VarRatio</code></td>
+<td>
+
+<p>Attribute of decorrelatedDataframe: The variance ratio between the output latent variable and the observed 
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena</p>
+
+
+<h3>See Also</h3>
+
+<p><code>featureAdjustment</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Not run: 
+  # load FRESA.CAD library
+  #  library("FRESA.CAD")
+
+  # iris data set
+  data('iris')
+
+  colors &lt;- c("red","green","blue")
+  names(colors) &lt;- names(table(iris$Species))
+  classcolor &lt;- colors[iris$Species]
+
+  #Decorrelating with usupervised basis and correlation goal set to 0.25
+  system.time(irisDecor &lt;- IDeA(iris,thr=0.25))
+  
+  ## The transformation matrix is stored at "UPLTM" attribute
+  UPLTM &lt;- attr(irisDecor,"UPLTM")
+  print(UPLTM)
+
+  #Decorrelating with supervised basis and correlation goal set to 0.25
+  system.time(irisDecorOutcome &lt;- IDeA(iris,Outcome="Species",thr=0.25))
+  ## The transformation matrix is stored at "UPLTM" attribute
+  UPLTM &lt;- attr(irisDecorOutcome,"UPLTM")
+  print(UPLTM)
+
+  ## Compute PCA 
+  features &lt;- colnames(iris[,sapply(iris,is,"numeric")])
+  irisPCA &lt;- prcomp(iris[,features]);
+  ## The PCA transformation
+  print(irisPCA$rotation)
+
+  ## Plot the transformed sets
+  plot(iris[,features],col=classcolor,main="Raw IRIS")
+
+  plot(as.data.frame(irisPCA$x),col=classcolor,main="PCA IRIS")
+
+  featuresDecor &lt;- colnames(irisDecor[,sapply(irisDecor,is,"numeric")])
+  plot(irisDecor[,featuresDecor],col=classcolor,main="Outcome-Blind IDeA IRIS")
+
+
+  featuresDecor &lt;- colnames(irisDecorOutcome[,sapply(irisDecorOutcome,is,"numeric")])
+  plot(irisDecorOutcome[,featuresDecor],col=classcolor,main="Outcome-Driven IDeA IRIS")
+  
+## End(Not run)
+</code></pre>
+
+
+</div>

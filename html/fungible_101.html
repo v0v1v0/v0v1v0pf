@@ -1,0 +1,825 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simFA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate Factor Analysis Models and Data Sets for Simulation Studies</h2>
+
+<h3>Description</h3>
+
+<p>A function to simulate factor loadings matrices and Monte Carlo
+data sets for common factor models, bifactor models, and IRT
+models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simFA(
+  Model = list(),
+  Loadings = list(),
+  CrossLoadings = list(),
+  Phi = list(),
+  ModelError = list(),
+  Bifactor = list(),
+  MonteCarlo = list(),
+  FactorScores = list(),
+  Missing = list(),
+  Control = list(),
+  Seed = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Model</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>NFac</code> (scalar) Number of common or group
+factors; defaults to <code>NFac = 3</code>.
+</p>
+</li>
+<li> <p><code>NItemPerFac</code>
+</p>
+
+<ul>
+<li>
+<p> (scalar) All factors have the same number
+of primary loadings.
+</p>
+</li>
+<li>
+<p> (vector) A vector of length <code>NFac</code>
+specifying the number of primary loadings for
+each factor; defaults to
+<code>NItemPerFac = 3</code>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>Model</code> (character) <code>"orthogonal"</code> or
+<code>"oblique"</code>; defaults to <code>Model = "orthogonal"</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Loadings</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>FacPattern</code> (<code>NULL</code> or matrix).
+</p>
+
+<ul>
+<li> <p><code>FacPattern = M</code> where <code>M</code> is
+a user-defined factor pattern matrix.
+</p>
+</li>
+<li> <p><code>FacPattern = NULL</code>; <code>simFA</code>
+will generate a factor pattern based on
+the arguments specified  under other keywords
+(e.g., <code>Model</code>, <code>CrossLoadings</code>, etc.);
+defaults to <code>FacPattern = NULL</code>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>FacLoadDist</code>  (character) Specifies the
+sampling distribution for the common factor loadings.
+Possible values are <code>"runif"</code>, <code>"rnorm"</code>,
+<code>"sequential"</code>, and <code>"fixed"</code>; defaults
+to <code>FacLoadDist = "runif"</code>.
+</p>
+</li>
+<li> <p><code>FacLoadRange</code> (vector of length <code>NFac</code>,
+2, or 1); defaults to <code>FacLoadRange = c(.3, .7)</code>.
+</p>
+
+<ul>
+<li>
+<p> If <code>FacLoadDist = "runif"</code> the vector
+defines the bounds of the uniform distribution;
+</p>
+</li>
+<li>
+<p> If <code>FacLoadDist = "rnorm"</code> the vector
+defines the mean and standard deviation of
+the normal distribution from which loadings
+are sampled.
+</p>
+</li>
+<li>
+<p> If <code>FacLoadDist = "sequential"</code> the
+vector specifies the lower and upper bound
+of the loadings sequence.
+</p>
+</li>
+<li>
+<p> If <code>FacLoadDist = "fixed"</code> and
+<code>FacLoadRange</code> is a vector of length 1
+then all common loadings will equal the constant
+specified in <code>FacLoadRange</code>. If
+<code>FacLoadDist = "fixed"</code> and
+<code>FacLoadRange</code> is a vector of length
+<code>NFac</code> then each factor will have fixed
+loadings as specified by the associated
+element in <code>FacLoadRange</code>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>h2</code> (vector) An optional vector of communalities
+used to constrain the population communalities to
+user-defined values; defaults to <code>h2 = NULL</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CrossLoadings</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>ProbCrossLoad</code> (scalar) A value in the (0,1)
+interval that determines the probability that a cross
+loading will be present in elements of the loadings
+matrix that do not have salient (primary) factor loadings.
+If set to <code>ProbCrossLoad = 1</code>, a single cross
+loading will be added to each factor;  defaults to
+<code>ProbCrossLoad = 0</code>.
+</p>
+</li>
+<li> <p><code>CrossLoadRange</code> (vector of length 2) Controls
+size of the cross loadings; defaults to
+<code>CrossLoadRange = c(.20, .25)</code>.
+</p>
+</li>
+<li> <p><code>CrossLoadPositions</code> (matrix) Specifies the
+row and column positions of (optional) cross loadings;
+defaults to <code>CrossLoadPositions = NULL</code>.
+</p>
+</li>
+<li> <p><code>CrossLoadValues</code> (vector) If
+<code>CrossLoadPositions</code> is specified then
+<code>CrossLoadValues</code> is a vector of user-supplied
+cross-loadings; defaults to <code>CrossLoadValues = NULL</code>.
+</p>
+</li>
+<li> <p><code>CrudFactor</code> (scalar) Controls the size of
+tertiary factor loadings. If <code>CrudFactor != 0</code>
+then elements of the loadings matrix with neither
+primary nor secondary (i.e., cross) loadings will
+be sampled from a \[-(CrudFactor), (CrudFactor)\]
+uniform distribution; defaults to <code>CrudFactor = 0</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>MaxAbsPhi</code> (scalar) Upper (absolute) bound
+on factor correlations; defaults to
+<code>MaxAbsPhi = .5</code>.
+</p>
+</li>
+<li> <p><code>EigenValPower</code> (scalar) Controls the skewness
+of the eigenvalues of Phi. Larger values of
+<code>EigenValPower</code> result in a Phi spectrum that
+is more right-skewed (and thus closer to a
+unidimensional model); defaults to
+<code>EigenValPower = 2</code>.
+</p>
+</li>
+<li> <p><code>PhiType</code> (character); defaults to
+<code>PhiType = "free"</code>.
+</p>
+
+<ul>
+<li>
+<p> If <code>PhiType = "free"</code> factor correlations
+will be randomly generated under the constraints
+of <code>MaxAbsPhi</code> and <code>EigenValPower</code>.
+</p>
+</li>
+<li>
+<p> If <code>PhiType = "fixed"</code> all factor
+correlations will equal the value specified
+in <code>MaxAbsPhi</code>. A fatal error will be
+produced if <code>Phi</code> is not positive
+semidefinite.
+</p>
+</li>
+<li>
+<p> If <code>PhiType = "user"</code> the factor
+correlations are defined by the matrix
+specified in <code>UserPhi</code> (see below).
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>UserPhi</code> (matrix) A positive semidefinite
+(PSD) matrix of user-defined factor correlations;
+defaults to <code>UserPhi = NULL</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ModelError</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>ModelError</code> (logical) If <code>ModelError = TRUE</code>
+model error will be introduced into the factor
+pattern via the method described by Tucker, Koopman,
+and Linn (TKL, 1969); defaults to
+<code>ModelError = FALSE</code>.
+</p>
+</li>
+<li> <p><code>W</code> (matrix) An optional user-supplied factor
+loading matrix for the <code>NMinorFac</code> minor common
+factors; defaults to <code>W = NULL</code>.
+</p>
+</li>
+<li> <p><code>NMinorFac</code> (scalar) Number of minor factors
+in the TKL model; defaults to <code>NMinorFac = 150</code>.
+</p>
+</li>
+<li> <p><code>ModelErrorType</code> (character) If
+<code>ModelErrorType = "U"</code> then <code>ModelErrorVar</code>
+is the proportion of uniqueness variance that is due
+to model error. If <code>ModelErrorType = "V"</code> then
+<code>ModelErrorVar</code> is the proportion of total
+variance that is due to model error; defaults to
+<code>ModelErrorType = "U"</code>.
+</p>
+</li>
+<li> <p><code>ModelErrorVar</code> (scalar \[0,1\]) The proportion
+of uniqueness (U) or total (V) variance that is due
+to model error; defaults to
+<code>ModelErrorVar = .10</code>.
+</p>
+</li>
+<li> <p><code>epsTKL</code> (scalar \[0,1\]) Controls the size
+of the factor loadings in successive minor factors;
+defaults to <code>epsTKL = .20</code>.
+</p>
+</li>
+<li> <p><code>Wattempts</code> (scalar &gt; 0)  Maximum number of
+tries when attempting to generate a suitable W
+matrix. Default = 10000.
+</p>
+</li>
+<li> <p><code>WmaxLoading</code> (scalar &gt; 0) Threshold value for
+<code>NWmaxLoading</code>. Default <code> WmaxLoading = .30</code>.
+</p>
+</li>
+<li> <p><code>NWmaxLoading</code> (scalar &gt;= 0)  Maximum number
+of absolute loadings &gt;= <code>WmaxLoading</code> in any
+column of W (matrix of model approximation error
+factor loadings). Default <code>NWmaxLoading = 2</code>.
+Under the defaults, no column of W will have 3 or
+more loadings &gt; |.30|.
+</p>
+</li>
+<li> <p><code>PrintW</code> (Boolean) If <code>PrintW = TRUE</code>
+then simFA will print the attempt history when
+searching for a suitable W matrix given the
+constraints defined in <code>WmaxLoading</code> and
+<code>NWmaxLoading</code>. Default <code>PrintW = FALSE</code>.
+</p>
+</li>
+<li> <p><code>RSpecific</code> (matrix) Optional correlation
+matrix for specific factors;
+defaults to <code>RSpecific = NULL</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bifactor</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li>
+<p> Bifactor (logical) If <code>Bifactor = TRUE</code>
+parameters for the bifactor model will be generated;
+defaults to <code>Bifactor = FALSE</code>.
+</p>
+</li>
+<li>
+<p> Hierarchical (logical) If <code>Hierarchical = TRUE</code>
+then a hierarchical Schmid Leiman (1957) bifactor
+model will be generated;
+defaults to <code>Hierarchical = FALSE</code>.
+</p>
+</li>
+<li> <p><code>F1FactorDist</code> (character) Specifies the
+sampling distribution for the general factor loadings.
+Possible values are <code>"runif"</code>, <code>"rnorm"</code>,
+<code>"sequential"</code>, and <code>"fixed"</code>; defaults
+to <code>F1FactorDist = "sequential"</code>.
+</p>
+</li>
+<li> <p><code>F1FactorRange</code> (vector of length 1 or 2)
+Controls the sizes of the general factor loadings in
+non-hierarchical bifactor models; defaults to
+<code>F1FactorRange = c(.4, .7)</code>.
+</p>
+
+<ul>
+<li>
+<p> If <code>F1FactorDist = "runif"</code>, the vector
+of length 2 defines the bounds of the uniform
+distribution, c(lower, upper);
+</p>
+</li>
+<li>
+<p> If <code>F1FactorDist = "rnorm"</code>, the
+vector defines the mean and standard
+deviation of the normal distribution from
+which loadings are sampled, c(MN, SD).
+</p>
+</li>
+<li>
+<p> If <code>F1FactorDist = "sequential"</code>,
+the vector specifies the lower and upper
+bound of the loadings sequence, c(lower, upper).
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MonteCarlo</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>NSamples</code> (integer) Defines number of Monte
+Carlo Samples; defaults to <code>NSamples = 0</code>.
+</p>
+</li>
+<li> <p><code>SampleSize</code> (integer) Sample size for each
+Monte Carlo sample; defaults to <code>SampleSize = 250</code>.
+</p>
+</li>
+<li> <p><code>Raw</code> (logical) If <code>Raw = TRUE</code>, simulated
+data sets will contain raw data. If <code>Raw = FALSE</code>,
+simulated data sets will contain correlation matrices;
+defaults to <code>Raw = FALSE</code>.
+</p>
+</li>
+<li> <p><code>Thresholds</code> (list) List elements contain
+thresholds for each item. Thresholds are required
+when generating Likert variables.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FactorScores</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>FS</code> (logical) If <code>FS = TRUE</code> (true)
+factor scores will be simulated; defaults to
+<code>FS = FALSE</code>.
+</p>
+</li>
+<li> <p><code>CFSeed</code> (integer) Optional starting seed for
+the common factor scores; defaults to
+<code>CFSeed = NULL</code> in which case a random seed is
+used.
+</p>
+</li>
+<li> <p><code>MCFSeed</code> (integer) Optional starting seed
+for the minor common factor scores; defaults to
+<code>MCFSeed = NULL</code>.
+</p>
+</li>
+<li> <p><code>SFSeed</code> (integer) Optional starting seed
+for the specific factor scores; defaults to
+<code>SFSeed = NULL</code> in which case a random seed is
+used.
+</p>
+</li>
+<li> <p><code>EFSeed</code> (integer) Optional starting seed
+for the error factor scores; defaults to
+<code>EFSeed = NULL</code> in which case a random seed
+is used. Note that <code>CFSeed</code>, <code>MCFSeed</code>,
+<code>SFSeed</code>, and <code>EFSeed</code> must be different
+numbers (a fatal error is produced when two or more
+seeds are specified as equal).
+</p>
+</li>
+<li> <p><code>VarRel</code> (vector) A vector of manifest variable
+reliabilities. The specific factor variance for
+variable <em>i</em> will equal <code class="reqn">VarRel[i] - h^2[i]</code>
+(the manifest variable reliability minus its
+commonality). By default, <code class="reqn">VarRel = h^2</code>
+(resulting in uniformly zero specific factor
+variances).
+</p>
+</li>
+<li> <p><code>Population</code> (logical) If <code>Population =
+        TRUE</code>, factor scores will fit the correlational
+constraints of the factor model exactly (e.g., the
+common factors will be orthogonal to the unique
+factors); defaults to <code>Population = FALSE</code>.
+</p>
+</li>
+<li> <p><code>NFacScores</code> (scalar) Sample size for the
+factor scores; defaults to <code>NFacScores = 250</code>.
+</p>
+</li>
+<li> <p><code>Thresholds</code> (list) A list of quantiles used
+to polychotomize the observed data that will be
+generated from the factor scores.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Missing</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li>
+<p> Missing (logical) If <code>Missing = TRUE</code> all
+data sets will contain missing values; defaults to
+<code>Missing = FALSE</code>.
+</p>
+</li>
+<li> <p><code>Mechanism</code> (character) Specifies the missing
+data mechanism. Currently, the program only supports
+missing completely at random (MCAR):
+<code>Missing = "MCAR"</code>.
+</p>
+</li>
+<li> <p><code>MSProb</code> (scalar or vector of length
+<code>NVar</code>) Specifies the probability of
+missingness for each variable; defaults to
+<code>MSprob = 0</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Control</code></td>
+<td>
+<p>(list)
+</p>
+
+<ul>
+<li> <p><code>IRT</code> (logical) If <code>IRT = TRUE</code> then
+user-supplied thresholds will be interpreted as
+item intercepts; defaults to <code>IRT = FALSE</code>.
+</p>
+</li>
+<li> <p><code>Dparam</code> (scalar).  If <code>Dparam = 1</code> then item
+intercepts should be scaled in the logistic metric.
+If <code>Dparam = 1.702</code> then intercepts should be
+scaled in the probit metric.
+</p>
+</li>
+<li> <p><code>Maxh2</code> (scalar) Rows of the loadings matrix
+will be rescaled to have a maximum communality of
+<code>Maxh2</code>; defaults to <code>Maxh2 = .98</code>.
+</p>
+</li>
+<li> <p><code>Reflect</code> (logical) If <code>Reflect =
+        TRUE</code> loadings on the common factors will be
+randomly reflected; defaults to
+<code>Reflect = FALSE</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Seed</code></td>
+<td>
+<p>(integer) Starting seed for the random number
+generator; defaults to <code>Seed = NULL</code>. When no seed
+is specified by the user, the program will generate a random
+seed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a complete description of <code>simFA</code>'s
+capabilities, users are encouraged to consult the <code>simFABook</code>
+at http://users.cla.umn.edu/~nwaller/simFA/simFABook.pdf.
+</p>
+<p><code>simFA</code> is a program for exploring factor analysis
+models via simulation studies.
+After calling <code>simFA</code>  all relevant output can be saved
+for further processing by calling one or more of the following
+object names.
+</p>
+
+
+<h3>Value</h3>
+
+
+<ul>
+<li> <p><code>loadings</code> A common factor or bifactor
+loadings matrix.
+</p>
+</li>
+<li> <p><code>Phi</code> A factor correlation matrix.
+</p>
+</li>
+<li> <p><code>urloadings</code> The unrotated loadings matrix.
+</p>
+</li>
+<li> <p><code>h2</code> A vector of item communalities.
+</p>
+</li>
+<li> <p><code>h2PopME</code> A vector item communalities that
+may include model approximation error.
+</p>
+</li>
+<li> <p><code>Rpop</code> The model-implied population correlation
+matrix.
+</p>
+</li>
+<li> <p><code>RpopME</code> The model-implied population
+correlation matrix with model error.
+</p>
+</li>
+<li> <p><code>W</code> The factor loadings for the minor factors
+(when <code>ModelError = TRUE</code>). Default = NULL.
+</p>
+</li>
+<li> <p><code>Xm</code> That part of the observed scores that
+is due to the minor common factors.
+</p>
+</li>
+<li> <p><code>SFSvars</code>  Variances of the Specific Factors
+in the metric of the observed scores.
+</p>
+</li>
+<li> <p><code>ModelErrorFitStats</code> A list of model fit
+indices (for the underlying equations, see: Bentler,
+1990; Hu &amp; Bentler, 1999; Marsh, Hau, &amp; Grayson,
+2005; Steiger, 2016):
+</p>
+
+<ul>
+<li> <p><code>SRMR_theta</code> Standardized Root Mean
+Square Residual based on the model that is
+implied  by the error free major factors
+only (underlying Rpop),
+</p>
+</li>
+<li> <p><code>SRMR_thetahat</code>  Standardized Root
+Mean Square Residual based on an exploratory
+factor analysis of the population
+correlation matrix, RpopME,
+</p>
+</li>
+<li> <p><code>CRMR_theta</code>  Correlation Root Mean
+Square Residual based on the model that is
+implied  by the error free major factors
+only (underlying Rpop),
+</p>
+</li>
+<li> <p><code>CRMR_thetahat</code> Correlation Root Mean
+Square Residual  based on an exploratory factor
+analysis of the population correlation matrix,
+RpopME,
+</p>
+</li>
+<li> <p><code>RMSEA_theta</code> Root Mean Square Error
+of Approximation (Steiger, 2016) based on the
+model that is implied  by the error free major
+factors only (underlying Rpop),
+</p>
+</li>
+<li> <p><code>RMSEA_thetahat</code> Root Mean Square
+Error of Approximation (Steiger, 2016) based
+on an exploratory factor analysis of the
+population correlation matrix, RpopME,
+</p>
+</li>
+<li> <p><code>CFI_theta</code>  Comparative Fit Index
+(Bentler, 1990) based on the model that is
+implied  by the error free major factors
+only (underlying Rpop),
+</p>
+</li>
+<li> <p><code>CFI_thetahat</code> Comparative Fit Index
+(Bentler, 1990)  based on an exploratory
+factor analysis of the population
+correlation matrix, RpopME.
+</p>
+</li>
+<li> <p><code>Fm</code> MLE fit function for population
+target model.
+</p>
+</li>
+<li> <p><code>Fb</code> MLE fit function for population
+baseline model.
+</p>
+</li>
+<li> <p><code>DFm</code> Degrees of freedom for
+population target model.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>CovMatrices</code> A list containing:
+</p>
+
+<ul>
+<li> <p><code>CovMajor</code> The model implied
+covariances from the major factors.
+</p>
+</li>
+<li> <p><code>CovMinor</code> The model implied
+covariances from the minor factors.
+</p>
+</li>
+<li> <p><code>CovUnique</code> The model implied
+variances from the uniqueness factors.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>Bifactor</code> A list containing:
+</p>
+
+<ul>
+<li> <p><code>loadingsHier</code> Factor loadings of the
+1st order solution of a hierarchical
+bifactor model.
+</p>
+</li>
+<li> <p><code>PhiHier</code> Factor correlations of the
+1st order solution of a hierarchical bifactor
+model.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>Scores</code> A list containing:
+</p>
+
+<ul>
+<li> <p><code>FactorScores</code> Factor scores for the
+common and uniqueness factors.
+</p>
+</li>
+<li> <p><code>FacInd</code> Factor indeterminacy indices
+for the error free population model.
+</p>
+</li>
+<li> <p><code>FacIndME</code> Factor score indeterminacy
+indices for the population model with model
+error.
+</p>
+</li>
+<li> <p><code>ObservedScores</code> A matrix of model
+implied <code>ObservedScores</code>. If
+<code>Thresholds</code> were supplied under
+Keyword <code>FactorScores</code>,
+<code>ObservedScores</code> will be transformed
+into Likert scores.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>Monte</code> A list containing output from the
+Monte Carlo simulations if generated.
+</p>
+</li>
+<li> <p><code>IRT</code> Factor loadings expressed in the normal
+ogive IRT metric. If <code>Thresholds</code> were given
+then IRT difficulty values will also be returned.
+</p>
+</li>
+<li> <p><code>Seed</code> The initial seed for the random
+number generator.
+</p>
+</li>
+<li> <p><code>call</code> A copy of the function call.
+</p>
+</li>
+<li> <p><code>cn</code> A list of all active and nonactive
+function arguments.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Niels G. Waller with contributions by Hoang V. Nguyen
+</p>
+
+
+<h3>References</h3>
+
+<p>Bentler, P. M. (1990). Comparative fit indexes in structural
+models. Psychological Bulletin, 107(2), 238–246.
+</p>
+<p>Hu, L.-T. &amp; Bentler, P. M. (1999). Cutoff criteria for fit
+indexes in covariance structure analysis: Conventional criteria
+versus new alternatives. Structural Equation Modeling:
+A Multidisciplinary Journal, 6(1), 1–55.
+</p>
+<p>Marsh, H. W., Hau, K.-T., &amp; Grayson, D. (2005). Goodness of fit
+in structural equation models. In A. Maydeu-Olivares &amp; J. J.
+McArdle (Eds.), Multivariate applications book series.
+Contemporary psychometrics: A festschrift for Roderick P.
+McDonald (p. 275–340). Lawrence Erlbaum Associates Publishers.
+</p>
+<p>Schmid, J. and Leiman, J. M. (1957). The development of hierarchical
+factor solutions. Psychometrika, 22(1), 53–61.
+</p>
+<p>Steiger, J. H. (2016). Notes on the Steiger–Lind (1980) handout.
+Structural Equation Modeling: A Multidisciplinary Journal, 23:6,
+777-781.
+</p>
+<p>Tucker, L. R., Koopman, R. F., and Linn, R. L. (1969). Evaluation
+of factor analytic research procedures by means of simulated
+correlation matrices. Psychometrika, 34(4), 421–459.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run:
+#  Ex 1. Three Factor Simple Structure Model with Cross loadings and
+#  Ideal Non salient Loadings
+   out &lt;-  simFA(Seed = 1)
+   print( round( out$loadings, 2 ) )
+
+# Ex 2. Non Hierarchical bifactor model 3 group factors
+# with constant loadings on the general factor
+   out &lt;- simFA(Bifactor = list(Bifactor = TRUE,
+                                Hierarchical = FALSE,
+                                F1FactorRange = c(.4, .4),
+                                F1FactorDist = "runif"),
+                Seed = 1)
+   print( round( out$loadings, 2 ) )
+
+   # Ex 3.  Model Fit Statistics for Population Data with
+   # Model Approximation Error. Three Factor model.
+       out &lt;- simFA(Loadings = list(FacLoadDist = "fixed",
+                                    FacLoadRange = .5),
+                    ModelError = list(ModelError = TRUE,
+                                      NMinorFac = 150,
+                                      ModelErrorType = "V",
+                                      ModelErrorVar = .1,
+                                      Wattempts = 10000,
+                                      epsTKL = .2),
+                    Seed = 1)
+
+       print( out$loadings )
+       print( out$ModelErrorFitStats[seq(2,8,2)] )
+
+## End(**Not run**)
+
+</code></pre>
+
+
+</div>

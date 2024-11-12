@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fm_pixels</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate lattice points covering a mesh</h2>
+
+<h3>Description</h3>
+
+<p>Generate <code>terra</code>, <code>sf</code>, or <code>sp</code> lattice locations
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fm_pixels(
+  mesh,
+  dims = c(150, 150),
+  xlim = NULL,
+  ylim = NULL,
+  mask = TRUE,
+  format = "sf",
+  minimal = TRUE,
+  nx = deprecated(),
+  ny = deprecated()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mesh</code></td>
+<td>
+<p>An <code>fm_mesh_2d</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dims</code></td>
+<td>
+<p>A length 2 integer vector giving the dimensions of
+the target lattice.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlim, ylim</code></td>
+<td>
+<p>Length 2 numeric vectors of x- and y- axis limits.
+Defaults taken from the range of the mesh or mask; see <code>minimal</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p>If logical and TRUE, remove pixels that are outside the mesh.
+If <code>mask</code> is an <code>sf</code> or <code>Spatial</code> object, only return pixels covered by this
+object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>character; "sf", "terra" or "sp"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimal</code></td>
+<td>
+<p>logical; if <code>TRUE</code> (default), the default range is determined
+by the minimum of the ranges of the mesh and mask, otherwise only the mesh.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nx</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Number of pixels in x direction,
+or a numeric vector of x-values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ny</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Number of pixels in y direction,
+or a numeric vector of y-values</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>sf</code>, <code>SpatRaster</code>, or <code>SpatialPixelsDataFrame</code> covering the mesh or
+mask.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Finn Lindgren <a href="mailto:finn.lindgren@gmail.com">finn.lindgren@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (require("ggplot2", quietly = TRUE)) {
+  dims &lt;- c(50, 50)
+  pxl &lt;- fm_pixels(
+    fmexample$mesh,
+    dims = dims,
+    mask = fmexample$boundary_sf[[1]],
+    minimal = TRUE
+  )
+  pxl$val &lt;- rnorm(NROW(pxl)) +
+    fm_evaluate(fmexample$mesh, pxl, field = 2 * fmexample$mesh$loc[, 1])
+  ggplot() +
+    geom_tile(
+      data = pxl,
+      aes(geometry = geometry, fill = val),
+      stat = "sf_coordinates"
+    ) +
+    geom_sf(data = fm_as_sfc(fmexample$mesh), alpha = 0.2)
+}
+
+
+if (require("ggplot2", quietly = TRUE) &amp;&amp;
+  require("terra", quietly = TRUE) &amp;&amp;
+  require("tidyterra", quietly = TRUE)) {
+  pxl &lt;- fm_pixels(fmexample$mesh,
+    dims = c(50, 50), mask = fmexample$boundary_sf[[1]],
+    format = "terra"
+  )
+  pxl$val &lt;- rnorm(NROW(pxl) * NCOL(pxl))
+  pxl &lt;-
+    terra::mask(
+      pxl,
+      mask = pxl$.mask,
+      maskvalues = c(FALSE, NA),
+      updatevalue = NA
+    )
+  ggplot() +
+    geom_spatraster(data = pxl, aes(fill = val)) +
+    geom_sf(data = fm_as_sfc(fmexample$mesh), alpha = 0.2)
+}
+
+</code></pre>
+
+
+</div>

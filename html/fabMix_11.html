@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_A_B_G_D_and_simulate_mu_Lambda_Sj</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Computation and simulations
+</h2>
+
+<h3>Description</h3>
+
+<p>This function simulates <code class="reqn">\mu</code> and <code class="reqn">\Lambda</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	compute_A_B_G_D_and_simulate_mu_Lambda_Sj(SigmaINV, 
+		suff_statistics, OmegaINV, K, priorConst1, T_INV, v_r)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>SigmaINV</code></td>
+<td>
+
+<p>Precision matrix <code class="reqn">\Sigma^{-1}</code> per component
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suff_statistics</code></td>
+<td>
+
+<p>Sufficient statistics
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OmegaINV</code></td>
+<td>
+
+<p>Prior parameter: <code class="reqn">\Omega^{-1}</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+
+<p>Number of overfitting mixture components
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priorConst1</code></td>
+<td>
+
+<p>Prior constant: <code class="reqn">T^{-1}\xi</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T_INV</code></td>
+<td>
+
+<p>Prior parameter: <code class="reqn">T^{-1}\xi</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_r</code></td>
+<td>
+
+<p>This vector is used to set to zero the upper right <code class="reqn">(q-1)\times(q-1)</code> diagonal block of factor loadings for identifiability purposes.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing a draw from the conditional distributions of <code class="reqn">\mu</code> and <code class="reqn">\Lambda</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Lambdas</code></td>
+<td>
+<p><code class="reqn">K\times p\times q</code> array (factor loadings per component)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p><code class="reqn">K\times p</code> array  (marginal mean per component)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Panagiotis Papastamoulis
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	library('fabMix')
+	data(waveDataset1500)
+	x_data &lt;- scale(as.matrix(waveDataset1500[ 1:20, -1])) # data
+	z &lt;-  waveDataset1500[ 1:20, 1] # class
+	p &lt;- dim(x_data)[2]
+	n &lt;- dim(x_data)[1]
+	q &lt;- 2
+	K &lt;- length(table(z))           # 3 classes
+	# give some arbitrary values to the parameters:
+	set.seed(1)
+	mu &lt;- array( runif(K * p), dim = c(K,p) )
+	y &lt;- array(rnorm(n = q*n), dim = c(n,q))
+	SigmaINV &lt;- array(data = 0, dim = c(K,p,p) )
+	for(k in 1:K){
+		diag(SigmaINV[k,,]) &lt;- 0.5 + 0.5*runif(p)
+	}
+	OmegaINV &lt;- diag(q)
+	# compute sufficient stats 
+	suf_stat &lt;- compute_sufficient_statistics(y = y, 
+	 z = z, K = K, x_data = x_data)
+
+	v_r &lt;- numeric(p) #indicates the non-zero values of Lambdas
+	for( r in 1:p ){
+		v_r[r] &lt;- min(r,q)
+	}
+	T_INV &lt;- array(data = 0, dim = c(p,p))
+	diag(T_INV) &lt;- diag(var(x_data))
+	diag(T_INV) &lt;- 1/diag(T_INV)
+	ksi &lt;- colMeans(x_data)
+	priorConst1 &lt;- array(diag(T_INV)*ksi, dim =c(p,1))
+	# now simulate mu and Lambda
+	f2 &lt;- compute_A_B_G_D_and_simulate_mu_Lambda_Sj(SigmaINV = SigmaINV, 
+                suff_statistics = suf_stat, OmegaINV = OmegaINV, 
+                K = K, priorConst1 = priorConst1, T_INV = T_INV, v_r = v_r)
+	# f2$mu contains the simulated means
+	# f2$Lambdas contains the simulated factor loadings
+
+</code></pre>
+
+
+</div>

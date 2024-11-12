@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fwb.ci</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fractional Weighted Bootstrap Confidence Intervals</h2>
+
+<h3>Description</h3>
+
+<p><code>fwb.ci()</code> generates several types of equi-tailed two-sided nonparametric confidence intervals. These include the normal approximation, the basic bootstrap interval, the percentile bootstrap interval, the bias-corrected percentile bootstrap interval, and the bias-correct and accelerated (BCa) bootstrap interval.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fwb.ci(
+  fwb.out,
+  conf = 0.95,
+  type = "bc",
+  index = 1L,
+  h = base::identity,
+  hinv = base::identity,
+  ...
+)
+
+## S3 method for class 'fwbci'
+print(x, hinv = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fwb.out</code></td>
+<td>
+<p>an <code>fwb</code> object; the output of a call to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p>the desired confidence level. Default is .95 for 95% confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>the type of confidence interval desired. Allowable options include <code>"norm"</code> (normal approximation), <code>"basic"</code> (basic interval), <code>"perc"</code> (percentile interval), <code>"bc"</code> (bias-correct percentile interval), and <code>"bca"</code> (BCa interval). More than one is allowed. Can also be <code>"all"</code> to request all of them. BCa intervals require that the number of bootstrap replications is larger than the sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>the index of the position of the quantity of interest in <code>fwb.out$t0</code> if more than one was specified in <code>fwb()</code>. Only one value is allowed at a time. By default the first statistic is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>a function defining a transformation. The intervals are calculated on the scale of <code>h(t)</code> and the inverse function <code>hinv</code> applied to the resulting intervals. It must be a function of one variable only and for a vector argument, it must return a vector of the same length. Default is the identity function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hinv</code></td>
+<td>
+<p>a function, like <code>h</code>, which returns the inverse of <code>h</code>. It is used to transform the intervals calculated on the scale of <code>h(t)</code> back to the original scale. The default is the identity function. If <code>h</code> is supplied but <code>hinv</code> is not, then the intervals returned will be on the transformed scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an <code>fwbci</code> object; the output of a call to <code>fwb.ci()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fwb.ci()</code> functions similarly to <code>boot::boot.ci()</code> in that it takes in a bootstrapped object and computes confidence intervals. This interface is a bit old-fashioned, but was designed to mimic that of <code>boot.ci()</code>. For a more modern interface, see <code>summary.fwb()</code>.
+</p>
+<p>The bootstrap intervals are defined as follows, with <code class="reqn">\alpha =</code> 1 - <code>conf</code>, <code class="reqn">t_0</code> the estimate in the original sample, <code class="reqn">\hat{t}</code> the average of the bootstrap estimates, <code class="reqn">s_t</code> the standard deviation of the bootstrap estimates, <code class="reqn">t^{(i)}</code> the set of ordered estimates with <code class="reqn">i</code> corresponding to their quantile, and <code class="reqn">z_\frac{\alpha}{2}</code> and <code class="reqn">z_{1-\frac{\alpha}{2}}</code> the upper and lower critical <code class="reqn">z</code> scores.
+</p>
+
+<ul><li> <p><code>"norm"</code> (normal approximation): <code class="reqn">[2t_0 - \hat{t} + s_t z_\frac{\alpha}{2}, 2t_0 - \hat{t} + s_t z_{1-\frac{\alpha}{2}}]</code>
+</p>
+</li></ul>
+<p>This involves subtracting the "bias" (<code class="reqn">\hat{t} - t_0</code>) from the estimate <code class="reqn">t_0</code> and using a standard Wald-type confidence interval. This method is valid when the statistic is normally distributed.
+</p>
+
+<ul>
+<li> <p><code>"basic"</code>: <code class="reqn">[2t_0 - t^{(1-\frac{\alpha}{2})}, 2t_0 - t^{(\frac{\alpha}{2})}]</code>
+</p>
+</li>
+<li> <p><code>"perc"</code> (percentile confidence interval): <code class="reqn">[t^{(\frac{\alpha}{2})}, t^{(1-\frac{\alpha}{2})}]</code>
+</p>
+</li>
+<li> <p><code>"bc"</code> (bias-corrected percentile confidence interval): <code class="reqn">[t^{(l)}, t^{(u)}]</code>
+</p>
+</li>
+</ul>
+<p><code class="reqn">l = \Phi\left(2z_0 + z_\frac{\alpha}{2}\right)</code>, <code class="reqn">u = \Phi\left(2z_0 + z_{1-\frac{\alpha}{2}}\right)</code>, where <code class="reqn">\Phi(.)</code> is the normal cumulative density function (i.e., <code>pnorm()</code>) and <code class="reqn">z_0 = \Phi^{-1}(q)</code> where <code class="reqn">q</code> is the proportion of bootstrap estimates less than the original estimate <code class="reqn">t_0</code>. This is similar to the percentile confidence interval but changes the specific quantiles of the bootstrap estimates to use, correcting for bias in the original estimate. It is described in Xu et al. (2020). When <code class="reqn">t^0</code> is the median of the bootstrap distribution, the <code>"perc"</code> and <code>"bc"</code> intervals coincide.
+</p>
+
+<ul><li> <p><code>"bca"</code> (bias-corrected and accelerated confidence interval): <code class="reqn">[t^{(l)}, t^{(u)}]</code>
+</p>
+</li></ul>
+<p><code class="reqn">l = \Phi\left(z_0 + \frac{z_0 + z_\frac{\alpha}{2}}{1-a(z_0+z_\frac{\alpha}{2})}\right)</code>, <code class="reqn">u = \Phi\left(z_0 + \frac{z_0 + z_{1-\frac{\alpha}{2}}}{1-a(z_0+z_{1-\frac{\alpha}{2}})}\right)</code>, using the same definitions as above, but with the additional acceleration parameter <code class="reqn">a</code>, where <code class="reqn">a = \frac{1}{6}\frac{\sum{L^3}}{(\sum{L^2})^{3/2}}</code>. <code class="reqn">L</code> is the empirical influence value of each unit, which is computed using the regression method described in <code>boot::empinf()</code>. The acceleration parameter corrects for bias and skewness in the statistic. It can only be used when clusters are absent and the number of bootstrap replications is larger than the sample size. When <code class="reqn">a=0</code>, the <code>"bca"</code> and <code>"bc"</code> intervals coincide.
+</p>
+<p>Interpolation on the normal quantile scale is used when a non-integer order statistic is required, as in <code>boot::boot.ci()</code>. Note that unlike with <code>boot::boot.ci()</code>, studentized confidence intervals (<code>type = "stud"</code>) are not allowed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>fwbci</code> object, which inherits from <code>bootci</code> and has the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>the number of bootstrap replications in the original call to <code>fwb()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t0</code></td>
+<td>
+<p>the observed value of the statistic on the same scale as the intervals (i.e., after applying <code>h</code> and then <code>hinv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the call to <code>fwb.ci()</code>.</p>
+</td>
+</tr>
+</table>
+<p>There will be additional components named after each confidence interval type requested. For <code>"norm"</code>, this is a matrix with one row containing the confidence level and the two confidence interval limits. For the others, this is a matrix with one row containing the confidence level, the indices of the two order statistics used in the calculations, and the confidence interval limits.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>print(fwbci)</code>: Print a bootstrap confidence interval
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p><code>fwb()</code> for performing the fractional weighted bootstrap; <code>get_ci()</code> for extracting confidence intervals from an <code>fwbci</code> object; <code>summary.fwb()</code> for producing clean output from <code>fwb()</code> that includes confidence intervals calculated by <code>fwb.ci()</code>; <code>boot::boot.ci()</code> for computing confidence intervals from the traditional bootstrap; <code>vcovFWB()</code> for computing parameter estimate covariance matrices using the fractional weighted bootstrap
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+data("infert")
+
+fit_fun &lt;- function(data, w) {
+  fit &lt;- glm(case ~ spontaneous + induced, data = data,
+             family = "quasibinomial", weights = w)
+  coef(fit)
+}
+
+fwb_out &lt;- fwb(infert, fit_fun, R = 199, verbose = FALSE)
+
+# Bias corrected percentile interval
+bcci &lt;- fwb.ci(fwb_out, index = "spontaneous", type = "bc")
+bcci
+
+# Using `get_ci()` to extract confidence limits
+
+get_ci(bcci)
+
+# Interval calculated on original (log odds) scale,
+# then transformed by exponentiation to be on OR
+fwb.ci(fwb_out, index = "induced", type = "norm",
+       hinv = exp)
+
+</code></pre>
+
+
+</div>

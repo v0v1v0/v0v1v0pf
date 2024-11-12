@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fabricate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fabricate data</h2>
+
+<h3>Description</h3>
+
+<p><code>fabricate</code> helps you simulate a dataset before you collect it. You can
+either start with your own data and add simulated variables to it (by passing
+<code>data</code> to <code>fabricate()</code>) or start from scratch by defining
+<code>N</code>. Create hierarchical data with multiple levels of data such as
+citizens within cities within states using <code>add_level()</code> or modify
+existing hierarchical data using <code>modify_level()</code>. You can use any R
+function to create each variable. Use <code>cross_levels()</code> and
+<code>link_levels()</code> to make more complex designs such as panel or
+cross-classified data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fabricate(..., data = NULL, N = NULL, ID_label = NULL)
+
+add_level(N = NULL, ..., nest = TRUE)
+
+modify_level(..., by = NULL)
+
+nest_level(N = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Variable or level-generating arguments, such as
+<code>my_var = rnorm(N)</code>. For <code>fabricate</code>, you may also pass
+<code>add_level()</code> or <code>modify_level()</code> arguments, which define a level
+of a multi-level dataset. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>(optional) user-provided data that forms the basis of the
+fabrication, e.g. you can add variables to existing data. Provide either
+<code>N</code> or <code>data</code> (<code>N</code> is the number of rows of the data if
+<code>data</code> is provided). If <code>data</code> and <code>N</code> are not provided,
+fabricatr will try to interpret the first un-named argument as either <code>data</code>
+or <code>N</code> based on type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>(optional) number of units to draw. If provided as
+<code>fabricate(N = 5)</code>, this determines the number of units in the
+single-level data. If provided in <code>add_level</code>, e.g.
+<code>fabricate(cities = add_level(N = 5))</code>, <code>N</code> determines the number
+of units in a specific level of a hierarchical dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID_label</code></td>
+<td>
+<p>(optional) variable name for ID variable, e.g. citizen_ID. Set to NA to suppress the creation of an ID variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nest</code></td>
+<td>
+<p>(Default TRUE) Boolean determining whether data in an
+<code>add_level()</code> call will be nested under the current working data frame
+or create a separate hierarchy of levels. See our vignette for
+cross-classified, non-nested data for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>(optional) quoted name of variable <code>modify_level</code> uses to split-modify-combine data by.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We also provide several built-in options to easily create variables, including
+<code>draw_binary</code>, <code>draw_count</code>, <code>draw_likert</code>,
+and intra-cluster correlated variables <code>draw_binary_icc</code> and
+<code>draw_normal_icc</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>data.frame
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>link_levels</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# Draw a single-level dataset with a covariate
+building_df &lt;- fabricate(
+  N = 100,
+  height_ft = runif(N, 300, 800)
+)
+head(building_df)
+
+# Start with existing data instead
+building_modified &lt;- fabricate(
+  data = building_df,
+  rent = rnorm(N, mean = height_ft * 100, sd = height_ft * 30)
+)
+
+# Draw a two-level hierarchical dataset
+# containing cities within regions
+multi_level_df &lt;- fabricate(
+ regions = add_level(N = 5),
+ cities = add_level(N = 2, pollution = rnorm(N, mean = 5)))
+head(multi_level_df)
+
+# Start with existing data and add a nested level:
+company_df &lt;- fabricate(
+ data = building_df,
+ company_id = add_level(N=10, is_headquarters = sample(c(0, 1), N, replace=TRUE))
+)
+
+# Start with existing data and add variables to hierarchical data
+# at levels which are already present in the existing data.
+# Note: do not provide N when adding variables to an existing level
+fabricate(
+  data = multi_level_df,
+  regions = modify_level(watershed = sample(c(0, 1), N, replace = TRUE)),
+  cities = modify_level(runoff = rnorm(N))
+)
+
+# fabricatr can add variables that are higher-level summaries of lower-level
+# variables via a split-modify-combine logic and the \code{by} argument
+
+multi_level_df &lt;-
+ fabricate(
+   regions = add_level(N = 5, elevation = rnorm(N)),
+   cities = add_level(N = 2, pollution = rnorm(N, mean = 5)),
+   cities = modify_level(by = "regions", regional_pollution = mean(pollution))
+ )
+
+# fabricatr can also make panel or cross-classified data. For more
+# information about syntax for this functionality please read our vignette
+# or check documentation for \code{link_levels}:
+cross_classified &lt;- fabricate(
+  primary_schools = add_level(N = 50, ps_quality = runif(N, 0, 10)),
+  secondary_schools = add_level(N = 100, ss_quality = runif(N, 0, 10), nest=FALSE),
+  students = link_levels(N = 2000,
+                          by = join_using(ps_quality, ss_quality, rho = 0.5),
+                          student_quality = ps_quality + 3*ss_quality + rnorm(N)))
+</code></pre>
+
+
+</div>

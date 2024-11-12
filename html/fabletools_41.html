@@ -1,0 +1,78 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>combination_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combination modelling</h2>
+
+<h3>Description</h3>
+
+<p>Combines multiple model definitions (passed via <code>...</code>) to produce a model
+combination definition using some combination function (<code>cmbn_fn</code>). Currently
+distributional forecasts are only supported for models producing normally
+distributed forecasts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">combination_model(..., cmbn_fn = combination_ensemble, cmbn_args = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Model definitions used in the combination.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cmbn_fn</code></td>
+<td>
+<p>A function used to produce the combination.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cmbn_args</code></td>
+<td>
+<p>Additional arguments passed to <code>cmbn_fn</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A combination model can also be produced using mathematical operations.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fable)
+library(tsibble)
+library(tsibbledata)
+
+# cmbn1 and cmbn2 are equivalent and equally weighted.
+aus_production %&gt;%
+  model(
+    cmbn1 = combination_model(SNAIVE(Beer), TSLM(Beer ~ trend() + season())),
+    cmbn2 = (SNAIVE(Beer) + TSLM(Beer ~ trend() + season()))/2
+  )
+
+# An inverse variance weighted ensemble.
+aus_production %&gt;%
+  model(
+    cmbn1 = combination_model(
+      SNAIVE(Beer), TSLM(Beer ~ trend() + season()), 
+      cmbn_args = list(weights = "inv_var")
+    )
+  )
+
+</code></pre>
+
+
+</div>

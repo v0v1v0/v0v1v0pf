@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>empirical_stats</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary Statistics for Empirical Distributions</h2>
+
+<h3>Description</h3>
+
+<p>Computes the mean, standard deviation, skewness, kurtosis, Value-at-Risk (VaR) and
+Conditional Value-at-Risk CVaR) under flexible probabilities.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">empirical_stats(x, p, level = 0.01)
+
+## Default S3 method:
+empirical_stats(x, p, level = 0.01)
+
+## S3 method for class 'numeric'
+empirical_stats(x, p, level = 0.01)
+
+## S3 method for class 'matrix'
+empirical_stats(x, p, level = 0.01)
+
+## S3 method for class 'xts'
+empirical_stats(x, p, level = 0.01)
+
+## S3 method for class 'ts'
+empirical_stats(x, p, level = 0.01)
+
+## S3 method for class 'data.frame'
+empirical_stats(x, p, level = 0.01)
+
+## S3 method for class 'tbl_df'
+empirical_stats(x, p, level = 0.01)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A time series defining the scenario-probability distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>An object of the <code>ffp</code> class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>A number with the desired probability level. The default is
+<code>level = 0.01</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The data in <code>x</code> and <code>p</code> are expected to have the same number of rows
+(size).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A tidy <code>tibble</code> with 3 columns:
+</p>
+
+<ul>
+<li>
+<p> stat: a column with <code>Mu</code>, <code>Std</code>, <code>Skew</code>, <code>Kurt</code>, <code>VaR</code> and <code>CVaR</code>.
+</p>
+</li>
+<li>
+<p> name: the asset names.
+</p>
+</li>
+<li>
+<p> value: the computed value for each statistic.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
+
+ret &lt;- diff(log(EuStockMarkets))
+
+# with equal weights (standard scenario)
+ew  &lt;- rep(1 / nrow(ret), nrow(ret))
+empirical_stats(x = ret, p = as_ffp(ew)) %&gt;%
+  ggplot(aes(x = name, y = value)) +
+  geom_col() +
+  facet_wrap(~stat, scales = "free") +
+  labs(x = NULL, y = NULL)
+
+# with ffp
+exp_smooth &lt;- exp_decay(ret, 0.015)
+empirical_stats(ret, exp_smooth) %&gt;%
+  ggplot(aes(x = name, y = value)) +
+  geom_col() +
+  facet_wrap(~stat, scales = "free") +
+  labs(x = NULL, y = NULL)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,337 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>f2sSP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Overlap Group Least Absolute Shrinkage and Selection Operator for scalar-on-function regression model</h2>
+
+<h3>Description</h3>
+
+<p>Overlap Group-LASSO for scalar-on-function regression model solves the following optimization problem
+</p>
+<p style="text-align: center;"><code class="reqn">\textrm{min}_{\psi,\gamma} ~ \frac{1}{2} \sum_{i=1}^n \left( y_i - \int x_i(t) \psi(t) dt-z_i^\intercal\gamma \right)^2 + \lambda \sum_{g=1}^{G} \Vert S_{g}T\psi \Vert_2</code>
+</p>
+
+<p>to obtain a sparse coefficient vector <code class="reqn">\psi\in\mathbb{R}^{M}</code> for the functional penalized predictor <code class="reqn">x(t)</code> and a coefficient vector <code class="reqn">\gamma\in\mathbb{R}^q</code> for the unpenalized scalar predictors <code class="reqn">z_1,\dots,z_q</code>. The regression function is <code class="reqn">\psi(t)=\varphi(t)^\intercal\psi</code>
+where <code class="reqn">\varphi(t)</code> is a B-spline basis of order <code class="reqn">d</code> and dimension <code class="reqn">M</code>. For each group <code class="reqn">g</code>, each row of 
+the matrix <code class="reqn">S_g\in\mathbb{R}^{d\times M}</code> has non-zero entries only for those bases belonging 
+to that group. These values are provided by the arguments <code>groups</code> and <code>group_weights</code> (see below). 
+Each basis function belongs to more than one group. The diagonal matrix <code class="reqn">T\in\mathbb{R}^{M\times M}</code> contains 
+the basis-specific weights. These values are provided by the argument <code>var_weights</code> (see below).
+The regularization path is computed for the overlap group-LASSO penalty at a grid of values for the regularization 
+parameter <code class="reqn">\lambda</code> using the alternating direction method of multipliers (ADMM). See Boyd et al. (2011) and Lin et al. (2022) 
+for details on the ADMM method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">f2sSP(
+  vY,
+  mX,
+  mZ = NULL,
+  M,
+  group_weights = NULL,
+  var_weights = NULL,
+  standardize.data = TRUE,
+  splOrd = 4,
+  lambda = NULL,
+  nlambda = 30,
+  lambda.min.ratio = NULL,
+  intercept = FALSE,
+  overall.group = FALSE,
+  control = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vY</code></td>
+<td>
+<p>a length-<code class="reqn">n</code> vector of observations of the scalar response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mX</code></td>
+<td>
+<p>a <code class="reqn">(n\times r)</code> matrix of observations of the functional covariate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mZ</code></td>
+<td>
+<p>an <code class="reqn">(n\times q)</code> full column rank matrix of scalar predictors that are not penalized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>number of elements of the B-spline basis vector <code class="reqn">\varphi(t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_weights</code></td>
+<td>
+<p>a vector of length <code class="reqn">G</code> containing group-specific weights. The default is square root of the group cardinality, see Bernardi et al. (2022).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_weights</code></td>
+<td>
+<p>a vector of length <code class="reqn">M</code> containing basis-specific weights. The default is a vector where 
+each entry is the reciprocal of the number of groups including that basis. See Bernardi et al. (2022) for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize.data</code></td>
+<td>
+<p>logical. Should data be standardized?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splOrd</code></td>
+<td>
+<p>the order <code class="reqn">d</code> of the spline basis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>either a regularization parameter or a vector of regularization parameters. 
+In this latter case the routine computes the whole path. If it is NULL values for lambda are provided by the routine.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>the number of lambda values - default is 30.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.ratio</code></td>
+<td>
+<p>smallest value for lambda, as a fraction of the maximum lambda value. If <code class="reqn">n&gt;M</code>, the default is 0.0001, and if <code class="reqn">n&lt;M</code>, the default is 0.01.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>logical. If it is TRUE, a column of ones is added to the design matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overall.group</code></td>
+<td>
+<p>logical. If it is TRUE, an overall group including all penalized covariates is added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of control parameters for the ADMM algorithm. See ‘Details’.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named list containing </p>
+
+<dl>
+<dt>sp.coefficients</dt>
+<dd>
+<p>a length-<code class="reqn">M</code> solution vector for the parameters <code class="reqn">\psi</code>, which corresponds to the minimum in-sample MSE.</p>
+</dd>
+<dt>sp.coef.path</dt>
+<dd>
+<p>an <code class="reqn">(n_\lambda\times M)</code> matrix of estimated <code class="reqn">\psi</code> coefficients for each lambda.</p>
+</dd>
+<dt>sp.fun</dt>
+<dd>
+<p>a length-<code class="reqn">r</code> vector providing the estimated functional coefficient for <code class="reqn">\psi(t)</code>.</p>
+</dd>
+<dt>sp.fun.path</dt>
+<dd>
+<p>an <code class="reqn">(n_\lambda\times r)</code> matrix providing the estimated functional coefficients for <code class="reqn">\psi(t)</code> for each lambda.</p>
+</dd>
+<dt>coefficients</dt>
+<dd>
+<p>a length-<code class="reqn">q</code> solution vector for the parameters <code class="reqn">\gamma</code>, which corresponds to the minimum in-sample MSE. 
+It is provided only when either the matrix <code class="reqn">Z</code> in input is not NULL or the intercept is set to TRUE.</p>
+</dd>
+<dt>coef.path</dt>
+<dd>
+<p>an <code class="reqn">(n_\lambda\times q)</code> matrix of estimated <code class="reqn">\gamma</code> coefficients for each lambda. 
+It is provided only when either the matrix <code class="reqn">Z</code> in input is not NULL or the intercept is set to TRUE.</p>
+</dd>
+<dt>lambda</dt>
+<dd>
+<p>sequence of lambda.</p>
+</dd>
+<dt>lambda.min</dt>
+<dd>
+<p>value of lambda that attains the minimum in-sample MSE.</p>
+</dd>
+<dt>mse</dt>
+<dd>
+<p>in-sample mean squared error.</p>
+</dd>
+<dt>min.mse</dt>
+<dd>
+<p>minimum value of the in-sample MSE for the sequence of lambda.</p>
+</dd>
+<dt>convergence</dt>
+<dd>
+<p>logical. 1 denotes achieved convergence.</p>
+</dd>
+<dt>elapsedTime</dt>
+<dd>
+<p>elapsed time in seconds.</p>
+</dd>
+<dt>iternum</dt>
+<dd>
+<p>number of iterations.</p>
+</dd>
+</dl>
+<p>When you run the algorithm, output returns not only the solution, but also the iteration history recording
+following fields over iterates,
+</p>
+
+<dl>
+<dt>objval</dt>
+<dd>
+<p>objective function value.</p>
+</dd>
+<dt>r_norm</dt>
+<dd>
+<p>norm of primal residual.</p>
+</dd>
+<dt>s_norm</dt>
+<dd>
+<p>norm of dual residual.</p>
+</dd>
+<dt>eps_pri</dt>
+<dd>
+<p>feasibility tolerance for primal feasibility condition.</p>
+</dd>
+<dt>eps_dual</dt>
+<dd>
+<p>feasibility tolerance for dual feasibility condition.</p>
+</dd>
+</dl>
+<p>Iteration stops when both <code>r_norm</code> and <code>s_norm</code> values
+become smaller than <code>eps_pri</code> and <code>eps_dual</code>, respectively.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The control argument is a list that can supply any of the following components:</p>
+
+<dl>
+<dt>adaptation</dt>
+<dd>
+<p>logical. If it is TRUE, ADMM with adaptation is performed. The default value is TRUE. See Boyd et al. (2011) for details.</p>
+</dd>
+<dt>rho</dt>
+<dd>
+<p>an augmented Lagrangian parameter. The default value is 1.</p>
+</dd>
+<dt>tau.ada</dt>
+<dd>
+<p>an adaptation parameter greater than one. Only needed if adaptation = TRUE. The default value is 2. See Boyd et al. (2011) and Lin et al. (2022) for details.</p>
+</dd>
+<dt>mu.ada</dt>
+<dd>
+<p>an adaptation parameter greater than one. Only needed if adaptation = TRUE. The default value is 10. See Boyd et al. (2011) and Lin et al. (2022) for details.</p>
+</dd>
+<dt>abstol</dt>
+<dd>
+<p>absolute tolerance stopping criterion. The default value is sqrt(sqrt(.Machine$double.eps)).</p>
+</dd>
+<dt>reltol</dt>
+<dd>
+<p>relative tolerance stopping criterion. The default value is sqrt(.Machine$double.eps).</p>
+</dd>
+<dt>maxit</dt>
+<dd>
+<p>maximum number of iterations. The default value is 100.</p>
+</dd>
+<dt>print.out</dt>
+<dd>
+<p>logical. If it is TRUE, a message about the procedure is printed. The default value is TRUE.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Bernardi M, Canale A, Stefanucci M (2022).
+“Locally Sparse Function-on-Function Regression.”
+<em>Journal of Computational and Graphical Statistics</em>, <b>0</b>(0), 1-15.
+<a href="https://doi.org/10.1080/10618600.2022.2130926">doi:10.1080/10618600.2022.2130926</a>, https://doi.org/10.1080/10618600.2022.2130926.
+</p>
+<p>Boyd S, Parikh N, Chu E, Peleato B, Eckstein J (2011).
+“Distributed Optimization and Statistical Learning via the Alternating Direction Method of Multipliers.”
+<em>Foundations and Trends® in Machine Learning</em>, <b>3</b>(1), 1-122.
+ISSN 1935-8237, <a href="https://doi.org/10.1561/2200000016">doi:10.1561/2200000016</a>, <a href="http://dx.doi.org/10.1561/2200000016">http://dx.doi.org/10.1561/2200000016</a>.
+</p>
+<p>Jenatton R, Audibert J, Bach F (2011).
+“Structured variable selection with sparsity-inducing norms.”
+<em>J. Mach. Learn. Res.</em>, <b>12</b>, 2777–2824.
+ISSN 1532-4435.
+</p>
+<p>Lin Z, Li H, Fang C (2022).
+<em>Alternating direction method of multipliers for machine learning</em>.
+Springer, Singapore.
+ISBN 978-981-16-9839-2; 978-981-16-9840-8, <a href="https://doi.org/10.1007/978-981-16-9840-8">doi:10.1007/978-981-16-9840-8</a>, With forewords by Zongben Xu and Zhi-Quan Luo.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## generate sample data
+set.seed(1)
+n     &lt;- 40
+p     &lt;- 18                                  # number of basis to GENERATE beta
+r     &lt;- 100
+s     &lt;- seq(0, 1, length.out = r)
+
+beta_basis &lt;- splines::bs(s, df = p, intercept = TRUE)    # basis
+coef_data  &lt;- matrix(rnorm(n*floor(p/2)), n, floor(p/2))        
+fun_data   &lt;- coef_data %*% t(splines::bs(s, df = floor(p/2), intercept = TRUE))     
+
+x_0   &lt;- apply(matrix(rnorm(p, sd=1),p,1), 1, fdaSP::softhresh, 1)  # regression coefficients 
+x_fun &lt;- beta_basis %*% x_0                
+
+b     &lt;- fun_data %*% x_fun + rnorm(n, sd = sqrt(crossprod(fun_data %*% x_fun ))/10)
+l     &lt;- 10^seq(2, -4, length.out = 30)
+maxit &lt;- 1000
+
+
+## set the hyper-parameters
+maxit          &lt;- 1000
+rho_adaptation &lt;- TRUE
+rho            &lt;- 1
+reltol         &lt;- 1e-5
+abstol         &lt;- 1e-5
+
+mod &lt;- f2sSP(vY = b, mX = fun_data, M = p,
+             group_weights = NULL, var_weights = NULL, standardize.data = FALSE, splOrd = 4,
+             lambda = NULL, nlambda = 30, lambda.min = NULL, overall.group = FALSE, 
+             control = list("abstol" = abstol, 
+                            "reltol" = reltol, 
+                            "adaptation" = rho_adaptation, 
+                            "rho" = rho, 
+                            "print.out" = FALSE)) 
+
+# plot coefficiente path
+matplot(log(mod$lambda), mod$sp.coef.path, type = "l", 
+        xlab = latex2exp::TeX("$\\log(\\lambda)$"), ylab = "", bty = "n", lwd = 1.2)
+
+</code></pre>
+
+
+</div>

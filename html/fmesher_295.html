@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fm_int</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multi-domain integration</h2>
+
+<h3>Description</h3>
+
+<p>Construct integration points on tensor product spaces
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fm_int(domain, samplers = NULL, ...)
+
+## S3 method for class 'list'
+fm_int(domain, samplers = NULL, ...)
+
+## S3 method for class 'numeric'
+fm_int(domain, samplers = NULL, name = "x", ...)
+
+## S3 method for class 'character'
+fm_int(domain, samplers = NULL, name = "x", ...)
+
+## S3 method for class 'factor'
+fm_int(domain, samplers = NULL, name = "x", ...)
+
+## S3 method for class 'SpatRaster'
+fm_int(domain, samplers = NULL, name = "x", ...)
+
+## S3 method for class 'fm_lattice_2d'
+fm_int(domain, samplers = NULL, name = "x", ...)
+
+## S3 method for class 'fm_mesh_1d'
+fm_int(domain, samplers = NULL, name = "x", int.args = NULL, ...)
+
+## S3 method for class 'fm_mesh_2d'
+fm_int(
+  domain,
+  samplers = NULL,
+  name = NULL,
+  int.args = NULL,
+  format = NULL,
+  ...
+)
+
+## S3 method for class 'inla.mesh.lattice'
+fm_int(domain, samplers = NULL, name = "x", ...)
+
+## S3 method for class 'inla.mesh.1d'
+fm_int(domain, samplers = NULL, name = "x", int.args = NULL, ...)
+
+## S3 method for class 'inla.mesh'
+fm_int(
+  domain,
+  samplers = NULL,
+  name = NULL,
+  int.args = NULL,
+  format = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>domain</code></td>
+<td>
+<p>Functional space specification; single domain or a named list
+of domains</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samplers</code></td>
+<td>
+<p>For single domain <code>fm_int</code> methods, an object specifying one or more
+subsets of the domain, and optional weighting in a <code>weight</code> variable.
+For <code>fm_int.list</code>, a list of sampling definitions, where data frame elements
+may contain information for multiple domains, in which case each row represent
+a separate tensor product integration subspace.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed on to other methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>For single-domain methods, the variable name to use for the
+integration points. Default 'x'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int.args</code></td>
+<td>
+<p>List of arguments passed to line and integration methods.
+</p>
+
+<ul>
+<li> <p><code>method</code>: "stable" (to aggregate integration weights onto mesh nodes)
+or "direct" (to construct a within triangle/segment integration scheme
+without aggregating onto mesh nodes)
+</p>
+</li>
+<li> <p><code>nsub1</code>, <code>nsub2</code>: integers controlling the number of internal integration
+points before aggregation. Points per triangle: <code>(nsub2+1)^2</code>.
+Points per knot segment: <code>nsub1</code>
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>character; determines the output format, as either "sf"
+(default when the sampler is <code>NULL</code>) or "sp". When <code>NULL</code>, determined by
+the sampler type.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code>, <code>tibble</code>, <code>sf</code>, or <code>SpatialPointsDataFrame</code> of 1D and
+2D integration points, including a <code>weight</code> column and <code>.block</code> column.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>fm_int(list)</code>: Multi-domain integration
+</p>
+</li>
+<li> <p><code>fm_int(numeric)</code>: Discrete double or integer space integration
+</p>
+</li>
+<li> <p><code>fm_int(character)</code>: Discrete character space integration
+</p>
+</li>
+<li> <p><code>fm_int(factor)</code>: Discrete factor space integration
+</p>
+</li>
+<li> <p><code>fm_int(SpatRaster)</code>: <code>SpatRaster</code> integration. Not yet implemented.
+</p>
+</li>
+<li> <p><code>fm_int(fm_lattice_2d)</code>: <code>fm_lattice_2d</code> integration. Not yet implemented.
+</p>
+</li>
+<li> <p><code>fm_int(fm_mesh_1d)</code>: <code>fm_mesh_1d</code> integration. Supported samplers:
+</p>
+
+<ul>
+<li> <p><code>NULL</code> for integration over the entire domain;
+</p>
+</li>
+<li>
+<p> A length 2 vector defining an interval;
+</p>
+</li>
+<li>
+<p> A 2-column matrix with a single interval in each row;
+</p>
+</li>
+<li>
+<p> A tibble with a named column containing a matrix, and optionally a
+<code>weight</code> column.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>fm_int(fm_mesh_2d)</code>: <code>fm_mesh_2d</code> integration. Any sampler class with an
+associated <code>fm_int_mesh_2d()</code> method is supported.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Integration on the interval (2, 3.5) with Simpson's rule
+ips &lt;- fm_int(fm_mesh_1d(0:4), samplers = cbind(2, 3.5))
+plot(ips$x, ips$weight)
+
+# Create integration points for the two intervals [0,3] and [5,10]
+
+ips &lt;- fm_int(
+  fm_mesh_1d(0:10),
+  matrix(c(0, 3, 5, 10), nrow = 2, byrow = TRUE)
+)
+plot(ips$x, ips$weight)
+
+# Convert a 1D mesh into integration points
+mesh &lt;- fm_mesh_1d(seq(0, 10, by = 1))
+ips &lt;- fm_int(mesh, name = "time")
+plot(ips$time, ips$weight)
+
+if (require("ggplot2", quietly = TRUE)) {
+  #' Integrate on a 2D mesh with polygon boundary subset
+  ips &lt;- fm_int(fmexample$mesh, fmexample$boundary_sf[[1]])
+  ggplot() +
+    geom_sf(data = fm_as_sfc(fmexample$mesh, multi = TRUE), alpha = 0.5) +
+    geom_sf(data = fmexample$boundary_sf[[1]], fill = "red", alpha = 0.5) +
+    geom_sf(data = ips, aes(size = weight)) +
+    scale_size_area()
+}
+
+ips &lt;- fm_int(
+  fm_mesh_1d(0:10, boundary = "cyclic"),
+  rbind(c(0, 3), c(5, 10))
+)
+plot(ips$x, ips$weight)
+
+</code></pre>
+
+
+</div>

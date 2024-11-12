@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_resource</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a Data Resource</h2>
+
+<h3>Description</h3>
+
+<p>Adds a Data Resource to a Data Package.
+The resource will be a <a href="https://specs.frictionlessdata.io/tabular-data-resource/">Tabular Data Resource</a>.
+The resource name can only contain lowercase alphanumeric characters plus
+<code>.</code>, <code>-</code> and <code style="white-space: pre;">⁠_⁠</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_resource(
+  package,
+  resource_name,
+  data,
+  schema = NULL,
+  replace = FALSE,
+  delim = ",",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>package</code></td>
+<td>
+<p>Data Package object, as returned by <code>read_package()</code> or
+<code>create_package()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resource_name</code></td>
+<td>
+<p>Name of the Data Resource.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data to attach, either a data frame or path(s) to CSV file(s):
+</p>
+
+<ul>
+<li>
+<p> Data frame: attached to the resource as <code>data</code> and written to a CSV file
+when using <code>write_package()</code>.
+</p>
+</li>
+<li>
+<p> One or more paths to CSV file(s) as a character (vector): added to the
+resource as <code>path</code>.
+The last file will be read with <code>readr::read_delim()</code> to create or
+compare with <code>schema</code> and to set <code>format</code>, <code>mediatype</code> and <code>encoding</code>.
+The other files are ignored, but are expected to have the same structure
+and properties.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>schema</code></td>
+<td>
+<p>Either a list, or path or URL to a JSON file describing a Table
+Schema for the <code>data</code>.
+If not provided, one will be created using <code>create_schema()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace</code></td>
+<td>
+<p>If <code>TRUE</code>, the added resource will replace an existing
+resource with the same name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delim</code></td>
+<td>
+<p>Single character used to separate the fields in the CSV file(s),
+e.g. <code style="white-space: pre;">⁠\t⁠</code> for tab delimited file.
+Will be set as <code>delimiter</code> in the resource Table Dialect, so read functions
+.  know how to read the file(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional metadata properties to add to the resource, e.g.
+<code style="white-space: pre;">⁠title = "My title", validated = FALSE⁠</code>.
+These are not verified against specifications and are ignored by
+<code>read_resource()</code>.
+The following properties are automatically set and can't be provided with
+<code>...</code>: <code>name</code>, <code>data</code>, <code>path</code>, <code>schema</code>, <code>profile</code>, <code>format</code>, <code>mediatype</code>,
+<code>encoding</code> and <code>dialect</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>vignette("data-resource")</code> (and to a lesser extend
+<code>vignette("table-dialect")</code>) to learn how this function implements the
+Data Package standard.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>package</code> with one additional resource.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other edit functions: 
+<code>remove_resource()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load the example Data Package
+package &lt;- example_package()
+
+# List the resources
+resources(package)
+
+# Create a data frame
+df &lt;- data.frame(
+  multimedia_id = c(
+    "aed5fa71-3ed4-4284-a6ba-3550d1a4de8d",
+    "da81a501-8236-4cbd-aa95-4bc4b10a05df"
+  ),
+  x = c(718, 748),
+  y = c(860, 900)
+)
+
+# Add the resource "positions" from the data frame
+package &lt;- add_resource(package, "positions", data = df)
+
+# Add the resource "positions_with_schema", with a user-defined schema and title
+my_schema &lt;- create_schema(df)
+package &lt;- add_resource(
+  package,
+  resource_name = "positions_with_schema",
+  data = df,
+  schema = my_schema,
+  title = "Positions with schema"
+)
+
+# Replace the resource "observations" with a file-based resource (2 TSV files)
+path_1 &lt;- system.file("extdata", "observations_1.tsv", package = "frictionless")
+path_2 &lt;- system.file("extdata", "observations_2.tsv", package = "frictionless")
+package &lt;- add_resource(
+  package,
+  resource_name = "observations",
+  data = c(path_1, path_2),
+  replace = TRUE,
+  delim = "\t"
+)
+
+# List the resources ("positions" and "positions_with_schema" added)
+resources(package)
+</code></pre>
+
+
+</div>

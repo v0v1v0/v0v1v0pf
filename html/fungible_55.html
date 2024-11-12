@@ -1,0 +1,481 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>GenerateBoxData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate Thurstone's Box Data From length, width, and height box measurements</h2>
+
+<h3>Description</h3>
+
+<p>Generate data for Thurstone's 20 variable and 26 variable Box Study From length, width, and height box measurements.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">GenerateBoxData(
+  XYZ,
+  BoxStudy = 20,
+  Reliability = 0.75,
+  ModApproxErrVar = 0.1,
+  SampleSize = NULL,
+  NMinorFac = 50,
+  epsTKL = 0.2,
+  Seed = 1,
+  SeedErrorFactors = 2,
+  SeedMinorFactors = 3,
+  PRINT = FALSE,
+  LB = FALSE,
+  LBVal = 1,
+  Constant = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>XYZ</code></td>
+<td>
+<p>(Matrix) Length, width, and height measurements for N boxes.   The Amazon Box data 
+can be accessed by calling <code>data(AmxBoxes)</code>. The Thurstone Box data (20 hypothetical boxes) 
+can be accessed by calling <code>data(Thurstone20Boxes)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BoxStudy</code></td>
+<td>
+<p>(Integer) If BoxStudy = 20 then data will be generated for 
+Thurstone's classic 20 variable box problem. If BoxStudy = 26 then data will 
+be generated for Thurstone's 26 variable box problem. Default: <code>BoxStudy = 20</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reliability</code></td>
+<td>
+<p>(Scalar [0, 1] ) The common reliability value for each 
+measured variable. Default: Reliability = .75.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ModApproxErrVar</code></td>
+<td>
+<p>(Scalar [0, 1] ) The proportion of reliable 
+variance (for each variable) that is due to all minor common factors. 
+Thus, if <code>x</code> (i.e., error free length) has variance <code>var(x)</code> and  
+<code>ModApproxErrVar = .10</code>, then <code>var(e.ma)/var(x + e.ma) = .10</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SampleSize</code></td>
+<td>
+<p>(Integer) Specifies the number of boxes to be sampled from 
+the population.  If <code>SampleSize = NULL</code> then measurements will be 
+generated for the original input box sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NMinorFac</code></td>
+<td>
+<p>(Integer) The number of minor factors to use while 
+generating model approximation error. Default: <code>NMinorFac = 50.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsTKL</code></td>
+<td>
+<p>(Numeric [0, 1])  A parameter of the 
+Tucker, Koopman, and Linn (1969) algorithm that controls the spread of the influence of the minor factors.
+Default: <code>epsTKL = .20.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Seed</code></td>
+<td>
+<p>(Integer)  Starting seed for box sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SeedErrorFactors</code></td>
+<td>
+<p>(Integer)  Starting seed for the error-factor scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SeedMinorFactors</code></td>
+<td>
+<p>(Integer)  Starting seed for the minor common-factor scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PRINT</code></td>
+<td>
+<p>(Logical) If PRINT = TRUE then the computed reliabilites will 
+be printed. Default: <code>PRINT = FALSE</code>.  Setting <code>PRINT</code> to TRUE can be useful 
+when <code>LB = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LB</code></td>
+<td>
+<p>(lower bound; logical)  If LB = TRUE then minimum box measurements will be 
+set to LBVal (inches) if they
+fall below 0 after adding measurement error. If LB = FALSE then negative 
+attribute values will not be modified. This argument has no effect
+on data that include model approximation error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LBVal</code></td>
+<td>
+<p>(Numeric) If <code>LB = TRUE</code> then values in <code>BoxDataE</code> will be bounded 
+from below at <code>LBVal</code>.  This can be used to avoid negative or very small box 
+measurements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Constant</code></td>
+<td>
+<p>(Numeric) Optional value to add to all box measurements. 
+Default: <code>Constant = 0</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can be used with the Amazon boxes dataset (<code>data(AmzBoxes)</code>) or with any collection  
+of user-supplied scores on three variables. The Amazon Boxes data were downloaded from the 
+<code>BoxDimensions</code> website: (<a href="https://www.boxdimensions.com/">https://www.boxdimensions.com/</a>). These data contain 
+length (x),  width (y), and height (z) measurements for 98 Amazon shipping boxes.  In his 
+classical monograph on Multiple Factor Analysis (Thurstone, 1947) Thurstone describes two data sets 
+(one that he created from fictitious data and a second data set that he created from actual box measurements) 
+that  were used to illustrate topics in factor analysis. The  first (fictitious) data set is 
+known as the Thurstone Box problem (see Kaiser and Horst, 1975).  To create his data for the Box problem, 
+Thurstone constructed 20 nonlinear combinations of fictitious length, width, and height measurements. 
+<strong>Box20</strong> variables:
+</p>
+
+<ol>
+<li>
+<p>   x^2
+</p>
+</li>
+<li>
+<p>   y^2
+</p>
+</li>
+<li>
+<p>   z^2
+</p>
+</li>
+<li>
+<p>   xy
+</p>
+</li>
+<li>
+<p>   xz
+</p>
+</li>
+<li>
+<p>   yz
+</p>
+</li>
+<li>
+<p>   sqrt(x^2 + y^2)
+</p>
+</li>
+<li>
+<p>   sqrt(x^2 + z^2)
+</p>
+</li>
+<li>
+<p>   sqrt(y^2 + z^2)
+</p>
+</li>
+<li>
+<p>   2x + 2y
+</p>
+</li>
+<li>
+<p>   2x + 2z
+</p>
+</li>
+<li>
+<p>   2y + 2z 
+</p>
+</li>
+<li>
+<p>   log(x)
+</p>
+</li>
+<li>
+<p>   log(y)
+</p>
+</li>
+<li>
+<p>   log(z)
+</p>
+</li>
+<li>
+<p>   xyz
+</p>
+</li>
+<li>
+<p>   sqrt(x^2 + y^2 + z^2)
+</p>
+</li>
+<li>
+<p>   exp(x)
+</p>
+</li>
+<li>
+<p>   exp(y)
+</p>
+</li>
+<li>
+<p>   exp(z)
+</p>
+</li>
+</ol>
+<p>The second Thurstone Box problem contains measurements on the following 26 functions of length, width, and height. 
+<strong>Box26</strong> variables:
+</p>
+
+<ol>
+<li>
+<p> x
+</p>
+</li>
+<li>
+<p> y
+</p>
+</li>
+<li>
+<p> z
+</p>
+</li>
+<li>
+<p> xy 
+</p>
+</li>
+<li>
+<p> xz
+</p>
+</li>
+<li>
+<p> yz 
+</p>
+</li>
+<li>
+<p> x^2 * y
+</p>
+</li>
+<li>
+<p> x * y^2
+</p>
+</li>
+<li>
+<p> x^2 * z
+</p>
+</li>
+<li>
+<p> x * z^ 2
+</p>
+</li>
+<li>
+<p> y^2 * z
+</p>
+</li>
+<li>
+<p> y * z^2
+</p>
+</li>
+<li>
+<p> x/y
+</p>
+</li>
+<li>
+<p> y/x
+</p>
+</li>
+<li>
+<p> x/z
+</p>
+</li>
+<li>
+<p>  z/x
+</p>
+</li>
+<li>
+<p>  y/z
+</p>
+</li>
+<li>
+<p>  z/y
+</p>
+</li>
+<li>
+<p> 2x + 2y
+</p>
+</li>
+<li>
+<p> 2x + 2z
+</p>
+</li>
+<li>
+<p> 2y + 2z
+</p>
+</li>
+<li>
+<p> sqrt(x^2 + y^2)
+</p>
+</li>
+<li>
+<p> sqrt(x^2 + z^2)
+</p>
+</li>
+<li>
+<p> sqrt(y^2 + z^2)
+</p>
+</li>
+<li>
+<p> xyz
+</p>
+</li>
+<li>
+<p> sqrt(x^2 + y^2 + z^2)
+</p>
+</li>
+</ol>
+<p>Note that when generating unreliable data (i.e., variables with 
+reliability values less than 1) and/or data with model error, 
+<strong>SampleSize</strong> must be greater than <strong>NMinorFac</strong>.
+</p>
+
+
+<h3>Value</h3>
+
+
+<ul>
+<li> <p><strong>XYZ</strong> The length (x), width (y), and height (z) measurements for the sampled boxes. 
+If <code>SampleSize = NULL</code> then <code>XYZ</code> contains the x, y, z values for the 
+original 98 boxes.
+</p>
+</li>
+<li> <p><strong>BoxData</strong> Error free box measurements.  
+</p>
+</li>
+<li> <p><strong>BoxDataE</strong> Box data with added measurement error. 
+</p>
+</li>
+<li> <p><strong>BoxDataEME</strong>  Box data with added (reliable) model approximation and (unreliable) measurement error.
+</p>
+</li>
+<li> <p><strong>Rel.E</strong>  Classical reliabilities for the scores in <code>BoxDataE</code>.
+</p>
+</li>
+<li> <p><strong>Rel.EME</strong>  Classical reliabilities for the scores in <code>BoxDataEME</code>.
+</p>
+</li>
+<li> <p><strong>NMinorFac</strong>  Number of minor common factors used to generate <code>BoxDataEME</code>.
+</p>
+</li>
+<li> <p><strong>epsTKL</strong>  Minor factor spread parameter for the Tucker, Koopman, Linn algorithm.
+</p>
+</li>
+<li> <p><strong>SeedErrorFactors</strong>  Starting seed for the error-factor scores.
+</p>
+</li>
+<li> <p><strong>SeedMinorFactors</strong> Starting seed for the minor common-factor scores. 
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Niels G. Waller (nwaller@umn.edu)
+</p>
+
+
+<h3>References</h3>
+
+<p>Cureton, E. E. &amp; Mulaik, S. A. (1975). The weighted varimax rotation and the 
+promax rotation. Psychometrika, 40(2), 183-195. 
+Kaiser, H. F. and Horst, P.  (1975).  A score matrix for Thurstone's box problem.  
+Multivariate Behavioral Research, 10(1), 17-26.  
+</p>
+<p>Thurstone, L. L.  (1947).  Multiple Factor Analysis.  Chicago: 
+University of Chicago Press. 
+</p>
+<p>Tucker, L. R., Koopman, R. F., and Linn, R. L.  (1969).  Evaluation of factor 
+analytic research procedures by means of simulated correlation matrices. 
+<em>Psychometrika, 34</em>(4), 421-459.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(AmzBoxes)
+  BoxList &lt;- GenerateBoxData (XYZ = AmzBoxes[,2:4],
+                              BoxStudy = 20,  
+                              Reliability = .75,
+                              ModApproxErrVar = .10,
+                              SampleSize = 300, 
+                              NMinorFac = 50,
+                              epsTKL = .20,
+                              Seed = 1,
+                              SeedErrorFactors = 1,
+                              SeedMinorFactors = 2,
+                              PRINT = FALSE,
+                              LB = FALSE,
+                              LBVal = 1,
+                              Constant = 0)
+                                
+   BoxData &lt;- BoxList$BoxData
+   
+   RBoxes &lt;- cor(BoxData)
+   fout &lt;- faMain(R = RBoxes,
+                 numFactors = 3,
+                 facMethod = "fals",
+                 rotate = "geominQ",
+                 rotateControl = list(numberStarts = 100,
+                                      standardize = "CM")) 
+                                      
+  summary(fout)  
+</code></pre>
+
+
+</div>

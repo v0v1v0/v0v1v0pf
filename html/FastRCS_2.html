@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FastRCS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes the FastRCS outlyingness index for regression.</h2>
+
+<h3>Description</h3>
+
+<p>Computes a fast and robust regression model for a n by p matrix of 
+multivariate continuous regressors and a single dependent variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  FastRCS(x,y,nSamp,alpha=0.5,seed=1,intercept=1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric n (n&gt;5*p) by p (p&gt;1) matrix or data frame. Should 
+not contain an intercept.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric nvector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nSamp</code></td>
+<td>
+<p>a positive integer giving the number of resamples required;
+<code>"nSamp"</code> may not be reached if too many of the p-subsamples,
+chosen out of the observed vectors, are in a hyperplane.  If <code>"nSamp"</code> is
+omitted, it is calculated so that the probability of getting at least one
+uncontaminated starting point is always at least 99 percent when there are n/2 outliers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>numeric parameter controlling the size of the active subsets,
+i.e., <code>"h=quanf(alpha,n,p)"</code>.  Allowed
+values are between 0.5 and 1 and the default is 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>starting value for random generator. A positive integer. Default is seed = 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>If true, a model with constant term will be estimated; otherwise no constant term will be included. Default is intercept=TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The current version of FastRCS includes the use of a C-step procedure to improve efficiency (Rousseeuw and van Driessen (1999)). C-steps are taken after the raw subset is found and before reweighting. In experiments, we found that carrying C-Steps 
+starting from the members of <code>$rawBest</code> improves the speed of convergence without increasing the bias
+of the final estimates. FastRCS is regression and affine equivariant and thus consistent at the elliptical
+model (Grubel and Rock (1990)). 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nSamp</code></td>
+<td>
+<p>The value of nSamp used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The value of alpha used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>The value of the FastRCS objective function (the I-index) obtained for H*.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rawBest</code></td>
+<td>
+<p>The index of the h observation with smallest outlyingness indexes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rawDist</code></td>
+<td>
+<p>The distances of the observations to the model defined by rawBest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best</code></td>
+<td>
+<p>The index of the J observation with outlyingness smaller than the rejection threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>The vector of coefficients of the hyperplane fitted to the members of <code>$rew$best</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>the fitted mean values: <code>cbind(1,x)%*%rew$coefficients</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>the residuals, that is response minus fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>the numeric rank of the fitted linear model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>(only for weighted fits) the specified weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df.residual</code></td>
+<td>
+<p>the residual degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>(robust) scale estimate of the reweighted residuals.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Kaveh Vakili
+</p>
+
+
+<h3>References</h3>
+
+<p>Grubel, R. and Rocke, D. M. (1990).
+On the cumulants of affine equivariant estimators in elliptical families.
+Journal of Multivariate Analysis, Vol. 35, p. 203–222. Journal of Multivariate Analysis
+</p>
+<p>Rousseeuw, P. J., and van Driessen, K. (2006). Computing lts regression for large data sets. 
+Data mining and	Knowledge Discovery, 12, 29–45
+</p>
+<p>Vakili, K. and Schmitt, E. (2014).
+Finding Regression Outliers With FastRCS.
+(http://arxiv.org/abs/1307.4834)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## testing outlier detection
+set.seed(123)
+n&lt;-100
+p&lt;-3
+x0&lt;-matrix(rnorm(n*p),nc=p)
+y0&lt;-rnorm(n)
+z&lt;-c(rep(0,30),rep(1,70))
+x0[1:30,]&lt;-matrix(rnorm(30*p,5,1/100),nc=p)
+y0[1:30]&lt;-rnorm(30,10,1/100)
+ns&lt;-FRCSnumStarts(p=p,eps=0.4);
+results&lt;-FastRCS(x=x0,y=y0,alpha=0.5,nSamp=ns)
+z[results$best]
+
+## testing outlier detection, different value of alpha
+set.seed(123)
+n&lt;-100
+p&lt;-3
+x0&lt;-matrix(rnorm(n*p),nc=p)
+y0&lt;-rnorm(n)
+z&lt;-c(rep(0,20),rep(1,80))
+x0[1:20,]&lt;-matrix(rnorm(20*p,5,1/100),nc=p)
+y0[1:20]&lt;-rnorm(20,10,1/100)
+ns&lt;-FRCSnumStarts(p=p,eps=0.25);
+results&lt;-FastRCS(x=x0,y=y0,alpha=0.75,nSamp=ns)
+z[results$best]
+
+
+
+#testing exact fit
+set.seed(123)
+n&lt;-100
+p&lt;-3
+x0&lt;-matrix(rnorm(n*p),nc=p)
+y0&lt;-rep(1,n)
+z&lt;-c(rep(0,30),rep(1,70))
+x0[1:30,]&lt;-matrix(rnorm(30*p,5,1/100),nc=p)
+y0[1:30]&lt;-rnorm(30,10,1/100)
+ns&lt;-FRCSnumStarts(p=p,eps=0.4);
+results&lt;-FastRCS(x=x0,y=y0,alpha=0.5,nSamp=ns,seed=1)
+z[results$rawBest]
+results$obj
+
+#testing regression equivariance
+n&lt;-100
+p&lt;-3
+x0&lt;-matrix(rnorm(n*(p-1)),nc=p-1)
+y0&lt;-rnorm(n)
+ns&lt;-FRCSnumStarts(p=p,eps=0.4);
+y1&lt;-y0+cbind(1,x0)%*%rep(-1,p)
+results1&lt;-FastRCS(y=y0,x=x0,nSamp=ns,seed=1)$coefficients
+results2&lt;-FastRCS(y=y1,x=x0,nSamp=ns,seed=1)$coefficients
+results1+rep(-1,p)
+#should be the same:
+results2
+</code></pre>
+
+
+</div>

@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bbsc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Constrained Base-learners for Scalar Covariates</h2>
+
+<h3>Description</h3>
+
+<p>Constrained base-learners for fitting effects of scalar covariates in models 
+with functional response
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bbsc(
+  ...,
+  by = NULL,
+  index = NULL,
+  knots = 10,
+  boundary.knots = NULL,
+  degree = 3,
+  differences = 2,
+  df = 4,
+  lambda = NULL,
+  center = FALSE,
+  cyclic = FALSE
+)
+
+bolsc(
+  ...,
+  by = NULL,
+  index = NULL,
+  intercept = TRUE,
+  df = NULL,
+  lambda = 0,
+  K = NULL,
+  weights = NULL,
+  contrasts.arg = "contr.treatment"
+)
+
+brandomc(..., contrasts.arg = "contr.dummy", df = 4)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>one or more predictor variables or one matrix or data 
+frame of predictor variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>an optional variable defining varying coefficients, 
+either a factor or numeric variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>a vector of integers for expanding the variables in <code>...</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p>either the number of knots or a vector of the positions 
+of the interior knots (for more details see <code>bbs</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundary.knots</code></td>
+<td>
+<p>boundary points at which to anchor the B-spline basis 
+(default the range of the data). A vector (of length 2) 
+for the lower and the upper boundary knot can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>degree of the regression spline.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>differences</code></td>
+<td>
+<p>a non-negative integer, typically 1, 2 or 3. 
+If <code>differences</code> = <em>k</em>, <em>k</em>-th-order differences are used as 
+a penalty (<em>0</em>-th order differences specify a ridge penalty).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>trace of the hat matrix for the base-learner defining the 
+base-learner complexity. Low values of <code>df</code> correspond to a 
+large amount of smoothing and thus to "weaker" base-learners.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>smoothing parameter of the penalty, computed from <code>df</code> when 
+<code>df</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>See <code>bbs</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cyclic</code></td>
+<td>
+<p>if <code>cyclic = TRUE</code> the fitted values coincide at 
+the boundaries (useful for cyclic covariates such as day time etc.).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>if <code>intercept = TRUE</code> an intercept is added to the design matrix 
+of a linear base-learner.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>in <code>bolsc</code> it is possible to specify the penalty matrix K</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>experiemtnal! weights that are used for the computation of the transformation matrix Z.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts.arg</code></td>
+<td>
+<p>Note that a special <code>contrasts.arg</code> exists in 
+package <code>mboost</code>, namely "contr.dummy". This contrast is used per default 
+in <code>brandomc</code>. It leads to a 
+dummy coding as returned by <code>model.matrix(~ x - 1)</code> were the 
+intercept is implicitly included but each factor level gets a 
+separate effect estimate (for more details see <code>brandom</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The base-learners <code>bbsc</code>, <code>bolsc</code> and <code>brandomc</code> are 
+the base-learners <code>bbs</code>, <code>bols</code> and 
+<code>brandom</code> with additional identifiability constraints. 
+The constraints enforce that 
+<code class="reqn">\sum_{i} \hat h(x_i, t) = 0</code> for all <code class="reqn">t</code>, so that 
+effects varying over <code class="reqn">t</code> can be interpreted as deviations 
+from the global functional intercept, see Web Appendix A of 
+Scheipl et al. (2015). 
+The constraint is enforced by a basis transformation of the design and penalty matrix. 
+In particular, it is sufficient to apply the constraint on the covariate-part of the design 
+and penalty matrix and thus, it is not necessary to change the basis in $t$-direction.  
+See Appendix A of Brockhaus et al. (2015) for technical details on how to enforce this sum-to-zero constraint.   
+</p>
+<p>Cannot deal with any missing values in the covariates.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Equally to the base-learners of package <code>mboost</code>: 
+</p>
+<p>An object of class <code>blg</code> (base-learner generator) with a 
+<code>dpp</code> function (data pre-processing) and other functions. 
+</p>
+<p>The call to <code>dpp</code> returns an object of class 
+<code>bl</code> (base-learner) with a <code>fit</code> function. The call to 
+<code>fit</code> finally returns an object of class <code>bm</code> (base-model).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sarah Brockhaus, Almond Stoecker
+</p>
+
+
+<h3>References</h3>
+
+<p>Brockhaus, S., Scheipl, F., Hothorn, T. and Greven, S. (2015): 
+The functional linear array model. Statistical Modelling, 15(3), 279-300.
+</p>
+<p>Scheipl, F., Staicu, A.-M. and Greven, S. (2015):  
+Functional Additive Mixed Models, Journal of Computational and Graphical Statistics, 24(2), 477-501.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FDboost</code> for the model fit. 
+<code>bbs</code>, <code>bols</code> 
+and <code>brandom</code> for the 
+corresponding base-learners in <code>mboost</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### simulate data with functional response and scalar covariate (functional ANOVA)
+n &lt;- 60   ## number of cases
+Gy &lt;- 27  ## number of observation poionts per response curve 
+dat &lt;- list()
+dat$t &lt;- (1:Gy-1)^2/(Gy-1)^2
+set.seed(123)
+dat$z1 &lt;- rep(c(-1, 1), length = n)
+dat$z1_fac &lt;- factor(dat$z1, levels = c(-1, 1), labels = c("1", "2"))
+# dat$z1 &lt;- runif(n)
+# dat$z1 &lt;- dat$z1 - mean(dat$z1)
+
+# mean and standard deviation for the functional response 
+mut &lt;- matrix(2*sin(pi*dat$t), ncol = Gy, nrow = n, byrow = TRUE) + 
+        outer(dat$z1, dat$t, function(z1, t) z1*cos(pi*t) ) # true linear predictor
+sigma &lt;- 0.1
+
+# draw respone y_i(t) ~ N(mu_i(t), sigma)
+dat$y &lt;- apply(mut, 2, function(x) rnorm(mean = x, sd = sigma, n = n)) 
+
+## fit function-on-scalar model with a linear effect of z1
+m1 &lt;- FDboost(y ~ 1 + bolsc(z1_fac, df = 1), timeformula = ~ bbs(t, df = 6), data = dat)
+
+# look for optimal mSTOP using cvrisk() or validateFDboost()
+ 
+cvm &lt;- cvrisk(m1, grid = 1:500)
+m1[mstop(cvm)]
+
+m1[200] # use 200 boosting iterations 
+
+# plot true and estimated coefficients 
+plot(dat$t, 2*sin(pi*dat$t), col = 2, type = "l", main = "intercept")
+plot(m1, which = 1, lty = 2, add = TRUE)
+
+plot(dat$t, 1*cos(pi*dat$t), col = 2, type = "l", main = "effect of z1")
+lines(dat$t, -1*cos(pi*dat$t), col = 2, type = "l")
+plot(m1, which = 2, lty = 2, col = 1, add = TRUE)
+
+
+</code></pre>
+
+
+</div>

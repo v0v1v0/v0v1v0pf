@@ -1,0 +1,265 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>freqpcr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate population allele frequency from the set of Cq measurements.</h2>
+
+<h3>Description</h3>
+
+<p>The function estimates the population allele frequency using the dataset of Cq values measured over <code>length(N)</code> bulk samples, each of which has a sample size of <code>N[i]</code> as the number of individuals included. <code>N[i]</code> can be 1, meaning that every individual is analyzed separately. For the <em>i</em>th sample, the four Cq values were measured as <code>housek0[i]</code>, <code>target0[i]</code>, <code>housek1[i]</code>, and <code>target1[i]</code>. The function can estimate up to five parameters simultaneously when the Cq sets are available for more than two (bulk) samples: <code>P</code>, <code>K</code>, <code>targetScale</code>, <code>sdMeasure</code>, and <code>EPCR</code>.
+<br>
+Since v0.3.2, user can also use an experimental ‘continuous model’ by specifying <code>A</code> instead of <code>N</code>. That is, each sample DNA is directly extracted from the environment and the sample allele ratio <code>y</code> follows <code>y ~ Beta(apk, a(1-p)k)</code> instead of <code>y ~ Beta(mk, (n-m)k), m ~ Binomial(n, p)</code>, where <code>p</code> and <code>k</code> are the population allele frequency and the gamma shape parameter of the individual DNA yield, respectively. Each element of <code>A</code>, <code>a</code> is a scaling factor of relative DNA contents between the samples. The continuous model is likely when each sample directly comes from the environment e.g., water sampling in an eDNA analysis or cell culture in a petri dish.
+<br>
+Since v0.4.0, <code>freqpcr()</code> also works without specifying <code>housek0</code> and <code>target0</code> i.e., it can estimate population allele frequency from <code class="reqn">\Delta</code>Cq values instead of <code class="reqn">\Delta\Delta</code>Cq. In this setting, the sizes of <code>targetScale</code> and <code>sdMeasure</code> should be fixed in addition to <code>EPCR</code> and <code>zeroAmount</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">freqpcr(
+  N,
+  A,
+  housek0,
+  target0,
+  housek1,
+  target1,
+  P = NULL,
+  K = NULL,
+  targetScale = NULL,
+  sdMeasure = NULL,
+  EPCR = 0.99,
+  XInit0 = c(P = NULL, K = NULL, targetScale = NULL, sdMeasure = NULL, EPCR = NULL),
+  zeroAmount = NULL,
+  beta = TRUE,
+  diploid = FALSE,
+  pvalue = 0.05,
+  gradtol = 1e-04,
+  steptol = 1e-09,
+  iterlim = 100,
+  maxtime = 600,
+  print.level = 1,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>Sample sizes as a numeric vector. <code>N[i]</code> signifies the number of individuals (both for haploidy and diploidy) contained in the <em>i</em>th bulk sample. <code>N</code> must not contain a missing value (<code>NA</code>). If <code>N</code> is not applicable (= even not 1), feed <code>A</code> instead of <code>N</code> and then the estimation process runs with the ‘continuous model’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>Use instead of <code>N</code> in the continuous model. This is a scale factor to control the relative DNA content between samples. <code>A[i]</code> can take any positive value, but must not be <code>NA</code>. Considering the case you have arranged each sample by e.g. water filrtation or extraction from a culture in a petri dish, it is convenient to define the unit size of <code>A[i]</code> == 1.0 to be same as the vessel volume (e.g. 2.0 for two petri dishs, 0.5 for half bottle of water, etc.). When neither <code>N</code> nor <code>A</code> is specified by the user, the function stops. If both <code>N</code> and <code>A</code> are specified, only <code>N</code> is evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>housek0</code></td>
+<td>
+<p>A numeric vector. In RED-<code class="reqn">\Delta\Delta</code>Cq method, <code>housek0</code> is the Cq values of the test sample without the restriction enzyme digestion, which is amplified with the primer set for a housekeeping gene. In general <code class="reqn">\Delta\Delta</code>Cq analyses, <code>housek0</code> is defined for the control sample (typically, 100% mutant) solution, which is also amplified with the primer set for the housekeeping gene. 
+<br>
+Since <code>v0.4.0</code>, you can run <code>freqpcr()</code> without specifying <code>housek0</code> and <code>target0</code> (a <code class="reqn">\Delta</code>Cq method). As this setting halves the effective data points, it is recommended to fix other parameters, especially <code>targetScale</code>. 
+<br>
+The four Cq arguments, <code>housek0</code>, <code>target0</code>, <code>housek1</code>, and <code>target1</code>, all must have the same data length. They also must be the same length as <code>N</code> or <code>A</code>. If the Cq dataset has missing values, they must be filled with NA so that the length of the data vectors will not differ.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target0</code></td>
+<td>
+<p>In RED-<code class="reqn">\Delta\Delta</code>Cq method, <code>target0[i]</code> signifies the measured Cq value of the <em>i</em>th bulk sample without the digestion, for which both alleles, wild-type (S: susceptible) and mutant (R: resistant to a pesticide), on the target locus are amplified. In general <code class="reqn">\Delta\Delta</code>Cq analyses, <code>target0</code> is the Cq values of the pure-S control sample, which is amplified with a R-allele-specific primer set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>housek1</code></td>
+<td>
+<p>The Cq values of the test sample measured on the housekeeping gene after the restriction enzyme digestion (in RED-<code class="reqn">\Delta\Delta</code>Cq method), or the test sample amplified on the housekeeping gene (in general <code class="reqn">\Delta\Delta</code>Cq analyses).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target1</code></td>
+<td>
+<p>For each test sample with unknown allele-ratio, <code>target1[i]</code> is defined as the Cq value for the target locus amplified after the restriction enzyme digestion (in RED-<code class="reqn">\Delta\Delta</code>Cq method), or the target locus amplified with the R-allele-specific primer set (in general <code class="reqn">\Delta\Delta</code>Cq analyses).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>Scalar. Population allele frequency from which the test samples are derived. Default is <code>NULL</code> and to be estimated. If the parameter is known, it is given as a numeric between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>Scalar. The gamma shape parameter of the individual DNA yield. Default is <code>NULL</code> and to be estimated. If known, given as a positive numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetScale</code></td>
+<td>
+<p>(<code class="reqn">\delta_{T}</code>) Scalar. The relative template DNA amount of the target locus to the houskeeping locus. If known, given as a positive numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdMeasure</code></td>
+<td>
+<p>(<code class="reqn">\sigma_{c}</code>) Scalar. The measurement error (standard deviation) on each Cq value following Normal(0, <code class="reqn">\sigma_{c}^2</code>). If known, given as a positive numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EPCR</code></td>
+<td>
+<p>(<code class="reqn">\eta</code>) Scalar. Amplification efficiency per PCR cycle. If known, given as a positive numeric. When <code>EPCR = 1</code>, template DNA doubles every cycle (<code>EPCR + 1 = 2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XInit0</code></td>
+<td>
+<p>Optionally the initial value for the parameter optimization can be specified, but it is strongly recommended to keep the argument as is. Unlike <code>XInit</code> in <code>knownqpcr()</code>, the argument is not directly passed to the optimizer; used only when each parameter is set unknown (the parameter is absent or specified as NULL).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeroAmount</code></td>
+<td>
+<p>(In RED-<code class="reqn">\Delta\Delta</code>Cq method) residue rate of restriction enzyme digestion, or (in general <code class="reqn">\Delta\Delta</code>Cq analyses) small portion of the off-target allele on the target locus of the test sample, which will be amplified in the PCR. It needs to be always specified by the user as a number between 0 and 1, usually near 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Whether to use the beta distribution to approximate the sample allele ratio instead of specifying individual gamma distribution for each of the allelic DNA amounts? Default is <code>TRUE</code>, which accelerates the calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diploid</code></td>
+<td>
+<p>Is the target organism diploidy? Default is <code>FALSE</code>, assuming haploidy. Current implementation of diploidy assumes i.i.d. between the amounts of R and S chromosomes owned by a heterozygote individual, which is unlikely in many animals but necessary for the calculation in a realistic time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+<p>The two-sided confidence interval is calculated at the last iteration at given significance level. Default is 0.05, which returns the 95% Wald's CI (2.5 to 97.5 percentile) based on the Hessian matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradtol, steptol, iterlim</code></td>
+<td>
+<p>Control parameters passed to <code>nlm()</code>. <code>gradtol</code> and <code>steptol</code> are the positive scalars giving the tolerance to terminate the algorithm and the minimum allowable relative step length. <code>iterlim</code> specifies the maximum number of iterations to be performed before the program is terminated (and evaluated at the last iteration). Usually 30 iterations are enough.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxtime</code></td>
+<td>
+<p>A positive scalar to set the maximum calculation time in seconds to abort the optimizer (and return error). The total calculation time largely depends on <code>N[i]</code>, the number of individuals contained in each bulk sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.level</code></td>
+<td>
+<p><code>print.level=1</code> (the default) shows the initial values of the parameters and likelihood as well as the output in the last iteration. <code>print.level=2</code> shows the parameter values and gradients in every step. <code>print.level=0</code> does not output any intermediate state to R console, simply returning the result summary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to the function.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object of the S4 class CqFreq. The slot <code>report</code> is a matrix and each row contains the estimated parameter value with 100*(1-pvalue)% confidence interval. The following parameters are returned:
+</p>
+
+<ol>
+<li>
+<p><code>P</code>, the population allele frequency from which the test samples are derived.
+</p>
+</li>
+<li>
+<p><code>K</code>, the gamma shape parameter of the individual DNA yield.
+</p>
+</li>
+<li>
+<p><code>targetScale</code> (<code class="reqn">\delta_{T}</code>), the relative template DNA amount of the target to the houskeeping loci.
+</p>
+</li>
+<li>
+<p><code>EPCR</code> (<code class="reqn">\eta</code>), the amplification efficiency per PCR cycle.
+</p>
+</li>
+<li>
+<p><code>sdMeasure</code> or "Cq measurement error" (<code class="reqn">\sigma_{c}</code>).
+</p>
+</li>
+</ol>
+<h3>Choise of the parameters to be estimated</h3>
+
+<p>Estimation is conducted only for parameters where the values are not specified or specified explicitly as <code>NULL</code>. If one feeds a value e.g. <code>K=1</code> or <code>sdMeasure=0.24</code>, it is then treated as fixed parameter. Notwithstanding, <code>EPCR</code> is estimated only when <code>EPCR = NULL</code> is specified explicitly.
+<br>
+You must verify the size of <code>EPCR</code> and <code>zeroAmount</code> beforehand because they are not estimable from the experiments with unknown allele ratios. Although <code>targetScale</code> and <code>sdMeasure</code> are estimable within <code>freqpcr()</code>, it is better to feed the known values, especially when you have only a few bulk samples (length(N) &lt;= 3). Fixing <code>targetScale</code> and <code>sdMeasure</code> is also strongly recommended when <code>housek0</code> and <code>target0</code> are absent (<code class="reqn">\Delta</code>Cq method). The functions <code>knownqpcr()</code> or <code>knownqpcr_unpaired()</code>, depending on your data format, provide the procedure to estimate the sizes of the experimental parameters using the DNA solutions of known allele mixing ratios. 
+<br>
+For the unknown parameters, <code>XInit0</code> optionally specifies initial values for the optimization using <code>nlm()</code> though the use of internal default is strongly recommended. The specification as a fixed parameter has higher priority than the specification in <code>XInit0</code>. Every user-specified parameter values, fixed or unknown, must be given in linear scale (e.g. between 0 and 1 for the allele frequency); they are transformed internally to log or logit.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other estimation procedures: 
+<code>knownqpcr_unpaired()</code>,
+<code>knownqpcr()</code>,
+<code>sim_dummy()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Dummy Cq dataset with six bulk samples, each of which comprises of eight haploids.
+EPCR &lt;- 0.95; zeroAmount &lt;- 0.0016; # True values for the two must be known.
+P &lt;- 0.75
+dmy_cq &lt;- make_dummy(   rand.seed=1, P=P, K=2, ntrap=6, npertrap=8,
+                        scaleDNA=1e-07, targetScale=1.5, baseChange=0.3,
+                        EPCR=EPCR, zeroAmount=zeroAmount,
+                        sdMeasure=0.3, diploid=FALSE   )
+print(dmy_cq)
+
+# Estimation with freqpcr, where P, K, targetScale, and baseChange are marked unknown.
+result &lt;- freqpcr( N=dmy_cq@N, housek0=dmy_cq@housek0, target0=dmy_cq@target0,
+                   housek1=dmy_cq@housek1, target1=dmy_cq@target1,
+                   EPCR=EPCR, zeroAmount=zeroAmount, beta=TRUE, print.level=0 )
+print(result)
+
+# Estimation with freqpcr, assuming diploidy.
+result &lt;- freqpcr( N=dmy_cq@N, housek0=dmy_cq@housek0, target0=dmy_cq@target0,
+                   housek1=dmy_cq@housek1, target1=dmy_cq@target1,
+                   EPCR=EPCR, zeroAmount=zeroAmount, beta=TRUE, diploid=TRUE )
+
+# Estimation where you have knowledge on the size of K.
+result &lt;- freqpcr( N=dmy_cq@N, housek0=dmy_cq@housek0, target0=dmy_cq@target0,
+                   housek1=dmy_cq@housek1, target1=dmy_cq@target1,
+                   K=2,
+                   EPCR=EPCR, zeroAmount=zeroAmount, beta=TRUE, print.level=2 )
+# (&gt;= v0.3.2)
+# Provided the model is continuous (specify A instead of N).
+result &lt;- freqpcr( A=dmy_cq@N, housek0=dmy_cq@housek0, target0=dmy_cq@target0,
+                   housek1=dmy_cq@housek1, target1=dmy_cq@target1,
+                   K=2, EPCR=EPCR, zeroAmount=zeroAmount, beta=TRUE, print.level=1 )
+# (&gt;= v0.4.0)
+# If the dataset lacks control samples (housek0 and target0 are absent).
+# Fixing the sizes of targetScale and sdMeasure is strongly recommended.
+result &lt;- freqpcr( N=dmy_cq@N, housek1=dmy_cq@housek1, target1=dmy_cq@target1,
+                   K=2, EPCR=EPCR, zeroAmount=zeroAmount,
+                   targetScale=1.5, sdMeasure=0.3, beta=TRUE, print.level=1 )
+
+</code></pre>
+
+
+</div>

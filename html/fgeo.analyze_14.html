@@ -1,0 +1,289 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>recruitment_ctfs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Recruitment, mortality, and growth.</h2>
+
+<h3>Description</h3>
+
+<p>These functions are adapted from the CTFS-R package. Compared to the
+original functions, these ones have a similar interface but use more
+conservative defaults and allow suppressing messages. These functions also
+feature formal tests, bug fixes, additional assertions, and improved
+messages.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">recruitment_ctfs(
+  census1,
+  census2,
+  mindbh = NULL,
+  alivecode = NULL,
+  split1 = NULL,
+  split2 = NULL,
+  quiet = FALSE
+)
+
+mortality_ctfs(
+  census1,
+  census2,
+  alivecode = NULL,
+  split1 = NULL,
+  split2 = NULL,
+  quiet = FALSE
+)
+
+growth_ctfs(
+  census1,
+  census2,
+  rounddown = FALSE,
+  method = "I",
+  stdev = FALSE,
+  dbhunit = "mm",
+  mindbh = NULL,
+  growthcol = "dbh",
+  err.limit = 1000,
+  maxgrow = 1000,
+  split1 = NULL,
+  split2 = NULL,
+  quiet = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>census1, census2</code></td>
+<td>
+<p>Two census tables, each being a ForestGEO-like <em>tree</em>
+table (dataframe). A <em>stem</em> table won't fail, but you should use a <em>tree</em>
+table because demography analyses make more sense at the scale of trees
+than at the scale of stems.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mindbh</code></td>
+<td>
+<p>The minimum diameter above which the counts are done. Trees
+smaller than <code>mindbh</code> are excluded. By default all living trees of any size
+are included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alivecode</code></td>
+<td>
+<p>Character; valid values of <code>status</code> indicating that a tree
+is alive. The default, 'A', is the standard CTFS designation for living
+trees or stems.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split1, split2</code></td>
+<td>
+<p>Optional vector(s) to aggregate results by. Each vector
+should be a column of either <code>census1</code> or <code>census2</code>. The default aggregates
+the result across the entire census datasets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Use <code>TRUE</code> to suppress messages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rounddown</code></td>
+<td>
+<p>If <code>TRUE</code>, all <code>dbh &lt; 55</code> are rounded down to the nearest
+multiple of 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Either "I" or "E":
+</p>
+
+<ul>
+<li>
+<p> Use "I" to calculate annual dbh increment as <code>(dbh2 - dbh1)/time</code>
+</p>
+</li>
+<li>
+<p> Use "E" to calculate the relative growth rate as
+<code>(log(dbh2) - log(dbh1)) / time</code>
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stdev</code></td>
+<td>
+<p>Logical:
+</p>
+
+<ul>
+<li> <p><code>FALSE</code> returns confidence limits.
+</p>
+</li>
+<li> <p><code>TRUE</code> returns the SD in growth rate per group.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbhunit</code></td>
+<td>
+<p>"cm" or "mm".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growthcol</code></td>
+<td>
+<p>Either "dbh" or "agb" to define how growth is measured.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err.limit, maxgrow</code></td>
+<td>
+<p>A number. Numbers such as 10000 are high and will
+return all measures.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Survivors are all individuals alive in both censuses, with <code>status == A</code> in
+the first census, and a diameter greater than <code>mindbh</code> in the first census.
+The total population in the second census includes all those alive plus any
+other survivors. Individuals whose status is <code>NA</code> in either census are
+deleted from all calculations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Metrics of recruitment: Similar to metrics of mortality.
+</p>
+<p>Metrics of mortality:
+</p>
+
+<ul>
+<li> <p><code>N</code>: the number of individuals alive in the census 1 per category
+selected.
+</p>
+</li>
+<li> <p><code>D</code>: the number of individuals no longer alive in census 2.
+</p>
+</li>
+<li> <p><code>rate</code>: the mean annualized mortality rate constant per category
+selected, calculated as (log(N)-log(S))/time.
+</p>
+</li>
+<li> <p><code>upper</code>: upper confidence limit of mean rate.
+</p>
+</li>
+<li> <p><code>lower</code>: lower confidence limit of mean rate.
+</p>
+</li>
+<li> <p><code>time</code>: mean time interval in years.
+</p>
+</li>
+<li> <p><code>date1</code>: mean date included individuals were measured in census 1, as
+julian object (R displays as date, but treats as integer).
+</p>
+</li>
+<li> <p><code>date2</code>: mean date in census 2.
+</p>
+</li>
+<li> <p><code>dbhmean</code>: mean dbh in census 1 of individuals included.
+</p>
+</li>
+</ul>
+<p>Metrics of growth:
+</p>
+
+<ul>
+<li> <p><code>rate</code>, the mean annualized growth rate per category selected, either dbh
+increment, or relative growth.
+</p>
+</li>
+<li> <p><code>N</code>, the number of individuals included in the mean (not counting any
+excluded).
+</p>
+</li>
+<li> <p><code>clim</code> (or sd with <code>stdev = TRUE</code>), width of confidence interval; add this
+number to the mean rate to get upper confidence limit, substract to get
+lower.
+</p>
+</li>
+<li> <p><code>dbhmean</code>, mean dbh in census 1 of individuals included.
+</p>
+</li>
+<li> <p><code>time</code>, mean time interval in years.
+</p>
+</li>
+<li> <p><code>date1</code>, mean date included individuals were measured in census 1, as
+julian object (R displays as date, but treats as integer).
+</p>
+</li>
+<li> <p><code>date2</code>, mean date in census 2.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Richard Condit, Suzanne Lao.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">assert_is_installed("fgeo.x")
+
+census1 &lt;- fgeo.x::tree5
+census2 &lt;- fgeo.x::tree6
+
+as_tibble(
+  recruitment_ctfs(census1, census2)
+)
+
+# Use `interaction(...)` to aggregate by any number of grouping variables
+sp_quadrat &lt;- interaction(census1$sp, census1$quadrat)
+
+recruitment &lt;- recruitment_ctfs(
+  census1, census2,
+  split1 = sp_quadrat,
+  quiet = TRUE
+)
+as_tibble(recruitment)
+
+mortality &lt;- mortality_ctfs(
+  census1, census2,
+  split1 = sp_quadrat, quiet = TRUE
+)
+as_tibble(mortality)
+
+growth &lt;- growth_ctfs(census1, census2, split1 = sp_quadrat, quiet = TRUE)
+as_tibble(growth)
+
+# Easy way to separate grouping variables
+tidyr_is_installed &lt;- requireNamespace("tidyr", quietly = TRUE)
+if (tidyr_is_installed) {
+  library(tidyr)
+
+  as_tibble(growth) %&gt;%
+    separate(groups, into = c("sp", "quadrat"))
+}
+</code></pre>
+
+
+</div>

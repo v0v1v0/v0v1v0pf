@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_package_structure</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get structure and information of a 'fusen' built package for developers</h2>
+
+<h3>Description</h3>
+
+<p>Get structure and information of a 'fusen' built package for developers
+</p>
+<p>Draw a tree of the package structure in the console
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_package_structure(config_file, emoji = TRUE, silent = FALSE)
+
+draw_package_structure(structure_list, silent = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>config_file</code></td>
+<td>
+<p>Path to a source configuration file
+to get the structure from</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emoji</code></td>
+<td>
+<p>Add emojis to the output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>Whether to print messages</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>structure_list</code></td>
+<td>
+<p>A list of information about the package as issued
+from <code style="white-space: pre;">⁠[get_package_structure()]⁠</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of information about the package
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# This only works inside a 'fusen' built package
+pkg_structure &lt;- get_package_structure()
+draw_package_structure(pkg_structure)
+
+## End(Not run)
+
+# Example with a dummy package
+dummypackage &lt;- tempfile("drawpkg.structure")
+dir.create(dummypackage)
+
+# {fusen} steps
+fill_description(pkg = dummypackage, fields = list(Title = "Dummy Package"))
+dev_file &lt;- suppressMessages(
+  add_flat_template(pkg = dummypackage, overwrite = TRUE, open = FALSE)
+)
+flat_file &lt;- dev_file[grepl("flat_", dev_file)]
+
+usethis::with_project(dummypackage, {
+  # Add an extra R file with internal function
+  # to list in "keep"
+  dir.create("R")
+  cat("extra_fun &lt;- function() {1}\n", file = "R/my_extra_fun.R")
+
+  # Works with classical package
+  pkg_structure &lt;- get_package_structure()
+  draw_package_structure(pkg_structure)
+})
+
+usethis::with_project(dummypackage, {
+  # Works with 'fusen' package
+  suppressMessages(
+    inflate(
+      pkg = dummypackage, flat_file = flat_file,
+      vignette_name = "Get started", check = FALSE,
+      open_vignette = FALSE
+    )
+  )
+
+  pkg_structure &lt;- get_package_structure()
+  draw_package_structure(pkg_structure)
+})
+</code></pre>
+
+
+</div>

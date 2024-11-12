@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>msplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Outlier Detection using Magnitude-Shape Plot (MS-Plot) based on the directional outlyingness for functional
+data.</h2>
+
+<h3>Description</h3>
+
+<p>This function finds outliers in univariate and multivariate functional data using the MS-Plot
+method described in Dai and Genton (2018) <a href="https://doi.org/10.1080/10618600.2018.1473781">doi:10.1080/10618600.2018.1473781</a>.
+Indices of observations flagged as outliers are returned. In addition, the
+scatter plot of <code class="reqn">VO</code> against <code class="reqn">MO</code> (||MO||) can be requested for univariate
+(multivariate) functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">msplot(
+  dts,
+  data_depth = c("random_projections"),
+  n_projections = 200,
+  seed = NULL,
+  return_mvdir = TRUE,
+  plot = TRUE,
+  plot_title = "Magnitude Shape Plot",
+  title_cex = 1.5,
+  show_legend = T,
+  ylabel = "VO",
+  xlabel
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dts</code></td>
+<td>
+<p>A matrix/data frame for univariate functional data (of size <code class="reqn">n</code>
+observations by <code class="reqn">p</code> domain points) or a <code class="reqn">3-</code>dimensional array for
+multivariate functional data (of size <code class="reqn">n</code> observations by <code class="reqn">p</code>
+domain points by <code class="reqn">d</code> dimension).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_depth</code></td>
+<td>
+<p>The depth used in the computation of the directional outlyingness of
+<code>dts</code>. The projection depth is always used. Support for other depth methods will be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_projections</code></td>
+<td>
+<p>The number of random directions to generate for computing the random projection
+depth. By default 200 directions are generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer indicating the seed to set when generating random directions for computing the random projection depth.
+NULL by default in which case no seed is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_mvdir</code></td>
+<td>
+<p>A logical value indicating whether to return the mean and variation of directional
+outlyingness (<code class="reqn">MO</code> and <code class="reqn">VO</code>). For univariate functional data, <code class="reqn">MO</code> and <code class="reqn">VO</code> are vectors.
+For multivariate functional data, <code class="reqn">VO</code> is a vector while <code class="reqn">MO</code> is a matrix of size
+<code class="reqn">n x d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A logical indicating whether to make the msplot of <code class="reqn">VO</code> against <code class="reqn">MO</code>. In the case
+of multivariate functional data, a plot of  <code class="reqn">VO</code> against <code class="reqn">||MO||</code> is made.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_title</code></td>
+<td>
+<p>The title of the plot. Set to "Magnitude Shape Plot" by default. Ignored if
+<code>plot = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title_cex</code></td>
+<td>
+<p>Numerical value indicating the size of the plot title relative to the device default.
+Set to 1.5 by default. Ignored if <code>plot = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_legend</code></td>
+<td>
+<p>A logical indicating whether to add legend to plot if <code>plot = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylabel</code></td>
+<td>
+<p>The label of the y-axis. Set to "VO" by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlabel</code></td>
+<td>
+<p>The label of the x-axis if <code>plot = TRUE</code>. If not specified (default), set to "MO"
+for univariate functional data and "||MO||" for multivariate functional data.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>MS-Plot finds outliers by computing
+the mean and variation of directional outlyingness (<code class="reqn">MO</code> and <code class="reqn">VO</code>) described
+in Dai and Genton (2019) <a href="https://doi.org/10.1016/j.csda.2018.03.017">doi:10.1016/j.csda.2018.03.017</a>.
+A multivariate data whose columns are the computed <code class="reqn">MO</code> and <code class="reqn">VO</code> is then constructed and
+the robust mahalanobis distance(s) of the rows of this matrix are computed
+(using the minimum covariate determinant estimate of the location and scatter). The tail
+of the distribution of these distances is approximated using the <code class="reqn">F</code> distribution
+according to Hardin and Rocke (2005) <a href="https://doi.org/10.1198/106186005X77685">doi:10.1198/106186005X77685</a> to get the cutoff.
+The projection depth is always used for computing the directional outlyingness
+(as suggested by Dai and Genton (2019) <a href="https://doi.org/10.1016/j.csda.2018.03.017">doi:10.1016/j.csda.2018.03.017</a>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>outliers_index</code></td>
+<td>
+<p>an integer vector containing the indices of the outliers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>median_curve</code></td>
+<td>
+<p>the index of the median function (which is the
+function with the smallest robust mahalanobis distance computed from the matrix whose
+columns are made up of <code class="reqn">MO</code> and <code class="reqn">VO</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_outlyingness</code></td>
+<td>
+<p>if <code>return_mvdir</code> = TRUE, a numeric vector of the mean of directional
+outlyingness for univariate functional data or an <code class="reqn">n x d</code> matrix of the mean of
+directional outlyingness for multivariate functional data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_outlyingness</code></td>
+<td>
+<p>if <code>return_mvdir</code> = TRUE, a numeric vector of length <code class="reqn">n</code> observations
+containing the variation of directional outlyingness.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Oluwasegun Taiwo Ojo.
+</p>
+
+
+<h3>References</h3>
+
+<p>Dai, W., and Genton, M. G. (2018). Multivariate functional data
+visualization and outlier detection. <em>Journal of Computational and Graphical
+Statistics</em>, 27(4), 923-934.
+</p>
+<p>Dai, W., and Genton, M. G. (2019). Directional outlyingness for multivariate
+functional data. <em>Computational Statistics &amp; Data Analysis</em>, 131, 50-65.
+</p>
+<p>Hardin, J., and Rocke, D. M. (2005). The distribution of robust distances.
+<em>Journal of Computational and Graphical Statistics</em>, 14(4), 928-946.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dir_out</code> for directional outlyingness and <code>projection_depth</code>
+for multivariate projection depth.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Univariate magnitude model in Dai and Genton (2018).
+dt1 &lt;- simulation_model1()
+msplot_object &lt;- msplot(dts = dt1$data)
+msplot_object$outliers_index
+msplot_object$mean_outlyingness
+msplot_object$var_outlyingness
+
+</code></pre>
+
+
+</div>

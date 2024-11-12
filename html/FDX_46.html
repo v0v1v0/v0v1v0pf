@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>weighted.PB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Weighted Poisson-Binomial Procedure</h2>
+
+<h3>Description</h3>
+
+<p>Apply the weighted [wPB] procedure, with or without computing the
+critical values, to a set of p-values. Both arithmetic and geometric
+weighting are available. Additionally, the user can choose between exact
+computation of the Poisson-Binomial distribution or a refined normal
+approximation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">weighted.PB(
+  raw.pvalues,
+  weights,
+  alpha = 0.05,
+  zeta = 0.05,
+  weighting.method = "AM",
+  critical.values = FALSE,
+  exact = TRUE
+)
+
+wPB.AM(raw.pvalues, weights, alpha = 0.05, zeta = 0.5, critical.values = FALSE)
+
+wPB.GM(raw.pvalues, weights, alpha = 0.05, zeta = 0.5, critical.values = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>raw.pvalues</code></td>
+<td>
+<p>vector of the raw observed p-values, as provided by the end user and before matching with their nearest neighbor in the CDFs supports.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>a numeric vector. Contains the weights of the p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the target FDP, a number strictly between 0 and 1. For <code>*.fast</code> kernels, it is only necessary, if <code>stepUp = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta</code></td>
+<td>
+<p>the target probability of not exceeding the desired FDP, a number strictly between 0 and 1. If <code>zeta=NULL</code> (the default), then <code>zeta</code> is chosen equal to <code>alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting.method</code></td>
+<td>
+<p>a character string specifying whether to conduct arithmetic (<code>direction="AM"</code>, the default) or geometric weighting (<code>direction="GM"</code>) of p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>critical.values</code></td>
+<td>
+<p>a boolean. If <code>TRUE</code>, critical constants are computed and returned (this is computationally intensive).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>a boolean specifying whether to compute the Poisson-Binomial distribution exactly or by a normal approximation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>wPB.AM</code> and <code>wPB.GM</code> are wrapper functions for <code>weighted.PB</code>.
+The first one simply passes all its parameters to <code>weighted.PB</code> with
+<code>weighting.method = "AM"</code> and <code>wPB.GM</code> does the same with
+<code>weighting.method = "GM"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>FDX</code> S3 class object whose elements are:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Rejected</code></td>
+<td>
+<p>Rejected raw p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Indices</code></td>
+<td>
+<p>Indices of rejected hypotheses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Num.rejected</code></td>
+<td>
+<p>Number of rejections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Adjusted</code></td>
+<td>
+<p>Adjusted p-values (only for step-down direction).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Weighted</code></td>
+<td>
+<p>Weighted p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Critical.values</code></td>
+<td>
+<p>Critical values (if requested).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Method</code></td>
+<td>
+<p>A character string describing the used algorithm, e.g. 'Discrete Lehmann-Romano procedure (step-up)'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FDP.threshold</code></td>
+<td>
+<p>FDP threshold <code>alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Exceedance.probability</code></td>
+<td>
+<p>Probability <code>zeta</code> of FDP exceeding <code>alpha</code>; thus, FDP is being controlled at level <code>alpha</code> with confidence <code>1 - zeta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Weighting</code></td>
+<td>
+<p>A character string describing the weighting method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data$raw.pvalues</code></td>
+<td>
+<p>The values of <code>raw.pvalues</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data$weights</code></td>
+<td>
+<p>The values of <code>weights</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data$data.name</code></td>
+<td>
+<p>The respective variable names of <code>raw.pvalues</code> and <code>pCDFlist</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>kernel</code>, <code>FDX-package</code>, <code>continuous.LR</code>,
+<code>continuous.GR</code>, <code>discrete.LR</code>, 
+<code>discrete.GR</code>, <code>discrete.PB</code>, 
+<code>weighted.LR</code>, <code>weighted.GR</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Construction of the p-values and their supports for weighted methods
+raw.pvalues.weighted &lt;- c(0.7389727, 0.1882310, 0.1302457, 0.9513677,
+                         0.7592122, 0.0100559, 0.0000027, 0.1651034)
+weights &lt;- c(0.7947122, 1.2633867, 2.8097858, 2.2112801,
+            2.3878654, 1.2389620, 2.3878654, 0.7947122)
+
+wPB.AM.fast &lt;- wPB.AM(raw.pvalues.weighted, weights)
+summary(wPB.AM.fast)
+
+wPB.AM.crit &lt;- wPB.AM(raw.pvalues.weighted, weights, critical.values = TRUE)
+summary(wPB.AM.crit)
+
+wPB.GM.fast &lt;- wPB.GM(raw.pvalues.weighted, weights)
+summary(wPB.GM.fast)
+
+wPB.GM.crit &lt;- wPB.GM(raw.pvalues.weighted, weights, critical.values = TRUE)
+summary(wPB.GM.crit)
+
+</code></pre>
+
+
+</div>

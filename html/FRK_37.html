@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>eval_basis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate basis functions</h2>
+
+<h3>Description</h3>
+
+<p>Evaluate basis functions at points or average functions over polygons.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">eval_basis(basis, s)
+
+## S4 method for signature 'Basis,matrix'
+eval_basis(basis, s)
+
+## S4 method for signature 'Basis,SpatialPointsDataFrame'
+eval_basis(basis, s)
+
+## S4 method for signature 'Basis,SpatialPolygonsDataFrame'
+eval_basis(basis, s)
+
+## S4 method for signature 'Basis,STIDF'
+eval_basis(basis, s)
+
+## S4 method for signature 'TensorP_Basis,matrix'
+eval_basis(basis, s)
+
+## S4 method for signature 'TensorP_Basis,STIDF'
+eval_basis(basis, s)
+
+## S4 method for signature 'TensorP_Basis,STFDF'
+eval_basis(basis, s)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>basis</code></td>
+<td>
+<p>object of class <code>Basis</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>object of class <code>matrix</code>, <code>SpatialPointsDataFrame</code> or <code>SpatialPolygonsDataFrame</code> containing the spatial locations/footprints</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function evaluates the basis functions at isolated points, or averages
+the basis functions over polygons, for computing the matrix <code class="reqn">S</code>. The latter
+operation is carried out using Monte Carlo integration with 1000 samples per polygon. When
+using space-time basis functions, the object must contain a field <code>t</code> containing a numeric
+representation of the time, for example, containing the number of seconds, hours, or days since the first
+data point.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>auto_basis</code> for automatically constructing basis functions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(sp)
+
+### Create a synthetic dataset
+set.seed(1)
+d &lt;- data.frame(lon = runif(n=500,min = -179, max = 179),
+                lat = runif(n=500,min = -90, max = 90),
+                z = rnorm(500))
+coordinates(d) &lt;- ~lon + lat
+slot(d, "proj4string") = CRS("+proj=longlat")
+
+### Now create basis functions on sphere
+G &lt;- auto_basis(manifold = sphere(),data=d,
+                nres = 2,prune=15,
+                type = "bisquare",
+                subsamp = 20000)
+
+### Now evaluate basis functions at origin
+S &lt;- eval_basis(G,matrix(c(0,0),1,2))
+</code></pre>
+
+
+</div>

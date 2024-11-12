@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>eval.posfd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Evaluate a Positive Functional Data Object
+</h2>
+
+<h3>Description</h3>
+
+<p>Evaluate a positive functional data object at specified argument
+values, or evaluate a derivative of the functional object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">eval.posfd(evalarg, Wfdobj, Lfdobj=int2Lfd(0))
+## S3 method for class 'posfd'
+predict(object, newdata=NULL, Lfdobj=0, ...)
+## S3 method for class 'posfd'
+fitted(object, ...)
+## S3 method for class 'posfd'
+residuals(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>evalarg, newdata</code></td>
+<td>
+
+<p>a vector of argument values at which the functional data object is
+to be evaluated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Wfdobj</code></td>
+<td>
+
+<p>a functional data object that defines the positive function to be
+evaluated.  Only univariate functions are permitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj</code></td>
+<td>
+
+<p>a nonnegative integer specifying a derivative to be evaluated.  At
+this time of writing, permissible derivative values are 0, 1 or 2.
+A linear differential operator is not allowed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>an object of class <code>posfd</code> that defines the positive function
+to be evaluated.  Only univariate functions are permitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>optional arguments required by <code>predict</code>;  not currently used.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A positive function data object $h(t)$ is defined by $h(t) =[exp
+Wfd](t)$.  The function <code>Wfdobj</code> that defines the positive
+function is usually estimated by positive smoothing function
+<code>smooth.pos</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>a matrix containing the positive function values.  The first dimension
+corresponds to the argument values in <code>evalarg</code> and the second to
+replications.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>eval.fd</code>,
+<code>eval.monfd</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">harmaccelLfd &lt;- vec2Lfd(c(0,(2*pi/365)^2,0), c(0, 365))
+smallbasis   &lt;- create.fourier.basis(c(0, 365), 65)
+index        &lt;- (1:35)[CanadianWeather$place == "Vancouver"]
+VanPrec      &lt;- CanadianWeather$dailyAv[,index, "Precipitation.mm"]
+lambda       &lt;- 1e4
+dayfdPar     &lt;- fdPar(fd(matrix(0,smallbasis$nbasis,1), smallbasis), 
+                      harmaccelLfd, lambda)
+VanPrecPos   &lt;- smooth.pos(day.5, VanPrec, dayfdPar)
+#  compute fitted values using eval.posfd()
+VanPrecPosFit1 &lt;- eval.posfd(day.5, VanPrecPos$Wfdobj)
+#  compute fitted values using predict()
+VanPrecPosFit2 &lt;- predict(VanPrecPos, day.5)
+
+all.equal(VanPrecPosFit1, VanPrecPosFit2)
+
+#  compute fitted values using fitted()
+VanPrecPosFit3 &lt;- fitted(VanPrecPos)
+#  compute residuals
+VanPrecRes &lt;- resid(VanPrecPos)
+
+all.equal(VanPrecRes, VanPrecPos$y-VanPrecPosFit3)
+
+
+</code></pre>
+
+
+</div>

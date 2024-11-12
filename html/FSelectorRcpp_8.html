@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>feature_search</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>General Feature Searching Engine</h2>
+
+<h3>Description</h3>
+
+<p>A convenience wrapper for <code>greedy</code> and <code>exhaustive</code> feature selection algorithms that
+extract valuable attributes depending on the evaluation method (called evaluator). This function
+is a reimplementation of <span class="pkg">FSelector</span>'s exhaustive.search and greedy.search.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">feature_search(
+  attributes,
+  fun,
+  data,
+  mode = c("greedy", "exhaustive"),
+  type = c("forward", "backward"),
+  sizes = 1:length(attributes),
+  parallel = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>attributes</code></td>
+<td>
+<p>A character vector with attributes' names to be used to extract the most valuable features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>A function (evaluator) to be used to score features' sets at each iteration of the algorithm passed via <code>mode</code>.
+See Examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data set for <code>fun</code> function (evaluator).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>A character that determines which search algorithm to perform. Defualt is <code>"greedy"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Used when <code>mode = "greedy"</code> - whether to use the
+<code>backward</code> or the <code>forward</code> multiple-way search. Default is <code>"forward"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizes</code></td>
+<td>
+<p>Used when <code>mode = "exhaustive"</code> - a vector of sizes
+of attributes subsets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Allow parallelization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to foreach function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The evaluator function passed with <code>fun</code> is used to determine
+the importance score of current features' subset.
+The score is used in a multiple-way (backward or forward) <code>greedy</code>
+algorithm as a stopping moment or as a selection criterion
+in the <code>exhaustive</code> search that checks all possible
+attributes' subset combinations (of sizes passed in <code>sizes</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with following components
+</p>
+
+<ul>
+<li>
+<p> best - a data.frame with the best subset and it's score (1 - feature used, 0 - feature not used),
+</p>
+</li>
+<li>
+<p> all - a data.frame with all checked features' subsets and their score (1 - feature used, 0 - feature not used),
+</p>
+</li>
+<li>
+<p> data - the data used in the feature selection,
+</p>
+</li>
+<li>
+<p> fun - the evaluator used to compute the score of importance for features' subsets,
+</p>
+</li>
+<li>
+<p> call - an origin call of the <code>feature_search</code>,
+</p>
+</li>
+<li>
+<p> mode - the mode used in the call.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>Note that score depends on the evaluator you provide in the <code>fun</code> parameter.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Zygmunt Zawadzki <a href="mailto:zygmunt@zstat.pl">zygmunt@zstat.pl</a>
+</p>
+<p>Krzysztof Slomczynski <a href="mailto:krzysztofslomczynski@gmail.com">krzysztofslomczynski@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Enable parallelization in examples
+## Not run: 
+ library(doParallel)
+ cl &lt;- makeCluster(2)
+ registerDoParallel(cl)
+
+## End(Not run)
+# Close at the end
+# stopCluster(cl) #nolint
+# registerDoSEQ() #nolint
+
+if(require("rpart")) {
+# 1) Evaluator from FSelector package.
+evaluator &lt;- function(subset, data, dependent = names(iris)[5]) {
+  library(rpart)
+  k &lt;- 5
+  splits &lt;- runif(nrow(data))
+  results &lt;- sapply(1:k, function(i) {
+    test.idx &lt;- (splits &gt;= (i - 1) / k) &amp; (splits &lt; i / k)
+    train.idx &lt;- !test.idx
+    test &lt;- data[test.idx, , drop = FALSE]
+    train &lt;- data[train.idx, , drop = FALSE]
+    tree &lt;- rpart(to_formula(subset, dependent), train)
+    error.rate &lt;- sum(test[[dependent]] != predict(tree, test, type = "c")) /
+    nrow(test)
+    return(1 - error.rate)
+  })
+  return(mean(results))
+}
+
+set.seed(123)
+# Default greedy search.
+system.time(
+  feature_search(attributes = names(iris)[-5],
+                 fun = evaluator,
+                 data = iris)
+)
+system.time(
+  feature_search(attributes = names(iris)[-5],
+                 fun = evaluator,
+                 data = iris,
+                 parallel = FALSE)
+)
+
+# Optional exhaustive search.
+system.time(
+  feature_search(attributes = names(iris)[-5],
+                 fun = evaluator,
+                 data = iris,
+                 mode = "exhaustive")
+)
+system.time(
+  feature_search(attributes = names(iris)[-5],
+                 fun = evaluator,
+                 data = iris,
+                 mode = "exhaustive",
+                 parallel = FALSE)
+)
+}
+
+# 2) Maximize R^2 statistics in the linear regression model/problem.
+
+evaluator_R2_lm &lt;- function(attributes, data, dependent = names(iris)[1]) {
+  summary(
+    lm(to_formula(attributes, dependent), data = data)
+  )$r.squared
+}
+
+feature_search(attributes = names(iris)[-1],
+               fun = evaluator_R2_lm, data = iris,
+               mode = "exhaustive")
+
+# 3) Optimize BIC crietion in generalized linear model.
+# Aim of Bayesian approach it to identify the model with the highest
+# probability of being the true model. - Kuha 2004
+if(require("MASS")) {
+utils::data(anorexia, package = "MASS")
+
+evaluator_BIC_glm &lt;- function(attributes, data, dependent = "Postwt") {
+  extractAIC(
+    fit = glm(to_formula(attributes, dependent), family = gaussian,
+              data = data),
+    k = log(nrow(data))
+  )[2]
+}
+
+feature_search(attributes = c("Prewt", "Treat", "offset(Prewt)"),
+               fun = evaluator_BIC_glm,
+               data = anorexia,
+               mode = "exhaustive")
+}
+# Close parallelization
+## Not run: 
+stopCluster(cl)
+registerDoSEQ()
+
+## End(Not run)
+</code></pre>
+
+
+</div>

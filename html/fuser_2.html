@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fusedL2DescentGLMNet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimise the fused L2 model with glmnet (using transformed input data)</h2>
+
+<h3>Description</h3>
+
+<p>Optimise the fused L2 model with glmnet (using transformed input data)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fusedL2DescentGLMNet(transformed.x, transformed.x.f, transformed.y, groups,
+  lambda, gamma = 1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>transformed.x</code></td>
+<td>
+<p>Transformed covariates (output of generateBlockDiagonalMatrices)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transformed.x.f</code></td>
+<td>
+<p>Transformed fusion constraints (output of generateBlockDiagonalMatrices)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transformed.y</code></td>
+<td>
+<p>Transformed response (output of generateBlockDiagonalMatrices)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>Grouping factors for samples (a vector of size n, with K factor levels)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Sparsity penalty hyperparameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>Fusion penalty hyperparameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further options passed to glmnet.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Matrix of fitted beta values.
+</p>
+<p>A matrix with the linear coefficients for each group (p by k).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#' set.seed(123)
+
+# Generate simple heterogeneous dataset
+k = 4 # number of groups
+p = 100 # number of covariates
+n.group = 15 # number of samples per group
+sigma = 0.05 # observation noise sd
+groups = rep(1:k, each=n.group) # group indicators
+# sparse linear coefficients
+beta = matrix(0, p, k)
+nonzero.ind = rbinom(p*k, 1, 0.025/k) # Independent coefficients
+nonzero.shared = rbinom(p, 1, 0.025) # shared coefficients
+beta[which(nonzero.ind==1)] = rnorm(sum(nonzero.ind), 1, 0.25)
+beta[which(nonzero.shared==1),] = rnorm(sum(nonzero.shared), -1, 0.25)
+
+X = lapply(1:k,
+           function(k.i) matrix(rnorm(n.group*p),
+                                n.group, p)) # covariates
+y = sapply(1:k,
+           function(k.i) X[[k.i]] %*% beta[,k.i] +
+                           rnorm(n.group, 0, sigma)) # response
+X = do.call('rbind', X)
+
+# Pairwise Fusion strength hyperparameters (tau(k,k'))
+# Same for all pairs in this example
+G = matrix(1, k, k)
+
+# Generate block diagonal matrices
+transformed.data = generateBlockDiagonalMatrices(X, y, groups, G)
+
+# Use L2 fusion to estimate betas (with near-optimal information
+# sharing among groups)
+beta.estimate = fusedL2DescentGLMNet(transformed.data$X,
+                                     transformed.data$X.fused,
+                                     transformed.data$Y, groups,
+                                     lambda=c(0,0.001,0.1,1),
+                                     gamma=0.001)
+</code></pre>
+
+
+</div>

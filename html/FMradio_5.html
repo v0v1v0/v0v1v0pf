@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dimLRT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Assess the latent dimensionality using a likelihood ratio test
+</h2>
+
+<h3>Description</h3>
+
+<p><code>dimLRT</code> is a function that evaluates a likelihood ratio test on the factor model.
+It can be used to choose the number of latent factors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dimLRT(R, X, maxdim, rankDOF = TRUE, graph = TRUE, 
+       alpha = .05, Bartlett = FALSE, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>(Regularized) correlation <code>matrix</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>A (possibly centered and scaled and possibly subsetted) data <code>matrix</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdim</code></td>
+<td>
+
+<p>A <code>numeric</code> integer or <code>integer</code> indicating the maximum factor dimension to be assessed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rankDOF</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the degrees of freedom should be based on the rank of the raw correlation matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the results should be visualized.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>A <code>numeric</code> scalar representing the alpha level. Only used when <code>graph = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bartlett</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the Bartlett correction should be applied.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the function should run silently.<br>
+Runs silently when <code>verbose = FALSE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The most formal approach to factor analytic dimensionality assessment is through likelihood ratio (LR) testing.
+The basic idea is to test the <code class="reqn">m</code>-factor model against the saturated model.
+The corresponding LR criterion then converges, under the standard correlation matrix and corresponding parameter estimates under <code class="reqn">m</code>-factors, to <code class="reqn">(n - 1)</code> times a certain discrepancy function evaluated at the maximum-likelihood-parameters under the <code class="reqn">m</code>-factor model.
+This quantity is approximately <code class="reqn">\chi^{2}</code>-distributed under certain regularity conditions (Amemiya &amp; Anderson, 1990).
+The general strategy would then be to sequentially test solutions of increasing dimensionality <code class="reqn">m = 1, \ldots, \mbox{maxdim}</code> until the null hypothesis (stating that the <code class="reqn">m</code>-factor model holds) is <em>not</em> rejected at Type-I error level <code>alpha</code>.
+</p>
+<p>The degrees of freedom for the LRT under the <code class="reqn">m</code>-factor model equals the number of parameters in the saturated model (i.e., the unstructured sample correlation) minus the number of freely estimable parameters in the <code class="reqn">m</code>-factor model.
+Note that the general stategy above makes use of asymptotic results.
+In our setting, however, the observation dimension (<code class="reqn">n</code>) is usually small relative to the feature dimension (<code class="reqn">p</code>).
+Hence, the standard test will in a sense overestimate the degrees of freedom.
+One simple option dealing with this observation would be to adapt the degrees of freedom to incorporate the rank deficiency of <code>R</code>.
+This road is taken when <code>rankDOF = TRUE</code>.
+Bartlett (1950) proposed a correction factor when the sample size is small to make the test statistic behave more <code class="reqn">\chi^{2}</code>-like.
+This correction factor is used when <code>Bartlett = TRUE</code>.
+</p>
+<p>When <code>graph = TRUE</code> the LRT results are visualized. 
+The graph plots the LRT <code class="reqn">p</code>-values against the consecutive dimensions of the factor solution.
+A horizontal line is plotted at the value provided in the <code>alpha</code> argument.
+</p>
+<p>Unless the number of observations is much larger than the number of features, the LRT is not recommended for inference in general.
+In Peeters <em>et al.</em> (2019) the LRT was assessed in a comparative setting inviolving high-dimensional factor models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>data.frame</code>.
+The first column represents the assessed dimensions running from 1 to <code>maxdim</code>.
+The second column represents the observed values of the LRT statistic.
+The third column represents the corresponding <code class="reqn">p</code>-values.
+</p>
+
+
+<h3>Note</h3>
+
+
+<ul>
+<li>
+<p> Note that, for argument <code>X</code>, the observations are expected to be in the rows and the features are expected to be in the columns.
+</p>
+</li>
+<li>
+<p> The argument <code>maxdim</code> cannot exceed the Ledermann-bound (Ledermann, 1937): <code class="reqn">\lfloor [2p + 1 - (8p + 1)^{1/2}]/2\rfloor</code>, where <code class="reqn">p</code> indicates the observed-feature dimension.
+Usually, one wants to set <code>maxdim</code> much lower than this bound.
+</p>
+</li>
+<li>
+<p> note that, if <code class="reqn">p &gt; n</code>, then the maximum rank of the raw correlation matrix is <code class="reqn">n - 1</code>. In this case there is an alternative Ledermann-bound when <code>rankDOF = TRUE</code>. The number of information points in the correlation matrix is then given as <code class="reqn">n\times (n-1)/2</code> and this number must exceed <code class="reqn">p\times \mbox{maxdim} + p - (\mbox{maxdim} \times (\mbox{maxdim} - 1))/2</code>, putting more restrictions on <code>maxdim</code>.
+</p>
+</li>
+<li>
+<p> Other functions for factor analytic dimensionality assessment are <code>dimGB</code> and <code>dimIC</code>. In high-dimensional situations usage of <code>dimGB</code> on the regularized correlation matrix is recommended.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Carel F.W. Peeters &lt;cf.peeters@vumc.nl&gt;, Caroline Ubelhor
+</p>
+
+
+<h3>References</h3>
+
+<p>Amemiya, Y., &amp; Anderson, T.W. (1990). Asymptotic chi-square tests for a large class of factor
+analysis models. The Annals of Statistics, 18:1453–1463.
+</p>
+<p>Bartlett, M.S. (1950). Tests of significance in factor analysis. British Journal of Psychology (Statistics Section), 3:77–85.
+</p>
+<p>Ledermann, W. (1937). On the rank of the reduced correlational matrix in multiple factor analysis. Psychometrika, 2:85–93.
+</p>
+<p>Peeters, C.F.W. <em>et al.</em> (2019). Stable prediction with radiomics data.
+<a href="https://arxiv.org/abs/1903.11696">arXiv:1903.11696 [stat.ML]</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dimGB</code>, <code>FAsim</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate some data according to the factor model
+## $cormatrix gives the correlation matrix on the generated data
+simDAT &lt;- FAsim(p = 50, m = 5, n = 500)
+simDAT$cormatrix
+
+## Calculate the LRT for models of factor dimension 1 to 20
+LRT &lt;- dimLRT(simDAT$cormatrix, simDAT$data, maxdim = 20, rankDOF = FALSE)
+print(LRT)
+</code></pre>
+
+
+</div>

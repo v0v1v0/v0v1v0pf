@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.funData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plotting univariate functional data</h2>
+
+<h3>Description</h3>
+
+<p>This function plots observations of univariate functional data on their 
+domain.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'funData'
+plot(
+  x,
+  y,
+  obs = seq_len(nObs(x)),
+  type = "l",
+  lty = 1,
+  lwd = 1,
+  col = NULL,
+  xlab = "argvals",
+  ylab = "",
+  legend = TRUE,
+  plotNA = FALSE,
+  add = FALSE,
+  ...
+)
+
+## S4 method for signature 'funData,missing'
+plot(x, y, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class <code>funData</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>A vector of numerics giving the observations to plot. Defaults to 
+all observations in <code>x</code>. For two-dimensional functions (images) 
+<code>obs</code> must have length 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of plot. Defaults to <code>"l"</code> (line plot). See 
+<code>plot</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lty</code></td>
+<td>
+<p>The line type. Defaults to <code>1</code> (solid line). See 
+<code>par</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd</code></td>
+<td>
+<p>The line width. Defaults to <code>1</code>. See
+<code>par</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>The color of the functions. If not supplied (<code>NULL</code>, default 
+value), one-dimensional functions are plotted in the 
+<code>rainbow</code> palette and two-dimensional functions are 
+plotted using <code>tim.colors</code> from package 
+<code>fields-package</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab, ylab</code></td>
+<td>
+<p>The titles for x- and y-axis. Defaults to <code>"argvals"</code>
+for the x-axis and no title for the y-axis. See
+<code>plot</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, a color legend is plotted for 
+two-dimensional functions (images). Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotNA</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, missing values are interpolated using
+the approxNA function (only for one-dimensional functions). Defaults
+to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, add to current plot (only for 
+one-dimensional functions). Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to <code>matplot </code> 
+(one-dimensional functions) or <code>image.plot</code>/ 
+<code>image</code> (two-dimensional functions).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If some observations contain missing values (coded via <code>NA</code>), the 
+functions can be interpolated using the option <code>plotNA = TRUE</code>. This 
+option relies on the <code>na.approx</code> function in package 
+<code>zoo</code> and is currently implemented for one-dimensional 
+functions only in the function <code>approxNA</code>.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>The function is currently implemented only for functional 
+data with one- and two-dimensional domains.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>funData</code>, <code>matplot</code>, 
+<code>image.plot</code>, <code>image</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldpar &lt;- par(no.readonly = TRUE)
+
+# One-dimensional
+argvals &lt;- seq(0,2*pi,0.01)
+object &lt;- funData(argvals,
+                   outer(seq(0.75, 1.25, length.out = 11), sin(argvals)))
+
+plot(object, main = "One-dimensional functional data")
+
+# Two-dimensional
+X &lt;- array(0, dim = c(2, length(argvals), length(argvals)))
+X[1,,] &lt;- outer(argvals, argvals, function(x,y){sin((x-pi)^2 + (y-pi)^2)})
+X[2,,] &lt;- outer(argvals, argvals, function(x,y){sin(2*x*pi) * cos(2*y*pi)})
+object2D &lt;- funData(list(argvals, argvals), X)
+
+plot(object2D, main = "Two-dimensional functional data (obs 1)", obs = 1)
+plot(object2D, main = "Two-dimensional functional data (obs 2)", obs = 2)
+## Not run: plot(object2D, main = "Two-dimensional functional data") # must specify obs!
+
+
+### More examples ###
+par(mfrow = c(1,1))
+
+# using plotNA
+if(requireNamespace("zoo", quietly = TRUE))
+{
+objectMissing &lt;- funData(1:5, rbind(c(1, NA, 5, 4, 3), c(10, 9, NA, NA, 6)))
+par(mfrow = c(1,2))
+plot(objectMissing, type = "b", pch = 20, main = "plotNA = FALSE") # the default
+plot(objectMissing, type = "b", pch = 20, plotNA = TRUE, main = "plotNA = TRUE") # requires zoo
+}
+
+# Changing colors
+plot(object, main = "1D functional data in grey", col = "grey")
+plot(object, main = "1D functional data in heat.colors", col = heat.colors(nObs(object)))
+
+plot(object2D, main = "2D functional data in topo.colors", obs = 1, col = topo.colors(64))
+par(oldpar)
+
+</code></pre>
+
+
+</div>

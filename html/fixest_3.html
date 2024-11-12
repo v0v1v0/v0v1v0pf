@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aggregate.fixest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Aggregates the values of DiD coefficients a la Sun and Abraham</h2>
+
+<h3>Description</h3>
+
+<p>Simple tool that aggregates the value of CATT coefficients in staggered
+difference-in-difference setups (see details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fixest'
+aggregate(x, agg, full = FALSE, use_weights = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>fixest</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg</code></td>
+<td>
+<p>A character scalar describing the variable names to be aggregated,
+it is pattern-based. For <code>sunab</code> estimations, the following keywords work: "att",
+"period", "cohort" and <code>FALSE</code> (to have full disaggregation). All variables that
+match the pattern will be aggregated. It must be of the form <code>"(root)"</code>, the parentheses
+must be there and the resulting variable name will be <code>"root"</code>. You can add another
+root with parentheses: <code>"(root1)regex(root2)"</code>, in which case the resulting
+name is <code>"root1::root2"</code>. To name the resulting variable differently you can pass
+a named vector: <code>c("name" = "pattern")</code> or <code>c("name" = "pattern(root2)")</code>. It's a
+bit intricate sorry, please see the examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full</code></td>
+<td>
+<p>Logical scalar, defaults to <code>FALSE</code>. If <code>TRUE</code>, then all coefficients
+are returned, not only the aggregated coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_weights</code></td>
+<td>
+<p>Logical, default is <code>TRUE</code>. If the estimation was weighted,
+whether the aggregation should take into account the weights. Basically if the
+weights reflected frequency it should be <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments to be passed to <code>summary.fixest</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a function helping to replicate the estimator from Sun and Abraham (2021).
+You first need to perform an estimation with cohort and relative periods dummies
+(typically using the function <code>i</code>), this leads to estimators of the cohort
+average treatment effect on the treated (CATT). Then you can use this function to
+retrieve the average treatment effect on each relative period, or for any other way
+you wish to aggregate the CATT.
+</p>
+<p>Note that contrary to the SA article, here the cohort share in the sample is
+considered to be a perfect measure for the cohort share in the population.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns a matrix representing a table of coefficients.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>References</h3>
+
+<p>Liyang Sun and Sarah Abraham, 2021, "Estimating Dynamic Treatment Effects in
+Event Studies with Heterogeneous Treatment Effects". Journal of Econometrics.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#
+# DiD example
+#
+
+data(base_stagg)
+
+# 2 kind of estimations:
+# - regular TWFE model
+# - estimation with cohort x time_to_treatment interactions, later aggregated
+
+# Note: the never treated have a time_to_treatment equal to -1000
+
+# Now we perform the estimation
+res_twfe = feols(y ~ x1 + i(time_to_treatment, treated,
+                            ref = c(-1, -1000)) | id + year, base_stagg)
+
+# we use the "i." prefix to force year_treated to be considered as a factor
+res_cohort = feols(y ~ x1 + i(time_to_treatment, i.year_treated,
+                              ref = c(-1, -1000)) | id + year, base_stagg)
+
+# Displaying the results
+iplot(res_twfe, ylim = c(-6, 8))
+att_true = tapply(base_stagg$treatment_effect_true,
+                  base_stagg$time_to_treatment, mean)[-1]
+points(-9:8 + 0.15, att_true, pch = 15, col = 2)
+
+# The aggregate effect for each period
+agg_coef = aggregate(res_cohort, "(ti.*nt)::(-?[[:digit:]]+)")
+x = c(-9:-2, 0:8) + .35
+points(x, agg_coef[, 1], pch = 17, col = 4)
+ci_low = agg_coef[, 1] - 1.96 * agg_coef[, 2]
+ci_up = agg_coef[, 1] + 1.96 * agg_coef[, 2]
+segments(x0 = x, y0 = ci_low, x1 = x, y1 = ci_up, col = 4)
+
+legend("topleft", col = c(1, 2, 4), pch = c(20, 15, 17),
+       legend = c("TWFE", "True", "Sun &amp; Abraham"))
+
+
+# The ATT
+aggregate(res_cohort, c("ATT" = "treatment::[^-]"))
+with(base_stagg, mean(treatment_effect_true[time_to_treatment &gt;= 0]))
+
+# The total effect for each cohort
+aggregate(res_cohort, c("cohort" = "::[^-].*year_treated::([[:digit:]]+)"))
+
+
+</code></pre>
+
+
+</div>

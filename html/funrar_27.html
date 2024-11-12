@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>uniqueness</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Uniqueness for site-species matrix matrix</h2>
+
+<h3>Description</h3>
+
+<p>Computes the functional uniqueness from a site-species matrix with the
+provided functional distance matrix. Functional Uniqueness represents how
+"isolated" is a species in the global species pool, it is the functional
+distance to the nearest neighbor of the species of interest (see <code>Details</code>
+section for the formula). The sites-species matrix should have <strong>sites</strong>
+in <strong>rows</strong> and <strong>species</strong> in <strong>columns</strong>, similar to <span class="pkg">vegan</span> package
+defaults.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">uniqueness(pres_matrix, dist_matrix)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pres_matrix</code></td>
+<td>
+<p>a site-species matrix (presence-absence or relative
+abundances), with sites in rows and species in columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist_matrix</code></td>
+<td>
+<p>a species functional distance matrix</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Functional Uniqueness <code class="reqn">U_i</code> is computed as follow:
+</p>
+<p style="text-align: center;"><code class="reqn">
+ U_i = \min(d_{ij}) \forall j, j \neq i,
+</code>
+</p>
+
+<p>with <code class="reqn">U_i</code> the functional uniqueness of species <code class="reqn">i</code>, and <code class="reqn">d_ij</code>
+the functional distance between species <code class="reqn">i</code> and species <code class="reqn">j</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame with functional uniqueness values per species, with one
+column with provided species column name and the <strong>Ui</strong> column with
+functional uniqueness values.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>distinctiveness()</code>, <code>restrictedness()</code>, <code>scarcity()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("aravo", package = "ade4")
+
+# Site-species matrix
+mat = as.matrix(aravo$spe)
+colnames(mat) = as.character(colnames(mat))
+
+# Example of trait table
+tra = aravo$traits[, c("Height", "SLA", "N_mass")]
+# Distance matrix
+dist_mat = compute_dist_matrix(tra)
+
+ui = uniqueness(mat, dist_mat)
+head(ui)
+
+# Computing uniqueness for each community
+com_ui = apply(mat, 1,
+                function(x, dist_m) {
+                    smaller_com = x[x &gt; 0 &amp; !is.na(x)]
+                    uniqueness(t(as.matrix(smaller_com)), dist_m)
+                }, dist_m = dist_mat)
+
+</code></pre>
+
+
+</div>

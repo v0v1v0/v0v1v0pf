@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fr_typeI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Type I Response</h2>
+
+<h3>Description</h3>
+
+<p>A generic type-I (linear) response.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    typeI_fit(data, samp, start, fixed, boot=FALSE, windows=FALSE)
+    typeI_nll(a, T, X, Y)
+    typeI(X, a, T)
+    </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>A dataframe containing X and Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp </code></td>
+<td>
+<p>A vector specifying the rows of data to use in the fit. Provided by <code>boot()</code> or manually, as required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>A named list. Starting values for items to be optimised.  Usually 'a'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed </code></td>
+<td>
+<p>A names list. 'Fixed data' (not optimised). Usually 'T'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot </code></td>
+<td>
+<p>A logical. Is the function being called for use by <code>boot()</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows </code></td>
+<td>
+<p>A logical. Is the operating system Microsoft Windows?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a </code></td>
+<td>
+<p>The capture rate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T </code></td>
+<td>
+<p>T: Total time available</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>The X variable. Usually prey density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>The Y variable.  Usually the number of prey consumed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This implements a simple type-I, or linear functional response. This is helpful when the response is known (or suspected) to be handling time independent. It is implemented as: 
+</p>
+<p style="text-align: center;"><code class="reqn">N_e = a N_0 T</code>
+</p>
+
+<p>where <em>a</em> is the capture rate, <em>T</em> is the total time available and <code class="reqn">N_0</code> (== X) is the initial prey density. 
+</p>
+<p>None of these functions are designed to be called directly, though they are all exported so that the user can call them directly if desired. The intention is that they are called via <code>frair_fit</code>, which calls them in the order they are specified above.
+</p>
+<p><code>typeI_fit</code> does the heavy lifting and also pulls double duty as the <code>statistic</code> function for bootstrapping (<em>via</em> <code>boot()</code> in the boot package).  The <code>windows</code> argument if required to prevent needless calls to <code>require(frair)</code> on platforms that can manage sane parallel processing.
+</p>
+<p>The core fitting is done by <code>mle2</code> from the <code>bbmle</code> package and users are directed there for more information. <code>mle2</code> uses the <code>typeI_nll</code> function to optimise <code>typeI</code>.
+</p>
+<p>Further references and recommended reading can be found on the help page for frair_fit.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">datx &lt;- rep(1:60, times=5)
+r1 &lt;- rnorm(60*5, mean = 0.25, sd = 0.1)
+r2 &lt;- rnorm(60*5, mean = 0.75, sd = 0.1)
+r1[r1&gt;1] &lt;- 1
+r2[r2&gt;1] &lt;- 1
+daty1 &lt;- abs(round(r1*datx, 0))
+daty2 &lt;- abs(round(r2*datx, 0))
+dat &lt;- data.frame(datx,daty1,daty2)
+
+TI1 &lt;- frair_fit(daty1~datx, data=dat, response='typeI', 
+        start=list(a=0.5), fixed=list(T=1))
+TI2 &lt;- frair_fit(daty2~datx, data=dat, response='typeI', 
+        start=list(a=0.5), fixed=list(T=1))
+
+plot(c(0,60), c(0,60), type='n', xlab='Density', ylab='No. Eaten')
+points(TI1)
+points(TI2, col=4)
+lines(TI1)
+lines(TI2, col=4)
+
+# Test with frair_compare
+frair_compare(TI1, TI2)
+
+## Not run: 
+# Test with a big stick
+TI1b &lt;- frair_boot(TI1)
+TI2b &lt;- frair_boot(TI2)
+confint(TI1b)
+confint(TI2b)
+
+plot(c(0,60), c(0,60), type='n', xlab='Density', ylab='No. Eaten')
+drawpoly(TI1b, col=1)
+drawpoly(TI2b, col=4)
+points(TI1b, pch=20)
+points(TI2b, pch=20, col=4)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

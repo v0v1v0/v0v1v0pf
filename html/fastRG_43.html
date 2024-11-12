@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>undirected_factor_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an undirected factor model graph</h2>
+
+<h3>Description</h3>
+
+<p>An undirected factor model graph is an undirected
+generalized Poisson random dot product graph. The edges
+in this graph are assumed to be independent and Poisson
+distributed. The graph is parameterized by its expected
+adjacency matrix, which is <code style="white-space: pre;">⁠E[A|X] = X S X'⁠</code>. We do not recommend
+that casual users use this function, see instead <code>dcsbm()</code>
+and related functions, which will formulate common variants
+of the stochastic blockmodels as undirected factor models
+<em>with lots of helpful input validation</em>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">undirected_factor_model(
+  X,
+  S,
+  ...,
+  expected_degree = NULL,
+  expected_density = NULL,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A <code>matrix()</code> or Matrix() representing real-valued
+latent node positions. Entries must be positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>A <code>matrix()</code> or Matrix() mixing matrix. <code>S</code> is
+symmetrized if it is not already, as this is the undirected
+case. Entries must be positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored. Must be empty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected_degree</code></td>
+<td>
+<p>If specified, the desired expected degree
+of the graph. Specifying <code>expected_degree</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Do not specify both
+<code>expected_degree</code> and <code>expected_density</code> at the same time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected_density</code></td>
+<td>
+<p>If specified, the desired expected density
+of the graph. Specifying <code>expected_density</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Do not specify both
+<code>expected_degree</code> and <code>expected_density</code> at the same time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poisson_edges</code></td>
+<td>
+<p>Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when <code>FALSE</code>, we assume that <code>S</code> specifies a desired between-factor
+connection probability, and back-transform this <code>S</code> to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_self_loops</code></td>
+<td>
+<p>Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds allowing
+self-loops, and these are then removed after the fact.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>undirected_factor_model</code> S3 class based on a list
+with the following elements:
+</p>
+
+<ul>
+<li> <p><code>X</code>: The latent positions as a <code>Matrix()</code> object.
+</p>
+</li>
+<li> <p><code>S</code>: The mixing matrix as a <code>Matrix()</code> object.
+</p>
+</li>
+<li> <p><code>n</code>: The number of nodes in the network.
+</p>
+</li>
+<li> <p><code>k</code>: The rank of expectation matrix. Equivalently,
+the dimension of the latent node position vectors.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+n &lt;- 10000
+k &lt;- 5
+
+X &lt;- matrix(rpois(n = n * k, 1), nrow = n)
+S &lt;- matrix(runif(n = k * k, 0, .1), nrow = k)
+
+ufm &lt;- undirected_factor_model(X, S)
+ufm
+
+ufm2 &lt;- undirected_factor_model(X, S, expected_degree = 50)
+ufm2
+
+svds(ufm2)
+
+</code></pre>
+
+
+</div>

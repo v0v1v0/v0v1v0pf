@@ -1,0 +1,262 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>slim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Sparse Linear Regression using Nonsmooth Loss Functions and L1 Regularization
+</h2>
+
+<h3>Description</h3>
+
+<p>The function "slim" implements a family of Lasso variants for estimating high dimensional sparse linear models including Dantzig Selector, LAD Lasso, SQRT Lasso, Lq Lasso for estimating high dimensional sparse linear model. We adopt the alternating direction method of multipliers (ADMM) and convert the original optimization problem into a sequential L1-penalized least square minimization problem, which can be efficiently solved by combining the linearization and multi-stage screening of varialbes. Missing values can be tolerated for Dantzig selector in the design matrix and response vector. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">slim(X, Y, lambda = NULL, nlambda = NULL, 
+     lambda.min.value = NULL,lambda.min.ratio = NULL, 
+     rho = 1, method="lq", q = 2, res.sd = FALSE, 
+     prec = 1e-5, max.ite = 1e5, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>The <code class="reqn">n</code>-dimensional response vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The <code class="reqn">n</code> by <code class="reqn">d</code> design matrix. <code>d</code><code class="reqn"> \ge </code>2 is required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A sequence of decresing positive numbers to control the regularization. Typical usage is to leave the input <code>lambda = NULL</code> and have the program compute its own <code>lambda</code> sequence based on <code>nlambda</code> and <code>lambda.min.ratio</code>. Users can also specify a sequence to override this. Default value is from <code>lambda.max</code> to <code>lambda.min.ratio*lambda.max</code>. For Lq regression, the default value of <code>lambda.max</code> is <code class="reqn">\pi\sqrt{\log(d)/n}</code>. For Dantzig selector, the default value of <code>lambda.max</code> is the minimum regularization parameter, which yields an all-zero estiamtes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>The number of values used in <code>lambda</code>. Default value is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.value</code></td>
+<td>
+<p>The smallest value for <code>lambda</code>, as a fraction of the uppperbound (<code>lambda.max</code>) of the regularization parameter. The program can automatically generate <code>lambda</code> as a sequence of length = <code>nlambda</code> starting from <code>lambda.max</code> to <code>lambda.min.ratio*lambda.max</code> in log scale. The default value is <code class="reqn">\log(d)/n</code> for for Dantzig selector 0.3<code>*lambda.max</code> for Lq Lasso.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.ratio</code></td>
+<td>
+<p>The smallest ratio of the value for <code>lambda</code>. The default value is 0.3 for Lq Lasso and 0.5 for Dantzig selector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>The penalty parameter used in <code>ADMM</code>. The default value is <code class="reqn">\sqrt{d}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Dantzig selector is applied if <code>method = "dantzig"</code> and <code class="reqn">L_q</code> Lasso is applied if <code>method = "lq"</code>. Standard Lasso is provided if <code>method = "lasso"</code>. The default value is <code>"lq"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>The loss function used in Lq Lasso. It is only applicable when <code>method = "lq"</code> and must be in [1,2]. The default value is 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res.sd</code></td>
+<td>
+<p>Flag of whether the response varialbles are standardized. The default value is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prec</code></td>
+<td>
+<p>Stopping criterion. The default value is 1e-5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.ite</code></td>
+<td>
+<p>The iteration limit. The default value is 1e5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Tracing information printing is disabled if <code>verbose = FALSE</code>. The default value is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+ 
+<p>Standard Lasso<br></p>
+<p style="text-align: center;"><code class="reqn">
+    \min {\frac{1}{2n}}|| Y - X \beta ||_2^2 + \lambda || \beta ||_1
+    </code>
+</p>
+<p><br>
+Dantzig selector solves the following optimization problem<br></p>
+<p style="text-align: center;"><code class="reqn">
+    \min || \beta ||_1, \quad \textrm{s.t. } || X'(Y - X \beta) ||_{\infty} &lt; \lambda
+    </code>
+</p>
+<p><br><code class="reqn">L_q</code> loss Lasso solves the following optimization problem<br></p>
+<p style="text-align: center;"><code class="reqn">
+    \min n^{-\frac{1}{q}}|| Y - X \beta ||_q + \lambda || \beta ||_1
+    </code>
+</p>
+<p><br>
+where <code class="reqn">1&lt;= q &lt;=2</code>. Lq Lasso is equivalent to LAD Lasso and SQR Lasso when <code class="reqn">q=1</code> and <code class="reqn">q=2</code> respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"slim"</code> is returned: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+
+<p>A matrix of regression estimates whose columns correspond to regularization parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>The value of intercepts corresponding to regularization parameters. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>The value of <code>Y</code> used in the program. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The value of <code>X</code> used in the program. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>The sequence of regularization parameters <code>lambda</code> used in the program.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+
+<p>The number of values used in <code>lambda</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>The <code>method</code> from the input. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparsity</code></td>
+<td>
+
+<p>The sparsity levels of the solution path.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ite</code></td>
+<td>
+
+<p>A list of vectors where ite[[1]] is the number of external iteration and ite[[2]] is the number of internal iteration with the i-th entry corresponding to the i-th regularization parameter. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>The <code>verbose</code> from the input.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Xingguo Li, Tuo Zhao, Lie Wang, Xiaoming Yuan and Han Liu <br>
+Maintainer: Xingguo Li &lt;xingguo.leo@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>1. E. Candes and T. Tao. The Dantzig selector: Statistical estimation when p is much larger than n. <em>Annals of Statistics</em>, 2007.<br>
+2. A. Belloni, V. Chernozhukov and L. Wang. Pivotal recovery of sparse signals via conic programming. <em>Biometrika</em>, 2012.<br>
+3. L. Wang. L1 penalized LAD estimator for high dimensional linear regression. <em>Journal of Multivariate Analysis</em>, 2012.<br>
+4. J. Liu and J. Ye. Efficient L1/Lq Norm Regularization. <em>Technical Report</em>, 2010.
+5. S. Boyd, N. Parikh, E. Chu, B. Peleato, and J. Eckstein, Distributed Optimization and Statistical Learning via the Alternating Direction Method of Multipliers. <em>Foundations and Trends in Machine Learning</em>, 2011.
+6. B. He and X. Yuan. On non-ergodic convergence rate of Douglas-Rachford alternating direction method of multipliers. <em>Technical Report</em>, 2012.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flare-package</code>, <code>print.slim</code>, <code>plot.slim</code>, <code>coef.slim</code> and <code>predict.slim</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load library
+library(flare)
+## generate data
+n = 50
+d = 100
+X = matrix(rnorm(n*d), n, d)
+beta = c(3,2,0,1.5,rep(0,d-4))
+eps = rnorm(n)
+Y = X%*%beta + eps
+nlamb = 5
+ratio = 0.3
+
+## Regression with "dantzig", general "lq" and "lasso" respectively
+out1 = slim(X=X,Y=Y,nlambda=nlamb,lambda.min.ratio=ratio,method="dantzig")
+out2 = slim(X=X,Y=Y,nlambda=nlamb,lambda.min.ratio=ratio,method="lq",q=1)
+out3 = slim(X=X,Y=Y,nlambda=nlamb,lambda.min.ratio=ratio,method="lq",q=1.5)
+out4 = slim(X=X,Y=Y,nlambda=nlamb,lambda.min.ratio=ratio,method="lq",q=2)
+out5 = slim(X=X,Y=Y,nlambda=nlamb,lambda.min.ratio=ratio,method="lasso")
+
+## Display results
+print(out4)
+plot(out4)
+coef(out4)
+</code></pre>
+
+
+</div>

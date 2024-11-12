@@ -1,0 +1,332 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitTsfm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a time series factor model using time series regression</h2>
+
+<h3>Description</h3>
+
+<p>Fits a time series (a.k.a. macroeconomic) factor model for one 
+or more asset returns or excess returns using time series regression. 
+Users can choose between ordinary least squares-LS, discounted least 
+squares-DLS (or) robust regression. Several variable selection options  
+including Stepwise, Subsets, Lars are available as well. An object of class 
+<code>"tsfm"</code> is returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitTsfm(
+  asset.names,
+  factor.names,
+  mkt.name = NULL,
+  rf.name = NULL,
+  data = data,
+  fit.method = c("LS", "DLS", "Robust"),
+  variable.selection = c("none", "stepwise", "subsets", "lars"),
+  control = fitTsfm.control(),
+  ...
+)
+
+## S3 method for class 'tsfm'
+coef(object, ...)
+
+## S3 method for class 'tsfm'
+fitted(object, ...)
+
+## S3 method for class 'tsfm'
+residuals(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asset.names</code></td>
+<td>
+<p>vector of syntactically valid asset names, whose returns are the dependent 
+variable in the factor model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.names</code></td>
+<td>
+<p>vector containing syntactically valid names of the factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mkt.name</code></td>
+<td>
+<p>syntactically valid name of the column for market returns. Default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rf.name</code></td>
+<td>
+<p>syntactically valid name of the column for the risk free rate; if excess returns 
+should be calculated for all assets and factors. Default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>vector, matrix, data.frame, xts, timeSeries or zoo object
+containing the columns <code>asset.names</code>, <code>factor.names</code>, and 
+optionally, <code>mkt.name</code> and <code>rf.name</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.method</code></td>
+<td>
+<p>the estimation method, one of "LS", "DLS" or "Robust". 
+See details. Default is "LS".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable.selection</code></td>
+<td>
+<p>the variable selection method, one of "none", 
+"stepwise","subsets","lars". See details. Default is "none".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>list of control parameters. Refer to 
+<code>fitTsfm.control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to <code>fitTsfm.control</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fit object of class <code>tsfm</code> which is returned by 
+<code>fitTsfm</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Typically, factor models are fit using excess returns. <code>rf.name</code> gives 
+the option to supply a risk free rate variable to subtract from each asset 
+return and factor to compute excess returns. 
+</p>
+<p>Estimation method "LS" corresponds to ordinary least squares using 
+<code>lm</code>, "DLS" is discounted least squares (weighted least 
+squares with exponentially declining weights that sum to unity), and, 
+"Robust" is robust regression (using <code>lmrobdetMM</code>). 
+</p>
+<p>If <code>variable.selection="none"</code>, uses all the factors and performs no 
+variable selection. Whereas, "stepwise" performs traditional stepwise 
+LS or Robust regression (using <code>step</code> or 
+<code>step.lmrobdetMM</code>), that starts from the initial set of 
+factors and adds/subtracts factors only if the regression fit, as measured 
+by the Bayesian Information Criterion (BIC) or Akaike Information Criterion 
+(AIC), improves. And, "subsets" enables subsets selection using 
+<code>regsubsets</code>; chooses the best performing subset of any 
+given size or within a range of subset sizes. Different methods such as 
+exhaustive search (default), forward or backward stepwise, or sequential 
+replacement can be employed. See <code>fitTsfm.control</code> for more 
+details on the control arguments.
+</p>
+<p><code>variable.selection="lars"</code> corresponds to least angle regression 
+using <code>lars</code> with variants "lasso" (default), "lar", 
+"stepwise" or "forward.stagewise". Note: If <code>variable.selection="lars"</code>, 
+<code>fit.method</code> will be ignored.
+</p>
+<p>Argument <code>mkt.name</code> can be used to add market-timing factors to any of 
+the above methods. Please refer to <code>fitTsfmMT</code>, a wrapper to 
+<code>fitTsfm</code> for details.  
+</p>
+
+
+<h4>Data Processing</h4>
+
+<p>Note about NAs: Before model fitting, incomplete cases are removed for 
+every asset (return data combined with respective factors' return data) 
+using <code>na.omit</code>. Otherwise, all observations in 
+<code>data</code> are included.
+</p>
+<p>Note about <code>asset.names</code> and <code>factor.names</code>: Spaces in column 
+names of <code>data</code> will be converted to periods as <code>fitTsfm</code> works 
+with <code>xts</code> objects internally and colnames won't be left as they are.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p><code>fitTsfm</code> returns an object of class <code>"tsfm"</code> for which 
+<code>print</code>, <code>plot</code>, <code>predict</code> and <code>summary</code> methods exist. 
+</p>
+<p>The generic functions <code>coef</code>, <code>fitted</code> and  <code>residuals</code> 
+extract various useful features of the fit object. 
+Additionally, <code>fmCov</code> computes the covariance matrix for asset returns 
+based on the fitted factor model.
+</p>
+<p>An object of class <code>"tsfm"</code> is a list containing the following 
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>asset.fit</code></td>
+<td>
+<p>list of fitted objects for each asset. Each object is of 
+class <code>lm</code> if <code>fit.method="LS" or "DLS"</code>, class <code>lmrobdetMM</code> if 
+the <code>fit.method="Robust"</code>, or class <code>lars</code> if 
+<code>variable.selection="lars"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>N x 1 data.frame of estimated alphas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>N x K data.frame of estimated betas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r2</code></td>
+<td>
+<p>length-N vector of R-squared values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.sd</code></td>
+<td>
+<p>length-N vector of residual standard deviations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted</code></td>
+<td>
+<p>xts data object of fitted values; iff 
+<code>variable.selection="lars"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>xts data object containing the asset(s) and factor(s) returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asset.names</code></td>
+<td>
+<p>syntactically valid asset.names as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.names</code></td>
+<td>
+<p>syntactically valid factor.names as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mkt.name</code></td>
+<td>
+<p>syntactically valid mkt.name as input</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.method</code></td>
+<td>
+<p>fit.method as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable.selection</code></td>
+<td>
+<p>variable.selection as input.</p>
+</td>
+</tr>
+</table>
+<p>Where N is the number of assets, K is the number of factors and T is the 
+number of time periods.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eric Zivot, Sangeetha Srinivasan and Yi-An Chen.
+</p>
+
+
+<h3>References</h3>
+
+<p>Christopherson, J. A., Carino, D. R., &amp; Ferson, W. E. (2009). Portfolio 
+performance measurement and benchmarking. McGraw Hill Professional.
+</p>
+<p>Efron, B., Hastie, T., Johnstone, I., &amp; Tibshirani, R. (2004). Least angle 
+regression. The Annals of statistics, 32(2), 407-499. 
+</p>
+<p>Hastie, T., Tibshirani, R., Friedman, J., Hastie, T., Friedman, J., &amp; 
+Tibshirani, R. (2009). The elements of statistical learning (Vol. 2, No. 1). 
+New York: Springer.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The <code>tsfm</code> methods for generic functions: 
+<code>plot.tsfm</code>, <code>predict.tsfm</code>, 
+<code>print.tsfm</code> and <code>summary.tsfm</code>. 
+</p>
+<p>And, the following extractor functions: <code>coef</code>, 
+<code>fitted</code>, <code>residuals</code>,
+<code>fmCov</code>, <code>fmSdDecomp</code>, <code>fmVaRDecomp</code> 
+and <code>fmEsDecomp</code>.
+</p>
+<p><code>paFm</code> for Performance Attribution.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> # load data
+data(managers, package = 'PerformanceAnalytics')
+
+fit &lt;- fitTsfm(asset.names = colnames(managers[,(1:6)]),
+               factor.names = colnames(managers[,(7:9)]), 
+               data=managers)
+summary(fit)
+fitted(fit)
+
+# example using "subsets" variable selection
+fit.sub &lt;- fitTsfm(asset.names=colnames(managers[,(1:6)]),
+                   factor.names=colnames(managers[,(7:9)]), 
+                   data=managers, 
+                   variable.selection="subsets", 
+                   method="exhaustive", 
+                   nvmin=2) 
+
+# example using "lars" variable selection and subtracting risk-free rate
+fit.lar &lt;- fitTsfm(asset.names=colnames(managers[,(1:6)]),
+                   factor.names=colnames(managers[,(7:9)]), 
+                   rf.name="US 3m TR", 
+                   data=managers, 
+                   variable.selection="lars", 
+                   lars.criterion="cv") 
+</code></pre>
+
+
+</div>

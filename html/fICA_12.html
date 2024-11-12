@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reloaded_fICA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Reloaded Deflation-based FastICA Method for Independent Component Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>The reloaded and the affine equivariant deflation-based FastICA method for the independent component problem. The function estimates the rows of the unmixing matrix one by one, either in asymptotically optimal order, or so that the objective function is globally maximized at each stage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reloaded_fICA(X, g="tanh", dg=NULL, G=NULL, kj=0, method="alpha",
+             inR=TRUE, eps=1e-06, maxiter=100)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a numeric data matrix. Missing values are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>the nonlinearity, tanh by default, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dg</code></td>
+<td>
+<p>the first derivative of the nonlinearity, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>the integral of the nonlinearity, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kj</code></td>
+<td>
+<p>defines the initial estimate of the unmixing matrix, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>"alpha" or "G", see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inR</code></td>
+<td>
+<p>a logical which indicates whether R or C is used for computations, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>convergence tolerance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p> The algorithm first finds initial estimates of the sources. The method to find the estimates is decided by the choice of the argument <code>kj</code>. If the value of <code>kj</code> is an integer between 1 and number of the sources, then the method is <code>kj</code>-JADE, otherwise it is FOBI. For the meaning of the value <code>kj</code> used as <code>kj</code>-JADE, see the help for <code>k_JADE</code>.
+</p>
+<p>The function has the argument <code>method</code>, which determines the extraction order of the components. If <code>method="alpha"</code>, the components are found in asymptotically optimal order, that is, the reloaded deflation-based FastICA estimate is computed. If <code>method="G"</code>, the objective function is globally maximized at each stage. 
+</p>
+<p>The standard nonlinearities can be chosen by <code>g="pow3"</code>, <code>g="tanh"</code> or <code>g="gaus"</code>. These estimates can be computed either in R or in C. In order to use some other nonlinearity, one has to give the nonlinearity and its derivative (and integral if <code>method="G"</code>)  as functions, and the computations have to be performed in R.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with class 'bss' containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>estimated unmixing matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>nonlinearity used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphas</code></td>
+<td>
+<p>the statistics for the choice of the nonlinearities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_est</code></td>
+<td>
+<p>method that was used for the initial estimate (FOBI or k-JADE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>estimated source components standardized to have mean 0 and unit variances.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jari Miettinen</p>
+
+
+<h3>References</h3>
+
+<p><cite>Hyvarinen, A. and Oja, E. (1997), A fast fixed-point algorithm for independent component analysis, <em>Neural Computation</em>, vol. 9, 1483–1492.</cite>
+</p>
+<p><cite>Nordhausen, K., Ilmonen, P., Mandal, A., Oja, H. and Ollila, E. (2011), Deflation-based FastICA reloaded,
+in <em>Proc. "19th European Signal Processing Conference 2011 (EUSIPCO 2011)",</em> Barcelona, 1854–1858.</cite>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>fICA, nonlinearities, FOBI, k_JADE</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># creating some toy data
+A&lt;- matrix(rnorm(9),3,3)
+s1 &lt;- rt(1000,6)
+s2 &lt;- rexp(1000,1)
+s3 &lt;- runif(1000)
+
+S &lt;- cbind(s1,s2,s3)
+X &lt;- S %*% t(A)
+
+# tanh is the default nonlinearity
+res1&lt;-reloaded_fICA(X)
+coef(res1)
+plot(res1) 
+require(JADE)
+MD(coef(res1),A)
+
+# nonlinearity pow3 and method "G" is chosen as follows
+res2&lt;-reloaded_fICA(X,g="pow3",method="G")
+coef(res2)
+require(JADE)
+MD(coef(res2),A)
+
+</code></pre>
+
+
+</div>

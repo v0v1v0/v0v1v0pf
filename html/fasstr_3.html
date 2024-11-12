@@ -1,0 +1,96 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_basin_area</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a basin area column to daily flows</h2>
+
+<h3>Description</h3>
+
+<p>Add a column of basin areas to a daily streamflow data set, in units of square kilometres.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_basin_area(data, groups = STATION_NUMBER, station_number, basin_area)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame of daily data that contains columns of dates, flow values, and (optional) groups (e.g. station numbers).
+Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains unique identifiers for different data sets, if applicable. Only required 
+if groups column name is not 'STATION_NUMBER'. Function will automatically group by a column named 'STATION_NUMBER' if 
+present. Remove the 'STATION_NUMBER' column beforehand to remove this grouping. Leave blank if using <code>station_number</code> 
+argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>station_number</code></td>
+<td>
+<p>Character string vector of seven digit Water Survey of Canada station numbers (e.g. <code>"08NM116"</code>) of
+which to extract daily streamflow data from a HYDAT database. Requires <code>tidyhydat</code> package and a HYDAT database.
+Leave blank if using <code>data</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basin_area</code></td>
+<td>
+<p>Upstream drainage basin area, in square kilometres, to apply to observations. Three options:
+</p>
+<p>(1) Leave blank if <code>groups</code> is STATION_NUMBER with HYDAT station numbers to extract basin areas from HYDAT.
+</p>
+<p>(2) A single numeric value to apply to all observations.
+</p>
+<p>(3) List each basin area for each group/station in groups (can override HYDAT value if listed) as such <code>c("08NM116" = 795, 
+"08NM242" = 10)</code>. If group is not listed the HYDAT area will be applied if it exists, otherwise it will be <code>NA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A tibble data frame of the original source data with an additional column:
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>Basin_Area_sqkm</code></td>
+<td>
+<p>area of upstream drainage basin area, in square kilometres</p>
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Run if HYDAT database has been downloaded (using tidyhydat::download_hydat())
+if (file.exists(tidyhydat::hy_downloaded_db())) {
+
+# Add the HYDAT basin area to a data frame with station numbers
+flow_data &lt;- tidyhydat::hy_daily_flows(station_number = "08NM116")
+add_basin_area(data = flow_data)
+
+# Add the HYDAT basin area to data from HYDAT
+add_basin_area(station_number = "08NM116")
+
+# Set a custom basin area
+add_basin_area(station_number = "08NM116",
+               basin_area = 800)
+               
+# Set multiple custom basin areas for multiple stations
+add_basin_area(station_number = c("08NM116", "08NM242"),
+               basin_area = c("08NM116" = 800, "08NM242" = 10))
+
+}         
+</code></pre>
+
+
+</div>

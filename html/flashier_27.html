@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash_greedy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Greedily add factors to a flash object</h2>
+
+<h3>Description</h3>
+
+<p>Adds factor/loadings pairs to a flash object in a "greedy" manner. Up to
+<code>Kmax</code> pairs are added one at a time. At each step, <code>flash_greedy</code>
+attempts to find an optimal additional (rank-one) factor given all
+previously added factors. The additional factor is retained if it
+increases the variational lower bound (ELBO); otherwise, fitting terminates.
+See <code>flash</code> for examples of usage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash_greedy(
+  flash,
+  Kmax = 1,
+  ebnm_fn = ebnm_point_normal,
+  init_fn = NULL,
+  extrapolate = FALSE,
+  warmstart = FALSE,
+  maxiter = 500,
+  tol = NULL,
+  verbose = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>flash</code></td>
+<td>
+<p>A <code>flash</code> or <code>flash_fit</code> object to which factors are
+to be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kmax</code></td>
+<td>
+<p>The maximum number of factors to be added. This will not
+necessarily be the total number of factors added by
+<code>flash_greedy</code>, since factors are only added as long as they
+increase the ELBO.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ebnm_fn</code></td>
+<td>
+<p>The function or functions used to solve the empirical Bayes
+normal means (EBNM) subproblems. Most importantly, these functions specify
+the families of distributions <code class="reqn">G_\ell^{(k)}</code> and <code class="reqn">G_f^{(k)}</code> to which the
+priors on loadings and factors <code class="reqn">g_\ell^{(k)}</code> and <code class="reqn">g_f^{(k)}</code> are
+assumed to belong. If the same function is to be used for both loadings
+<code class="reqn">L</code> and factors <code class="reqn">F</code>, then <code>ebnm_fn</code> can be a single function.
+If one function is to be used for loadings and a second for factors,
+then <code>ebnm_fn</code> should be a list of length two, with the first
+element giving the function for loadings and the second the function
+for factors. If different functions are to be used for different values of
+<code class="reqn">k</code>, then factor/loadings pairs must be added successively using
+multiple calls to either <code>flash_greedy</code> or
+<code>flash_factors_init</code>.
+</p>
+<p>Any EBNM function provided by package <code>ebnm</code> can be
+used as input. Non-default arguments to parameters can be supplied using
+the helper function <code>flash_ebnm</code>. Custom EBNM functions can
+also be used: for details, see <code>flash_ebnm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_fn</code></td>
+<td>
+<p>The function used to initialize factor/loadings pairs. Functions
+<code>flash_greedy_init_default</code>, <code>flash_greedy_init_softImpute</code>, and
+<code>flash_greedy_init_irlba</code> have been supplied; note, in particular, that
+<code>flash_greedy_init_softImpute</code> can yield better results than the
+default initialization function when there is missing data. Custom
+initialization functions may also be used. If <code>init_fn = NULL</code> then
+<code>flash_greedy_init_default</code> will be used, with an attempt made to set
+argument <code>sign_constraints</code> appropriately via test calls to
+the EBNM function(s) specified by parameter <code>ebnm_fn</code>. If factors or loadings
+are constrained in some other fashion (e.g., bounded support), then the
+initialization function should be modified to account for the constraints
+— otherwise, the greedy algorithm can stop adding factor/loadings pairs
+too early. Custom initialization functions should accept a single
+parameter referring to a <code>flash_fit</code> object and should output
+a list consisting of two vectors, which will be used as initial values for
+the new loadings <code class="reqn">\ell_{\cdot k}</code> and the new factor <code class="reqn">f_{\cdot k}</code>. Typically,
+a custom initialization function will extract the matrix of residuals from
+the <code>flash_fit</code> object using method <code>residuals.flash_fit</code> and
+then return a (possibly constrained) rank-one approximation to the matrix
+of residuals. See <strong>Examples</strong> below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extrapolate</code></td>
+<td>
+<p>Whether to use an extrapolation technique
+inspired by Ang and Gillis (2019) to accelerate the fitting process.
+Control parameters are handled via global options and can be set by
+calling <code>options("extrapolate.control") &lt;- control.param</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warmstart</code></td>
+<td>
+<p>Whether to use "warmstarts" when solving the EBNM
+subproblems by initializing solutions at the previous value of the fitted
+prior <code class="reqn">\hat{g}</code>. An important side effect of warmstarts for
+<code>ashr</code>-like prior families is to fix the grid at its initial setting.
+Fixing the grid can lead to poor fits if there
+are large changes in the scale of the estimated prior over the
+course of the fitting process. However, allowing the grid to
+vary can occasionally result in decreases in ELBO.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of iterations when optimizing a greedily
+added factor/loadings pair.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The convergence tolerance parameter. At each iteration, the fit
+is compared to the fit from the previous iteration using a convergence
+criterion function (by default, the difference in ELBO, but the criterion
+can be changed via <code>flash_set_conv_crit</code>). When
+the value returned by this function is less than or equal to <code>tol</code>,
+the newly added factor/loadings pair is considered to have "converged,"
+so that <code>flash_greedy</code> moves on and attempts to add another new
+factor (or, if the maximum number of factors <code>Kmax</code> has been reached,
+the process terminates). Note that
+specifying <code>tol</code> here will override any value set by
+<code>flash_set_conv_crit</code>; to use the "global" tolerance parameter,
+<code>tol</code> must be left unspecified (<code>NULL</code>).
+If <code>tol = NULL</code> and a global tolerance
+parameter has not been set, then the default
+tolerance used is <code class="reqn">np\sqrt{\epsilon}</code>, where <code class="reqn">n</code> is the
+number of rows in the dataset, <code class="reqn">p</code> is the number of columns, and
+<code class="reqn">\epsilon</code> is equal to <code>.Machine$double.eps</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>When and how to display progress updates. Set to
+<code>0</code> for none, <code>1</code> for updates after a factor is added or a
+backfit is completed, <code>2</code> for additional notifications about the
+variational lower bound, and <code>3</code> for updates after every iteration.
+It is also possible to output a single tab-delimited table of values
+using function <code>flash_set_verbose</code> with <code>verbose = -1</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>flash</code> object from argument <code>flash</code>, with up
+to <code>Kmax</code> new factor/loadings pairs "greedily" added.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flash_greedy_init_default</code>,
+<code>flash_greedy_init_softImpute</code>,
+<code>flash_greedy_init_irlba</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># The following are examples of advanced usage. See ?flash for basic usage.
+
+# Increase the maximum number of iterations in the default initialization
+#   method.
+my_init_fn &lt;- function(f) flash_greedy_init_default(f, maxiter = 500)
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_greedy(init_fn = my_init_fn)
+
+# Use a custom initialization function that wraps function nmf from
+#   package RcppML.
+nmf_init_fn &lt;- function(f) {
+  nmf_res &lt;- RcppML::nmf(resid(f), k = 1, verbose = FALSE)
+  return(list(as.vector(nmf_res$w), as.vector(nmf_res$h)))
+}
+fl.nmf &lt;- flash_init(gtex) %&gt;%
+  flash_greedy(ebnm_fn = ebnm_unimodal_nonnegative,
+               init_fn = nmf_init_fn)
+
+</code></pre>
+
+
+</div>

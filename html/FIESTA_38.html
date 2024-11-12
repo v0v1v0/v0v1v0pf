@@ -1,0 +1,796 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modGBpop</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Green-Book module - Generate population data for GB module.</h2>
+
+<h3>Description</h3>
+
+<p>Generates population data for generating 'green-book' estimates (Scott et
+al. 2005).  Plots that are totally nonsampled are excluded from estimation
+dataset. Next, an adjustment factor is calculated by strata to adjust for
+nonsampled (nonresponse) conditions that have proportion less than 1.
+Attributes adjusted to a per-acre value are summed by plot, divided by the
+adjustment factor, and averaged by stratum.  Strata means are combined using
+the strata weights and then expanded to using the total land area in the
+population.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modGBpop(
+  popType = "VOL",
+  popTabs = popTables(),
+  popTabIDs = popTableIDs(),
+  popFilter = popFilters(),
+  pltassgn = NULL,
+  pltassgnid = "PLT_CN",
+  dsn = NULL,
+  pjoinid = "CN",
+  areawt = "CONDPROP_UNADJ",
+  areawt2 = NULL,
+  adj = "samp",
+  defaultVars = TRUE,
+  unitvar = NULL,
+  unitarea = NULL,
+  areavar = "ACRES",
+  strata = TRUE,
+  stratalut = NULL,
+  strvar = "STRATUMCD",
+  returndata = TRUE,
+  savedata = FALSE,
+  saveobj = FALSE,
+  objnm = "GBpopdat",
+  unit_opts = NULL,
+  strata_opts = NULL,
+  savedata_opts = NULL,
+  GBdata = NULL,
+  pltdat = NULL,
+  stratdat = NULL,
+  auxdat = NULL,
+  keepadjvars = FALSE,
+  gui = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>popType</code></td>
+<td>
+<p>String. Type of evaluation(s) to include in population data.
+Note: currently only c('CURR', 'VOL', 'LULC', 'DWM') 
+are available. See details below for descriptions of each.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popTabs</code></td>
+<td>
+<p>List of population tables the user would like returned.
+See help(popTables) for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popTabIDs</code></td>
+<td>
+<p>List of unique IDs corresponding to the population tables
+that the user has requested. See help(popTableIDs) for a list of
+options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popFilter</code></td>
+<td>
+<p>List of population filters. See help(popFilters) for a 
+list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltassgn</code></td>
+<td>
+<p>DF/DT, Optional. R object, sf R object, comma-delimited
+file(.csv), layer or spatial layer in dsn, or shapefile(.shp). Plot-level
+assignment of estimation unit and/or strata, with one record for each plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltassgnid</code></td>
+<td>
+<p>String.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dsn</code></td>
+<td>
+<p>String. Name of database where tree, cond, and plot-level tables
+reside.  The dsn varies by driver. See gdal OGR vector formats
+(https://www.gdal.org/ogr_formats.html).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pjoinid</code></td>
+<td>
+<p>String. Join variable in plot to match pltassgnid. Does not
+need to be uniqueid. If using most current XY coordinates for plot
+assignments, use identifier for plot (e.g., PLOT_ID).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areawt</code></td>
+<td>
+<p>String. Name of variable in cond for summarizing area 
+weights (e.g., CONDPROP_UNADJ).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areawt2</code></td>
+<td>
+<p>String. An equation to multiply to areawt for estimation. 
+All variables in equation must be in cond.
+weights (e.g., CONDPROP_UNADJ).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj</code></td>
+<td>
+<p>String. How to calculate adjustment factors for nonsampled
+(nonresponse) conditions based on summed proportions for by plot ('samp',
+'plot').  'samp' - adjustments are calculated at strata/estimation unit
+level; 'plot' - adjustments are calculated at plot-level. Adjustments are
+only calculated for annual inventory plots (DESIGNCD=1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>defaultVars</code></td>
+<td>
+<p>Logical. If TRUE, a set of default variables are selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitvar</code></td>
+<td>
+<p>String. Name of the estimation unit variable in unitarea and
+cond or pltassgn data frame with estimation unit assignment for each plot
+(e.g., 'ESTN_UNIT'). Optional if only one estimation unit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitarea</code></td>
+<td>
+<p>Numeric or DF. Total area by estimation unit. If only 1
+estimation unit, include number of total acreage for the area of interest or
+a data frame with area and estimation unit. If more than one estimation
+unit, provide a data frame of total area by estimation unit, including
+unitvar and areavar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areavar</code></td>
+<td>
+<p>String. Name of area variable in unitarea. Default="ACRES".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>Logical. If TRUE, include information for post-stratification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratalut</code></td>
+<td>
+<p>DF/DT. If strata=TRUE, look-up table with pixel counts or
+area by strata or proportion or area ('strwt') by strata (and estimation
+unit).  If 'strwt' is not included, set getwt=TRUE and getwtvar as the name
+of variable to calculate weights from (e.g., pixel counts).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strvar</code></td>
+<td>
+<p>String. If strata=TRUE, name of the strata variable in
+stratalut and cond or pltassgn data frame with stratum assignment for each
+plot (Default = 'STRATUMCD').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returndata</code></td>
+<td>
+<p>Logical. If TRUE, returns data objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves table(s) to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveobj</code></td>
+<td>
+<p>Logical. If TRUE, saves returned list object to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objnm</code></td>
+<td>
+<p>String. Name of *.rds object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit_opts</code></td>
+<td>
+<p>List. See help(unit_options()) for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata_opts</code></td>
+<td>
+<p>List. See help(strata_options()) for a list of options.
+Only used when strata = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GBdata</code></td>
+<td>
+<p>R List object. Output data list components from
+FIESTA::anGBdata().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltdat</code></td>
+<td>
+<p>R List object. Output data list components from
+FIESTA::spGetPlots().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratdat</code></td>
+<td>
+<p>R List object. Output data list components from
+FIESTA::spGetStrata().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auxdat</code></td>
+<td>
+<p>R List object. Output data list components from
+FIESTA::spGetAuxiliary().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepadjvars</code></td>
+<td>
+<p>Logical. If TRUE, keep adjustment factors from 
+pop_stratum table in FIA database.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gui</code></td>
+<td>
+<p>Logical. If gui, user is prompted for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For extendibility.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Population types <br></p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>popType</b>
+<b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> ALL </td>
+<td style="text-align: left;"> Population data, including nonsampled plots.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> CURR </td>
+<td style="text-align: left;"> Population data for area estimates, excluding nonsampled 
+plots.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> VOL </td>
+<td style="text-align: left;"> Population data for area/tree estimates, excluding 
+nonsampled plots.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> LULC </td>
+<td style="text-align: left;"> Population data for land use/land cover transitional estimates, 
+including only plots with previous measurements and excluding nonsampled 
+plots.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>If variables are NULL, then it will prompt user to input variables.
+</p>
+<p>Necessary variables:<br></p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>Data</b> </td>
+<td style="text-align: left;">
+<b>Variable</b> </td>
+<td style="text-align: left;"> <b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> tree </td>
+<td style="text-align: left;"> tuniqueid </td>
+<td style="text-align: left;"> Unique identifier for each plot in tree 
+table.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDID </td>
+<td style="text-align: left;"> Unique identifier of each condition on plot.  
+Set CONDID=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> TPA_UNADJ </td>
+<td style="text-align: left;"> Number of trees per acre each sample tree represents 
+(e.g., DESIGNCD=1: TPA_UNADJ=6.018046 for trees on subplot; 74.965282 for 
+trees on microplot).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> cond </td>
+<td style="text-align: left;"> cuniqueid </td>
+<td style="text-align: left;"> Unique identifier for each plot in cond 
+table.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDID </td>
+<td style="text-align: left;"> Unique identifier of each condition on plot. Set 
+CONDID=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDPROP_UNADJ </td>
+<td style="text-align: left;"> Unadjusted proportion of condition on each 
+plot. Set CONDPROP_UNADJ=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> COND_STATUS_CD </td>
+<td style="text-align: left;"> Status of each forested condition on
+plot (i.e. accessible forest, nonforest, water, etc.)</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> NF_COND_STATUS_CD </td>
+<td style="text-align: left;"> If ACI=TRUE. Status of each nonforest 
+condition on plot (i.e. accessible nonforest, nonsampled nonforest)</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SITECLCD </td>
+<td style="text-align: left;"> If landarea=TIMBERLAND. Measure of site 
+productivity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> RESERVCD </td>
+<td style="text-align: left;"> If landarea=TIMBERLAND. Reserved status.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SUBPROP_UNADJ </td>
+<td style="text-align: left;"> Unadjusted proportion of subplot conditions 
+on each plot. Set SUBPROP_UNADJ=1, if only 1 condition per subplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MICRPROP_UNADJ </td>
+<td style="text-align: left;"> If microplot tree attributes. Unadjusted 
+proportion of microplot conditions on each plot. Set MICRPROP_UNADJ=1, 
+if only 1 condition per microplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MACRPROP_UNADJ </td>
+<td style="text-align: left;"> If macroplot tree attributes. Unadjusted 
+proportion of macroplot conditions on each plot. Set MACRPROP_UNADJ=1, 
+if only 1 condition per macroplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> pltassgn </td>
+<td style="text-align: left;"> pltassgnid </td>
+<td style="text-align: left;"> Unique identifier for each plot in 
+pltassgn.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> STATECD </td>
+<td style="text-align: left;"> Identifies state each plot is located in.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> INVYR </td>
+<td style="text-align: left;"> Identifies inventory year of each plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> PLOT_STATUS_CD </td>
+<td style="text-align: left;"> Status of each plot (i.e. sampled, nonsampled).  
+If not included, all plots are assumed as sampled.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>For available reference tables: sort(unique(FIESTAutils::ref_codes$VARIABLE)) <br></p>
+
+
+<h3>Value</h3>
+
+<p>A list with population data for Green-Book estimates.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>condx</code></td>
+<td>
+<p> Data frame. Condition-level data including plot-level
+assignment of estimation unit and stratum (if strata=TRUE), condition
+proportion adjustment factor (cadjfac), and adjusted condition proportions
+(CONDPROP_ADJ). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cuniqueid</code></td>
+<td>
+<p> String. Unique identifier of plot in condx and pltcondx. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condid</code></td>
+<td>
+<p> String. Unique identifier of condition in condx and pltcondx. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treex</code></td>
+<td>
+<p> Data frame. Tree data within population, used for estimation, 
+including trees per acre adjustment factor (tadjfac), and adjusted trees per 
+acre (TPA_ADJ) (if treef is included). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tuniqueid</code></td>
+<td>
+<p> String. Unique identifier of plot in treex (if treef is
+included). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ACI.filter</code></td>
+<td>
+<p> String. If ACI=FALSE, ACI.filter="COND_STATUS_CD == 1". </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitarea</code></td>
+<td>
+<p> String. Returned table of area by estimation unit. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitvar</code></td>
+<td>
+<p> String. Variable name for estimation unit. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strlut</code></td>
+<td>
+<p> String. Strata-level table with pixel counts by strata 
+(P1POINTCNT), strata weights (strwt), number of plots by strata (n.strata), 
+total number of plots in estimation unit (n.total), sum of condition proportions 
+(_UNADJ_SUM), area adjustments (*_ADJFAC), total area, and area expansion 
+by strata (EXPNS). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strvar</code></td>
+<td>
+<p> String. Variable name for strata. If strata=FALSE, 
+strvar="ONESTRAT". </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expcondtab</code></td>
+<td>
+<p> String. If ACI=FALSE, ACI.filter="COND_STATUS_CD == 1".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotsampcnt</code></td>
+<td>
+<p> Data frame. Number of plots by PLOT_STATUS_CD. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condsampcnt</code></td>
+<td>
+<p> Data frame. Number of conditions by COND_STATUS_CD. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+<p> String. State names in dataset. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invyrs</code></td>
+<td>
+<p> String. Range of inventory years in dataset. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratdat</code></td>
+<td>
+<p> Data frame. Strata information by estimation unit. </p>
+</td>
+</tr>
+</table>
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>Variable</b> </td>
+<td style="text-align: left;"> <b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> unitvar </td>
+<td style="text-align: left;"> estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> strvar </td>
+<td style="text-align: left;"> stratum value </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> strwtvar </td>
+<td style="text-align: left;"> number of pixels by 
+strata and estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> n.strata </td>
+<td style="text-align: left;"> number of plots in strata (after totally nonsampled 
+plots removed) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> n.total </td>
+<td style="text-align: left;"> number of plots for estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> strwt </td>
+<td style="text-align: left;"> proportion of area (or plots) by strata and estimation 
+unit (i.e., strata weight) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> CONDPROP_UNADJ_SUM </td>
+<td style="text-align: left;"> summed conditionproportion by strata and 
+estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> CONDPROP_ADJFAC </td>
+<td style="text-align: left;"> adjusted condition proportion by strata after 
+nonsampled plots removed </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> AREA_USED </td>
+<td style="text-align: left;"> total area of estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> expfac </td>
+<td style="text-align: left;"> strata-level expansion factor after nonsampled plots and 
+conditions removed (AREA_USED/n.strata) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> EXPNS </td>
+<td style="text-align: left;"> strata-level area expansions (expfac * strwt)</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>Table(s) are also written to outfolder.
+</p>
+
+
+<h3>Note</h3>
+
+<p>ADJUSTMENT FACTOR:<br> The adjustment factor is necessary to account for
+nonsampled conditions. It is calculated for each estimation unit by strata.
+by summing the unadjusted proportions of the subplot, microplot, and
+macroplot (i.e. *PROP_UNADJ) and dividing by the number of plots in the
+strata/estimation unit).
+</p>
+<p>An adjustment factor is determined for each tree based on the size of the
+plot it was measured on. This is identified using TPA_UNADJ as follows:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>PLOT SIZE</b> </td>
+<td style="text-align: right;"> <b>TPA_UNADJ</b> </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SUBPLOT
+</td>
+<td style="text-align: right;"> 6.018046 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MICROPLOT </td>
+<td style="text-align: right;"> 74.965282 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MACROPLOT </td>
+<td style="text-align: right;">
+0.999188 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>If ACI=FALSE, only nonsampled forest conditions are accounted for in the
+adjustment factor. <br> If ACI=TRUE, the nonsampled nonforest conditions are
+removed as well and accounted for in adjustment factor.  This is if you are
+interested in estimates for all lands or nonforest lands in the
+All-Condition-Inventory.
+</p>
+<p>unitcombine:<br> If TRUE and less than 2 plots in any one estimation unit,
+all estimation units with 10 or less plots are combined. The current method
+for combining is to group the estimation unit with less than 10 plots with
+the estimation unit following in consecutive order (numeric or
+alphabetical), restrained by survey unit (UNITCD) if included in dataset,
+and continuing until the number of plots equals 10. If there are no
+estimation units following in order, it is combined with the estimation unit
+previous in order.
+</p>
+<p>stratcombine:<br> If TRUE and less than 2 plots in any one strata class
+within an estimation unit, all strata classes with 2 or less plots are
+combined. The current method for combining is to group the strata with less
+than 2 plots with the strata class following in consecutive order (numeric
+or alphabetical), restrained by estimation unit (if unitcombine=FALSE), and
+continuing until the number of plots equals 10. If there are no strata
+classes following in order, it is combined with the estimation unit previous
+in order.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino, Paul L. Patterson, Elizabeth A. Freeman
+</p>
+
+
+<h3>References</h3>
+
+<p>Scott, Charles T.; Bechtold, William A.; Reams, Gregory A.;
+Smith, William D.; Westfall, James A.; Hansen, Mark H.; Moisen, Gretchen G.
+2005. Sample-based estimators used by the Forest Inventory and Analysis
+national information management system. Gen. Tech. Rep. SRS-80. Asheville,
+NC: U.S. Department of Agriculture, Forest Service, Southern Research
+Station, p.53-77.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+GBpopdat &lt;- modGBpop(
+popTabs = list(cond = FIESTA::WYcond,  
+               tree = FIESTA::WYtree,        
+               seed = FIESTA::WYseed),      
+popTabIDs = list(cond = "PLT_CN"),            
+pltassgn = FIESTA::WYpltassgn,  
+pltassgnid = "CN",        
+pjoinid = "PLT_CN",         
+unitarea = FIESTA::WYunitarea,
+unitvar = "ESTN_UNIT",        
+strata = TRUE,           
+stratalut = WYstratalut,    
+strata_opts = strata_options(getwt = TRUE)   
+)
+
+str(GBpopdat, max.level = 1)
+
+</code></pre>
+
+
+</div>

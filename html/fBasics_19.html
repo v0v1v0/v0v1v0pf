@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>akimaInterp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bivariate Spline Interpolation</h2>
+
+<h3>Description</h3>
+
+<p>Interpolates bivariate data sets using Akima
+spline interpolation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">akimaInterp(x, y = NULL, z = NULL, gridPoints = 21,
+    xo = seq(min(x), max(x), length = gridPoints),
+    yo = seq(min(y), max(y), length = gridPoints), extrap = FALSE)
+
+akimaInterpp(x, y = NULL, z = NULL, xo, yo, extrap = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y, z</code></td>
+<td>
+
+<p>for <code>akimaInterp</code> the arguments <code>x</code> and <code>y</code> are
+two numeric vectors of grid pounts, and <code>z</code> is a numeric
+matrix or any other rectangular object which can be transformed
+by the function <code>as.matrix</code> into a matrix object.
+For <code>akimaInterpp</code> we  consider either three numeric vectors
+of equal length or if  <code>y</code> and <code>z</code> are NULL, a list with
+entries <code>x</code>, <code>y</code>, <code>z</code>, or named data frame with
+<code>x</code> in the first, <code>y</code> in the second, and <code>z</code> in
+the third column.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gridPoints</code></td>
+<td>
+
+<p>an integer value specifying the number of grid points in <code>x</code>
+and <code>y</code> direction.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xo, yo</code></td>
+<td>
+
+<p>for <code>akimaInterp</code>
+two numeric vectors of data points spanning the grid, and
+for <code>akimaInterpp</code>
+two numeric vectors of data points building pairs for pointwise
+interpolation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extrap</code></td>
+<td>
+
+<p>a logical, if <code>TRUE</code> then the data points are extrapolated.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Two options are available: gridded and pointwise interpolation.
+</p>
+<p><code>akimaInterp</code> is a wrapper to <code>interp</code> provided by the
+contributed R package <code>akima</code>.  The Fortran code of the Akima
+spline interpolation routine was written by H. Akima.
+</p>
+<p>Linear surface fitting and krige surface fitting are provided by the
+functions <code>linearInterp</code> and <code>krigeInterp</code>.
+</p>
+
+
+<h3>Value</h3>
+
+
+<dl>
+<dt>akimaInterp</dt>
+<dd>
+<p>returns a list with at least three entries, <code>x</code>, <code>y</code>
+and <code>z</code>. Note, that the returned values, can be directly
+used by the  <code>persp</code> and <code>contour</code> 3D plotting methods.
+</p>
+</dd>
+<dt>akimaInterpp</dt>
+<dd>
+<p>returns a data.frame with columns <code>"x"</code>, <code>"y"</code>,
+and <code>"z"</code>.
+</p>
+</dd>
+</dl>
+<h3>Note</h3>
+
+<p>Package <code>akima</code> is no longer needed. Equivalent functions from
+package <code>interp</code> are now called instead.
+</p>
+
+
+<h3>References</h3>
+
+<p>Akima H., 1978,
+<em>A Method of Bivariate Interpolation and Smooth Surface Fitting for
+Irregularly Distributed Data Points</em>,
+ACM Transactions on Mathematical Software 4, 149-164.
+</p>
+<p>Akima H., 1996,
+<em>Algorithm 761: Scattered-Data Surface Fitting that has the Accuracy
+of a Cubic Polynomial</em>,
+ACM Transactions on Mathematical Software 22, 362-371.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>linearInterp</code>,
+<code>krigeInterp</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Does not run for r-solaris-x86
+## akimaInterp -- Akima Interpolation:
+if (requireNamespace("interp")) {
+  set.seed(1953)
+  x &lt;- runif(999) - 0.5
+  y &lt;- runif(999) - 0.5
+  z &lt;- cos(2*pi*(x^2+y^2))
+  ans &lt;- akimaInterp(x, y, z, gridPoints = 41, extrap = FALSE)
+  persp(ans, theta = -40, phi = 30, col = "steelblue",
+       xlab = "x", ylab = "y", zlab = "z")
+  contour(ans)
+}
+
+## Use spatial as alternative on r-solaris-x86
+## spatialInterp - Generate Kriged Grid Data:
+if (requireNamespace("spatial")) {
+  RNGkind(kind = "Marsaglia-Multicarry", normal.kind = "Inversion")
+  set.seed(4711, kind = "Marsaglia-Multicarry")
+  x &lt;- runif(999)-0.5
+  y &lt;- runif(999)-0.5
+  z &lt;- cos(2*pi*(x^2+y^2))
+  ans &lt;- krigeInterp(x, y, z, extrap = FALSE)
+  persp(ans)
+  title(main = "Kriging")
+  contour(ans)
+  title(main = "Kriging")
+}
+
+</code></pre>
+
+
+</div>

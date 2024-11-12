@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rangerQuants</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quantile engine constructor for the quantile learning step</h2>
+
+<h3>Description</h3>
+
+<p>There are several methods that can be used for the quantile learning step
+in the <code>fairadapt</code> package. Each of the methods needs a specific
+constructor. The constructor is a function that takes the data (with some
+additional meta-information) and returns an object on which the
+<code>computeQuants()</code> generic can be called.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rangerQuants(data, A.root, ind, min.node.size = 20, ...)
+
+linearQuants(
+  data,
+  A.root,
+  ind,
+  tau = c(0.001, seq(0.005, 0.995, by = 0.01), 0.999),
+  ...
+)
+
+mcqrnnQuants(
+  data,
+  A.root,
+  ind,
+  tau = seq(0.005, 0.995, by = 0.01),
+  iter.max = 500,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> with data to be used for quantile
+regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A.root</code></td>
+<td>
+<p>A <code>logical(1L)</code> indicating whether the protected
+attribute <code>A</code> is a root node of the causal graph. Used for splitting the
+quantile regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ind</code></td>
+<td>
+<p>A <code>logical</code> vector of length <code>nrow(data)</code>, indicating
+which
+samples have the baseline value of the protected attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.node.size</code></td>
+<td>
+<p>Forwarded to <code>ranger::ranger()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Forwarded to further methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Forwarded to <code>quantreg::rq()</code> or <code>qrnn::mcqrnn.fit()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter.max</code></td>
+<td>
+<p>Forwarded to <code>qrnn::mcqrnn.fit()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Within the package, there are 3 different methods implemented, which use
+quantile regressors based on linear models, random forests and neural
+networks. However, there is additional flexibility and the user can provide
+her/his own quantile method. For this, the user needs to write (i) the
+constructor which returns an S3 classed object (see examples below);
+(ii) a method for the <code>computeQuants()</code> generic for the S3 class
+returned in (i).
+</p>
+<p>The <code>rangerQuants()</code> function uses random forests
+(<code>ranger</code> package) for quantile regression.
+</p>
+<p>The <code>linearQuants()</code> function uses linear quantile regression
+(<code>quantreg</code> package) for the Quantile Learning step.
+</p>
+<p>The <code>mcqrnnQuants()</code> function uses  monotone quantile
+regression neural networks (<code>mcqrnn</code> package) in the Quantile Learning step.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>ranger</code> or a <code>rangersplit</code> S3 object, depending on the
+value of the <code>A.root</code> argument, for <code>rangerQuants()</code>.
+</p>
+<p>A <code>rqs</code> or a <code>quantregsplit</code> S3 object, depending on the
+value of the <code>A.root</code> argument, for <code>linearQuants()</code>.
+</p>
+<p>An <code> mcqrnn</code> S3 object for <code> mcqrnnQuants()</code>.
+</p>
+
+
+</div>

@@ -1,0 +1,546 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim.spatialProcess</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Unconditional and conditional simulation of a spatial process</h2>
+
+<h3>Description</h3>
+
+<p>Generates exact (or approximate) random draws from the unconditional or
+conditional 
+distribution of a spatial process given specific observations. 
+Draws from the conditional distribution, known as conditional simulation in geostatistics,  is a 
+useful way to characterize the uncertainty in the predicted process from 
+data.  Note that exact simulation is limted by the number of locations but there are approximate strategies to handle simulation for large grids of locations.  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+simSpatialData(object,  M = 1, verbose = FALSE)
+sim.spatialProcess(object, xp,  M = 1, verbose = FALSE, ...)
+sim.Krig(object, xp, M = 1, verbose = FALSE, ...)
+
+simLocal.spatialProcess(mKrigObject, predictionGridList = NULL,
+                 simulationGridList = NULL, gridRefinement = 1, np = 2,
+                 M = 1, nx = 80, ny = 80, verbose = FALSE, delta =
+                 NULL, giveWarnings = TRUE, fast = FALSE, NNSize = 5,
+                 ...)
+             
+checkPredictGrid(predictionGridList) 
+
+makePredictionGridList(mKrigObject, nx, ny, np)
+
+makeSimulationGrid(predictionGridList, gridRefinement)   
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>If the covariance has compact support the simulation method can 
+take advantage of this. This is the amount of buffer added for the simulation domain in the circulant embedding method. 
+A minimum size would be <code>aRange</code> for the Wendland but a multiple of this maybe needed to obtain a positive definite 
+circulant covariance function.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fast</code></td>
+<td>
+<p> If TRUE will use approximate,
+fast spatial prediction on grids. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gridRefinement</code></td>
+<td>
+<p>Amount to increase the number of grid points
+for the simulation grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>giveWarnings</code></td>
+<td>
+<p>If true will warn when more than one observation is in a grid box. This is instead of giving an error and stopping.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mKrigObject</code></td>
+<td>
+<p>An mKrig Object (or spatialProcess object)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Number of draws from conditional distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>np</code></td>
+<td>
+<p>Degree of nearest neighbors to use. In the 2D case, the default <code>np=2</code> uses 16
+points in a 4X4 grid for prediction of the off grid point. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NNSize</code></td>
+<td>
+<p>Degree of neighborhood use for fast prediction.
+( See <code> predictSurface.mKrig</code>  with <code>fast= TRUE</code> ) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nx</code></td>
+<td>
+<p> Number of grid points in prediction locations for x coordinate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ny</code></td>
+<td>
+<p> Number of grid points in  prediction locations for y coordinate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The spatial fit object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictionGridList</code></td>
+<td>
+<p>A grid list specifying the grid locations
+for the conditional samples. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulationGridList</code></td>
+<td>
+<p> A <code>gridlist</code> describing grid for
+simulation. If missing this is created from the range of the
+locations, <code>nx</code>, <code>ny</code>, <code>gridRefinement</code>, and
+<code>gridExpansion</code>
+or from the range and and <code>nxSimulation</code>, <code>nySimulation</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xp</code></td>
+<td>
+<p>Same as predictionPoints above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any other arguments to be passed to the predict function.
+Usually this is the <code>Z</code> or <code>drop.Z</code> argument when there are 
+additional covariates in the fixed part of the model.
+(See example below.) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If true prints out intermediate information. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions generate samples from an unconditional or conditional multivariate (spatial) 
+distribution, or an approximate one. The <strong>unconditional</strong> simulation function,
+<code>simSpatialData</code>,
+is a handy way to generate synthetic observations from a fitted model.
+Typically one would use these for a parametric bootstrap.
+The functions that simulate <strong>conditional</strong> distributions are much
+more involved
+in their coding. They are useful
+for describing the uncertainty in predictions using the estimated spatial 
+process under Gaussian assumptions. An important assumption throughout 
+these functions is that all covariance parameters are fixed at their 
+estimated or prescribed values from the passed object. Although these functions might
+be coded up easily by the users these
+versions have the advantage that they take the <code>mKrig</code>, <code>spatialProcess</code> or
+<code>Krig</code> objects as a way to specify the
+model in an unambiguous way. 
+</p>
+<p>Given a spatial process  h(x)= P(x) + g(x) observed at 
+</p>
+<p>Y.k =  Z(x.k)d + P(x.k) + g(x.k) + e.k
+</p>
+<p>where P(x) is a low order, fixed polynomial and g(x) a Gaussian spatial 
+process and Z(x.k) is a vector of covariates that are also indexed by space (such as elevation).
+Z(x.k)d is a linear combination of the covariates with the parameter vector d being a
+component of the fixed part of the 
+model and estimated in the usual way by generalized least squares.
+</p>
+<p>With Y= Y.1, ..., Y.N,
+the goal is to sample the conditional distribution of the process. 
+</p>
+<p>[h(x) | Y ]  or the full prediction Z(x)d + h(x)
+</p>
+<p>For fixed a covariance this is just a multivariate normal sampling
+problem.  <code>sim.spatialProcess</code> samples this conditional process at
+the points <code>xp</code> and is exact for fixed covariance parameters.
+</p>
+<p>The outline of the conditional simulation algorithm is given below and has the
+advantage that is only depends on the unconditional simulation
+of the spatial process and being able to make a spatial prediction - the
+conditional mean of the process given the observations and covariance function.
+</p>
+<p><strong> Conditional Simulation Algorithm: </strong>
+</p>
+<p>0) Find the spatial prediction at the unobserved locations based on
+the actual data. Call this h.hat(x) and this is also  the conditional mean. 
+</p>
+<p>1) Generate a realization that includes both prediction and observation locations from the unconditional spatial process and from this process
+simluate synthetic observations. 
+</p>
+<p>2) Use the spatial prediction model ( using the true covariance) to
+estimate the spatial process at unobserved locations.
+</p>
+<p>3) Find the difference between the simulated process and its
+prediction based on synthetic observations. Call this e(x).
+</p>
+<p>4) h.hat(x) + e(x) is a draw from [h(x) | Y ].
+</p>
+<p>The approximations for this simulation come in at step 1).
+Here the field at the observation locations is
+approximated using a local conditional simulation from
+the nearest grid points. 
+</p>
+<p>NOTE: A fixed part in the model is handled easily by
+simply
+making the prediction from the synthetic observations
+that have mean zero but include estimation of the
+fixed part as part of the prediction. 
+Because the
+regression estimates are unbaised, this gives a
+valid draw from the correct mulitvariate distribution
+even though the synthetic observations do not include
+a fixed part. 
+</p>
+<p><code>sim.spatialProcess</code> Follows this algorithm exactly. For the case of an
+addtional covariate  this of course needs to be included. For a model
+with covariates use <code>drop.Z=TRUE</code> for the function to ignore prediction
+using the covariate and generate conditional samples for just the spatial
+process and any low order polynomial. Finally, it should be noted that this
+function will also work with an <code>mKrig</code> object because the essential
+prediction information in the mKrig and spatialProcess objects are the same.
+The naming is through convenience. 
+</p>
+<p><code>sim.Krig</code>  Also follows this algorithm exactly but for the older <code>Krig</code> object.  Note that  the inclusion of
+drop.Z=TRUE or FALSE will determine whether the conditional simulation 
+includes the covariates Z or not. (See example below.) 
+</p>
+<p><code>simLocal.spatialProcess</code> This function is
+designed for conditional simulation for a large
+prediction grid and for a large number of observation
+s. The approximation will be accurate for fine grids
+that separate clusters of observation locations. E.g.
+multiple observations in a single gridbox are treated
+exactly. If observation location are separated by a
+grid box then due to the screening effect the
+approximation error will be negliable, especially if a
+nugget component  (tau ) is present. 
+</p>
+<p>The 1D version of this function will not be much more
+efficient than an exact computation. However, it is
+included as easy to read source code and for checking
+(see examples.)
+</p>
+<p>See the utility function <code>offGridWeights</code> for the function that creates weights used to generate the (approximate) conditional sample.  The functions 
+<code>checkPredictGrid</code>, 
+<code>makePredictionGridList</code> and 
+<code>makeSimulationGrid</code> are utilities to setup the grids when not 
+specified. 
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>sim.Krig and sim.spatialProcess</code>
+a matrix with rows indexed by the locations in <code>xp</code> and columns being the 
+<code>M</code> independent draws.
+</p>
+<p><code>simLocal.spatialProcess</code> a list with components <code>x</code>, <code>y</code>
+and <code>z</code> being the simulations at the prediction grid.
+The x and y are the typical image format specifying a regular grid.  If
+<code>nx</code> and <code>ny</code> are the lengths of the grid values in X and Y then  <code>z</code>
+is a array with dimension  <code> c(nx, ny, M)</code>. For the 1D case ny is set to 1.
+The component <code>hHat</code> is the conditional mean ( as an 
+<code>nx</code> X <code>ny</code> matrix)  and the remaining arguments
+are various timing results for parts of the computation. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Doug Nychka</p>
+
+
+<h3>See Also</h3>
+
+<p> sim.rf, Krig, spatialProcess</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## 10 member ensemble for the O3 data
+
+## Not run: 
+data( "ozone2")
+fitObject&lt;- spatialProcess( ozone2$lon.lat, ozone2$y[16,],
+                              smoothness=.5)
+
+nx&lt;- 65
+ny&lt;- 55
+
+xGridList&lt;- fields.x.to.grid( fitObject$x, nx=nx, ny=ny)
+
+xGrid&lt;- make.surface.grid( xGridList)
+
+allTime0&lt;- system.time(
+ look0&lt;- sim.spatialProcess(fitObject, xp=xGrid, M=5)
+)
+print( allTime0)
+
+# for M=5 this does not make much sense ... however here are the 
+# Monte Carlo based prediction standard deviations. 
+
+predictSE&lt;- apply( look0, 1, sd)
+
+# compare to  predictSE(fitObject, xp=xGrid)
+
+
+## Local simulation with extra refinement of the grid for embedding
+## and same grid size for prediction 
+## this runs much faster compared to exact method above 
+## as nx, ny are increased  e.g. nx= 128, ny=128 is dramatic difference 
+
+allTime1&lt;- system.time(
+  look&lt;- simLocal.spatialProcess(fitObject, M=5,nx=nx, ny=ny,
+                     gridRefinement = 3,
+                     np=3)
+) 
+print( allTime1)
+print( look$timing)
+
+allTime2&lt;- system.time(
+  look&lt;- simLocal.spatialProcess(fitObject, M=5,nx=nx, ny=ny,
+                     gridRefinement = 3,
+                     np=3, 
+                     fast=TRUE)
+) 
+print( allTime2)
+print( look$timing)
+
+## End(Not run)
+
+## Not run: 
+## A simple example for setting up a bootstrap 
+## M below should be
+## set to a much larger sample size, however, ( e.g. M &lt;- 200) for better
+## statistics
+
+data( ozone2)
+obj&lt;- spatialProcess( ozone2$lon.lat,ozone2$y[16,] )
+aHat&lt;- obj$summary["aRange"]
+lambdaHat&lt;- obj$summary["lambda"]
+
+######### boot strap 
+# create M independent copies of the observation vector
+# here we just grab the model information from the 
+# spatialProcess object above.
+#  
+# However, one could just create the list 
+#  obj&lt;- list( x= ozone2$lon.lat,
+#       cov.function.name="stationary.cov",
+#     summary= c( tau= 9.47, sigma2= 499.79, aRange= .700),
+#    cov.args= list( Covariance="Matern", smoothness=1.0),
+#     weights= rep( 1, nrow(ozone2$lon.lat) )
+# )
+# Here summary component  has the parameters
+# tau, sigma2 and aRange
+# and cov.args component has the remaining ones.
+
+set.seed(223)
+M&lt;- 25
+ySynthetic&lt;- simSpatialData( obj, M)
+
+bootSummary&lt;- NULL
+
+for(  k in 1:M){
+cat( k, " ")
+# here the MLEs are found using the easy top level level wrapper
+# see mKrigMLEJoint for a more efficient strategy
+  newSummary&lt;- spatialProcess(obj$x,ySynthetic[,k],
+                    cov.params.start= list(
+			                   aRange = aHat,
+			                  lambda = lambdaHat)
+                               )$summary
+  bootSummary&lt;- rbind( bootSummary, newSummary)
+  }
+cat( fill= TRUE)
+# the results and 95
+  stats( bootSummary )
+
+  obj$summary
+  tmpBoot&lt;- bootSummary[,c("lambda", "aRange") ]
+  confidenceInterval &lt;- apply(tmpBoot, 2,
+                               quantile, probs=c(0.025,0.975) )
+# compare to estimates used as the "true" parameters			       
+  obj$summary[2:5] 
+  print( t(confidenceInterval) )
+# compare to confidence interval using large sample theory  
+  print( obj$CITable)
+
+## End(Not run)
+
+## Not run: 
+# conditional simulation with covariates
+# colorado climate example
+  data(COmonthlyMet)
+  fit1E&lt;- spatialProcess(CO.loc,CO.tmin.MAM.climate, Z=CO.elev   )
+# conditional simulation at missing data
+  good&lt;- !is.na(CO.tmin.MAM.climate ) 
+  infill&lt;- sim.spatialProcess( fit1E, xp=CO.loc[!good,], 
+                Z= CO.elev[!good], M= 10)
+# get an elevation grid  ... NGRID&lt;- 50 gives a nicer image but takes longer 
+ NGRID &lt;- 25  
+ # get elevations on a grid  
+   COGrid&lt;- list( x=seq( -109.5, -100.5, ,NGRID), y= seq(36, 41.75,,NGRID) )
+   COGridPoints&lt;- make.surface.grid( COGrid)
+ # elevations are a bilinear interpolation from the 4km
+ # Rocky Mountain elevation fields data set.   
+   data( RMelevation)
+   COElevGrid&lt;- interp.surface( RMelevation, COGridPoints )
+# NOTE call to sim.spatialProcess treats the grid points as just a matrix
+# of locations the plot has to "reshape" these into a grid 
+# to use with image.plot 
+   SEout&lt;- sim.spatialProcess( fit1E, xp=COGridPoints,  Z= COElevGrid, M= 30)
+# for just the smooth surface in lon/lat
+#  SEout&lt;- sim.spatialProcess( fit1E, xp=COGridPoints,  drop.Z=TRUE, M= 30)
+# in practice M should be larger to reduce Monte Carlo error.      
+   surSE&lt;- apply( SEout, 1, sd )
+   image.plot( as.surface( COGridPoints, surSE)) 
+   points( fit1E$x, col="magenta", pch=16) 
+   
+
+## End(Not run)
+
+### Approximate conditional simulation 
+## Not run: 
+ # create larger lon/lat grid  
+   NGRID &lt;- 200  
+   COGrid&lt;- list( x=seq( -109.7, -100.5, ,NGRID),
+                    y= seq(36, 41.75,,NGRID) )
+ # interpolation elevations to this grid. 
+ # This took about 40 seconds
+   COElevGrid&lt;- interp.surface.grid( RMelevation, COGrid )
+  system.time( 
+    SEout0&lt;- simLocal.spatialProcess( fit1E,COGrid , 
+    ZGrid= COElevGrid$z,
+    M= 10)
+    )
+   
+  
+
+## End(Not run)
+### Approximate conditional simulation and with approximate prediction
+### increase  np and NNSize to improve approximations 
+### This takes about 8 seconds of course one would want more thatn 10 reps
+### to estimate the SE. Use drop.Z=TRUE to just get the spatial surface without ### the fixed part 
+## Not run: 
+system.time(
+   SEout2&lt;- simLocal.spatialProcess( fit1E, COGrid , 
+                   ZGrid= COElevGrid$z, np = 2,
+   fast= TRUE, NNSize=5, M= 10)
+   )
+   
+  look &lt;- apply( SEout2$z,c(1,2), sd)
+  imagePlot(SEout2$x, SEout2$y, look, col=viridis(256) )
+  points( fit1E$x, pch=16, cex=.5, col="magenta")
+  title("Monte Carlo prediction SE")
+
+## End(Not run)
+
+
+#### example using Krig object and exact conditional simulation.
+## Not run: 
+data( ozone2)
+set.seed( 399)
+# fit to day 16 from Midwest ozone data set.
+  out&lt;- Krig( ozone2$lon.lat, ozone2$y[16,], Covariance="Matern", 
+            aRange=1.0,smoothness=1.0, na.rm=TRUE)
+
+# NOTE aRange =1.0 is not the best choice but 
+
+# the six missing data locations
+ xp&lt;-  ozone2$lon.lat[ is.na(ozone2$y[16,]),]
+
+# 30 draws from process at xp given the data 
+
+ sim.out&lt;- sim.Krig( out,xp, M=30)
+
+
+## End(Not run)
+
+## Not run: 
+## testing the local method on a 1D case.
+
+set.seed(124) 
+# 10 observations -- massive dataset!
+s&lt;-  cbind(runif(  10, 5,45)) 
+y&lt;-  cbind(runif(  10))
+aRange&lt;- 10 
+obj&lt;- mKrig( s, y, aRange=aRange,Covariance="Matern",
+             smoothness=1.0,
+             lambda=.01,tau=sqrt(.01),
+                      m=0)
+#                    
+# M should be much larger for an accurate check on code
+#
+
+gridList&lt;- list( x= seq(0,50, length.out=15))
+
+look&lt;- simLocal.spatialProcess(obj,
+                               np=3,
+                               predictionGridList = gridList,
+                               gridRefinement = 3,
+                               M=50, extrap=TRUE) 
+                               
+simSE&lt;- apply(look$z, 1, sd )
+
+checkSE&lt;- predictSE( obj, xnew= cbind(look$x ), drop.Z=TRUE )
+# percentage error from true SE at each location.
+stats( 100*abs(1- simSE/checkSE) )
+    
+# Maggie plot  
+plot( look$x, checkSE, type="b", col="blue",
+xlab="Location", ylab="Prediction SE")
+rug( look$x, col="blue", lwd=3)
+points( look$x, simSE, col="orange3", pch=16)
+xline( s, col="grey", lwd=2)
+title("Exact (blue) and Monte Carlo (orange) 
+for the prediction SE based on observations (grey) ")
+
+
+## End(Not run)
+
+
+
+
+
+</code></pre>
+
+
+</div>

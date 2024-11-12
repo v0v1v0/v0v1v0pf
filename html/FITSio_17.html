@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readFITSheader</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read a FITS header</h2>
+
+<h3>Description</h3>
+
+<p>Read a FITS header from an open connection to a FITS file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readFITSheader(zz, maxLines = 5000, fixHdr = 'none')
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>zz</code></td>
+<td>
+<p>file handle; see Example.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxLines</code></td>
+<td>
+<p>maximum number of header lines to read; see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixHdr</code></td>
+<td>
+<p>deal with non-printing characters in header; see Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>readFITSheader</code> reads the data from the header part of a FITS
+Header and Data Unit.  In addition to general header information, it
+provides parameters needed to read image and binary table files by
+functions <code>readFITSarray</code> and <code>readFITSbintable</code>.  A header
+unit may exist without a corresponding data unit, for instance to
+carry additional coordinate information.
+</p>
+<p>The <var>maxLines</var> variable limits the number of header lines
+<code>readFITSheader</code> will read to prevent endless reading if the
+header is flawed and the END
+statement is missing.  The function generates a message an halts when the
+number of reads exceeds  <var>maxLines</var>.  Increase the value as
+needed for very large headers.
+</p>
+<p><var>fixHdr</var> attempts to fix headers with non-printing characters,
+either by removing them with <code>fixHdr = 'remove'</code>, reading further
+into the file until 2880 valid characters are present, or by
+substituting spaces for non-printing characters with <code>fixHdr =
+  'substitute'</code>.  This option should be used with caution, as non-printing
+characters should not be in the header in the first place, so this
+option may or may not corrupt the following data.  The default is
+<code>fixHdr = 'none'</code>.  Partial matching is allowed.
+</p>
+<p>The header vector does not have an easy format for
+people to read (graphical FITS viewers like <em>fv</em> and
+<em>SAOImage DS9</em> are good for this),
+but is designed for further processing
+by <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>.  The header vector has a kind of
+<em>keyword value keyword value ...</em>
+format, where keywords without values are simply followed by the next
+keyword.  This means a search for a keyword will give the corresponding
+value as the next element in the vector; see the Examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p><var>hdr</var> is a character vector <var>hdr</var>
+containing the header information in a format that is easy for
+<span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> to parse further.  See Details.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Graphical FITS viewers such as <em>fv</em>
+(<a href="https://heasarc.gsfc.nasa.gov/ftools/fv/">https://heasarc.gsfc.nasa.gov/ftools/fv/</a>) and <em>SAOImage DS9</em>
+(<a href="http://ds9.si.edu/">http://ds9.si.edu/</a>)
+have excellent facilities for displaying FITS data, headers, and file
+structure.  Having one or more graphical viewers available will
+prove extremely
+useful
+for working with FITS
+files, even when the data are read into <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> for further processing.
+<em>fv</em> and <em>SAOImage DS9</em> are in active development with support for
+unix, Windows, and Mac OS-X operating systems, and are available at no cost.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew Harris</p>
+
+
+<h3>References</h3>
+
+<p>Hanisch et al., <em>Astron.\ Astrophys.</em> 376, 359-380 (2001)
+</p>
+<p><a href="https://fits.gsfc.nasa.gov/">https://fits.gsfc.nasa.gov/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>parseHdr</code>, the usual complement to <code>readFITSheader</code>;
+<code>readFITS</code>, <code>readFITSarray</code>,
+<code>readFITSbintable</code>, <code>file</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(FITSio)
+## Make test image with axis information, write to disk
+Z &lt;- matrix(1:15, ncol = 3)
+filename &lt;- paste(tempdir(), "test.fits", sep="")
+writeFITSim(Z, file = filename, c1 = "Test FITS file",
+            crpix = c(1,1), crvaln = c(10, 100), cdeltn = c(8, 2),
+            ctypen = c("Distance", "Time"),
+            cunitn = c("Furlongs", "Fortnights"))
+## Read back in
+## Open file, read header and array.
+    zz &lt;- file(description = filename, open = "rb")
+    header &lt;- readFITSheader(zz)
+    hdr &lt;- parseHdr(header)
+    D &lt;- readFITSarray(zz, hdr)
+    close(zz)
+    hdr[1:10]                       # Header sample
+    hdr[which(hdr=="BITPIX")+1]   # BITPIX value from header
+
+## Clean up files to avoid clutter
+unlink(filename)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>altf3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes a Rolling Regression Averaged over Different Window Sizes.</h2>
+
+<h3>Description</h3>
+
+<p>It is necessary to compare a given forecast method with some alternative ones. This function computes selected forecast quality measures for a rolling regression averaged over different window sizes (which might be treated as alternative forecasting method to Dynamic Model Averaging, Dynamic Model Selection, etc.). 
+</p>
+<p>ME (Mean Error), RMSE (Root Mean Squared Error), MAE (Mean Absolute Error), MPE (Mean Percentage Errror) and MAPE (Mean Absolute Percentage Error) are computed as <code>accuracy</code>. HR (Hit Ratio) is computed as <code>hit.ratio</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">altf3(y,x=NULL,windows,av=NULL,initial.period=NULL,d=NULL,fmod=NULL,parallel=NULL,c=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code>numeric</code> or a column <code>matrix</code> of a dependent variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>matrix</code> of independent variables, different columns correspond to different independent variables, if not specified only constant term will be included</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows</code></td>
+<td>
+<p><code>numeric</code> <code>vector</code>, sizes of a rolling regression windows (numbers of observations)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>av</code></td>
+<td>
+<p>optional, a method for model averaging, <code>av="ord"</code> corresponds to equal weights for each model, <code>av="aic"</code> corresponds to information theoretic model averaging based on Akaike Information Criterion, <code>av="aicc"</code> corresponds to information theoretic model averaging based on Akaike Information Criterion with a correction for finite sample sizes, <code>av="bic"</code> corresponds to information theoretic model averaging based on Bayesian Information Criterion, <code>av="mse"</code> corresponds to setting weights proportional to the inverse of the models Mean Squared Error, if <code>av</code> is <code>numeric</code> then weights are computed proportional to the <code>av</code>-th power of window size, if not specified <code>av="ord"</code> is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.period</code></td>
+<td>
+<p>optional, <code>numeric</code>, a number of observation since which forecast quality measures are computed, if not specified the whole sample is used, i.e., <code>initial.period=1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>optional, <code>logical</code>, a parameter used for HR (Hit Ratio) calculation, should be <code>d=FALSE</code> for level time-series and <code>d=TRUE</code> if time-series represent changes, if not specified <code>d=FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fmod</code></td>
+<td>
+<p>optional, class <code>dma</code> object, a model to be compared with alternative forecast</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>optional, <code>logical</code>, indicate whether parallel computations should be used, by default <code>parallel=FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>optional, see <code>roll.reg</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each <code>av</code> method, in the initial period equal weights for each model are taken, and then successively updated based on the chosen criterion.</p>
+
+
+<h3>Value</h3>
+
+<p>class <code>altf3</code> object, <code>list</code> of
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$summary</code></td>
+<td>
+<p><code>matrix</code> of forecast quality measures ordered by columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$y.hat</code></td>
+<td>
+<p><code>list</code> of predicted values from a rolling regression averaged over selected window sizes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$y</code></td>
+<td>
+<p><code>y</code>, forecasted time-series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$coeff.</code></td>
+<td>
+<p><code>list</code> of coefficients from a rolling regression averaged over selected window sizes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$weights</code></td>
+<td>
+<p><code>list</code> of weights of models used in averaging</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$p.val.</code></td>
+<td>
+<p><code>list</code> of p-values (averaged over selected window sizes) for t-test of statistical significance for coefficients from a rolling regression</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$exp.win.</code></td>
+<td>
+<p><code>list</code> of expected window size</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Pesaran, M. H., Pick, A., 2011. Forecast combination across estimation windows. <em>Journal of Business &amp; Economic Statistics</em> <b>29</b>, 307–318. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.altf3</code>, <code>print.altf3</code>, <code>summary.altf3</code>, <code>roll.reg</code>, <code>altf</code>, <code>altf2</code>, <code>altf4</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+wti &lt;- crudeoil[-1,1]
+drivers &lt;- (lag(crudeoil[,-1],k=1))[-1,]
+ld.wti &lt;- (diff(log(wti)))[-1,]
+ld.drivers &lt;- (diff(log(drivers)))[-1,]
+
+a1 &lt;- altf3(y=ld.wti,x=ld.drivers,d=TRUE,windows=c(36,100,150))
+
+a2 &lt;- altf3(y=ld.wti,x=ld.drivers,d=TRUE,av="aic",windows=c(36,100,150))
+
+a3 &lt;- altf3(y=ld.wti,x=ld.drivers,d=TRUE,av=-2,windows=c(36,100,150))
+
+# models without a constant term 
+a4 &lt;- altf3(y=ld.wti,x=ld.drivers,d=TRUE,av=-2,windows=c(36,100,150),c=FALSE)
+
+# models only with a constant term
+a5 &lt;- altf3(y=ld.wti,d=TRUE,av=-2,windows=c(36,100,150))
+
+</code></pre>
+
+
+</div>

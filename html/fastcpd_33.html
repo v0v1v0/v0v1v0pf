@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastcpd_variance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find change points efficiently in variance change models</h2>
+
+<h3>Description</h3>
+
+<p><code>fastcpd_variance()</code> and <code>fastcpd.variance()</code> are wrapper
+functions of <code>fastcpd()</code> to find the variance change. The
+function is similar to <code>fastcpd()</code> except that the data is by
+default a matrix or data frame or a vector with each row / element as an
+observation and thus a formula is not required here.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastcpd_variance(data, ...)
+
+fastcpd.variance(data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A matrix, a data frame or a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to <code>fastcpd()</code>, for example,
+<code>segment_count</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A fastcpd object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fastcpd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+data &lt;- c(rnorm(300, 0, 1), rnorm(400, 0, 100), rnorm(300, 0, 1))
+result &lt;- fastcpd.variance(data)
+summary(result)
+if (requireNamespace("mvtnorm", quietly = TRUE)) {
+  set.seed(1)
+  p &lt;- 3
+  result &lt;- fastcpd.variance(
+    rbind(
+      mvtnorm::rmvnorm(
+        300, rep(0, p), crossprod(matrix(runif(p^2) * 2 - 1, p))
+      ),
+      mvtnorm::rmvnorm(
+        400, rep(0, p), crossprod(matrix(runif(p^2) * 2 - 1, p))
+      ),
+      mvtnorm::rmvnorm(
+        300, rep(0, p), crossprod(matrix(runif(p^2) * 2 - 1, p))
+      )
+    )
+  )
+  summary(result)
+}
+
+set.seed(1)
+data &lt;- c(rnorm(3000, 0, 1), rnorm(3000, 0, 2), rnorm(3000, 0, 1))
+(result_time &lt;- system.time(
+  result &lt;- fastcpd.variance(data, r.progress = FALSE, cp_only = TRUE)
+))
+result@cp_set
+
+
+set.seed(1)
+data &lt;- c(rnorm(3000, 0, 1), rnorm(3000, 0, 2), rnorm(3000, 0, 1))
+(result_time &lt;- system.time(
+  result &lt;- fastcpd.variance(
+    data, beta = "BIC", cost_adjustment = "BIC",
+    r.progress = FALSE, cp_only = TRUE
+  )
+))
+result@cp_set
+
+</code></pre>
+
+
+</div>

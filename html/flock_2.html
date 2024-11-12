@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flock-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Process synchronization using file locks.
+</h2>
+
+<h3>Description</h3>
+
+<p>Enables synchronization between R processes using a file
+lock. Supports both exclusive (writer) and shared (readers)
+locks.
+</p>
+<p>On UNIX, the implementation relies on the <code>fcntl</code> system
+call. While on Windows, the <code>LockFileEx</code>/<code>UnlockFileEx</code>
+APIs are used.
+</p>
+
+
+<h3>Details</h3>
+
+
+<table>
+<tr>
+<td style="text-align: left;">
+Package: </td>
+<td style="text-align: left;"> flock</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Type: </td>
+<td style="text-align: left;"> Package</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Version: </td>
+<td style="text-align: left;"> 0.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Date: </td>
+<td style="text-align: left;"> 2014-11-24</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+License: </td>
+<td style="text-align: left;"> Apache License 2.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ivan Popivanov
+</p>
+<p>Maintainer: Ivan Popivanov &lt;ivan.popivanov@gmail.com&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+require(DBI)
+require(flock)
+require(RSQLite)
+require(parallel)
+
+dbpath &lt;- tempfile()
+con &lt;- dbConnect(RSQLite::SQLite(), dbname=dbpath)
+df &lt;- data.frame(value = 0)
+dbWriteTable(con, "test", df)
+dbDisconnect(con)
+
+write.one.value &lt;- function(val, lock.name=NULL) {
+   if(!is.null(lock.name)) {
+      file.lock = lock(lock.name)
+   }
+   
+   # The three lines below are the "critical section"
+   con &lt;- dbConnect(RSQLite::SQLite(), dbname = dbpath)
+   dbWriteTable(con, "test", data.frame(value = val), append = TRUE)
+   dbDisconnect(con)
+   
+   if(!is.null(lock.name)) {
+      unlock(file.lock)
+   }
+}
+
+lock.name = tempfile()
+
+# Run the parallel database updates with two cores
+mclapply(1:100, write.one.value, mc.cores=2, lock.name=lock.name)
+
+# To see the failing scenario, run (on a multi-core system):
+# mclapply(1:100, write.one.value, mc.cores=2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regr_cc_sof_real_time</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Real-time Scalar-on-Function Regression Control Chart</h2>
+
+<h3>Description</h3>
+
+<p>This function builds a list of data frames,
+each of them is produced by <code>regr_cc_sof</code>
+and is needed to plot control charts for monitoring in real time
+a scalar quality characteristic adjusted for
+by the effect of multivariate functional covariates.
+The training data have already been used to fit the model.
+An additional tuning data set can be provided that is used to estimate
+the control chart limits.
+A phase II data set contains the observations to be monitored
+with the built control charts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regr_cc_sof_real_time(
+  mod_list,
+  y_new,
+  mfdobj_x_new_list,
+  y_tuning = NULL,
+  mfdobj_x_tuning_list = NULL,
+  alpha = 0.05,
+  parametric_limits = TRUE,
+  include_covariates = FALSE,
+  absolute_error = FALSE,
+  ncores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod_list</code></td>
+<td>
+<p>A list of lists produced by <code>sof_pc_real_time</code>,
+containing a list of scalar-on-function linear regression models estimated
+on functional data each evolving up to an intermediate domain point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_new</code></td>
+<td>
+<p>A numeric vector containing the observations of
+the scalar response variable in the phase II monitoring data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_new_list</code></td>
+<td>
+<p>A list created using
+<code>get_mfd_df_real_time</code> or
+<code>get_mfd_list_real_time</code>, denoting a list of functional data objects
+in the phase II monitoring data set,
+each evolving up to an intermediate domain point,
+with observations of the multivariate functional covariates.
+The length of this list and <code>mod_list</code> must be equal,
+and their elements in the same position in the list
+must correspond to the same intermediate domain point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_tuning</code></td>
+<td>
+<p>An optional numeric vector containing the observations of
+the scalar response variable in the tuning data set.
+If NULL, the training data, i.e. the scalar response
+in <code>mod_list</code>,
+is also used as the tuning data set.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_tuning_list</code></td>
+<td>
+<p>A list created using
+<code>get_mfd_df_real_time</code> or
+<code>get_mfd_list_real_time</code>, denoting a list of functional data objects
+in the tuning data set (used to estimate control chart limits),
+each evolving up to an intermediate domain point,
+with observations of the multivariate functional covariates.
+The length of this list and <code>mod_list</code> must be equal,
+and their elements in the same position in the list
+must correspond to the same intermediate domain point.
+If NULL, the training data, i.e. the functional covariates
+in <code>mod_list</code>,
+are also used as the tuning data set.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>See <code>regr_cc_sof</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parametric_limits</code></td>
+<td>
+<p>See <code>regr_cc_sof</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_covariates</code></td>
+<td>
+<p>See <code>regr_cc_sof</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absolute_error</code></td>
+<td>
+<p>See <code>regr_cc_sof</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>If you want parallelization, give the number of cores/threads
+to be used when creating objects separately for different instants.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of <code>data.frame</code>s each
+produced by <code>regr_cc_sof</code>,
+corresponding to a given instant.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sof_pc_real_time</code>, <code>regr_cc_sof</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air1 &lt;- lapply(air, function(x) x[1:8, , drop = FALSE])
+air2 &lt;- lapply(air, function(x) x[9:10, , drop = FALSE])
+mfdobj_x1_list &lt;- get_mfd_list_real_time(air1[c("CO", "temperature")],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+mfdobj_x2_list &lt;- get_mfd_list_real_time(air2[c("CO", "temperature")],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+mfdobj_y1_list &lt;- get_mfd_list_real_time(air1["NO2"],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+mfdobj_y2_list &lt;- get_mfd_list_real_time(air2["NO2"],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+mod_list &lt;- fof_pc_real_time(mfdobj_y1_list, mfdobj_x1_list)
+cclist &lt;- regr_cc_fof_real_time(
+  mod_list = mod_list,
+  mfdobj_y_new_list = mfdobj_y2_list,
+  mfdobj_x_new_list = mfdobj_x2_list)
+plot_control_charts_real_time(cclist, 1)
+
+</code></pre>
+
+
+</div>

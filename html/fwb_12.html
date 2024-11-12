@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vcovFWB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fractional Weighted Bootstrap Covariance Matrix Estimation</h2>
+
+<h3>Description</h3>
+
+<p><code>vcovFWB()</code> estimates the covariance matrix of model coefficient estimates using the fractional weighted bootstrap. It serves as a drop-in for <code>stats::vcov()</code> or <code>sandwich::vcovBS()</code>. Clustered covariances are can be requested.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vcovFWB(
+  x,
+  cluster = NULL,
+  R = 1000,
+  start = FALSE,
+  wtype = getOption("fwb_wtype", "exp"),
+  ...,
+  fix = FALSE,
+  use = "pairwise.complete.obs",
+  verbose = FALSE,
+  cl = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a fitted model object, such as the output of a call to <code>lm()</code> or <code>glm()</code>. The model object must result from a function that can be updated using <code>update()</code> and has a <code>weights</code> argument to input non-integer case weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>a variable indicating the clustering of observations,
+a <code>list</code> (or <code>data.frame</code>) thereof, or a formula specifying
+which variables from the fitted model should be used (see examples).
+By default (<code>cluster = NULL</code>), either <code>attr(x, "cluster")</code> is used
+(if any) or otherwise every observation is assumed to be its own cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>the number of bootstrap replications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p><code>logical</code>; should <code>coef(x)</code> be passed as <code>start</code> to the <code>update(x, weights = ...)</code> call? In case the model <code>x</code> is computed by some numeric iteration, this may speed up the bootstrapping.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wtype</code></td>
+<td>
+<p>string; the type of weights to use. Allowable options include <code>"exp"</code> (the default), <code>"pois"</code>, <code>"multinom"</code>, and <code>"mammen"</code>. See <code>fwb()</code> for details. See <code>set_fwb_wtype()</code> to set a global default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix</code></td>
+<td>
+<p><code>logical</code>; if <code>TRUE</code>, the covariance matrix is fixed to be positive semi-definite in case it is not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use</code></td>
+<td>
+<p><code>character</code>; specification passed to <code>stats::cov()</code> for handling missing coefficients/parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>logical</code>; whether to display a progress bar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>a cluster object created by <code>parallel::makeCluster()</code>, or an integer to indicate the number of child-processes (integer values are ignored on Windows) for parallel evaluations. See <code>pbapply::pblapply()</code> for details. If <code>NULL</code>, no parallelization will take place.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>vcovFWB()</code> functions like other <code>vcov()</code>-like functions, such as those in the <code>sandwich</code> package, in particular, <code>sandwich::vcovBS()</code>, which implements the traditional bootstrap (and a few other bootstrap varieties for linear models). Sets of weights are generated as described in the documentation for <code>fwb()</code>, and the supplied model is re-fit using those weights. When the fitted model already has weights, these are multiplied by the bootstrap weights.
+</p>
+<p>For <code>lm</code> objects, the model is re-fit using <code>.lm.fit()</code> for speed, and, similarly, <code>glm</code> objects are re-fit using <code>glm.fit()</code> (or whichever fitting method was originally used). For other objects, <code>update()</code> is used to populate the weights and re-fit the model (this assumes the fitting function accepts non-integer case weights through a <code>weights</code> argument). If a model accepts weights in some other way, <code>fwb()</code> should be used instead; <code>vcovFWB()</code> is inherently limited in its ability to handle all possible models. It is important that the original model was not fit using frequency weights (i.e., weights that allow one row of data to represent multiple full, identical, individual units).
+</p>
+<p>See <code>sandwich::vcovBS()</code> and <code>sandwich::vcovCL()</code> for more information on clustering covariance matrices, and see <code>fwb()</code> for more information on how clusters work with the fractional weighted bootstrap. When clusters are specified, each cluster is given a bootstrap weight, and all members of the cluster are given that weight; estimation then proceeds as normal. By default, when <code>cluster</code> is unspecified, each unit is considered its own cluster.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix containing the covariance matrix estimate.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fwb()</code> for performing the fractional weighted bootstrap on an arbitrary quantity; <code>fwb.ci()</code> for computing nonparametric confidence intervals for <code>fwb</code> objects; <code>summary.fwb()</code> for producing standard errors and confidence intervals for <code>fwb</code> objects; <code>sandwich::vcovBS()</code> for computing covariance matrices using the traditional bootstrap
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(123)
+data("infert")
+fit &lt;- glm(case ~ spontaneous + induced, data = infert,
+             family = "binomial")
+lmtest::coeftest(fit, vcov. = vcovFWB, R = 200)
+
+
+# Example from help("vcovBS", package = "sandwich")
+data("PetersenCL", package = "sandwich")
+m &lt;- lm(y ~ x, data = PetersenCL)
+
+# Note: this is not to compare performance, just to
+# demonstrate the syntax
+cbind(
+  "BS" = sqrt(diag(sandwich::vcovBS(m))),
+  "FWB" = sqrt(diag(vcovFWB(m))),
+  "BS-cluster" = sqrt(diag(sandwich::vcovBS(m, cluster = ~firm))),
+  "FWB-cluster" = sqrt(diag(vcovFWB(m, cluster = ~firm)))
+)
+
+# Using `wtype = "multinom"` exactly reproduces
+# `sandwich::vcovBS()`
+set.seed(11)
+s &lt;- sandwich::vcovBS(m, R = 200)
+set.seed(11)
+f &lt;- vcovFWB(m, R = 200, wtype = "multinom")
+
+all.equal(s, f)
+
+</code></pre>
+
+
+</div>

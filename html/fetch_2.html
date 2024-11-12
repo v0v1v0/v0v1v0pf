@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>catalog</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a data source catalog</h2>
+
+<h3>Description</h3>
+
+<p>The <code>catalog</code> function returns a data catalog
+for a data source. A data catalog is like a collection of data dictionaries
+for all the datasets in the data source.  The catalog allows you to 
+examine the datasets in the data source without yet loading anything
+into memory.  Once you decide which data items you want to load, 
+use the <code>fetch</code> function to load that item into memory.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">catalog(source, engine, pattern = NULL, where = NULL, import_specs = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source for the data.  This parameter is required. Normally
+the source is passed as a full or relative path.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>engine</code></td>
+<td>
+<p>The data engine to use for this data source. This parameter
+is required. The available data engines are available on the <code>engines</code>
+enumeration.  For example, <code>engines$csv</code> will specify the CSV engine, 
+and <code>engines$rdata</code> will specify the RDATA engine.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>A pattern to use when loading data items from the data source.
+The pattern can be a name or a vector of names.  Names also accept wildcards.
+The supplied pattern will be used to filter which data items are loaded into
+the catalog.  For example, the pattern <code>pattern = "AD*"</code> will load
+only datasets that start with "AD".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>where</code></td>
+<td>
+<p>A where expression to use when fetching 
+the data. This expression will apply to all fetch operations on this catalog.
+The where expression should be defined with the Base R <code>expression</code>
+function.  The expression is unquoted and can use any Base R operators or
+functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>import_specs</code></td>
+<td>
+<p>The import specs to use for any fetch operation on 
+this catalog.  The import spec can be used to control the data types
+on the incoming columns. You can create separate import specs for each 
+dataset, or one import spec to use for all datasets. 
+See the <code>import_spec</code> and 
+<code>specs</code> functions for more information about this capability.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The loaded data catalog, as class "dcat". The catalog will be a list
+of data dictionaries.  Each data dictionary is a tibble.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The <code>fetch</code> function to retrieve data from the catalog,
+and the <code>import_spec</code> function to create import specifications.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Get data directory
+pkg &lt;- system.file("extdata", package = "fetch")
+
+# Create catalog
+ct &lt;- catalog(pkg, engines$csv)
+
+# Example 1: Catalog all rows
+
+# View catalog
+ct
+# data catalog: 6 items
+# - Source: C:/packages/fetch/inst/extdata
+# - Engine: csv
+# - Items:
+  # data item 'ADAE': 56 cols 150 rows
+  # data item 'ADEX': 17 cols 348 rows
+  # data item 'ADPR': 37 cols 552 rows
+  # data item 'ADPSGA': 42 cols 695 rows
+  # data item 'ADSL': 56 cols 87 rows
+  # data item 'ADVS': 37 cols 3617 rows
+
+# View catalog item
+ct$ADEX
+# data item 'ADEX': 17 cols 348 rows
+# - Engine: csv
+# - Size: 70.7 Kb
+# - Last Modified: 2020-09-18 14:30:22
+#    Name   Column     Class Label Format NAs MaxChar
+# 1  ADEX  STUDYID character  &lt;NA&gt;     NA   0       3
+# 2  ADEX  USUBJID character  &lt;NA&gt;     NA   0      10
+# 3  ADEX   SUBJID character  &lt;NA&gt;     NA   0       3
+# 4  ADEX   SITEID character  &lt;NA&gt;     NA   0       2
+# 5  ADEX     TRTP character  &lt;NA&gt;     NA   8       5
+# 6  ADEX    TRTPN   numeric  &lt;NA&gt;     NA   8       1
+# 7  ADEX     TRTA character  &lt;NA&gt;     NA   8       5
+# 8  ADEX    TRTAN   numeric  &lt;NA&gt;     NA   8       1
+# 9  ADEX   RANDFL character  &lt;NA&gt;     NA   0       1
+# 10 ADEX    SAFFL character  &lt;NA&gt;     NA   0       1
+# 11 ADEX   MITTFL character  &lt;NA&gt;     NA   0       1
+# 12 ADEX  PPROTFL character  &lt;NA&gt;     NA   0       1
+# 13 ADEX    PARAM character  &lt;NA&gt;     NA   0      45
+# 14 ADEX  PARAMCD character  &lt;NA&gt;     NA   0       8
+# 15 ADEX   PARAMN   numeric  &lt;NA&gt;     NA   0       1
+# 16 ADEX     AVAL   numeric  &lt;NA&gt;     NA  16       4
+# 17 ADEX AVALCAT1 character  &lt;NA&gt;     NA  87      10
+
+
+# Example 2: Catalog with where expression
+ct &lt;- catalog(pkg, engines$csv, where = expression(SUBJID == '049'))
+
+# View catalog item - Now only 4 rows
+ct$ADEX
+# data item 'ADEX': 17 cols 4 rows
+#- Where: SUBJID == "049"
+#- Engine: csv
+#- Size: 4.5 Kb
+#- Last Modified: 2020-09-18 14:30:22
+#Name   Column     Class Label Format NAs MaxChar
+#1  ADEX  STUDYID character  &lt;NA&gt;     NA   0       3
+#2  ADEX  USUBJID character  &lt;NA&gt;     NA   0      10
+#3  ADEX   SUBJID character  &lt;NA&gt;     NA   0       3
+#4  ADEX   SITEID character  &lt;NA&gt;     NA   0       2
+#5  ADEX     TRTP character  &lt;NA&gt;     NA   0       5
+#6  ADEX    TRTPN   numeric  &lt;NA&gt;     NA   0       1
+#7  ADEX     TRTA character  &lt;NA&gt;     NA   0       5
+#8  ADEX    TRTAN   numeric  &lt;NA&gt;     NA   0       1
+#9  ADEX   RANDFL character  &lt;NA&gt;     NA   0       1
+#10 ADEX    SAFFL character  &lt;NA&gt;     NA   0       1
+#11 ADEX   MITTFL character  &lt;NA&gt;     NA   0       1
+#12 ADEX  PPROTFL character  &lt;NA&gt;     NA   0       1
+#13 ADEX    PARAM character  &lt;NA&gt;     NA   0      45
+#14 ADEX  PARAMCD character  &lt;NA&gt;     NA   0       8
+#15 ADEX   PARAMN   numeric  &lt;NA&gt;     NA   0       1
+#16 ADEX     AVAL   numeric  &lt;NA&gt;     NA   0       4
+#17 ADEX AVALCAT1 character  &lt;NA&gt;     NA   1      10
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,248 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pag_indices_inner</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find pagination indices from pagination info data frame</h2>
+
+<h3>Description</h3>
+
+<p>Pagination methods should typically call the <code>make_row_df</code> method
+for their object and then call this function on the resulting
+pagination info <code>data.frame</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pag_indices_inner(
+  pagdf,
+  rlpp,
+  lpp_or_cpp = NA_integer_,
+  context_lpp_or_cpp = NA_integer_,
+  min_siblings,
+  nosplitin = character(),
+  verbose = FALSE,
+  row = TRUE,
+  have_col_fnotes = FALSE,
+  div_height = 1L,
+  col_gap = 3L,
+  has_rowlabels
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pagdf</code></td>
+<td>
+<p>(<code>data.frame</code>)<br> a pagination info <code>data.frame</code> as created by
+either <code>make_rows_df</code> or <code>make_cols_df</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rlpp</code></td>
+<td>
+<p>(<code>numeric</code>)<br> maximum number of <em>row</em> lines per page (not including header materials), including
+(re)printed header and context rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lpp_or_cpp</code></td>
+<td>
+<p>(<code>numeric</code>)<br> total maximum number of <em>row</em> lines or content (column-wise characters) per page
+(including header materials and context rows). This is only for informative results with <code>verbose = TRUE</code>.
+It will print <code>NA</code> if not specified by the pagination machinery.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>context_lpp_or_cpp</code></td>
+<td>
+<p>(<code>numeric</code>)<br> total number of context <em>row</em> lines or content (column-wise characters)
+per page (including header materials). Uses <code>NA</code> if not specified by the pagination machinery and is only
+for informative results with <code>verbose = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_siblings</code></td>
+<td>
+<p>(<code>numeric</code>)<br> minimum sibling rows which must appear on either side of pagination row for a
+mid-subtable split to be valid. Defaults to 2 for tables. It is automatically turned off (set to 0) for listings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nosplitin</code></td>
+<td>
+<p>(<code>character</code>)<br> list of names of subtables where page breaks are not allowed, regardless of other
+considerations. Defaults to none.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(<code>flag</code>)<br> whether additional informative messages about the search for
+pagination breaks should be shown. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row</code></td>
+<td>
+<p>(<code>flag</code>)<br> whether pagination is happening in row space (<code>TRUE</code>, the default) or column
+space (<code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>have_col_fnotes</code></td>
+<td>
+<p>(<code>flag</code>)<br> whether the table-like object being rendered has column-associated
+referential footnotes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>div_height</code></td>
+<td>
+<p>(<code>numeric(1)</code>)<br> the height of the divider line when the associated object is rendered.
+Defaults to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_gap</code></td>
+<td>
+<p>(<code>numeric(1)</code>)<br> width of gap between columns, in same units as extent in <code>pagdf</code> (spaces
+under a particular font specification).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>has_rowlabels</code></td>
+<td>
+<p>(<code>logical(1)</code>)<br> whether the object being paginated has row labels.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>pab_indices_inner</code> implements the core pagination algorithm (see below)
+for a single direction (vertical if <code>row = TRUE</code> (the default), horizontal otherwise)
+based on the pagination data frame and (already adjusted for non-body rows/columns)
+lines (or characters) per page.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> containing a vector of row numbers, broken up by page.
+</p>
+
+
+<h3>Pagination Algorithm</h3>
+
+<p>Pagination is performed independently in the vertical and horizontal
+directions based solely on a <em>pagination data frame</em>, which includes the
+following information for each row/column:
+</p>
+
+<ul>
+<li>
+<p> Number of lines/characters rendering the row will take <strong>after
+word-wrapping</strong> (<code>self_extent</code>)
+</p>
+</li>
+<li>
+<p> The indices (<code>reprint_inds</code>) and number of lines (<code>par_extent</code>)
+of the rows which act as <strong>context</strong> for the row
+</p>
+</li>
+<li>
+<p> The row's number of siblings and position within its siblings
+</p>
+</li>
+</ul>
+<p>Given <code>lpp</code> (<code>cpp</code>) is already adjusted for rendered elements which
+are not rows/columns and a data frame of pagination information,
+pagination is performed via the following algorithm with <code>start = 1</code>.
+</p>
+<p>Core Pagination Algorithm:
+</p>
+
+<ol>
+<li>
+<p> Initial guess for pagination position is <code>start + lpp</code> (<code>start + cpp</code>)
+</p>
+</li>
+<li>
+<p> While the guess is not a valid pagination position, and <code>guess &gt; start</code>,
+decrement guess and repeat.
+</p>
+
+<ul><li>
+<p> An error is thrown if all possible pagination positions between
+<code>start</code> and <code>start + lpp</code> (<code>start + cpp</code>) would be <code style="white-space: pre;">⁠&lt; start⁠</code>
+after decrementing
+</p>
+</li></ul>
+</li>
+<li>
+<p> Retain pagination index
+</p>
+</li>
+<li>
+<p> If pagination point was less than <code>NROW(tt)</code> (<code>ncol(tt)</code>), set
+<code>start</code> to <code>pos + 1</code>, and repeat steps (1) - (4).
+</p>
+</li>
+</ol>
+<p>Validating Pagination Position:
+</p>
+<p>Given an (already adjusted) <code>lpp</code> or <code>cpp</code> value, a pagination is invalid if:
+</p>
+
+<ul>
+<li>
+<p> The rows/columns on the page would take more than (adjusted) <code>lpp</code> lines/<code>cpp</code>
+characters to render <strong>including</strong>:
+</p>
+
+<ul>
+<li>
+<p> word-wrapping
+</p>
+</li>
+<li>
+<p> (vertical only) context repetition
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> (vertical only) footnote messages and/or section divider lines
+take up too many lines after rendering rows
+</p>
+</li>
+<li>
+<p> (vertical only) row is a label or content (row-group summary) row
+</p>
+</li>
+<li>
+<p> (vertical only) row at the pagination point has siblings, and
+it has less than <code>min_siblings</code> preceding or following siblings
+</p>
+</li>
+<li>
+<p> pagination would occur within a sub-table listed in <code>nosplitin</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">mypgdf &lt;- basic_pagdf(row.names(mtcars))
+
+paginds &lt;- pag_indices_inner(mypgdf, rlpp = 15, min_siblings = 0)
+lapply(paginds, function(x) mtcars[x, ])
+
+</code></pre>
+
+
+</div>

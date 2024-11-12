@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fxml_findPath</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Finding XML elements</h2>
+
+<h3>Description</h3>
+
+<p>Finds all XML elements in an XML document that lie on a certain path, regardless of where exactly the path is found in the XML document. Sub-elements (children) of the elements on the search path are returned, too.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fxml_findPath(xmlflat.df, path, attr.only = NULL, attr.not = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xmlflat.df</code></td>
+<td>
+<p>A flat XML dataframe created with <code>fxml_importXMLFlat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>A character vector representing the path to be searched. Each element of the vector is a hierarchy level in the XML document. Example: <code>path = c("tag1", "tag2")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr.only</code></td>
+<td>
+<p>A list of named vectors representing attribute/value combinations the XML elements on the search path must match.
+The name of an element in the list is the XML elment name to which the attribute belongs. The list element itself is a named vector.
+The vector's elements represent different attributes (= the names of the vector elements) and their values (= vector elements).
+Example: <code>attr.only = list(tag1 = c(attrib1 = "Value 1", attrib2 = "Value 2"), tag2 = c(attrib3 = "Value 3"))</code> will only find those elements which lie on a
+path that includes <code>&lt;tag1 attrib1 = "Value 1" attrib2 = "Value 2"&gt;&lt;tag2 attrib3 = "Value 3"&gt;</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr.not</code></td>
+<td>
+<p>A list of vectors representing attribute/value combinations the XML elements on the search path must not match to be included in the results. See argument <code>attr.only</code> for details on the composition.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>With <code>fxml_findPath()</code> it does not matter where exactly in the hierarchy of the XML document the path is found. If, for example, <code>path = c("tag1", "tag2")</code> then
+the element with full XML path <code>&lt;xml&gt;&lt;testdoc&gt;&lt;tag1&gt;&lt;tag2&gt;</code> would be found, too.
+</p>
+<p>Other <code>fxml_findPath...()</code> functions allow for different search modes:
+</p>
+
+<ul>
+<li> <p><code>fxml_findPathRoot</code>: Search for path from the root node of the XML document downwards. Sub-elements are returned, too.
+</p>
+</li>
+<li> <p><code>fxml_findPathFull</code>: Search for exact path (always starting from the root node). No sub-elements returned, as they have a different path than the search path.
+</p>
+</li>
+<li> <p><code>fxml_findPathBottom</code>: Search for path from the bottom of the element hierarchy in the XML document.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The IDs (<code>xmlflat.df$elemid.</code>) of the XML elements that are located on the provided path. Sub-elements of the elements on the search path are returned, too. <code>NULL</code>, if no elements where found.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Joachim Zuckarelli <a href="mailto:joachim@zuckarelli.de">joachim@zuckarelli.de</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fxml_findPathRoot</code>, <code>fxml_findPathFull</code>, <code>fxml_findPathBottom</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load example file with population data from United Nations Statistics Division
+# and create flat dataframe
+example &lt;- system.file("worldpopulation.xml", package="flatxml")
+xml.dataframe &lt;- fxml_importXMLFlat(example)
+
+# Find all XML elements with &lt;data&gt;&lt;record&gt;&lt;field&gt; in their XML path
+path &lt;- c("data", "record", "field")
+fxml_findPath(xml.dataframe, path)
+
+# Find only those XML elements with &lt;data&gt;&lt;record&gt;&lt;field&gt; in their XML path that have the
+# "name" attribute of the &lt;field&gt; element set to "Sex"
+path &lt;- c("data", "record", "field")
+fxml_findPath(xml.dataframe, path, attr.only = list(field = c(name = "Sex")))
+</code></pre>
+
+
+</div>

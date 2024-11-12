@@ -1,0 +1,643 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>crossValidationFeatureSelection_Bin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>IDI/NRI-based selection of a linear, logistic, or Cox proportional hazards regression model from a set of candidate variables</h2>
+
+<h3>Description</h3>
+
+<p>This function performs a cross-validation analysis of a feature selection algorithm based on the integrated discrimination improvement (IDI) or the net reclassification improvement (NRI) to return a predictive model.
+It is composed of an IDI/NRI-based feature selection followed by an update procedure, ending with a bootstrapping backwards feature elimination.
+The user can control how many train and blind test sets will be evaluated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	crossValidationFeatureSelection_Bin(size = 10,
+	                                fraction = 1.0,
+	                                pvalue = 0.05,
+	                                loops = 100,
+	                                covariates = "1",
+	                                Outcome,
+	                                timeOutcome = "Time",
+	                                variableList,
+	                                data,
+	                                maxTrainModelSize = 20,
+	                                type = c("LM", "LOGIT", "COX"),
+	                                selectionType = c("zIDI", "zNRI"),
+	                                startOffset = 0,
+	                                elimination.bootstrap.steps = 100,
+	                                trainFraction = 0.67,
+	                                trainRepetition = 9,
+	                                bootstrap.steps = 100,
+	                                nk = 0,
+	                                unirank = NULL,
+	                                print=TRUE,
+	                                plots=TRUE,
+	                                lambda="lambda.1se",
+	                                equivalent=FALSE,
+	                                bswimsCycles=10,
+	                                usrFitFun=NULL,
+	                                featureSize=0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+
+<p>The number of candidate variables to be tested (the first <code>size</code> variables from <code>variableList</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fraction</code></td>
+<td>
+
+<p>The fraction of data (sampled with replacement) to be used as train
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+
+<p>The maximum <em>p</em>-value, associated to either IDI or NRI, allowed for a term in the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loops</code></td>
+<td>
+
+<p>The number of bootstrap loops
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+
+<p>A string of the type "1 + var1 + var2" that defines which variables will always be included in the models (as covariates)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The name of the column in <code>data</code> that stores the variable to be predicted by the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeOutcome</code></td>
+<td>
+
+<p>The name of the column in <code>data</code> that stores the time to event (needed only for a Cox proportional hazards regression model fitting)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variableList</code></td>
+<td>
+
+<p>A data frame with two columns. The first one must have the names of the candidate variables and the other one the description of such variables
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame where all variables are stored in different columns
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxTrainModelSize</code></td>
+<td>
+
+<p>Maximum number of terms that can be included in the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Fit type: Logistic ("LOGIT"), linear ("LM"), or Cox proportional hazards ("COX")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selectionType</code></td>
+<td>
+
+<p>The type of index to be evaluated by the <code>improveProb</code> function (<code>Hmisc</code> package): <em>z</em>-score of IDI or of NRI
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startOffset</code></td>
+<td>
+
+<p>Only terms whose position in the model is larger than the <code>startOffset</code> are candidates to be removed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elimination.bootstrap.steps</code></td>
+<td>
+
+<p>The number of bootstrap loops for the backwards elimination procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trainFraction</code></td>
+<td>
+
+<p>The fraction of data (sampled with replacement) to be used as train for the cross-validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trainRepetition</code></td>
+<td>
+
+<p>The number of cross-validation folds (it should be at least equal to <code class="reqn">1/</code><code>trainFraction</code> for a complete cross-validation)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap.steps</code></td>
+<td>
+
+<p>The number of bootstrap loops for the confidence intervals estimation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nk</code></td>
+<td>
+
+<p>The number of neighbours used to generate a <em>k</em>-nearest neighbours (KNN) classification. If zero, <em>k</em> is set to the square root of the number of cases. If less than zero, it will not perform the KNN classification
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unirank</code></td>
+<td>
+
+<p>A list with the results yielded by the <code>uniRankVar</code> function, required only if the rank needs to be updated during the cross-validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>, information will be displayed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plots</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>, plots are displayed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>The passed value to the s parameter of the glmnet cross validation coefficient
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equivalent</code></td>
+<td>
+
+<p>Is set to TRUE CV will compute the equivalent model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bswimsCycles</code></td>
+<td>
+
+<p>The maximum number of models to be returned by <code>BSWiMS.model</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>usrFitFun</code></td>
+<td>
+
+<p>A user fitting function to be evaluated by the cross validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>featureSize</code></td>
+<td>
+
+<p>The original number of features to be explored in the data frame.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function produces a set of data and plots that can be used to inspect the degree of over-fitting or shrinkage of a model.
+It uses bootstrapped data, cross-validation data, and, if possible, retrain data.
+During each cycle, a train and a test ROC will be generated using bootstrapped data.
+At the end of the cross-validation feature selection procedure, a set of three plots may be produced depending on the specifications of the analysis.
+The first plot shows the ROC for each cross-validation blind test.
+The second plot, if enough samples are given, shows the ROC of each model trained and tested in the blind test partition.
+The final plot shows ROC curves generated with the train, the bootstrapped blind test, and the cross-validation test data.
+Additionally, this plot will also contain the ROC of the cross-validation mean test data, and of the cross-validation coherence.
+These set of plots may be used to get an overall perspective of the expected model shrinkage.
+Along with the plots, the function provides the overall performance of the system (accuracy, sensitivity, and specificity).
+The function also produces a report of the expected performance of a KNN algorithm trained with the selected features of the model, and an elastic net algorithm.
+The test predictions obtained with these algorithms can then be compared to the predictions generated by the logistic, linear, or Cox proportional hazards regression model.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula.list</code></td>
+<td>
+
+<p>A list containing objects of class <code>formula</code> with the formulas used to fit the models found at each cycle
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Models.testPrediction</code></td>
+<td>
+
+<p>A data frame with the blind test set predictions (Full B:SWiMS,Median,Bagged,Forward,Backwards Eliminations) made at each fold of the cross validation, where the models used to generate such predictions (<code>formula.list</code>) were generated via a feature selection process which included only the train set.
+It also includes a column with the <code>Outcome</code> of each prediction, and a column with the number of the fold at which the prediction was made.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullBSWiMS.testPrediction</code></td>
+<td>
+
+<p>A data frame similar to <code>Models.testPrediction</code>, but where the model used to generate the predictions was the Full model, generated via a feature selection process which included all data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TestRetrained.blindPredictions</code></td>
+<td>
+
+<p>A data frame similar to <code>Models.testPrediction</code>, but where the models were retrained on an independent set of data (only if enough samples are given at each fold)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LastTrainBSWiMS.bootstrapped</code></td>
+<td>
+
+<p>An object of class <code>bootstrapValidation_Bin</code> containing the results of the bootstrap validation in the last trained model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Test.accuracy</code></td>
+<td>
+
+<p>The global blind test accuracy of the cross-validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Test.sensitivity</code></td>
+<td>
+
+<p>The global blind test sensitivity of the cross-validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Test.specificity</code></td>
+<td>
+
+<p>The global blind test specificity of the cross-validation procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Train.correlationsToFull</code></td>
+<td>
+
+<p>The Spearman <code class="reqn">\rho</code> rank correlation coefficient between the predictions made with each model from <code>formula.list</code> and the Full model in the train set
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Blind.correlationsToFull</code></td>
+<td>
+
+<p>The Spearman <code class="reqn">\rho</code> rank correlation coefficient between the predictions made with each model from <code>formula.list</code> and the Full model in the test set
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullModelAtFoldAccuracies</code></td>
+<td>
+
+<p>The blind test accuracy for the Full model at each cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullModelAtFoldSpecificties</code></td>
+<td>
+
+<p>The blind test specificity for the Full model at each cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullModelAtFoldSensitivities</code></td>
+<td>
+
+<p>The blind test sensitivity for the Full model at each cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullModelAtFoldAUC</code></td>
+<td>
+
+<p>The blind test ROC AUC for the Full model at each cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AtCVFoldModelBlindAccuracies</code></td>
+<td>
+
+<p>The blind test accuracy for the Full model at each final cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AtCVFoldModelBlindSpecificities</code></td>
+<td>
+
+<p>The blind test specificity for the Full model at each final cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AtCVFoldModelBlindSensitivities</code></td>
+<td>
+
+<p>The blind test sensitivity for the Full model at each final cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CVTrain.Accuracies</code></td>
+<td>
+
+<p>The train accuracies at each fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CVTrain.Sensitivity</code></td>
+<td>
+
+<p>The train sensitivity at each fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CVTrain.Specificity</code></td>
+<td>
+
+<p>The train specificity at each fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CVTrain.AUCs</code></td>
+<td>
+
+<p>The train ROC AUC for each fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forwardSelection</code></td>
+<td>
+
+<p>A list containing the values returned by <code>ForwardSelection.Model.Bin</code> using all data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>updateforwardSelection</code></td>
+<td>
+
+<p>A list containing the values returned by <code>updateModel.Bin</code> using all data and the model from <code>forwardSelection</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BSWiMS</code></td>
+<td>
+
+<p>A list containing the values returned by <code>bootstrapVarElimination_Bin</code> using all data and the model from <code>updateforwardSelection</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullBSWiMS.bootstrapped</code></td>
+<td>
+
+<p>An object of class <code>bootstrapValidation_Bin</code> containing the results of the bootstrap validation in the Full model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Models.testSensitivities </code></td>
+<td>
+
+<p>A matrix with the mean ROC sensitivities at certain specificities for each train and all test cross-validation folds using the cross-validation models (i.e. 0.95, 0.90, 0.80, 0.70, 0.60, 0.50, 0.40, 0.30, 0.20, 0.10, and 0.05)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullKNN.testPrediction</code></td>
+<td>
+
+<p>A data frame similar to <code>Models.testPrediction</code>, but where a KNN classifier with the same features as the Full model was used to generate the predictions
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>KNN.testPrediction</code></td>
+<td>
+
+<p>A data frame similar to <code>Models.testPrediction</code>, but where KNN classifiers with the same features as the cross-validation models were used to generate the predictions at each cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fullenet</code></td>
+<td>
+
+<p>An object of class <code>cv.glmnet</code> containing the results of an elastic net cross-validation fit
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LASSO.testPredictions</code></td>
+<td>
+
+<p>A data frame similar to <code>Models.testPrediction</code>, but where the predictions were made by the elastic net model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LASSOVariables</code></td>
+<td>
+
+<p>A list with the elastic net Full model and the models found at each cross-validation fold
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniTrain.Accuracies</code></td>
+<td>
+
+<p>The list of accuracies of an univariate analysis on each one of the model variables in the train sets
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniTest.Accuracies</code></td>
+<td>
+
+<p>The list of accuracies of an univariate analysis on each one of the model variables in the test sets
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniTest.TopCoherence</code></td>
+<td>
+
+<p>The accuracy coherence of the top ranked variable on the test set
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniTrain.TopCoherence</code></td>
+<td>
+
+<p>The accuracy coherence of the top ranked variable on the train set
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Models.trainPrediction</code></td>
+<td>
+
+<p>A data frame with the outcome and the train prediction of every model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullBSWiMS.trainPrediction</code></td>
+<td>
+
+<p>A data frame with the outcome and the train prediction at each CV fold for the main model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LASSO.trainPredictions</code></td>
+<td>
+
+<p>A data frame with the outcome and the prediction of each enet lasso model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BSWiMS.ensemble.prediction</code></td>
+<td>
+
+<p>The ensemble prediction by all models on the test data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AtOptFormulas.list</code></td>
+<td>
+
+<p>The list of formulas with "optimal" performance 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ForwardFormulas.list</code></td>
+<td>
+
+<p>The list of formulas produced by the forward procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>baggFormulas.list</code></td>
+<td>
+
+<p>The list of the bagged models
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LassoFilterVarList</code></td>
+<td>
+
+<p>The list of variables used by LASSO fitting
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena and Antonio Martinez-Torteya</p>
+
+
+<h3>References</h3>
+
+<p>Pencina, M. J., D'Agostino, R. B., &amp; Vasan, R. S. (2008). Evaluating the added predictive ability of a new marker: from area under the ROC curve to reclassification and beyond. <em>Statistics in medicine</em> <b>27</b>(2), 157-172.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>crossValidationFeatureSelection_Res,
+				 ForwardSelection.Model.Bin,
+				 ForwardSelection.Model.Res</code></p>
+
+
+</div>

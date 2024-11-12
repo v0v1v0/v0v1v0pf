@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variance estimation of FMT method (Fully Moderated T-statistic)</h2>
+
+<h3>Description</h3>
+
+<p>This function computes posterior residual variances to be used
+in the denominator of a moderated t-statistic from a linear model
+analysis of gene expression data. It is an extension of the moderated
+t-statistic originally proposed by Smyth (Statistical Applications in
+Genetics and Molecular Biology, 2004;3:Article3). LOESS local regression
+and empirical Bayesian method are used to estimate gene specific prior
+degrees of freedom and prior variance based on average gene intensity levels.
+The posterior residual variance in the denominator is a weighted average of
+prior and residual variance and the weights are prior degrees of freedom
+and residual variance degrees of freedom. The degrees of freedom of the
+moderated t-statistic is simply the sum of prior and residual variance
+degrees of freedom.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmt(
+  Amean,
+  sigmasq,
+  df,
+  span1 = 0.5,
+  span2 = 0.95,
+  iter1 = 4,
+  iter2 = 4,
+  b = 20
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Amean</code></td>
+<td>
+<p>average log intensity levels of all genes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmasq</code></td>
+<td>
+<p>residual variances of all genes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>degrees of freedom for sigmasq</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>span1</code></td>
+<td>
+<p>span parameter in LOESS smoothing function, default is 0.5</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>span2</code></td>
+<td>
+<p>span parameter in LOESS smoothing function, default is 0.95</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter1</code></td>
+<td>
+<p>iteration number in LOESS smoothing function, default is 4</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter2</code></td>
+<td>
+<p>iteration number in LOESS smoothing function, default is 4</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>number of genes on either side of moving average
+window when calculating variance of log residual variances,
+default is 20</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame with the following components:
+</p>
+<p>'df.prior' the estimated prior degrees of freedom.
+</p>
+<p>'df.post' the estimated posterior degrees of freedom.
+</p>
+<p>'s2.prior' the estimated prior variance.
+</p>
+<p>'s2.post' the estimated posterior variance.
+</p>
+<p>'Ameansort' intermediate result.
+</p>
+<p>'eg' intermediate result.
+</p>
+<p>'egpred' intermediate result.
+</p>
+<p>'MAvar' intermediate result.
+</p>
+<p>'tri.d0' intermediate result.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate gene expression data for 1000 genes and 10 samples in two groups.
+exp &lt;- rnorm(1000,8,2)
+sd &lt;- 0.5*sqrt(4/rchisq(1000, df=7))
+y &lt;- matrix(rnorm(1000*10, exp, sd),1000,10)
+rownames(y) &lt;- paste("Gene",1:1000)
+design &lt;- cbind(Grp1=1, Grp2vs1=c(0,0,0,0,0,1,1,1,1,1))
+
+## limma fit
+fit &lt;- lmFit(y,design)
+
+## fmt fit
+fmt.fit &lt;- fmt(fit$Amean, fit$sigma, fit$df.residual)
+
+</code></pre>
+
+
+</div>

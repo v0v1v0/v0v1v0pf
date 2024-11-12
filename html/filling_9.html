@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fill.SVDimpute</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Iterative Regression against Right Singular Vectors</h2>
+
+<h3>Description</h3>
+
+<p>Singular Value Decomposition (SVD) is the best low-rank approximation of a given matrix.
+<code>fill.SVDimpute</code> exploits such idea. First, it starts with simple filling using
+column mean values for filling. Second, it finds SVD of a current matrix. Then,
+each row vector is regressed upon top-<code class="reqn">k</code> right singular vectors. Missing entries are
+then filled with predicted estimates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fill.SVDimpute(A, k = ceiling(ncol(A)/2), maxiter = 100, tol = 0.01)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>an <code class="reqn">(n\times p)</code> partially observed matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of regressors to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations to be performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>stopping criterion for an incremental progress.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list containing </p>
+
+<dl>
+<dt>X</dt>
+<dd>
+<p>an <code class="reqn">(n\times p)</code> matrix after completion.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Troyanskaya O, Cantor M, Sherlock G, Brown P, Hastie T, Tibshirani R, Botstein D, Altman RB (2001).
+“Missing value estimation methods for DNA microarrays.”
+<em>Bioinformatics</em>, <b>17</b>(6), 520–525.
+ISSN 1367-4803.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fill.KNNimpute</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## load image data of 'lena128'
+data(lena128)
+
+## transform 5% of entries into missing
+set.seed(5)
+A &lt;- aux.rndmissing(lena128, x=0.05)
+
+## apply the method with 3 different number of regressors
+fill1 &lt;- fill.SVDimpute(A, k=5)
+fill2 &lt;- fill.SVDimpute(A, k=25)
+fill3 &lt;- fill.SVDimpute(A, k=50)
+
+## visualize only the last ones from each run
+opar &lt;- par(no.readonly=TRUE)
+par(mfrow=c(2,2), pty="s")
+image(A, col=gray((0:100)/100), axes=FALSE, main="5% missing")
+image(fill1$X, col=gray((0:100)/100), axes=FALSE, main="5 regressors")
+image(fill2$X, col=gray((0:100)/100), axes=FALSE, main="25 regressors")
+image(fill3$X, col=gray((0:100)/100), axes=FALSE, main="50 regressors")
+par(opar)
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

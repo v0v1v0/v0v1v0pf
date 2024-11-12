@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>specs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an Import Spec Collection</h2>
+
+<h3>Description</h3>
+
+<p>A function to create a collection of import specifications for a 
+data source.  These specs can be used on the 
+<code>catalog</code> function to correctly assign the data types uniquely for 
+different imported data files. The spec collection is a set of <code>import_spec</code>
+objects identified by name/value pairs.  The name corresponds to the name of
+the input dataset, without file extension. The value is the <code>import_spec</code>
+object to use for that dataset.  In this way, you may define different
+specs for each dataset in your catalog.  
+</p>
+<p>The import engines will guess at the data types for any columns that
+are not explicitly defined in the import specifications. 
+The import spec syntax is the same for all data engines.
+</p>
+<p>Note that the <code>na</code> and <code>trim_ws</code> parameters on the <code>specs</code> 
+function will be applied globally to all files in the library.  
+These global settings can be overridden on the <code>import_spec</code> 
+for any particular data file. 
+</p>
+<p>Also note that the <code>specs</code> collection is defined as an object 
+so it can be stored and reused.
+See the <code>write.specs</code> and <code>read.specs</code> functions
+for additional information on saving and restoring specs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">specs(..., na = c("", "NA"), trim_ws = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Named input specs.  The name should correspond to the file name,
+without the file extension.
+The spec is defined as an <code>import_spec</code> object.  See the 
+<code>import_spec</code> function for additional information on 
+parameters for that object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na</code></td>
+<td>
+<p>A vector of values to be treated as NA.  For example, the 
+vector <code>c('', ' ')</code> will cause empty strings and single blanks to 
+be converted to NA values. For most file types, 
+empty strings and the string 'NA' <code>('', 'NA')</code> are considered NA.  
+For SAS® datasets and transport files, a single blank and a single dot 
+<code>c(" ", ".")</code> are considered NA. The value of the 
+<code>na</code> parameter on the <code>specs</code> function can be overridden
+by the <code>na</code> parameter on the <code>import_spec</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim_ws</code></td>
+<td>
+<p>Whether or not to trim white space from the input data values.
+Valid values are TRUE, and FALSE.  Default is TRUE.  The value of the 
+<code>trim_ws</code> parameter on the <code>specs</code> function can be overridden
+by the <code>trim_ws</code> parameter on the <code>import_spec</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The import spec collection.  The class of the object is "specs".
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>catalog</code> to create a data catalog, 
+<code>fetch</code> for retrieving data, and 
+<code>import_spec</code> for additional information on defining an 
+import spec.
+</p>
+<p>Other specs: 
+<code>import_spec()</code>,
+<code>print.specs()</code>,
+<code>read.specs()</code>,
+<code>write.specs()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Get sample data directory
+pkg &lt;- system.file("extdata", package = "fetch")
+
+# Create import spec
+spc &lt;- specs(ADAE = import_spec(TRTSDT = "date=%d%b%Y",
+                                TRTEDT = "date=%d%b%Y"),
+             ADVS = import_spec(TRTSDT = "character",
+                                TRTEDT = "character"))
+
+# Create catalog with specs collection
+ct &lt;- catalog(pkg, engines$csv, import_specs = spc)
+
+# Get dictionary for ADAE with Import Spec
+d1 &lt;- ct$ADAE
+
+# Observe data types for TRTSDT and TRTEDT are Dates
+d1[d1$Column %in% c("TRTSDT", "TRTEDT"), ]
+# data item 'ADAE': 56 cols 150 rows
+#- Engine: csv
+#- Size: 155 Kb
+#- Last Modified: 2020-09-18 14:30:22
+#   Name Column Class Label Format NAs MaxChar
+#13 ADAE TRTSDT  Date  &lt;NA&gt;     NA   1      10
+#14 ADAE TRTEDT  Date  &lt;NA&gt;     NA   4      10
+
+# Get dictionary for ADVS with Import Spec
+d2 &lt;- ct$ADVS
+
+# Observe data types for TRTSDT and TRTEDT are character
+d2[d2$Column %in% c("TRTSDT", "TRTEDT"), ]
+# data item 'ADVS': 37 cols 3617 rows
+#- Engine: csv
+#- Size: 1.1 Mb
+#- Last Modified: 2020-09-18 14:30:22
+#   Name Column     Class Label Format NAs MaxChar
+#16 ADVS TRTSDT character  &lt;NA&gt;     NA  54       9
+#17 ADVS TRTEDT character  &lt;NA&gt;     NA 119       9
+
+</code></pre>
+
+
+</div>

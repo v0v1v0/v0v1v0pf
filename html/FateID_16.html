@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prcurve</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computation of a principal curve for a given dimensional reduction representation</h2>
+
+<h3>Description</h3>
+
+<p>This function computes a principal curve for a given dimensional reduction representation which is specified by component names of an object returned by <code>compdr</code> using the <span class="pkg">princurve</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prcurve(y, fb, dr, k = 2, m = "cmd", trthr = NULL, start = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>clustering partition. A vector with an integer cluster number for each cell. The order of the cells has to be the same as for the columns of x.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fb</code></td>
+<td>
+<p>fateBias object returned by the function <code>fateBias</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dr</code></td>
+<td>
+<p>list of dimensional reduction representations returned by the function <code>compdr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>integer number for the dimension to be used. This dimension has to be present in <code>dr</code>. Default value is 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>name of the dimensional reduction algorithms to be used for the principal curve computation. One of <code>cmd</code>, <code>dm</code>, <code>tsne</code>, <code>umap</code>. Default value is <code>cmd</code>. Has to be a component of <code>dr</code>, i.e. previously computed by <code>compdr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trthr</code></td>
+<td>
+<p>real value representing the threshold of the fraction of random forest votes required for the inclusion of a given cell for the computation of the principal curve. If <code>NULL</code> then only cells with a significant bias &gt;1 are included for each trajectory. The bias is computed as the ratio of the number of votes for a trajectory and the number of votes for the trajectory with the second largest number of votes. By this means only the trajectory with the largest number of votes will receive a bias &gt;1. The siginifcance is computed based on counting statistics on the difference in the number of votes. A significant bias requires a p-value &lt; 0.05. Default value is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>integer number representing a specified starting cluster number for all trajectories, i. e. a common progenitor cluster. The argument is optional. Default value is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to the low level function <code>principal_curve</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes a principal curve for each differentiation trajectory by considering only cells that are assigned to the trajectory with a significant fate bias &gt;1 or at least <code>trthr</code> of the random forest votes, respectively.
+</p>
+<p>For simulateneous computation and plotting of the principal curve, see function <code>plotFateMap</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of the following two components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pr</code></td>
+<td>
+<p>A list of principal curve objects produced by the <code>principal_curve</code> function from the <span class="pkg">princurve</span> package. Each component corresponds to one differentiation trajectory giving rise to one of the target clusters from the <code>fb</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trc</code></td>
+<td>
+<p>A list of ordered cell IDs for each trajectory in <code>pr</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+x &lt;- intestine$x
+y &lt;- intestine$y
+tar &lt;- c(6,9,13)
+fb &lt;- fateBias(x,y,tar,z=NULL,minnr=5,minnrh=10,nbfactor=5,use.dist=FALSE,seed=NULL,nbtree=NULL)
+dr &lt;- compdr(x,z=NULL,m="cmd",k=2,tsne.perplexity=30)
+pr &lt;- prcurve(y,fb,dr,k=2,m="cmd",trthr=0.25,start=NULL)
+
+</code></pre>
+
+
+</div>

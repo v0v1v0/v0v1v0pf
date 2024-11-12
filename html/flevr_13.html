@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_augmented_set</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get an augmented set based on the next-most significant variables</h2>
+
+<h3>Description</h3>
+
+<p>Based on the adjusted p-values from a FWER-controlling procedure and a
+more general error rate for which control is desired (e.g., generalized
+FWER, proportion of false positives, or FDR), augment the set based on FWER
+control with the next-most significant variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_augmented_set(
+  p_values = NULL,
+  num_rejected = 0,
+  alpha = 0.05,
+  quantity = "gFWER",
+  q = 0.05,
+  k = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p_values</code></td>
+<td>
+<p>the adjusted p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_rejected</code></td>
+<td>
+<p>the number of rejected null hypotheses from the base
+FWER-controlling procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the significance level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantity</code></td>
+<td>
+<p>the quantity to control (i.e., <code>"gFWER"</code>, <code>"PFP"</code>,
+or <code>"FDR"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>the proportion for FDR or PFP control.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of false positives for gFWER control.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list of the variables selected into the augmentation set. Contains the following values:
+</p>
+
+<ul>
+<li> <p><code>set</code>, a numeric vector where 1 denotes that the variable was selected and 0 otherwise
+</p>
+</li>
+<li> <p><code>k</code>, the value of k used
+</p>
+</li>
+<li> <p><code>q_star</code>, the value of q-star used
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("biomarkers")
+# subset to complete cases for illustration
+cc &lt;- complete.cases(biomarkers)
+dat_cc &lt;- biomarkers[cc, ]
+# use only the mucinous outcome, not the high-malignancy outcome
+y &lt;- dat_cc$mucinous
+x &lt;- dat_cc[, !(names(dat_cc) %in% c("mucinous", "high_malignancy"))]
+feature_nms &lt;- names(x)
+# estimate SPVIMs (using simple library and V = 2 for illustration only)
+set.seed(20231129)
+library("SuperLearner")
+est &lt;- vimp::sp_vim(Y = y, X = x, V = 2, type = "auc", SL.library = "SL.glm", 
+                    cvControl = list(V = 2))
+# get base set
+base_set &lt;- get_base_set(test_statistics = est$test_statistic, p_values = est$p_value, 
+                         alpha = 0.2, method = "Holm")
+# get augmented set
+augmented_set &lt;- get_augmented_set(p_values = base_set$p_values, 
+                                   num_rejected = sum(base_set$decision), alpha = 0.2, 
+                                   quantity = "gFWER", k = 1)
+augmented_set$set
+
+</code></pre>
+
+
+</div>

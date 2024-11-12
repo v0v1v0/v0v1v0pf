@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>powerEA3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Power of the Equal Allocation 3 procedure</h2>
+
+<h3>Description</h3>
+
+<p>Computes the Equal Allocation 3 procedure's power to
+detect the overall A effect, the simple A effect, or the simple AB effect, respectively.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">powerEA3(
+  n,
+  hrA,
+  hrB,
+  hrAB,
+  avgprob,
+  probA_C,
+  probAB_C,
+  critEA3,
+  dig,
+  cormat12 = matrix(c(1, sqrt(0.5), sqrt(0.5), 1), byrow = T, nrow = 2),
+  niter = 5,
+  abseps = 0.001
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>total subjects with n/4 subjects in each of the C, A, B, and AB groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrA</code></td>
+<td>
+<p>group A to group C hazard ratio; <code>hrA</code> &lt; 1 corresponds to group A superiority</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrB</code></td>
+<td>
+<p>group B to group C hazard ratio; <code>hrA</code> &lt; 1 corresponds to group A superiority</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrAB</code></td>
+<td>
+<p>group AB to group C hazard ratio; <code>hrAB</code> &lt; 1 corresponds to group AB superiority</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>avgprob</code></td>
+<td>
+<p>event probability averaged across the C, A, B, and AB groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probA_C</code></td>
+<td>
+<p>event probability averaged across the A and C groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probAB_C</code></td>
+<td>
+<p>event probability averaged across the AB and C groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>critEA3</code></td>
+<td>
+<p>rejection critical value for the overall A, simple A, and simple AB logrank statistics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dig</code></td>
+<td>
+<p>number of decimal places to <code>roundDown</code> the critical value to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cormat12</code></td>
+<td>
+<p>asymptotic correlation matrix for the overall A and simple A, respectively, simple AB logrank statistics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>number of times we call <code>pmvnorm</code> to average out its randomness</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abseps</code></td>
+<td>
+<p><code>abseps</code> setting in the <code>pmvnorm</code> call</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a 2-by-2 factorial design, this function computes
+the probability that either the overall A
+or the simple A or the simple AB logrank statistics
+reject their null hypotheses at the Dunnet-corrected
+<code>critEA3</code> critical value.  As described in Leifer, Troendle, et al. (2019),
+the <code>critEA3</code> = -2.32 critical value
+corresponds to controlling the famiywise error of the Equal Allocation 3 procedure at the
+two-sided 0.05 significance level.
+The critical value -2.32 may be computed using the <code>crit2x2</code> function.
+The <code>pmvnorm</code> function from the <code>mvtnorm</code> package is used to calculate
+the power for simultaneously detecting the overall and simple A effects.
+This is used to compute the power for detecting the overall A and/or simple A effects,
+which is computed as the sum of the powers for each of the effects minus the
+power for simultaneously detecting both effects.
+Since the power for simultaneously detecting both effects involves bivariate
+normal integration over an unbounded region in R^2, <code>pmvnorm</code>
+uses a random seed for these computations.  Note that cRAN suggested
+we not include the random seed as an argument in this function.  To smooth out the
+randomness, <code>pmvnorm</code> is called <code>niter</code> times and
+the average value over the <code>niter</code> calls is taken to be those powers.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>powerEA3overallA </code></td>
+<td>
+<p>power to detect the overall A effect</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>powerEA3simpleA </code></td>
+<td>
+<p>power to detect the simple A effect</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>powerEA3simpleAB </code></td>
+<td>
+<p>power to detect the simple AB effect</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>powerEA3anyA </code></td>
+<td>
+<p>power to detect either the overall A or simple A effects</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Leifer, E.S., Troendle, J.F., Kolecki, A., Follmann, D.
+Joint testing of overall and simple effect for the two-by-two factorial design. (2020). Submitted.
+</p>
+<p>Lin, D-Y., Gong, J., Gallo, P., et al. Simultaneous inference on treatment effects
+in survival studies with factorial designs. Biometrics. 2016; 72: 1078-1085.
+</p>
+<p>Slud, E.V. Analysis of factorial survival experiments. Biometrics. 1994; 50: 25-38.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>crit2x2</code>, <code>lgrkPower</code>, <code>strLgrkPower</code>, <code>pmvnorm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Corresponds to scenario 5 in Table 2 from Leifer, Troendle, et al. (2020).
+rateC &lt;- 0.0445
+hrA &lt;- 0.80
+hrB &lt;- 0.80
+hrAB &lt;- 0.72
+mincens &lt;- 4.0
+maxcens &lt;- 8.4
+evtprob &lt;- eventProb(rateC, hrA, hrB, hrAB, mincens, maxcens)
+avgprob &lt;- evtprob$avgprob
+probAB_C &lt;- evtprob$probAB_C
+probA_C &lt;- evtprob$probA_C
+dig &lt;- 2
+alpha &lt;- 0.05
+corAa  &lt;- 1/sqrt(2)
+corAab &lt;- 1/sqrt(2)
+coraab &lt;- 1/2
+critEA3 &lt;- crit2x2(corAa, corAab, coraab, dig, alpha)$critEA3
+n &lt;- 4600
+powerEA3(n, hrA, hrB, hrAB, avgprob, probA_C, probAB_C,
+  critEA3, dig, cormat12 = matrix(c(1, sqrt(0.5), sqrt(0.5), 1), byrow = TRUE,
+  nrow = 2), niter = 1, abseps = 1e-03)
+
+# $powerEA3overallA
+# [1] 0.5861992
+
+# $powerEA3simpleA
+# [1] 0.5817954
+
+# $powerAB
+# [1] 0.9071236
+
+# $powerEA3anyA
+# [1] 0.7060777
+</code></pre>
+
+
+</div>

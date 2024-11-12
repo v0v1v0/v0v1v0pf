@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>synthesisAnalysis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>De novo synthesis analysis of fatty acids until 16 carbons.</h2>
+
+<h3>Description</h3>
+
+<p>De novo synthesis analysis of fatty acids until 16 carbons.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">synthesisAnalysis(
+  fadata,
+  R2Thr = 0.98,
+  maxiter = 1000,
+  maxconvergence = 100,
+  D1 = NA,
+  D2 = NA,
+  P = NA,
+  startpoints = 5,
+  parameters = FAMetA::parameters,
+  propagateD = TRUE,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fadata</code></td>
+<td>
+<p>fadata obtained from the msbatch with searchFAisotopes
+function or read from csv file with readfadatafile function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2Thr</code></td>
+<td>
+<p>positive numeric between 0 and 1 specifying the minimum R2
+allowed for fits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>parameter passed to nls.control. Positive integer
+specifying the maximum number of iterations allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxconvergence</code></td>
+<td>
+<p>positive integer specifying the maximum number of
+successes before choosing the winning model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D1</code></td>
+<td>
+<p>positive numeric between 0 and 1 specifying the contribution of
+acetate M+1. If NA it is estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D2</code></td>
+<td>
+<p>positive numeric between 0 and 1 specifying the contribution of
+acetate M+2. If NA it is estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>overdispersion parameter. If NA it is estimated (quasi-multinomial
+distribution). If set to 0, no overdispersion is assumed (multinomial
+distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startpoints</code></td>
+<td>
+<p>positive integer specifying the number of starting points
+for each parameter to be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>parameters to be estimated for each fatty acid. It can be
+modified to change them or to add new fatty acids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>propagateD</code></td>
+<td>
+<p>logical. If TRUE, unsaturated fatty acids use estimated D0,
+D1,D2 and P values for saturated fatty acids (14:0 for FA shorter than 16C
+and 16:0 for FA with 16C.).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>print information messages.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Synthesis analysis will model FA data for FA up to 16 carbons to
+estimate 13C-tracer contribution to the acetyl-CoA pool for FA synthesis (D)
+and the FA fraction that has been synthesized de novo. D0, D1 and D2
+represent the contribution of M+0, M+1 and M+2 acetate, respectively, and P
+(phi) is the overdispersion parameter of the quasi-multinomial distribution.
+D0, D1, D2 can also be fixed if they are known. This is particularly useful
+in case inhibitors have been used as they could reduce S below the confidence
+interval and thus, S and D parameters could be misestimated.
+</p>
+
+
+<h3>Value</h3>
+
+<p>fadata list. Synthesis analysis results will be saved at the 
+synthesis element of the fa list.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>M Isabel Alcoriza-Balaguer &lt;maribel_alcoriza@iislafe.es&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ssdata &lt;- dataCorrection(ssexamplefadata, blankgroup="Blank")
+ssdata &lt;- synthesisAnalysis(ssdata, R2Thr = 0.95, maxiter = 1e3,
+maxconvergence = 100, startpoints = 5)
+
+
+## Not run: 
+fadata &lt;- dataCorrection(examplefadata, blankgroup = "Blank")
+fadata &lt;- synthesisAnalysis(fadata, R2Thr = 0.95, maxiter = 1e3,
+maxconvergence = 100, startpoints = 5)
+
+# If inhibitors have been used, make sure D2 has not been underestimated. If so,
+# D2 could be set as the one calculated for 13-Glc Control samples to improve
+# the results:
+
+# D2 &lt;- fadata$synthesis$results$D2[fadata$synthesis$results$FA == "FA(16:0)"]
+# fadata$synthesis$results$Group[fadata$synthesis$results$FA == "FA(16:0)"]
+
+# D2[4:12] &lt;- rep(mean(D2[1:3]))
+
+# relaunch synthesis analysis fixing D2
+# fadata &lt;- synthesisAnalysis(fadata, R2Thr = 0.95, maxiter = 1e3,
+#                             maxconvergence = 100, startpoints = 5, D2 = D2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

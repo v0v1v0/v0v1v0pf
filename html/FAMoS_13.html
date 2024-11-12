@@ -1,0 +1,91 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>retrieve.results</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retrieve Model Results</h2>
+
+<h3>Description</h3>
+
+<p>Returns the results of a specified model that was tested by <code>famos</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">retrieve.results(model, homedir = getwd(), all.names = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Either the binary number of the model as a string (e.g. "011001"), a named vector containing the names the names of the fitted parameters or a vector containing ones and zeroes to indicate which model parameter were fitted. If the names of the fitted parameters are supplied, <code>all.names</code> must be specified as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homedir</code></td>
+<td>
+<p>A string giving the directory in which the result folders are found. This is the same directory in which <code>famos</code> was run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all.names</code></td>
+<td>
+<p>A vector containing the names of all parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector containing the calculated selection criteria and estimated parameters of the specified model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#setting data
+x.values &lt;- 1:7
+y.values &lt;-  3^2 * x.values^2 - exp(2 * x.values)
+
+#define initial conditions and corresponding test function
+inits &lt;- c(p1 = 3, p2 = 4, p3 = -2, p4 = 2, p5 = 0)
+
+cost_function &lt;- function(parms, x.vals, y.vals){
+ if(max(abs(parms)) &gt; 5){
+   return(NA)
+ }
+ with(as.list(c(parms)), {
+   res &lt;- p1*4 + p2^2*x.vals^2 + p3*sin(x.vals) + p4*x.vals - exp(p5*x.vals)
+   diff &lt;- sum((res - y.vals)^2)
+ })
+}
+
+
+#perform model selection
+res &lt;- famos(init.par = inits,
+            fit.fn = cost_function,
+            nr.of.data = length(y.values),
+            homedir = tempdir(),
+            init.model.type = c("p2", "p3"),
+            optim.runs = 1,
+            x.vals = x.values,
+            y.vals = y.values)
+
+#get results
+retrieve.results(model = "01110", homedir = tempdir())
+retrieve.results(model = c("p2", "p3", "p4"), homedir = tempdir(),
+                 all.names = c("p1","p2", "p3", "p4", "p5"))
+retrieve.results(model = c(0,1,1,1,0), homedir = tempdir())
+
+#delete tempdir
+unlink(paste0(tempdir(),"/FAMoS-Results"), recursive = TRUE)
+</code></pre>
+
+
+</div>

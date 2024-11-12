@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_mon</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot multivariate functional object over the training data set</h2>
+
+<h3>Description</h3>
+
+<p>This function plots selected functions in
+a phase_II monitoring data set against the
+corresponding training data set to be compared.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_mon(cclist, fd_train, fd_test, plot_title = FALSE, print_id = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cclist</code></td>
+<td>
+<p>A <code>data.frame</code> produced by
+<code>control_charts_pca</code>, <code>control_charts_sof_pc</code>
+<code>regr_cc_fof</code>, or <code>regr_cc_sof</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fd_train</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the training data set of the functional variables.
+They are plotted in gray in the background.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fd_test</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing
+the phase II data set of the functional variables to be monitored.
+They are coloured in black or red on the foreground.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_title</code></td>
+<td>
+<p>A logical value. If <code>TRUE</code>,
+it prints the title with the observation name.
+Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_id</code></td>
+<td>
+<p>A logical value. If <code>TRUE</code>, and also <code>plot_title</code> is <code>TRUE</code>,
+it prints also the id of the observation
+in the title of the ggplot.
+Default is <code>FALSE</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A ggplot of the multivariate functional data.
+In particular, the multivariate functional data given in
+<code>fd_train</code> are plotted on
+the background in gray, while the multivariate functional data given in
+<code>fd_test</code> are
+plotted on the foreground, the colour
+of each curve is black or red depending on if that curve
+was signal as anomalous by at least a contribution plot.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air &lt;- lapply(air, function(x) x[201:300, , drop = FALSE])
+fun_covariates &lt;- c("CO", "temperature")
+mfdobj_x &lt;- get_mfd_list(air[fun_covariates],
+                         n_basis = 15,
+                         lambda = 1e-2)
+y &lt;- rowMeans(air$NO2)
+y1 &lt;- y[1:60]
+y_tuning &lt;- y[61:90]
+y2 &lt;- y[91:100]
+mfdobj_x1 &lt;- mfdobj_x[1:60]
+mfdobj_x_tuning &lt;- mfdobj_x[61:90]
+mfdobj_x2 &lt;- mfdobj_x[91:100]
+mod &lt;- sof_pc(y1, mfdobj_x1)
+cclist &lt;- regr_cc_sof(object = mod,
+                      y_new = y2,
+                      mfdobj_x_new = mfdobj_x2,
+                      y_tuning = y_tuning,
+                      mfdobj_x_tuning = mfdobj_x_tuning,
+                      include_covariates = TRUE)
+get_ooc(cclist)
+cont_plot(cclist, 3)
+plot_mon(cclist, fd_train = mfdobj_x1, fd_test = mfdobj_x2[3])
+
+</code></pre>
+
+
+</div>

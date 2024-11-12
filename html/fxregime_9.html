@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fxlm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Exchange Rate Regression</h2>
+
+<h3>Description</h3>
+
+<p>Interface to <code>lm</code> for fitting exchange rate regression
+models (Frankel-Wei models).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  fxlm(formula, data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a <code>"formula"</code> describing the linear model to be fit.
+For details see below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>"zoo"</code> time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to <code>lm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fxlm</code> is a function for fitting exchange rate regression models also
+known as Frankel-Wei models. It is a simple convenience interface to <code>lm</code>:
+<code>data</code> is assumed to be a <code>"zoo"</code> series in which, by default, the
+first column is the dependent variable. If <code>formula</code> is omitted, the first
+column is regressed on the remaining columns in <code>data</code>. The main difference
+compared to plain <code>lm</code> models is that the error variance is reported as
+a full parameter (estimated by maximum likelihood) in the <code>coef</code> method
+and the <code>estfun</code> method (but currently not in the <code>vcov</code> method). 
+Furthermore, the index (also known as the time stamps) of the underlying data set
+can be extracted by the <code>time</code>/<code>index</code> method.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"fxlm"</code> inheriting from <code>"lm"</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Shah A., Zeileis A., Patnaik I. (2005), What is the New Chinese
+Currency Regime?, Report 23, Department of Statistics and Mathematics,
+Wirtschaftsuniversitaet Wien, Research Report Series, November 2005.
+<a href="http://epub.wu.ac.at">http://epub.wu.ac.at</a>.
+</p>
+<p>Zeileis A., Shah A., Patnaik I. (2010), Testing, Monitoring, and Dating Structural
+Changes in Exchange Rate Regimes, <em>Computational Statistics and Data Analysis</em>,
+54(6), 1696–1706. <a href="http://dx.doi.org/10.1016/j.csda.2009.12.005">http://dx.doi.org/10.1016/j.csda.2009.12.005</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lm</code>, <code>fxregimes</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load package and data
+library("fxregime")
+data("FXRatesCHF", package = "fxregime")
+
+## compute returns for CNY (and explanatory currencies)
+## for one year after abolishing fixed USD regime
+cny &lt;- fxreturns("CNY", frequency = "daily",
+  start = as.Date("2005-07-25"), end = as.Date("2006-07-24"),
+  other = c("USD", "JPY", "EUR", "GBP"))
+
+## estimate full-sample exchange rate regression
+fm &lt;- fxlm(CNY ~ USD + JPY + EUR + GBP, data = cny)
+coef(fm)
+summary(fm)
+
+## test parameter stability (with double max test)
+scus &lt;- gefp(fm, fit = NULL)
+plot(scus, aggregate = FALSE)
+## which shows a clear increase in the variance in March 2006
+
+## alternative tests: Andrews' supLM ...
+plot(scus, functional = supLM(0.1))
+## ... or Nyblom-Hansen test (Cramer-von Mises type test)
+plot(scus, functional = meanL2BB)
+</code></pre>
+
+
+</div>

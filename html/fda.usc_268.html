@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.fregre.gls</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predictions from a functional gls object</h2>
+
+<h3>Description</h3>
+
+<p>The predictions for the functional generalized least squares fitted linear
+model represented by <code>object</code> are obtained at the covariate values
+defined in <code>newx</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fregre.gls'
+predict(
+  object,
+  newx = NULL,
+  type = "response",
+  se.fit = FALSE,
+  scale = NULL,
+  df,
+  interval = "none",
+  ...
+)
+
+## S3 method for class 'fregre.igls'
+predict(
+  object,
+  newx = NULL,
+  data,
+  df = df,
+  weights = 1,
+  pred.var,
+  n.ahead = 1L,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p><code>fregre.gls</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newx</code></td>
+<td>
+<p>An optional data list in which to look for
+variables with which to predict. If omitted, the fitted values are used.
+List of new explanatory data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of prediction (response or model term).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+<p>=TRUE (not default) standard error estimates are returned for
+each prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>Scale parameter for std.err. calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Degrees of freedom for scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>Type of interval calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame with the time or spatinal index</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>variance weights for prediction. This can be a numeric vector
+or a one-sided model formula. In the latter case, it is interpreted as an
+expression evaluated in newdata</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred.var</code></td>
+<td>
+<p>the variance(s) for future observations to be assumed for
+prediction intervals. See <code>link{predict.lm}</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.ahead</code></td>
+<td>
+<p>number of steps ahead at which to predict.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a vector with the predicted values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Oviedo de la Fuente, M., Febrero-Bande, M., Pilar Munoz, and
+Dominguez, A. Predicting seasonal influenza transmission using Functional
+Regression Models with Temporal Dependence. arXiv:1610.08718.
+<a href="https://arxiv.org/abs/1610.08718">https://arxiv.org/abs/1610.08718</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fregre.gls</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(tecator)
+ind&lt;-1:190
+x &lt;-fdata.deriv(tecator$absorp.fdata,nderiv=1)
+dataf=as.data.frame(tecator$y)
+dataf$itime &lt;- 1:nrow(x)
+ldat=list("df"=dataf[ind,],"x"=x[ind])
+newldat=list("df"=dataf[-ind,],"x"=x[-ind])
+newy &lt;- tecator$y$Fat[-ind]
+ff &lt;- Fat ~ x
+res.lm &lt;- fregre.lm(ff,data=ldat)
+summary(res.lm)
+res.gls &lt;- fregre.gls(ff,data=ldat, correlation=corAR1())
+summary(res.gls)
+par.cor &lt;- list("cor.ARMA"=list("p"=1))
+par.cor &lt;- list("cor.ARMA"=list("index"=c("itime"),"p"=1))
+res.igls &lt;- fregre.igls(ff,data=ldat,correlation=par.cor) 
+pred.lm &lt;- predict(res.lm,newldat)
+pred.gls &lt;- predict(res.gls,newldat)
+pred.igls &lt;- predict(res.igls,newldat)
+mean((pred.lm-newldat$df$Fat)^2)
+mean((pred.gls-newldat$df$Fat)^2)
+mean((pred.igls-newldat$df$Fat)^2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

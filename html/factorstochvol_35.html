@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predcond</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predicts means and variances conditionally on the factors</h2>
+
+<h3>Description</h3>
+
+<p><code>predcond</code> simulates from the posterior predictive distribution
+of the data, conditionally on realized values of the factors. This
+has the advantage that the predictive density can be written as
+the product of the marginals but introduces sampling uncertainty
+that grows with the number of factors used.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predcond(x, ahead = 1, each = 1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>'fsvdraws'</code>, usually resulting from a call
+to <code>fsvsample</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ahead</code></td>
+<td>
+<p>Vector of timepoints, indicating how many steps
+to predict ahead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>each</code></td>
+<td>
+<p>Single integer (or coercible to such) indicating how
+often should be drawn from the posterior predictive distribution
+for each draw that has been stored during MCMC sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of class <code>fsvpredcond</code> containing two elements:
+</p>
+
+<dl>
+<dt>means</dt>
+<dd>
+<p>Array containing the draws of the predictive means.</p>
+</dd>
+<dt>vols</dt>
+<dd>
+<p>Array containing the draws of the predictive volatilities (square root of variances).</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p>Other predictors: 
+<code>predcor()</code>,
+<code>predcov()</code>,
+<code>predh()</code>,
+<code>predloglikWB()</code>,
+<code>predloglik()</code>,
+<code>predprecWB()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+sim &lt;- fsvsim(n = 500, series = 4, factors = 1) # simulate
+res &lt;- fsvsample(sim$y, factors = 1) # estimate
+
+# Predict 1 day ahead:
+predobj &lt;- predcond(res, each = 5)
+
+# Draw from the predictive distribution:
+preddraws &lt;- matrix(rnorm(length(predobj$means[,,1]),
+                    mean = predobj$means[,,1],
+                    sd = predobj$vols[,,1]), nrow = 4)
+
+# Visualize the predictive distribution
+pairs(t(preddraws), col = rgb(0,0,0,.1), pch = 16)
+
+
+</code></pre>
+
+
+</div>

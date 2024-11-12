@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wind_scab</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of the risk for wind scab on fruit skin</h2>
+
+<h3>Description</h3>
+
+<p>The function estimates the risk of wind-induced abrasion injuries
+(wind scab) on fruit skin during the sensitive periods of the 
+species. This function estimates as risky the daily hours with 
+'moderate breeze' wind (equal or above 5.5 m s-1 in the Beaufort 
+scale) or stronger, estimated from a dataset with daily wind 
+speeds.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">wind_scab(climdata, fendata)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>climdata</code></td>
+<td>
+<p>a dataframe with daily wind speed data.
+Required columns are Year, Month, Day, u2med. u2max is
+optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fendata</code></td>
+<td>
+<p>a dataframe which can contain early fruit growth and
+harvest dates. Start of initial growth (Start_ing) and end of initial growth
+(End_ing) dates are used to assess for early wind-induced abrasion risk and
+harvest dates (Harvest) are used for late (pre-harvest) abrasion risks.
+Must contain the column Year, and can contain either Start_ing and End_ing
+or Harvest columns, or the three of them.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Hourly wind speeds from daily values are computed using the 
+formulas proposed by (Guo et al, 2016), using mean daily 
+values (u2med, required) and maximum ones (u2max, optional). 
+If only mean wind values are available, the function uses a
+modified version of the Guo formula, so that the maximum 
+values are obtained in daytime hours.
+</p>
+<p>Sensitive periods for wind scab in plums or nectarines
+correspond to the early stages of fruit growth, usually the
+first three weeks after full bloom (Michailides et al 1992, 
+Michailides and Morgan 1992), mainly due to persistent leaf
+brushing on fruit skin between the stages '8-mm fruit' and 
+'20-mm fruit'. A second sensitive period for cherries, plums, 
+peaches and nectarines is pre-harvest (30 days prior to that), 
+due to persistent friction against branches. The function 
+allows to set both periods or only one of them.
+</p>
+
+
+<h3>Value</h3>
+
+<p>data frame with the columns Year, Day_s, Day_e, WA_efg (accumulated
+hours with u2&gt;5.5 m s-1 on early fruit growth stage), Day_h, WA_bh
+(accumulated hours with u2&gt;5.5 m s-1 on the month before harvest).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carlos Miranda, <a href="mailto:carlos.miranda@unavarra.es">carlos.miranda@unavarra.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Guo Z, Chang C, Wang R, 2016. A novel method to downscale daily wind
+statistics to hourly wind data for wind erosion modelling. In: Bian F.,
+Xie Y. (eds) Geo-Informatics in Resource Management and Sustainable
+Ecosystem. GRMSE 2015. Communications in Computer and Information Science,
+vol 569. Springer, Berlin, Heidelberg
+</p>
+<p>Michailides TJ, Morgan DP, Ramirez HT and Giacolini EL, 1992. Determination
+of the period when prunes are prone to development of russet scab and
+elucidation of the mechanism by which captan controls russet scab.
+California dried plum board research reports 1992, 157-175.
+</p>
+<p>Michailides TJ and Morgan DP, 1992. Development of wind scab and
+predisposition of french prune fruits to preharvest and postharvest
+fungal decay by wind scab and russet scab.California dried plum board
+research reports 1992, 149-156.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Select the appropiate columns from the example Dates_BT dataset
+# and estimate wind scab risk for Big Top nectarine in Tudela using
+# the example weather dataset Tudela_DW
+library(magrittr)
+library(dplyr)
+library(lubridate)
+Bloom &lt;- Dates_BT %&gt;%
+   select(Year, sbloom) %&gt;%
+   rename(Fday=sbloom) %&gt;%
+   filter(Year==2003)
+
+Growth_BT &lt;- Dates_BT %&gt;% select(Year, Start_ing, End_ing, Harvest) %&gt;% 
+   filter(Year==2003)
+Weather &lt;- Tudela_DW %&gt;%
+   filter (Tudela_DW$Year==2003)
+WindRisk_BT &lt;- wind_scab(Weather, Growth_BT)
+
+</code></pre>
+
+
+</div>

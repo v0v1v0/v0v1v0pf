@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adaptivefence</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive Fence model selection</h2>
+
+<h3>Description</h3>
+
+<p>Adaptive Fence model selection
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adaptivefence(mf, f, ms, d, lf, pf, bs, grid = 101, bandwidth)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mf</code></td>
+<td>
+<p>function for fitting the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>formula of full model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ms</code></td>
+<td>
+<p>list of formula of candidates models</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lf</code></td>
+<td>
+<p>measure lack of fit (to minimize)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pf</code></td>
+<td>
+<p>model selection criteria, e.g., model dimension</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bs</code></td>
+<td>
+<p>bootstrap samples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>grid for c</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidth</code></td>
+<td>
+<p>bandwidth for kernel smooth function</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>list all model candidates in the model space</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>list the number of bootstrap samples that have been used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lack_of_fit_matrix</code></td>
+<td>
+<p>list a matrix of Qs for all model candidates (in columns). Each row is for each bootstrap sample</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qd_matrix</code></td>
+<td>
+<p>list a matrix of QM - QM.tilde for all model candidates. Each row is for each bootrap sample</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidth</code></td>
+<td>
+<p>list the value of bandwidth</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_mat</code></td>
+<td>
+<p>list a matrix of selected models at each c values in grid (in columns). Each row is for each bootstrap sample</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq_mat</code></td>
+<td>
+<p>list a matrix of coverage probabilities (frequency/smooth_frequency) of each selected models for a given c value (index)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>list the adaptive choice of c value from which the parsimonious model is selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sel_model</code></td>
+<td>
+<p>list the selected (parsimonious) model given the adaptive c value</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jiming Jiang  Jianyang Zhao  J. Sunil Rao  Thuan Nguyen
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>Jiang J., Rao J.S., Gu Z., Nguyen T. (2008),  Fence Methods for Mixed Model Selection. The Annals of Statistics, 36(4): 1669-1692
+</p>
+</li>
+<li>
+<p>Jiang J., Nguyen T., Rao J.S. (2009), A Simplified Adaptive Fence Procedure. Statistics and Probability Letters, 79, 625-629
+</p>
+</li>
+<li>
+<p>Thuan Nguyen, Jie Peng, Jiming Jiang (2014), Fence Methods for Backcross Experiments.  Statistical Computation and Simulation, 84(3), 644-662
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+require(fence)
+
+#### Example 1 #####
+data(iris)
+full = Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width + (1|Species)
+test_af = fence.lmer(full, iris)
+plot(test_af)
+test_af$sel_model
+
+#### Example 2 #####
+r =1234; set.seed(r)  
+p=8; n=150; rho = 0.6
+id = rep(1:50,each=3)
+R = diag(p)
+for(i in 1:p){
+  for(j in 1:p){
+     R[i,j] = rho^(abs(i-j))
+  }
+} 
+R = 1*R
+x=mvrnorm(n, rep(0, p), R)  # all x's are time-varying dependence #
+colnames(x)=paste('x',1:p, sep='')
+tbetas = c(0,0.5,1,0,0.5,1,0,0.5)  # non-zero beta 2,3,5,6,8
+epsilon = rnorm(150)
+y = x%*%tbetas + epsilon
+colnames(y) = 'y'
+data = data.frame(cbind(x,y,id))
+full = y ~ x1+x2+x3+x4+x5+x6+x7+x8+(1|id)
+#X = paste('x',1:p, sep='', collapse='+')
+#full = as.formula(paste('y~',X,'+(1|id)', sep=""))  #same as previous one
+fence_obj = fence.lmer(full,data)   # it takes 3-5 min #
+plot(fence_obj)
+fence_obj$sel_model
+
+## End(Not run)
+</code></pre>
+
+
+</div>

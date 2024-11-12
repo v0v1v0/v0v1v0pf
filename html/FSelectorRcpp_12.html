@@ -1,0 +1,69 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>to_formula</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a formula Object</h2>
+
+<h3>Description</h3>
+
+<p>Utility function to create a formula object. Note that it may be very useful when you use pipes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">to_formula(attrs, class)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>attrs</code></td>
+<td>
+<p>Character vector with names of independent variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>Single string with a dependent variable's name.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">if(require("rpart")) {
+# evaluator from FSelector package
+evaluator &lt;- function(subset, data, dependent = names(iris)[5]) {
+  library(rpart)
+  k &lt;- 5
+  splits &lt;- runif(nrow(data))
+  results &lt;- sapply(1:k, function(i) {
+    test.idx &lt;- (splits &gt;= (i - 1) / k) &amp; (splits &lt; i / k)
+    train.idx &lt;- !test.idx
+    test &lt;- data[test.idx, , drop = FALSE]
+    train &lt;- data[train.idx, , drop = FALSE]
+    tree &lt;- rpart(to_formula(subset, dependent), train)
+    error.rate &lt;- sum(test[[dependent]] != predict(tree, test, type = "c")) /
+    nrow(test)
+    return(1 - error.rate)
+  })
+  return(mean(results))
+}
+
+set.seed(123)
+fit &lt;- feature_search(attributes = names(iris)[-5], fun = evaluator, data = iris,
+                mode = "exhaustive", parallel = FALSE)
+fit$best
+names(fit$best)[fit$best == 1]
+# with to_formula
+to_formula(names(fit$best)[fit$best == 1], "Species")
+}
+</code></pre>
+
+
+</div>

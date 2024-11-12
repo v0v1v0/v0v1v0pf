@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>validate_fys_permitted</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Verifying validity of financial years</h2>
+
+<h3>Description</h3>
+
+<p>Many functions expect financial years.
+Determining that they are validly entered is often quite
+computationally costly, relative to the core calculations.
+These internal functions provide mechanisms to check validity
+quickly, while still providing clear, accurate error messages.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">validate_fys_permitted(
+  to_verify,
+  permitted_fys = NULL,
+  min.yr = NULL,
+  max.yr = NULL,
+  deparsed = deparse(substitute(to_verify)),
+  allow.projection = TRUE,
+  earliest_permitted_financial_year = "earliest permitted financial year",
+  latest_permitted_financial_year = "latest permitted financial year",
+  .retain_fmatches = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>to_verify</code></td>
+<td>
+<p>A user-provided value, purporting to be
+character vector of financial years.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permitted_fys</code></td>
+<td>
+<p>A character vector of valid financial years.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.yr, max.yr</code></td>
+<td>
+<p>Integers specifying the range of <code>to_verify</code>.
+If <code>NULL</code>, no restriction on the upper or lower bound of the range.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deparsed</code></td>
+<td>
+<p>A string indicating the argument that the user provided.
+Should generally be provided explicitly as the default is unlikely
+to be user-friendly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.projection</code></td>
+<td>
+<p>If <code>FALSE</code> emit a different error message.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>earliest_permitted_financial_year, latest_permitted_financial_year</code></td>
+<td>
+<p>Text
+for earliest/latest permitted financial year when <code>min.yr</code>/<code>max.yr</code>
+condition is violated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.retain_fmatches</code></td>
+<td>
+<p>If <code>TRUE</code>, the function may retain an attribute
+<code>fy_fmatches</code>  an integer vector of the matches against the financial years
+<code>"1900-01"</code> to <code>"2099-00"</code>. A trade-off between memory and runtime from
+not recalculating matches.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The preferred form is <code>"2012-13"</code>, and this function
+returns all elements of <code>to_verify</code> in this form. That is, it does
+not preserve the input form.
+</p>
+<p>Other forms that are recognized (and converted) are:
+</p>
+
+<ul>
+<li>
+<p>"201213"
+</p>
+</li>
+<li>
+<p>"2012 13"
+</p>
+</li>
+<li>
+<p>"2012<code>\u2011</code>13"
+</p>
+</li>
+<li>
+<p>"2012<code>\u2012</code>13"
+</p>
+</li>
+<li>
+<p>"2012<code>\u2013</code>13"
+</p>
+</li>
+<li>
+<p>"2012<code>\u2014</code>13"
+</p>
+</li>
+<li>
+<p>"2012-2013"
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>If <code>to_verify</code> contains valid financial years
+they are returned all in the form <code>2013-14</code>. If they were
+already in that form, they obtain the following attributes:
+</p>
+
+<dl>
+<dt><code>fy_all_fy</code></dt>
+<dd>
+<p><code>TRUE</code> if all the financial years are valid.</p>
+</dd>
+<dt><code>fy_min_yr</code></dt>
+<dd>
+<p>An integer, the earliest year ending in <code>to_verify</code>.</p>
+</dd>
+<dt><code>fy_max_yr</code></dt>
+<dd>
+<p>An integer, the latest year ending in <code>to_verify</code>.</p>
+</dd>
+<dt><code>fy_fmatches</code></dt>
+<dd>
+<p>An integer vector, the matches with the prebuilt financial years.</p>
+</dd>
+</dl>
+<h3>Benchmarks</h3>
+
+<pre>
+ x &lt;- rep_len(yr2fy(2004L), 1e9)
+ bench::system_time(validate_fys_permitted(x))
+ #&gt; process    real
+ #&gt;  3.578s  3.576s
+ x &lt;- rep_len(yr2fy(1980:2016), 1e9)
+
+ bench::system_time(validate_fys_permitted(x))
+ #&gt; process    real
+ #&gt;  3.766s  3.753s
+</pre>
+
+
+</div>

@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vcov.femlm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract the variance/covariance of a femlm fit</h2>
+
+<h3>Description</h3>
+
+<p>This function extracts the variance-covariance of estimated parameters from a model estimated with <code>femlm</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'femlm'
+vcov(object, se = c("standard", "white", "cluster",
+  "twoway", "threeway", "fourway"), cluster, dof_correction = FALSE,
+  forceCovariance = FALSE, keepBounded = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A femlm object. Obtained using <code>femlm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Character scalar. Which kind of standard error should be computed: “standard” (default), “White”, “cluster”, “twoway”, “threeway” or “fourway”?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>A list of vectors. Used only if <code>se="cluster"</code>, “se=twoway”, “se=threeway” or “se=fourway”. The vectors should give the cluster of each observation. Note that if the estimation was run using <code>cluster</code>, the standard error is automatically clustered along the cluster given in <code>femlm</code>. For one-way clustering, this argument can directly be a vector (instead of a list). If the estimation has been done with cluster variables, you can give a character vector of the dimensions over which to cluster the SE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dof_correction</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. Should there be a degree of freedom correction to the standard errors of the coefficients?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forceCovariance</code></td>
+<td>
+<p>(Advanced users.) Logical, default is <code>FALSE</code>. In the peculiar case where the obtained Hessian is not invertible (usually because of collinearity of some variables), use this option force the covariance matrix, by using a generalized inverse of the Hessian. This can be useful to spot where possible problems come from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepBounded</code></td>
+<td>
+<p>(Advanced users.) Logical, default is <code>FALSE</code>. If <code>TRUE</code>, then the bounded coefficients (if any) are treated as unrestricted coefficients and their S.E. is computed (otherwise it is not).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to <code>summary.femlm</code>.
+</p>
+<p>The computation of the VCOV matrix is first done in <code>summary.femlm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>It returns a <code class="reqn">N\times N</code> square matrix where <code class="reqn">N</code> is the number of variables of the fitted model.
+This matrix has an attribute “type” specifying how this variance/covariance matrix has been commputed (i.e. was it created using White correction, or was it clustered along a specific factor, etc).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>femlm</code>, <code>summary.femlm</code>, <code>confint.femlm</code>, <code>resid.femlm</code>, <code>predict.femlm</code>, <code>getFE</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load trade data
+data(trade)
+
+# We estimate the effect of distance on trade (with 3 fixed-effects)
+est_pois = femlm(Euros ~ log(dist_km) + log(Year) | Origin + Destination +
+                 Product, trade)
+
+# "normal" VCOV
+vcov(est_pois)
+
+# "white" VCOV
+vcov(est_pois, se = "white")
+
+# "clustered" VCOV (with respect to the Origin factor)
+vcov(est_pois, se = "cluster")
+
+# "clustered" VCOV (with respect to the Product factor)
+vcov(est_pois, se = "cluster", cluster = trade$Product)
+# another way to make the same request:
+vcov(est_pois, se = "cluster", cluster = "Product")
+
+# Another estimation without cluster:
+est_pois_simple = femlm(Euros ~ log(dist_km) + log(Year), trade)
+
+# We can still get the clustered VCOV,
+# but we need to give the cluster-vector:
+vcov(est_pois_simple, se = "cluster", cluster = trade$Product)
+
+
+</code></pre>
+
+
+</div>

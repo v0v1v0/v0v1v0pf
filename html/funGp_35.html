@@ -1,0 +1,366 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update,fgpm-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Easy update of <code>fgpm</code> models</h2>
+
+<h3>Description</h3>
+
+<p>This method enables the update of data or hyperparameters of a <code>fgpm</code> model.
+It corresponds to an object of the class fgpm. The method allows addition, subtraction
+and substitution of data points, as well as substitution and re-estimation of hyperparameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'fgpm'
+update(
+  object,
+  sIn.nw = NULL,
+  fIn.nw = NULL,
+  sOut.nw = NULL,
+  sIn.sb = NULL,
+  fIn.sb = NULL,
+  sOut.sb = NULL,
+  ind.sb = NULL,
+  ind.dl = NULL,
+  var.sb = NULL,
+  ls_s.sb = NULL,
+  ls_f.sb = NULL,
+  var.re = FALSE,
+  ls_s.re = FALSE,
+  ls_f.re = FALSE,
+  extend = FALSE,
+  trace = TRUE,
+  pbars = TRUE,
+  control.optim = list(trace = TRUE),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class fgpm corresponding to the funGp model to update.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sIn.nw</code></td>
+<td>
+<p>An optional matrix of scalar input values to be added to the model. Each column must match
+an input variable and each row a scalar coordinate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fIn.nw</code></td>
+<td>
+<p>An optional list of functional input values to be added to the model. Each element of the
+list must be a matrix containing the set of curves corresponding to one functional input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sOut.nw</code></td>
+<td>
+<p>An optional vector (or 1-column matrix) containing the values of the scalar output at the
+new input points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sIn.sb</code></td>
+<td>
+<p>An optional matrix of scalar input values to be used as substitutes of other scalar input
+values already stored in the model. Each column must match an input variable and each row a coordinate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fIn.sb</code></td>
+<td>
+<p>An optional list of functional input values to be added to the model. Each element of the
+list must be a matrix containing the set of curves corresponding to one functional input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sOut.sb</code></td>
+<td>
+<p>An optional vector (or 1-column matrix) containing the values of the scalar output at the
+substituting input points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ind.sb</code></td>
+<td>
+<p>An optional numeric array indicating the indices of the input and output points stored in
+the model, that should be replaced by the values specified through sIn.sb, fIn.sb and/or sOut.sb.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ind.dl</code></td>
+<td>
+<p>An optional numeric array indicating the indices of the input and output points stored in
+the model that should be deleted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.sb</code></td>
+<td>
+<p>An optional number indicating the value that should be used to substitute the current
+variance parameter of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ls_s.sb</code></td>
+<td>
+<p>An optional numerical array indicating the values that should be used to substitute the
+current length-scale parameters for the scalar inputs of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ls_f.sb</code></td>
+<td>
+<p>An optional numerical array indicating the values that should be used to substitute the
+current length-scale parameters for the functional inputs of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.re</code></td>
+<td>
+<p>An optional boolean indicating whether the variance parameter should be re-estimated.
+Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ls_s.re</code></td>
+<td>
+<p>An optional boolean indicating whether the length-scale parameters of the scalar inputs
+should be re-estimated. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ls_f.re</code></td>
+<td>
+<p>An optional boolean indicating whether the length-scale parameters of the functional
+inputs should be re-estimated. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extend</code></td>
+<td>
+<p>An optional boolean indicating whether the re-optimization should extend from the current
+hyperparameters of the model using them as initial points. Default is FALSE, meaning that the
+re-optimization picks brand new initial points in the way described in <code>fgpm()</code>. If
+both hyperparameter substitution and re-estimation are requested in a single <code>update()</code> call and
+<code>extend</code> is set to <code>TRUE</code>, the values used as initial points for the re-optimization are those
+stored by the model after the substitution step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>An optional boolean indicating whether funGp-native progress messages and a summary update
+should be displayed. Default is TRUE. See the <code>fgpm()</code> documentation for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pbars</code></td>
+<td>
+<p>An optional boolean indicating whether progress bars managed by <code>fgpm()</code>
+should be displayed (in case the update requires an <code>fgpm()</code> call). Default is TRUE.
+See the <code>fgpm()</code> documentation for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.optim</code></td>
+<td>
+<p>An optional list to be passed as the control argument to <code>optim</code>()
+(in case the update requires an <code>fgpm()</code> call), the function in charge of the non-linear
+optimization of the hyperparameters. Default is list(trace = TRUE). See the <code>fgpm()</code>
+documentation for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The arguments listed above enable the completion of the following updating tasks:
+</p>
+
+<ul>
+<li> <p><strong>Deletion</strong> of data points: ind.dl;
+</p>
+</li>
+<li> <p><strong>Addition</strong> of data points: sIn.nw, fIn.nw, sOut.nw;
+</p>
+</li>
+<li> <p><strong>Substitution</strong> of data points: sIn.sb, fIn.sb, sOut.sb, ind.sb;
+</p>
+</li>
+<li> <p><strong>Substitution</strong> of hyperparameters: var.sb, ls_s.sb, ls_f.sb;
+</p>
+</li>
+<li> <p><strong>Re-estimation</strong> of hyperparameters: var.re, ls_s.re, ls_f.re.
+</p>
+</li>
+</ul>
+<p>All the arguments listed above are optional since any of these tasks can be requested without need to
+request any of the other tasks. In fact, most of the arguments can be used even if the other
+arguments related to the same task are not. For instance, the re-estimation of the variance can be
+requested via var.re without requiring re-estimation of the scalar or functional length-scale
+parameters. The only two exceptions are: (i) for data addition, the new output sOut.nw should always
+be provided and the new input points should correspond to the set of variables already stored in the
+fgpm object passed for update; and (ii) for data substitution, the argument ind.sb is
+always mandatory.
+</p>
+<p><strong>Conflicting task combinations:</strong>
+</p>
+
+<ul>
+<li>
+<p> Data points deletion and substitution;
+</p>
+</li>
+<li>
+<p> Substitution and re-estimation of the same hyperparameter.
+</p>
+</li>
+</ul>
+<p>Note that the parameters of the model will not be updated after modifying the model unless explicitly
+requested through the var.re, ls_s.re and ls_f.re arguments. If, for instance, some points are added
+to the model without requesting parameter re-estimation, the new data will be included in the
+training-training and training-prediction covariance matrices, but the hyperparameters will not
+be updated. This allows to make updates in the data that might help to improve predictions,
+without the immediate need to perform a training procedure that could be time consuming. At any later
+time, the user is allowed to request the re-estimation of the hyperparameters, which will make
+the model fully up to date.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class fgpm representing the updated funGp model.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>José Betancourt, François Bachoc, Thierry Klein and Jérémy Rohmer
+</p>
+
+
+<h3>See Also</h3>
+
+<p><strong>*</strong> fgpm for creation of a funGp model;
+</p>
+<p><strong>*</strong> predict,fgpm-method for predictions based on a <code>fgpm</code> model;
+</p>
+<p><strong>*</strong> simulate,fgpm-method for simulations based on a <code>fgpm</code> model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># deletion and addition of data points_____________________________________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# deleting two points
+ind.dl &lt;- sample(1:m1@n.tot, 2)
+m1up &lt;- update(m1, ind.dl = ind.dl)
+
+# adding five points
+n.nw &lt;- 5
+sIn.nw &lt;- matrix(runif(n.nw * m1@ds), nrow = n.nw)
+fIn.nw &lt;- list(f1 = matrix(runif(n.nw*10), ncol = 10), f2 = matrix(runif(n.nw*22), ncol = 22))
+sOut.nw &lt;- fgp_BB3(sIn.nw, fIn.nw, n.nw)
+m1up &lt;- update(m1, sIn.nw = sIn.nw, fIn.nw = fIn.nw, sOut.nw = sOut.nw)
+
+
+# substitution of data points______________________________________________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# generating substituting input data for updating
+n.sb &lt;- 2
+sIn.sb &lt;- matrix(runif(n.sb * m1@ds), nrow = n.sb)
+fIn.sb &lt;- list(f1 = matrix(runif(n.sb*10), ncol = 10), f2 = matrix(runif(n.sb*22), ncol = 22))
+
+# generating substituting output data for updating
+sOut.sb &lt;- fgp_BB3(sIn.sb, fIn.sb, n.sb)
+
+# generating indices for substitution
+ind.sb &lt;- sample(1:(m1@n.tot), n.sb)
+
+# updating all, the scalar inputs, functional inputs and the outputs
+m1up &lt;- update(m1, sIn.sb = sIn.sb, fIn.sb = fIn.sb, sOut.sb = sOut.sb, ind.sb = ind.sb)
+
+# updating only some of the data structures
+m1up1 &lt;- update(m1, sIn.sb = sIn.sb, ind.sb = ind.sb) # only the scalar inputs
+m1up2 &lt;- update(m1, sOut.sb = sOut.sb, ind.sb = ind.sb) # only the outputs
+m1up3 &lt;- update(m1, sIn.sb = sIn.sb, sOut.sb = sOut.sb, ind.sb = ind.sb) # the scalar inputs
+                                                                         # and the outputs
+
+
+# substitution of hyperparameters__________________________________________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# defining hyperparameters for substitution
+var.sb &lt;- 3
+ls_s.sb &lt;- c(2.44, 1.15)
+ls_f.sb &lt;- c(5.83, 4.12)
+
+# updating the model
+m1up &lt;- update(m1, var.sb = var.sb, ls_s.sb = ls_s.sb, ls_f.sb = ls_f.sb)
+
+
+# re-estimation of hyperparameters_________________________________________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0,1,length = sqrt(n.tr)), x2 = seq(0,1,length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# re-estimating the hyperparameters
+m1up &lt;- update(m1, var.re = TRUE) # only the variance
+m1up &lt;- update(m1, ls_s.re = TRUE) # only the scalar length-scale parameters
+m1up &lt;- update(m1, ls_s.re = TRUE, ls_f.re = TRUE) # all length-scale parameters
+m1up &lt;- update(m1, var.re = TRUE, ls_s.re = TRUE, ls_f.re = TRUE) # all hyperparameters
+
+# same as above but now extending optimization from previously stored values
+m1up &lt;- update(m1, var.re = TRUE, extend = TRUE)
+m1up &lt;- update(m1, ls_s.re = TRUE, extend = TRUE)
+m1up &lt;- update(m1, ls_s.re = TRUE, ls_f.re = TRUE, extend = TRUE)
+m1up &lt;- update(m1, var.re = TRUE, ls_s.re = TRUE, ls_f.re = TRUE, extend = TRUE)
+
+</code></pre>
+
+
+</div>

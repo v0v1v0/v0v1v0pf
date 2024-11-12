@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmri.smooth</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Smoothing Statistical Parametric Maps </h2>
+
+<h3>Description</h3>
+
+<p>Perform the adaptive weights smoothing procedure 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmri.smooth(spm, hmax = 4, adaptation="aws",
+            lkern="Gaussian", skern="Plateau", weighted=TRUE,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spm</code></td>
+<td>
+<p> object of class <code>fmrispm</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax</code></td>
+<td>
+<p> maximum bandwidth to smooth </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adaptation</code></td>
+<td>
+<p> character, type of adaptation. If <code>"none"</code> adaptation is off and non-adaptive 
+kernel smoothing with <code>lkern</code> and bandwidth <code>hmax</code> is used. 
+Other values are <code>"aws"</code> for adaptive smoothing using an approximative correction term for spatial smoothness in the penalty (fast), <code>"fullaws"</code> for adaptive smoothing using variance
+estimates from smoothed residuals in the penalty (CPU-time about twice 
+the time compared to <code>adaptation="aws"</code> and <code>"segment"</code> for a
+new approach based on segmentation using multi-scale tests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern</code></td>
+<td>
+ <p><code>lkern</code> specifies the location kernel. Defaults to
+"Gaussian", other choices are "Triangle" and "Plateau". Note that the location kernel is applied to
+<code>(x-x_j)^2/h^2</code>, i.e. the use of "Triangle" corresponds to the
+Epanechnicov kernel in nonparametric kernel regression. "Plateau" specifies a kernel that is equal to 1 in the interval (0,.3),
+decays linearly in (.5,1) and is 0 for arguments larger than 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skern</code></td>
+<td>
+ <p><code>skern</code> specifies the kernel for the statistical
+penalty. Defaults to "Plateau", the alternatives are "Triangle" and "Exp".
+"Plateau" specifies a kernel that is equal to 1 in the interval (0,.3),
+decays linearly in (.3,1) and is 0 for arguments larger than 1.
+<code>lkern="Plateau"</code> and <code>lkern="Triangle"</code> allow for much faster computation (saves up
+to 50% CPU-time). <code>lkern="Plateau"</code> produces a less random weighting scheme.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+ <p><code>weighted</code> (logical) determines if weights contain the inverse of local 
+variances as a factor (Weighted Least Squares). <code>weighted=FALSE</code> does not employ the
+heteroscedasticity of variances for the weighting scheme and is preferable if variance estimates
+are highly variable, e.g. for short time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further internal arguments for the smoothing algorithm usually not
+to be set by the user. Allows e.g. for parameter adjustments by
+simulation using our propagation condition. Useful exceptions
+can be used for <code>adaptation="segment"</code>: Specifically
+<code>alpha</code> (default 0.05) defines the significance level for the
+signal detection. It can be chosen between 0.01 and 0.2 as for
+other values we did not determine the critical values for the
+statistical tests. <code>delta</code> (default 0) defines the minimum
+signal which should be detected. 
+<code>restricted</code> determines if smoothing for voxel detected to be significant is restricted to use only voxel from the same segment. The 
+default is <code>restricted=FALSE</code>. <code>restricted</code> slightly changes 
+the behaviour under the alternative, i.e. not the interpretation of results.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function performs the smoothing on the Statistical Parametric Map
+spm.
+</p>
+<p><code>hmax</code> is the (maximal) bandwidth used in the last iteration. Choose
+<code>adaptation</code> as <code>"none"</code> for non adaptive
+smoothing. <code>lkern</code> can be used for specifying the
+localization kernel. For comparison with non adaptive methods use
+"Gaussian" (hmax times the voxelsize in x-direction will give the FWHM bandwidth in mm), 
+for better adaptation use "Plateau" or "Triangle"
+(default, hmax given in voxel). For <code>lkern="Plateau"</code> and <code>lkern="Triangle"</code> thresholds may be inaccurate, due to a violation of
+the Gaussian random field assumption under homogeneity. <code>lkern="Plateau"</code> 
+is expected to provide best results with adaptive smoothing.
+</p>
+<p><code>skern</code> can be used for specifying the
+kernel for the statistical penalty. "Plateau" is expected to provide the best results,
+due to a less random weighting scheme.
+</p>
+<p>The function handles zero variances by assigning a large value (1e20)
+to these variances. Smoothing is restricted to voxel with <code>spm$mask</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>object with class attributes "fmrispm" and "fmridata", or "fmrisegment" and "fmridata" for segmentation choice
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cbeta</code></td>
+<td>
+<p> smoothed parameter estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p> variance of the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax</code></td>
+<td>
+<p> maximum bandwidth used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rxyz</code></td>
+<td>
+<p> smoothness in resel space. all directions </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rxyz0</code></td>
+<td>
+<p> smoothness in resel space as would be achieved by
+a Gaussian filter with the same bandwidth. all directions </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr</code></td>
+<td>
+<p>array of spatial correlations with maximal lags 5, 5, 3 in x,y and z-direction. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>vector of bandwidths (in FWHM) corresponding to the spatial correlation within the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p>dimension of the data cube and residuals</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> ratio of voxel dimensions </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vwghts</code></td>
+<td>
+<p> ratio of estimated variances for the stimuli given by
+<code>vvector</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrf</code></td>
+<td>
+<p> Expected BOLD response for the specified effect </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Joerg Polzehl <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a>,
+Karsten Tabelow <a href="mailto:tabelow@wias-berlin.de">tabelow@wias-berlin.de</a>  </p>
+
+
+<h3>References</h3>
+
+<p>Polzehl, J., Voss, H.U., and Tabelow, K. (2010).
+<em>Structural Adaptive Segmentation for Statistical Parametric Mapping</em>,
+NeuroImage, 52:515-523.
+</p>
+<p>Tabelow, K., Polzehl, J., Voss, H.U., and Spokoiny, V. (2006). 
+<em>Analysing fMRI
+experiments with structure adaptive smoothing procedures</em>,
+NeuroImage, 33:55-62. 
+</p>
+<p>Polzehl, J. and Spokoiny, V. (2006). <em>Propagation-Separation
+Approach for Local Likelihood Estimation</em>, Probab. Theory
+Relat. Fields 135:335-362. 
+</p>
+<p>Polzehl, J. and Tabelow, K. (2007)
+<em>fmri: A Package for Analyzing fmri Data</em>,
+R News, 7:13-17 .
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: fmri.smooth(spm, hmax = 4, lkern = "Gaussian")
+</code></pre>
+
+
+</div>

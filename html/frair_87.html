@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fr_rogersII</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Rogers' Type II Response</h2>
+
+<h3>Description</h3>
+
+<p>Rogers' Type II decreasing prey function.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    rogersII_fit(data, samp, start, fixed, boot=FALSE, windows=FALSE)
+    rogersII_nll(a, h, T, X, Y)
+    rogersII(X, a, h, T)
+	</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>A dataframe containing X and Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp </code></td>
+<td>
+<p>A vector specifying the rows of data to use in the fit. Provided by <code>boot()</code> or manually, as required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>A named list. Starting values for items to be optimised.  Usually 'a' and 'h'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed </code></td>
+<td>
+<p>A names list. 'Fixed data' (not optimised). Usually 'T'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot </code></td>
+<td>
+<p>A logical. Is the function being called for use by <code>boot()</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows </code></td>
+<td>
+<p>A logical. Is the operating system Microsoft Windows?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a, h </code></td>
+<td>
+<p>Capture rate and handling time. Usually items to be optimised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T </code></td>
+<td>
+<p><em>T</em>, the total time available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>The X variable. Usually prey density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>The Y variable.  Usually the number of prey consumed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This implements the Rogers' 'random predator' type-II functional response. This does not assume prey are replaced throughout the experiment (c.f. <code>hollingsII</code>). The number of prey eaten (<code class="reqn">N_e</code>) follows the relationship:
+</p>
+<p style="text-align: center;"><code class="reqn">N_e=N_0(1-e^{(a(N_eh-T))})</code>
+</p>
+
+<p>Where <code class="reqn">N_0</code> is the initial number of prey and <em>a</em>, <em>h</em> and <em>T</em> are the capture rate, handling time and the total time available, respectively. The fact that <code class="reqn">N_e</code> appears on both side of the equation, poses some problems, but can be efficiently dealt with using Lambert's transcendental equation (Bolker, 2008). FRAIR uses the <code>lambertW0</code> function from the <em>lamW</em> package and uses this function internally as:
+</p>
+<p><code>Ne &lt;- X - lambertW0(a * h * X * exp(-a * (T - h * X)))/(a * h)</code>
+</p>
+<p>where <code class="reqn">X = N_0</code>. For further information users are directed to Chapter 8 (and preceding chapters, if needed) of Bolker (2008) where this approach is discussed in depth. Note that Bolker (2008) uses an implementation that 'partitions' the <em>a</em> and <em>h</em> coefficients between multiple prey items. This code is implemented in FRAIR as <code>emdII</code>.
+</p>
+<p>None of these functions are designed to be called directly, though they are all exported so that the user can call them directly if desired. The intention is that they are called via <code>frair_fit</code>, which calls them in the order they are specified above.
+</p>
+<p><code>hollingsII_fit</code> does the heavy lifting and also pulls double duty as the <code>statistic</code> function for bootstrapping (<em>via</em> <code>boot()</code> in the boot package). The <code>windows</code> argument if required to prevent needless calls to <code>require(frair)</code> on platforms that can manage sane parallel processing.
+</p>
+<p>The core fitting is done by <code>mle2</code> from the <code>bbmle</code> package and users are directed there for more information. <code>mle2</code> uses the <code>rogersII_nll</code> function to optimise <code>rogersII</code>.
+</p>
+<p>Further references and recommended reading can be found on the help page for frair_fit.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Note that although Rogers (1972) is the most commonly cited reference for this equation, Royama (1971) described it one year earlier than Rogers and thus should also be given credit. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>References</h3>
+
+<p>Bolker BM (2008) <em>Ecological Models and Data in R</em>. Princeton University Press, Princeton, NJ.
+Rogers, D. (1972). Random search and insect population models. The Journal of Animal Ecology, 369-383.
+Royama, T. (1971). A comparative study of models for predation and parasitism. Researches on Population Ecology, 13, 1-91.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(gammarus)
+
+pulex &lt;- gammarus[gammarus$spp=='G.pulex',]
+celt &lt;- gammarus[gammarus$spp=='G.d.celticus',]
+
+pulexfit &lt;- frair_fit(eaten~density, data=pulex, 
+                response='rogersII', start=list(a = 1.2, h = 0.015), 
+                fixed=list(T=40/24))
+celtfit &lt;- frair_fit(eaten~density, data=celt, 
+                response='rogersII', start=list(a = 1.2, h = 0.015), 
+                fixed=list(T=40/24))
+
+plot(c(0,30), c(0,30), type='n', xlab='Density', ylab='No. Eaten')
+points(pulexfit)
+points(celtfit, col=4)
+lines(pulexfit)
+lines(celtfit, col=4)
+
+frair_compare(pulexfit, celtfit)
+
+## Not run: 
+pulexfit_b &lt;- frair_boot(pulexfit)
+celtfit_b &lt;- frair_boot(celtfit)
+confint(pulexfit_b)
+confint(celtfit_b)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

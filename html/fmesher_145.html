@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fm_contains</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Check which mesh triangles are inside a polygon</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper for the <code>sf::st_contains()</code> (previously <code>sp::over()</code>) method to find triangle centroids
+or vertices inside <code>sf</code> or <code>sp</code> polygon objects
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fm_contains(x, y, ...)
+
+## S3 method for class 'Spatial'
+fm_contains(x, y, ...)
+
+## S3 method for class 'sf'
+fm_contains(x, y, ...)
+
+## S3 method for class 'sfc'
+fm_contains(x, y, ..., type = c("centroid", "vertex"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>geometry (typically an <code>sf</code> or <code>sp::SpatialPolygons</code> object) for the queries</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>an <code>fm_mesh_2d()</code> or <code>inla.mesh</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed on to other methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>the query type; either <code>'centroid'</code> (default, for triangle centroids),
+or <code>'vertex'</code> (for mesh vertices)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of vectors of triangle indices (when <code>type</code> is <code>'centroid'</code>) or
+vertex indices (when <code>type</code> is <code>'vertex'</code>). The list has one entry per row of the <code>sf</code> object.
+Use <code>unlist(fm_contains(...))</code> if the combined union is needed.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Haakon Bakka, <a href="mailto:bakka@r-inla.org">bakka@r-inla.org</a>, and Finn Lindgren <a href="mailto:finn.lindgren@gmail.com">finn.lindgren@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (TRUE &amp;&amp;
+  fm_safe_sp()) {
+  # Create a polygon and a mesh
+  obj &lt;- sp::SpatialPolygons(
+    list(sp::Polygons(
+      list(sp::Polygon(rbind(
+        c(0, 0),
+        c(50, 0),
+        c(50, 50),
+        c(0, 50)
+      ))),
+      ID = 1
+    )),
+    proj4string = fm_CRS("longlat_globe")
+  )
+  mesh &lt;- fm_rcdt_2d_inla(globe = 2, crs = fm_crs("sphere"))
+
+  ## 3 vertices found in the polygon
+  fm_contains(obj, mesh, type = "vertex")
+
+  ## 3 triangles found in the polygon
+  fm_contains(obj, mesh)
+
+  ## Multiple transformations can lead to slightly different results due to edge cases
+  ## 4 triangles found in the polygon
+  fm_contains(
+    obj,
+    fm_transform(mesh, crs = fm_crs("mollweide_norm"))
+  )
+}
+
+</code></pre>
+
+
+</div>

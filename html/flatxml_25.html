@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fxml_toDataFrame</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Converting between XML and dataframes</h2>
+
+<h3>Description</h3>
+
+<p>Converts an XML document to a dataframe.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fxml_toDataFrame(
+  xmlflat.df,
+  siblings.of,
+  same.tag = TRUE,
+  attr.only = NULL,
+  attr.not = NULL,
+  elem.or.attr = "elem",
+  col.attr = "",
+  include.fields = NULL,
+  exclude.fields = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xmlflat.df</code></td>
+<td>
+<p>A flat XML dataframe created with <code>fxml_importXMLFlat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>siblings.of</code></td>
+<td>
+<p>ID of one of the XML elements that contain the data records. All data records need to be on the same hierarchical level as the XML element with this ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>same.tag</code></td>
+<td>
+<p>If <code>TRUE</code>, only elements of the same type (<code>xmlflat.df$elem.</code>) as the element <code>sibling.of</code> are considered as data records. If <code>FALSE</code>,
+<em>all</em> elements on the same hierarchical level as the element <code>sibling.of</code> are considered to be data records.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr.only</code></td>
+<td>
+<p>A list of named vectors representing attribute/value combinations the data records must match.
+The name of an element in the list is the XML element name to which the attribute belongs. The list element itself is a named vector.
+The vector's elements represent different attributes (= the names of the vector elements) and their values (= vector elements).
+Example: <code>attr.only = list(tag1 = c(attrib1 = "Value 1", attrib2 = "Value 2"), tag2 = c(attrib3 = "Value 3"))</code> will only include <code>tag1</code> elements of the form <code>&lt;tag1 attrib1 = "Value 1" attrib2 = "Value 2"&gt;</code> and <code>tag2</code> elements of the form <code>&lt;tag2 attrib3 = "Value 3"&gt;</code> as data records.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr.not</code></td>
+<td>
+<p>A list of vectors representing attribute/value combinations the XML elements must <em>not</em> match to be considered as data records. See argument <code>attr.only</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elem.or.attr</code></td>
+<td>
+<p>Either <code>"elem"</code> or <code>"attr"</code>. Defines, if the names of the record fields (columns in the dataframe) are represented by the names (tags) of the respective XML elements
+(the children of the elements on the same level as <code>siblings.of</code>) (<code>"elem"</code>) or if the field names are given by some attribute of those tags (<code>"attr"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.attr</code></td>
+<td>
+<p>If <code>elem.or.attr</code> is <code>"attr"</code> then <code>col.attr</code> specifies the name of the attribute that gives the record field / column names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include.fields</code></td>
+<td>
+<p>A character vector with the names of the fields that are to be included in the result dataframe. By default, all fields from the XML document are included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude.fields</code></td>
+<td>
+<p>A character vector with the names of the fields that should be excluded in the result dataframe. By default, no fields from the XML document are excluded.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Data that can be read in are either represented in this way:<br><br><code>&lt;record&gt;</code><br><code>&lt;field1&gt;Value of field1&lt;/field1&gt;</code><br><code>&lt;field2&gt;Value of field2&lt;/field2&gt;</code><br><code>&lt;field3&gt;Value of field3&lt;/field3&gt;</code><br><code>&lt;/record&gt;</code><br><code>...</code><br><br>
+In this case <code>elem.or.attr</code> would need to be <code>"elem"</code> because the field names of the data records (<code>field1</code>, <code>field2</code>, <code>field3</code>) are the names of the elements.<br><br>
+Or, the XML data could also look like this: <br><br><code>&lt;record&gt;</code><br><code>&lt;column name="field1"&gt;Value of field1&lt;/column&gt;</code><br><code>&lt;column name="field2"&gt;Value of field2&lt;/column&gt;</code><br><code>&lt;column name="field3"&gt;Value of field3&lt;/column&gt;</code><br><code>&lt;/record&gt;</code><br><code>...</code><br><br>
+Here, the names of the fields are attributes, so <code>elem.or.attr</code> would need to be <code>"attr"</code> and <code>col.attr</code> would be set to
+<code>"name"</code>, so <code>fxml_toDataframe()</code> knows where to look for the field/column names.<br><br>
+In any case, <code>siblings.of</code> would be the ID (<code>xmlflat.df$elemid.</code>) of one of the <code>&lt;record&gt;</code> elements.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe with the data read in from the XML document.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Joachim Zuckarelli <a href="mailto:joachim@zuckarelli.de">joachim@zuckarelli.de</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fxml_importXMLFlat</code>, <code>fxml_toXML</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load example file with population data from United Nations Statistics Division
+# and create flat dataframe
+example &lt;- system.file("worldpopulation.xml", package="flatxml")
+xml.dataframe &lt;- fxml_importXMLFlat(example)
+
+# Extract the data out of the XML document. The data records are on the same hierarchical level
+# as element with ID 3 (xml.dataframe$elemid. ==  3).
+# The field names are given in the "name" attribute of the children elements of element no. 3
+# and its siblings
+population.df &lt;- fxml_toDataFrame(xml.dataframe, siblings.of=3, elem.or.attr="attr",
+col.attr="name")
+# Exclude the "Value Footnote" field from the returned dataframe
+population.df &lt;- fxml_toDataFrame(xml.dataframe, siblings.of=3, elem.or.attr="attr",
+col.attr="name", exclude.fields=c("Value Footnote"))
+
+
+# Load example file with soccer world cup data (data from
+# https://www.fifa.com/fifa-tournaments/statistics-and-records/worldcup/index.html)
+# and create flat dataframe
+example2 &lt;- system.file("soccer.xml", package="flatxml")
+xml.dataframe2 &lt;- fxml_importXMLFlat(example2)
+
+# Extract the data out of the XML document. The data records are on the same hierarchical level
+# as element with ID 3 (xml.dataframe$elemid. ==  3). #' # The field names are given as the name
+# of the children elements of element no. 3 and its siblings.
+worldcups.df &lt;- fxml_toDataFrame(xml.dataframe2, siblings.of=3, elem.or.attr="elem")
+</code></pre>
+
+
+</div>

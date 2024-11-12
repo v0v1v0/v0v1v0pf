@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>conversion</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conversion Between S3 Partition Objects and KCCA</h2>
+
+<h3>Description</h3>
+
+<p>These functions can be used to convert the results from cluster
+functions like
+<code>kmeans</code> or <code>pam</code> to objects
+of class <code>"kcca"</code> and vice versa.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as.kcca(object, ...)
+
+## S3 method for class 'hclust'
+as.kcca(object, data, k, family=NULL, save.data=FALSE, ...)
+## S3 method for class 'kmeans'
+as.kcca(object, data, save.data=FALSE, ...)
+## S3 method for class 'partition'
+as.kcca(object, data=NULL, save.data=FALSE, ...)
+## S3 method for class 'skmeans'
+as.kcca(object, data, save.data=FALSE, ...)
+## S4 method for signature 'kccasimple,kmeans'
+coerce(from, to="kmeans", strict=TRUE)
+
+Cutree(tree, k=NULL, h=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Fitted object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data which were used to obtain the clustering. For
+<code>"partition"</code> objects
+created by functions from package cluster this is optional, if
+<code>object</code> contains the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save.data</code></td>
+<td>
+<p>Save a copy of the data in the return object?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Object of class <code>"kccaFamily"</code>, can be omitted for
+some known distances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Currently not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from, to, strict</code></td>
+<td>
+<p>Usual arguments for <code>coerce</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>A tree as produced by <code>hclust</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Numeric scalar or vector with heights where the tree should
+be cut.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The standard <code>cutree</code> function orders clusters such that
+observation one is in cluster one, the first observation (as ordered
+in the data set) not in cluster one is in cluster two,
+etc. <code>Cutree</code> orders clusters as shown in the dendrogram from
+left to right such that similar clusters have similar numbers. The
+latter is used when converting to <code>kcca</code>. 
+</p>
+<p>For hierarchical clustering the cluster memberships of the converted
+object can be different from the result of <code>Cutree</code>,
+because one KCCA-iteration has to be performed in order to obtain a
+valid <code>kcca</code> object. In this case a warning is issued.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Friedrich Leisch</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(Nclus)
+
+cl1 &lt;- kmeans(Nclus, 4)
+cl1
+cl1a &lt;- as.kcca(cl1, Nclus)
+cl1a
+cl1b &lt;- as(cl1a, "kmeans")
+
+
+
+library("cluster")
+cl2 &lt;- pam(Nclus, 4)
+cl2
+cl2a &lt;- as.kcca(cl2)
+cl2a
+## the same
+cl2b &lt;- as.kcca(cl2, Nclus)
+cl2b
+
+
+
+## hierarchical clustering
+hc &lt;- hclust(dist(USArrests))
+plot(hc)
+rect.hclust(hc, k=3)
+c3 &lt;- Cutree(hc, k=3)
+k3 &lt;- as.kcca(hc, USArrests, k=3)
+barchart(k3)
+table(c3, clusters(k3))
+</code></pre>
+
+
+</div>

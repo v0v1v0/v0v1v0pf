@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.pls</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Penalized PLS regression with scalar response</h2>
+
+<h3>Description</h3>
+
+<p>Computes functional linear regression between functional explanatory variable <code class="reqn">X(t)</code> and scalar response <code class="reqn">Y</code> using penalized Partial
+Least Squares (PLS) </p>
+<p style="text-align: center;"><code class="reqn">Y=\big&lt;\tilde{X},\beta\big&gt;+\epsilon=\int_{T}{\tilde{X}(t)\beta(t)dt+\epsilon}</code>
+</p>
+<p> where <code class="reqn"> \big&lt; \cdot , \cdot \big&gt;</code> denotes the inner product on
+<code class="reqn">L_2</code> and <code class="reqn">\epsilon</code> are random errors with mean zero , finite variance <code class="reqn">\sigma^2</code> and <code class="reqn">E[\tilde{X}(t)\epsilon]=0</code>.<br><code class="reqn">\left\{\nu_k\right\}_{k=1}^{\infty}</code> orthonormal basis of PLS to represent the functional data as <code class="reqn">X_i(t)=\sum_{k=1}^{\infty}\gamma_{ik}\nu_k</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.pls(fdataobj, y = NULL, l = NULL, lambda = 0, P = c(0, 0, 1), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdataobj</code></td>
+<td>
+<p><code>fdata</code> class object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Scalar response with length <code>n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>Index of components to include in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Amount of penalization. Default value is 0, i.e. no
+penalization is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>If <code>P</code> is a vector: <code>P</code> are coefficients to define the
+penalty matrix object. By default <code>P=c(0,0,1)</code> penalize the second
+derivative (curvature) or acceleration.  If <code>P</code> is a matrix: P is the
+penalty matrix object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Functional (FPLS) algorithm maximizes the covariance between <code class="reqn">X(t)</code> and the scalar response <code class="reqn">Y</code> via the partial least squares (PLS) components.
+The functional penalized PLS are calculated in <code>fdata2pls</code> by alternative formulation of the NIPALS algorithm proposed by Kraemer and
+Sugiyama (2011).<br> 
+Let <code class="reqn">\left\{\tilde{\nu}_k\right\}_{k=1}^{\infty}</code> the functional PLS components and <code class="reqn">\tilde{X}_i(t)=\sum_{k=1}^{\infty}\tilde{\gamma}_{ik}\tilde{\nu}_k</code> and <code class="reqn">\beta(t)=\sum_{k=1}^{\infty}\tilde{\beta}_k\tilde{\nu}_k</code>. The functional linear model is estimated by: </p>
+<p style="text-align: center;"><code class="reqn">\hat{y}=\big&lt; X,\hat{\beta} \big&gt; \approx \sum_{k=1}^{k_n}\tilde{\gamma}_{k}\tilde{\beta}_k </code>
+</p>
+<p><br> 
+The response can be fitted by: 
+</p>
+ <ul><li> <p><code class="reqn">\lambda=0</code>, no penalization,
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{y}=\nu_k^{\top}(\nu_k^{\top}\nu_k)^{-1}\nu_k^{\top}y</code>
+</p>
+
+
+<ul><li>
+<p> Penalized regression, <code class="reqn">\lambda&gt;0</code> and <code class="reqn">P\neq0</code>. For example, <code class="reqn">P=c(0,0,1)</code> penalizes the
+second derivative (curvature) by <code>P=P.penalty(fdataobj["argvals"],P)</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{y}=\nu_k^{\top}(\nu_k\top \nu_k+\lambda \nu_k^{\top} \textbf{P}\nu_k)^{-1}\nu_k^{\top}y</code>
+</p>
+ </li></ul>
+</li></ul>
+<h3>Value</h3>
+
+<p>Return: 
+</p>
+
+<ul>
+<li> <p><code>call</code> The matched call of <code>fregre.pls</code> function. 
+</p>
+</li>
+<li> <p><code>beta.est</code> Beta coefficient estimated of class <code>fdata</code>. 
+</p>
+</li>
+<li> <p><code>coefficients</code> A named vector of coefficients.
+</p>
+</li>
+<li> <p><code>fitted.values</code> Estimated scalar response. 
+</p>
+</li>
+<li> <p><code>residuals</code><code>y</code>-<code>fitted values</code>. 
+</p>
+</li>
+<li> <p><code>H</code> Hat matrix. 
+</p>
+</li>
+<li> <p><code>df.residual</code> The residual degrees of freedom. 
+</p>
+</li>
+<li> <p><code>r2</code> Coefficient of determination.
+</p>
+</li>
+<li> <p><code>GCV</code> GCV criterion. 
+</p>
+</li>
+<li> <p><code>sr2</code> Residual variance. 
+</p>
+</li>
+<li> <p><code>l</code> Index of components to include in the model. 
+</p>
+</li>
+<li> <p><code>lambda</code> Amount of shrinkage.
+</p>
+</li>
+<li> <p><code>fdata.comp</code> Fitted object in <code>fdata2pls</code> function.
+</p>
+</li>
+<li> <p><code>lm</code> Fitted object in <code>lm</code> function 
+</p>
+</li>
+<li> <p><code>fdataobj</code> Functional explanatory data. 
+</p>
+</li>
+<li> <p><code>y</code> Scalar response.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Preda C. and Saporta G. <em>PLS regression on a stochastic
+process</em>. Comput. Statist. Data Anal. 48 (2005): 149-158.
+</p>
+<p>N. Kraemer, A.-L. Boulsteix, and G. Tutz (2008). <em>Penalized Partial
+Least Squares with Applications to B-Spline Transformations and Functional
+Data</em>. Chemometrics and Intelligent Laboratory Systems, 94, 60 - 69.
+<a href="https://doi.org/10.1016/j.chemolab.2008.06.009">doi:10.1016/j.chemolab.2008.06.009</a>
+</p>
+<p>Martens, H., Naes, T. (1989) <em>Multivariate calibration.</em> Chichester:
+Wiley.
+</p>
+<p>Kraemer, N., Sugiyama M. (2011). <em>The Degrees of Freedom of Partial
+Least Squares Regression</em>. Journal of the American Statistical Association.
+Volume 106, 697-705.
+</p>
+<p>Febrero-Bande, M., Oviedo de la Fuente, M. (2012).  <em>Statistical
+Computing in Functional Data Analysis: The R Package fda.usc.</em> Journal of
+Statistical Software, 51(4), 1-28. <a href="https://www.jstatsoft.org/v51/i04/">https://www.jstatsoft.org/v51/i04/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also as: <code>P.penalty</code> and
+<code>fregre.pls.cv</code>.<br> Alternative method: <code>fregre.pc</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(tecator)
+x &lt;- tecator$absorp.fdata
+y &lt;- tecator$y$Fat
+res &lt;- fregre.pls(x,y,c(1:4))
+summary(res)
+res1 &lt;- fregre.pls(x,y,l=1:4,lambda=100,P=c(1))
+res4 &lt;- fregre.pls(x,y,l=1:4,lambda=1,P=c(0,0,1))
+summary(res4)#' plot(res$beta.est)
+lines(res1$beta.est,col=4)
+lines(res4$beta.est,col=2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ceteris_paribus_cutoff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ceteris paribus cutoff</h2>
+
+<h3>Description</h3>
+
+<p>Ceteris paribus cutoff is way to check how will parity loss behave if only cutoff for one subgroup was changed.
+By using parameter <code>new_cutoffs</code> parity loss for metrics with new cutoffs will be calculated. Note that cutoff for subgroup (passed as parameter) will
+change no matter <code>new_cutoff</code>'s value at that position. When parameter <code>cumulated</code> is set to true, all metrics will be summed and facets will
+collapse to one plot with different models on it. Sometimes due to the fact that some metric might contain NA for all cutoff values, cumulated plot might be present without
+this model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ceteris_paribus_cutoff(
+  x,
+  subgroup,
+  new_cutoffs = NULL,
+  fairness_metrics = c("ACC", "TPR", "PPV", "FPR", "STP"),
+  grid_points = 101,
+  cumulated = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class <code>fairness_object</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subgroup</code></td>
+<td>
+<p>character, name of subgroup (level in protected variable)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_cutoffs</code></td>
+<td>
+<p>list of cutoffs with names matching those of subgroups. Each value should represent cutoff for particular subgroup.
+Position corresponding to subgroups in levels will be changed. Default is NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fairness_metrics</code></td>
+<td>
+<p>character, name of parity_loss metric or vector of multiple metrics, for full metric names check <code>fairness_check</code> documentation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_points</code></td>
+<td>
+<p>numeric, grid for cutoffs to test. Number of points between 0 and 1 spread evenly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cumulated</code></td>
+<td>
+<p>logical, if <code>TRUE</code>  facets will collapse to one plot and parity loss for each model will be summed. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ceteris_paribus_cutoff</code> <code>data.frame</code> containing information about label, metric and parity_loss at particular cutoff
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("compas")
+
+# positive outcome - not being recidivist
+two_yr_recidivism &lt;- factor(compas$Two_yr_Recidivism, levels = c(1, 0))
+y_numeric &lt;- as.numeric(two_yr_recidivism) - 1
+compas$Two_yr_Recidivism &lt;- two_yr_recidivism
+
+
+lm_model &lt;- glm(Two_yr_Recidivism ~ .,
+  data = compas,
+  family = binomial(link = "logit")
+)
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = compas[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = compas$Ethnicity,
+  privileged = "Caucasian"
+)
+
+cpc &lt;- ceteris_paribus_cutoff(fobject, "African_American")
+plot(cpc)
+
+rf_model &lt;- ranger::ranger(Two_yr_Recidivism ~ .,
+  data = compas,
+  probability = TRUE,
+  num.trees = 200
+)
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = compas[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm, explainer_rf,
+  protected = compas$Ethnicity,
+  privileged = "Caucasian"
+)
+
+cpc &lt;- ceteris_paribus_cutoff(fobject, "African_American")
+plot(cpc)
+
+
+</code></pre>
+
+
+</div>

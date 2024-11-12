@@ -1,0 +1,90 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bitcoin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bitcoin Market Price (USD)</h2>
+
+<h3>Description</h3>
+
+<p>The average USD market price across major bitcoin exchanges.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bitcoin
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 1354 rows and 2 variables:
+</p>
+
+<dl>
+<dt>date</dt>
+<dd>
+<p>POSIXct,POSIXt (TZ: "UTC") from 2019-01-02 to 2023-10-28</p>
+</dd>
+<dt>price</dt>
+<dd>
+<p>The average USD market price across major bitcoin exchanges</p>
+</dd>
+</dl>
+<h3>Source</h3>
+
+<p>&lt;https://www.blockchain.com/explorer/charts/market-price&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  p &lt;- ggplot2::ggplot(bitcoin, ggplot2::aes(x = date, y = price)) +
+    ggplot2::geom_line()
+  print(p)
+
+  result &lt;- suppressWarnings(fastcpd.garch(
+    diff(log(bitcoin$price[600:900])), c(1, 1),
+    beta = "BIC", cost_adjustment = "BIC"
+  ))
+  summary(result)
+  bitcoin$date[result@cp_set + 600]
+  plot(result)
+
+  cp_dates &lt;- bitcoin[600 + result@cp_set + 1, "date"]
+  ggplot2::ggplot(
+    data = data.frame(
+      x = bitcoin$date[600:900], y = bitcoin$price[600:900]
+    ),
+    ggplot2::aes(x = x, y = y)
+  ) +
+    ggplot2::geom_line(color = "steelblue") +
+    ggplot2::geom_vline(
+      xintercept = cp_dates,
+      color = "red",
+      linetype = "dotted",
+      linewidth = 0.5,
+      alpha = 0.7
+    ) +
+    ggplot2::labs(
+      x = "Year",
+      y = "Bitcoin price in USD"
+    ) +
+    ggplot2::annotate(
+      "text",
+      x = cp_dates,
+      y = 2000,
+      label = as.character(cp_dates),
+      color = "steelblue"
+    ) +
+    ggplot2::theme_bw()
+}
+
+</code></pre>
+
+
+</div>

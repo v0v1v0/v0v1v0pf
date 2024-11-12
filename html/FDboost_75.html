@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reweightData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to Reweight Data</h2>
+
+<h3>Description</h3>
+
+<p>Function to Reweight Data
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reweightData(
+  data,
+  argvals,
+  vars,
+  longvars = NULL,
+  weights,
+  index,
+  idvars = NULL,
+  compress = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a named list or data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+<p>character (vector); name(s) for entries in data giving 
+the index for observed grid points; must be supplied if <code>vars</code> is not supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>character (vector); name(s) for entries in data, which
+are subsetted according to weights or index. Must be supplied if <code>argvals</code> is not supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>longvars</code></td>
+<td>
+<p>variables in long format, e.g., a response that is observed at curve specific grids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>vector of weights for observations. Must be supplied if <code>index</code> is not supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>vector of indices for observations. Must be supplied if <code>weights</code> is not supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idvars</code></td>
+<td>
+<p>character (vector); index, which is needed to expand <code>vars</code> to be conform
+with the <code>hmatrix</code> structure when using <code>bhistx</code>-base-learners or to be conform with 
+variables in long format specified in <code>longvars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>logical; whether <code>hmatrix</code> objects are saved in compressed form or not. Default is <code>TRUE</code>.
+Should be set to <code>FALSE</code> when using <code>reweightData</code> for nested resampling.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>reweightData</code> indexes the rows of matrices and / or positions of vectors by using
+either the <code>index</code> or the <code>weights</code>-argument. To prevent the function from indexing
+the list entry / entries, which serve as time index for observed grid points of each trajectory of
+functional observations, the <code>argvals</code> argument (vector of character names for these list entries) 
+can be supplied. If <code>argvals</code> is not supplied, <code>vars</code> must be supplied and it is assumed that 
+<code>argvals</code> is equal to <code>names(data)[!names(data) %in% vars]</code>.
+</p>
+<p>When using <code>weights</code>, a weight vector of length N must be supplied, where N is the number of observations.
+When using <code>index</code>, the vector must contain the index of each row as many times as it shall be included in the
+new data set.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the reweighted or subsetted data.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Ruegamer, Sarah Brockhaus
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load data
+data("viscosity", package = "FDboost")
+interval &lt;- "101"
+end &lt;- which(viscosity$timeAll == as.numeric(interval))
+viscosity$vis &lt;- log(viscosity$visAll[ , 1:end])
+viscosity$time &lt;- viscosity$timeAll[1:end]
+
+## what does data look like
+str(viscosity)
+
+## do some reweighting
+# correct weights
+str(reweightData(viscosity, vars=c("vis", "T_C", "T_A", "rspeed", "mflow"), 
+    argvals = "time", weights = c(0, 32, 32, rep(0, 61))))
+
+str(visNew &lt;- reweightData(viscosity, vars=c("vis", "T_C", "T_A", "rspeed", "mflow"), 
+    argvals = "time", weights = c(0, 32, 32, rep(0, 61))))
+# check the result
+# visNew$vis[1:5, 1:5] ## image(visNew$vis)
+
+# incorrect weights
+str(reweightData(viscosity, vars=c("vis", "T_C", "T_A", "rspeed", "mflow"), 
+    argvals = "time", weights = sample(1:64, replace = TRUE)), 1)
+
+# supply meaningful index
+str(visNew &lt;- reweightData(viscosity, vars = c("vis", "T_C", "T_A", "rspeed", "mflow"), 
+              argvals = "time", index = rep(1:32, each = 2)))
+# check the result
+# visNew$vis[1:5, 1:5]
+
+# errors
+if(FALSE){
+   reweightData(viscosity, argvals = "")
+   reweightData(viscosity, argvals = "covThatDoesntExist", index = rep(1,64))
+   }
+   
+</code></pre>
+
+
+</div>

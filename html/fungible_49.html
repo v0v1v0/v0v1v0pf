@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fungibleExtrema</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Locate Extrema of Fungible Regression Weights</h2>
+
+<h3>Description</h3>
+
+<p>Locate extrema of fungible regression weights.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fungibleExtrema(
+  R.X,
+  rxy,
+  r.yhata.yhatb,
+  Nstarts = 100,
+  MaxMin = "Max",
+  Seed = NULL,
+  maxGrad = 1e-05,
+  PrintLevel = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R.X</code></td>
+<td>
+<p>p x p Predictor variable correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rxy</code></td>
+<td>
+<p>p x 1 Vector of predictor-criterion correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r.yhata.yhatb</code></td>
+<td>
+<p>Correlation between least squares (yhatb) and
+alternate-weight (yhata) composites.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Nstarts</code></td>
+<td>
+<p>Maximum number of (max) minimizations from random starting
+configurations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MaxMin</code></td>
+<td>
+<p>Character: "Max" = maximize cos(a,b); "Min" = minimize
+cos(a,b).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Seed</code></td>
+<td>
+<p>Starting seed for the random number generator. If Seed = NULL 
+then the program will sample a random integer in the (0, 100,000) interval.
+Default (Seed = NULL).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxGrad</code></td>
+<td>
+<p>The optimization routine will end when the maximimum of
+the (absolute value of the ) function gradient falls below the value specified in 
+maxGrad. Default (maxGrad = 1E-05).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PrintLevel</code></td>
+<td>
+<p>(integer). If PrintLevel = 1 then the program will print 
+additional output during function convergence. Default (PrintLevel = 1).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cos.ab</code></td>
+<td>
+<p>cosine between OLS and alternate weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>extrema of fungible weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>k weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>z
+weights: a normalized random vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>OLS weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>p x 1
+vector of u weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r.yhata.yhatb</code></td>
+<td>
+<p>Correlation between yhata and
+yhatb.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r.y.yhatb</code></td>
+<td>
+<p>Correlation between y and yhatb.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradient</code></td>
+<td>
+<p>Gradient of converged solution.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Niels Waller and Jeff Jones
+</p>
+
+
+<h3>References</h3>
+
+<p>Koopman, R. F.  (1988).  On the sensitivity of a composite to
+its weights.  <em>Psychometrika, 53(4)</em>, 547–552.
+</p>
+<p>Waller, N. &amp; Jones, J. (2009). Locating the extrema of fungible regression
+weights in multiple regression. <em>Psychometrika, 74</em>, 589–602.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:   
+## Example 
+## This is Koopman's Table 2 Example
+
+
+R.X &lt;- matrix(c(1.00,  .69,  .49,  .39,
+                .69, 1.00,  .38,  .19,
+                .49,  .38, 1.00,  .27,
+                .39,  .19,  .27, 1.00),4,4)
+
+
+b &lt;- c(.39, .22, .02, .43)
+rxy &lt;- R.X %*% b
+
+OLSRSQ &lt;- t(b) %*% R.X %*% b
+
+theta &lt;- .02
+r.yhata.yhatb &lt;- sqrt( 1 - (theta)/OLSRSQ)
+
+Converged = FALSE
+SEED = 1234
+MaxTries = 100 
+iter = 1
+
+while( iter &lt;= MaxTries){
+   SEED &lt;- SEED + 1
+  
+   cat("\nCurrent Seed = ", SEED, "\n")
+   output &lt;- fungibleExtrema(R.X, rxy, 
+                             r.yhata.yhatb, 
+                             Nstarts = 5,
+                             MaxMin = "Min", 
+                             Seed = SEED,
+                             maxGrad = 1E-05,
+                             PrintLevel = 1)
+  
+   Converged &lt;- output$converged
+   if(Converged) break
+   iter = iter + 1
+}  
+
+print( output )
+
+## Scale to replicate Koopman
+a &lt;- output$a
+a.old &lt;- a
+aRa &lt;- t(a) %*% R.X %*% a
+
+## Scale a such that a' R a = .68659
+## vc = variance of composite
+vc &lt;- aRa
+## sf = scale factor
+sf &lt;- .68659/vc
+a &lt;- as.numeric(sqrt(sf)) * a
+cat("\nKoopman Scaling\n")
+print(round(a,2))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

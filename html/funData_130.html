@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>scalarProduct</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the scalar product for functional data objects</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the scalar product between two objects of the class 
+<code>funData</code>, <code>irregFunData</code> and 
+<code>multiFunData</code>. For univariate functions <code class="reqn">f,g</code> on a
+domain <code class="reqn">\mathcal{T}</code>, the scalar product is defined as 
+</p>
+<p style="text-align: center;"><code class="reqn">\int_\mathcal{T} f(t) g(t) \mathrm{d}t</code>
+</p>
+<p> and 
+for multivariate functions <code class="reqn">f,g</code> on domains <code class="reqn">\mathcal{T}_1, \ldots, 
+\mathcal{T}_p</code>, it is defined as </p>
+<p style="text-align: center;"><code class="reqn">\sum_{j = 1}^p
+\int_{\mathcal{T}_j} f^{(j)}(t) g^{(j)}(t) \mathrm{d}t.</code>
+</p>
+<p> As seen in the formula, the objects 
+must be defined on the same domain. The scalar product is calculated pairwise
+for all observations, thus the objects must also have the same number of 
+observations or one object may have only one observation (for which the 
+scalar product is calculated with all observations of the other object)). 
+Objects of the classes <code>funData</code> and <code>irregFunData</code> 
+can be combined, see <code>integrate</code> for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">scalarProduct(object1, object2, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object1, object2</code></td>
+<td>
+<p>Two objects of class<code>funData</code>, 
+<code>irregFunData</code> or <code>multiFunData</code>, for that the 
+scalar product is to be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters passed to <code>integrate</code>. For
+<code>multiFunData</code> objects, one can also pass a
+<code>weight</code> argument. See Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For <code>multiFunData</code> one can pass an optional vector
+<code>weight</code> for calculating a weighted scalar product. This vector must
+have the same number of elements as the <code>multiFunData</code> objects
+and have to be non-negative with at least one weight that is different from
+0. Defaults to <code>1</code> for each element. See also <code>norm</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of length <code>nObs(object1)</code> (or <code>nObs(object2)</code>, if 
+<code>object1</code> has only one observation), containing the pairwise scalar 
+product for each observation.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>integrate</code>, <code>norm</code>,
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># create two funData objectw with 5 observations on [0,1]
+f &lt;- simFunData(N = 5, M = 7, eValType = "linear",
+                eFunType = "Fourier", argvals = seq(0,1,0.01))$simData
+g &lt;- simFunData(N = 5, M = 4, eValType = "linear",
+                eFunType = "Poly", argvals = seq(0,1,0.01))$simData
+                
+# calculate the scalar product
+scalarProduct(f,g)
+
+# the scalar product of an object with itself equals the squared norm
+all.equal(scalarProduct(f,f), norm(f, squared = TRUE))
+
+# This works of course also for multiFunData objects...
+m &lt;- multiFunData(f,g)
+all.equal(scalarProduct(m,m), norm(m, squared = TRUE))
+
+# ...and for irregFunData objects
+i &lt;- as.irregFunData(sparsify(f, minObs = 5, maxObs = 10))
+all.equal(scalarProduct(i,i), norm(i, squared = TRUE))
+
+# Scalar product between funData and irregFunData objects
+scalarProduct(i,f)
+
+# Weighted scalar product for multiFunData objects
+scalarProduct(m,m, weight = c(1,2))
+</code></pre>
+
+
+</div>

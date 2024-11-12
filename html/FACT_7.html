@@ -1,0 +1,386 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SMART</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+<code>SMART</code> - Scoring Metric after Permutation</h2>
+
+<h3>Description</h3>
+
+<p><code>SMART</code> estimates the importance of a feature to the clustering algorithm
+by measuring changes in cluster assignments by scoring functions after
+permuting selected feature. Cluster-specific <code>SMART</code> indicates the importance
+of specific clusters versus the remaining ones, measured by a binary scoring
+metric. Global <code>SMART</code> assigns importance scores across all clusters, measured
+by a multi-class scoring metric. Currently, <code>SMART</code> can only be used for hard
+label predictors.
+</p>
+
+
+<h3>Details</h3>
+
+<p>Let <code class="reqn">M \in \mathbb{N}_0^{k \times k}</code> denote the multi-cluster
+confusion matrix and <code class="reqn">M_c \in \mathbb{N}_0^{2 \times 2}</code> the binary
+confusion matrix for cluster c versus the remaining clusters. <code>SMART</code> for
+feature set S corresponds to:
+</p>
+<p style="text-align: center;"><code class="reqn">
+\text{Multi-cluster scoring:} \quad \text{SMART}(X, \tilde{X}_S) = h_{\text{multi}}(M) \\
+\text{Binary scoring:} \quad \text{SMART}(X, \tilde{X}_S) = \text{AVE}(h_{\text{binary}}(M_1), \dots, h_{\text{binary}}(M_k))
+</code>
+</p>
+
+<p>where <code class="reqn">\text{AVE}</code> averages a vector of binary scores, e.g., via micro or
+macro averaging.
+In order to reduce variance in the estimate from shuffling the data, one can
+shuffle t times and evaluate the distribution of scores. Let <code class="reqn">\tilde{X}_S^{(t)}</code>
+denote the t-th shuffling iteration for feature set S. The <code>SMART</code> point
+estimate is given by: <br></p>
+<p style="text-align: center;"><code class="reqn">
+\overline{\text{SMART}}(X, \tilde{X}_S) = \psi\left(\text{SMART}(X, \tilde{X}_S^{(1)}),
+ \dots, \text{SMART}(X, \tilde{X}_S^{(t)})\right)
+</code>
+</p>
+
+<p>where <code class="reqn">\psi</code> extracts a sample statistic such as the mean or median or quantile.
+</p>
+
+
+<h3>Public fields</h3>
+
+<div class="r6-fields">
+
+<dl>
+<dt><code>avg</code></dt>
+<dd>
+<p>(<code>character(1)</code> or <code>NULL</code>)<br><code>NULL</code> is calculating cluster-specific (binary)
+metrics. <code>"micro"</code> summarizes binary scores to a global
+score that treats each instance in the data set with equal
+importance. <code>"macro"</code> summarizes binary scores to a global
+score that treats each cluster with equal importance.</p>
+</dd>
+<dt><code>metric</code></dt>
+<dd>
+<p><code>character(1)</code><br>
+The binary similarity metric used.</p>
+</dd>
+<dt><code>predictor</code></dt>
+<dd>
+<p>ClustPredictor<br>
+The object (created with <code>ClustPredictor$new()</code>) holding
+the cluster algorithm and the data.</p>
+</dd>
+<dt><code>data.sample</code></dt>
+<dd>
+<p>data.frame<br>
+The data, including features and cluster soft/ hard labels.</p>
+</dd>
+<dt><code>sampler</code></dt>
+<dd>
+<p>any<br>
+Sampler from the <code>predictor</code> object.</p>
+</dd>
+<dt><code>features</code></dt>
+<dd>
+<p>(<code style="white-space: pre;">⁠character or list⁠</code>)<br>
+Features/ feature sets to calculate importance scores.</p>
+</dd>
+<dt><code>n.repetitions</code></dt>
+<dd>
+<p>(<code>numeric(1)</code>)<br>
+How often is the shuffling of the feature repeated?</p>
+</dd>
+<dt><code>results</code></dt>
+<dd>
+<p>(<code>data.table</code>)<br>
+A data.table containing the results from <code>SMART</code> procedure.</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-SMART-new"><code>SMART$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-SMART-print"><code>SMART$print()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-SMART-plot"><code>SMART$plot()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-SMART-clone"><code>SMART$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-SMART-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Create a SMART object
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>SMART$new(
+  predictor,
+  features = NULL,
+  metric = "f1",
+  avg = NULL,
+  n.repetitions = 5
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>predictor</code></dt>
+<dd>
+<p>ClustPredictor<br>
+The object (created with <code>ClustPredictor$new()</code>) holding
+the cluster algorithm and the data.</p>
+</dd>
+<dt><code>features</code></dt>
+<dd>
+<p>(<code style="white-space: pre;">⁠character or list⁠</code>)<br>
+For which features do you want importance scores calculated. The default
+value of <code>NULL</code> implies all features. Use a named list of character vectors
+to define groups of features for which joint importance will be calculated.</p>
+</dd>
+<dt><code>metric</code></dt>
+<dd>
+<p><code>character(1)</code><br>
+The binary similarity metric used. Defaults to <code>f1</code>,
+where F1 Score is used. Other possible binary scores are
+<code>"precision"</code>, <code>"recall"</code>, <code>"jaccard"</code>, <code>"folkes_mallows"</code>
+and <code>"accuracy"</code>.</p>
+</dd>
+<dt><code>avg</code></dt>
+<dd>
+<p>(<code>character(1)</code> or <code>NULL</code>)<br>
+Either <code>NULL</code>, <code>"micro"</code> or <code>"macro"</code>.
+Defaults to <code>NULL</code> is calculating cluster-specific (binary)
+metrics. <code>"micro"</code> summarizes binary scores to a global
+score that treats each instance in the data set with equal
+importance. <code>"macro"</code> summarizes binary scores to a global
+score that treats each cluster with equal importance.
+For unbalanced clusters, <code>"macro"</code> is more recommendable.</p>
+</dd>
+<dt><code>n.repetitions</code></dt>
+<dd>
+<p>(<code>numeric(1)</code>)<br>
+How often should the shuffling of the feature be repeated?
+The higher the number of repetitions the more stable and
+accurate the results become.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>(data.frame)<br>
+data.frame with the results of the feature importance computation.
+One row per feature with the following columns:
+For global scores:
+</p>
+
+<ul>
+<li>
+<p> importance.05 (5% quantile of importance values from the repetitions)
+</p>
+</li>
+<li>
+<p> importance (median importance)
+</p>
+</li>
+<li>
+<p> importance.95 (95% quantile) and the permutation.error (median error
+over all repetitions).
+For cluster specific scores each column indicates for a different cluster.
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-SMART-print"></a>
+
+
+
+<h4>Method <code>print()</code>
+</h4>
+
+<p>Print a <code>SMART</code> object
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>SMART$print()</pre></div>
+
+
+
+<h5>Returns</h5>
+
+<p><code>character</code> <br>
+Information about <code>predictor</code>, <code>data</code>, <code>metric</code>, and <code>avg</code>
+and head of the <code>results</code>.
+</p>
+
+
+<hr>
+<a id="method-SMART-plot"></a>
+
+
+
+<h4>Method <code>plot()</code>
+</h4>
+
+<p>plots the similarity score results of a <code>SMART</code>
+object.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>SMART$plot(log = FALSE, single_cl = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>log</code></dt>
+<dd>
+<p><code>logical(1)</code> <br>
+Indicator weather results should be logged. This can be
+useful to distinguish the importance if similarity scores
+are all close to 1.</p>
+</dd>
+<dt><code>single_cl</code></dt>
+<dd>
+<p><code>character(1)</code> <br>
+Only used for cluster-specific scores (<code>avg = NULL</code>).
+Should match one of the cluster names.
+In this case, importance scores for a single cluster are
+plotted.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Details</h5>
+
+<p>The plot shows the similarity per feature.
+For global scores:
+When <code>n.repetitions</code> in <code>SMART$new</code> was larger than 1, then we get
+multiple similarity estimates per feature. The similarity are aggregated and
+the plot shows the median similarity per feature (as dots) and also the
+90%-quantile, which helps to understand how much variance the computation has
+per feature.
+For cluster-specific scores:
+Stacks the similarity estimates of all clusters per feature.
+Can be used to achieve a global estimate as a sum of
+cluster-wise similarities.
+</p>
+
+
+
+<h5>Returns</h5>
+
+<p>ggplot2 plot object
+</p>
+
+
+<hr>
+<a id="method-SMART-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>SMART$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>See Also</h3>
+
+<p>iml::FeatureImp
+</p>
+<p>SMART
+</p>
+<p>SMART
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# load data and packages
+require(factoextra)
+require(FuzzyDBScan)
+multishapes = as.data.frame(multishapes[, 1:2])
+# Set up an train FuzzyDBScan
+eps = c(0, 0.2)
+pts = c(3, 15)
+res = FuzzyDBScan$new(multishapes, eps, pts)
+res$plot("x", "y")
+# create hard label predictor
+predict_part = function(model, newdata) model$predict(new_data = newdata, cmatrix = FALSE)$cluster
+predictor = ClustPredictor$new(res, as.data.frame(multishapes), y = res$clusters,
+                               predict.function = predict_part, type = "partition")
+# Run SMART globally
+macro_f1 = SMART$new(predictor, n.repetitions = 50, metric = "f1", avg = "macro")
+macro_f1 # print global SMART
+macro_f1$plot(log = TRUE) # plot global SMART
+# Run cluster specific SMART
+classwise_f1 = SMART$new(predictor, n.repetitions = 50, metric = "f1")
+macro_f1 # print regional SMART
+macro_f1$plot(log = TRUE) # plot regional SMART
+
+</code></pre>
+
+
+</div>

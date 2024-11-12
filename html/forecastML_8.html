@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fill_gaps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prepare a dataset for modeling by filling in temporal gaps in data collection</h2>
+
+<h3>Description</h3>
+
+<p>In order to create a modeling dataset with feature lags that are temporally correct, the entry
+function in <code>forecastML</code>, <code>create_lagged_df</code>, needs evenly-spaced time series with no
+gaps in data collection. <code>fill_gaps()</code> can help here.
+This function takes a <code>data.frame</code> with (a) dates, (b) the outcome being forecasted, and, optionally,
+(c) dynamic features that change through time, (d) group columns for multiple time series modeling,
+and (e) static or non-dynamic features for multiple time series modeling and returns a <code>data.frame</code>
+with rows evenly spaced in time. Specifically, this function adds rows to the input dataset
+while filling in (a) dates, (b) grouping information, and (c) static features. The (a) outcome and (b)
+dynamic features will be <code>NA</code> for any missing time periods; these <code>NA</code> values can be left
+as-is, user-imputed, or removed from modeling in the user-supplied modeling wrapper function for <code>train_model</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fill_gaps(data, date_col = 1, frequency, groups = NULL, static_features = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame or object coercible to a data.frame with, minimally, dates and the outcome being forecasted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_col</code></td>
+<td>
+<p>The column index–an integer–of the date index. This column should have class 'Date' or 'POSIXt'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequency</code></td>
+<td>
+<p>Date/time frequency. A string taking the same input as <code>base::seq.Date(..., by = "frequency")</code>
+or <code>base::seq.POSIXt..., by = "frequency")</code> e.g., '1 hour', '1 month', '7 days', '10 years' etc.
+The highest frequency supported at present is '1 sec'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>Optional. A character vector of column names that identify the unique time series (i.e., groups/hierarchies)
+when multiple time series are present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>static_features</code></td>
+<td>
+<p>Optional. For grouped time series only. A character vector of column names that identify features that do not change through time.
+These columns are expected to be used as model features but are not lagged (e.g., a ZIP code column). The most recent values for each
+static feature for each group are used to fill in the resulting missing data in static features when new rows are
+added to the dataset.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class 'data.frame': The returned data.frame has the same number of columns and column order but
+with additional rows to account for gaps in data collection. For grouped data, any new rows added to the returned data.frame will appear
+between the minimum–or oldest–date for that group and the maximum–or most recent–date across all groups. If the user-supplied
+forecasting algorithm(s) cannot handle missing outcome values or missing dynamic features, these should either be
+imputed prior to <code>create_lagged_df()</code> or filtered out in the user-supplied modeling function for <code>train_model</code>.
+</p>
+
+
+<h3>Methods and related functions</h3>
+
+<p>The output of <code>fill_gaps()</code> is passed into
+</p>
+
+<ul><li> <p><code>create_lagged_df</code>
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># NOAA buoy dataset with gaps in data collection
+data("data_buoy_gaps", package = "forecastML")
+
+data_buoy_no_gaps &lt;- fill_gaps(data_buoy_gaps, date_col = 1, frequency = '1 day',
+                               groups = 'buoy_id', static_features = c('lat', 'lon'))
+
+# The returned data.frame has the same number of columns but the time-series
+# are now evenly spaced at 1 day apart. Additionally, the unchanging grouping
+# columns and static features columns have been filled in for the newly created dataset rows.
+dim(data_buoy_gaps)
+dim(data_buoy_no_gaps)
+
+# Running create_lagged_df() is the next step in the forecastML forecasting
+# process. If there are long gaps in data collection, like in this buoy dataset,
+# and the user-supplied modeling algorithm cannot handle missing outcomes data,
+# the best option is to filter these rows out in the user-supplied modeling function
+# for train_model()
+</code></pre>
+
+
+</div>

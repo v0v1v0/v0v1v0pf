@@ -1,0 +1,289 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fled</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fiber length determination
+</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates fiber (tracheid) and fine (e.g. ray parenchyma cells and other small particles) lengths distribution in standing trees based on increment cores (cylindric wood samples). The data from the increment cores contain uncut fiber, fibers cut once or twice (cut by the borer) as well as non-fiber cells so-called 'fines'. A censored version of a mixture of the fine and fiber length distributions is therefore proposed to fit the data. The function offers two choices for the underlying density functions of the true unobserved uncut lengths of the fines and fibers in the increment core such as generalized gamma and log normal densities. The parameters of the mixture models are estimated by log likelihood maximization. The routine calls an <code>optim()</code> or <code>nlm()</code> functions for optimization procedure with the possibility to use a supplied gradient function. Some parameters of the generalized gamma mixture model can be fixed (rather than estimated) at the given values. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"> fled(data=stop("No data supplied"), data.type="ofa", r=2.5, 
+     model="ggamma", method="ML", parStart=NULL, fixed=NULL, 
+    optimizer=c("optim","L-BFGS-B","grad"),lower=-Inf,upper=Inf,cluster=1,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A numeric vector of cell lengths from increment cores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.type</code></td>
+<td>
+<p>type of data supplied: ”ofa” (default) measured by an optical fiber analyser, or measured by ”microscopy” (only the lengths of uncut fibers in the core). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>radius of the increment core (default 2.5).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>if <code>model="ggamma"</code> then the distributions of the true lengths of the fibers (fines) that at least partially appear in the increment core are assumed to follow generalized gamma distributions; if <code>model="lognorm"</code> then log normal distributions are assumed on those fiber (fine) lengths.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>either <code>"ML"</code> (default) for the maximum likelihood method or <code>"SEM"</code> for a stochastic version of the EM algorithm. Note <code>"SEM"</code> works only with the log normal model and increment core data measured by an optical fiber analyzer (<code>"ofa"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parStart</code></td>
+<td>
+<p>numerical vector of starting values of parameters (or fixed values for ggamma model when <code>!is.null(fixed)</code>). The parameter values of the generalized gamma model should be given in the following order, 
+</p>
+<p><code class="reqn">(\epsilon, b_{fines},d_{fines},k_{fines},b_{fibers},d_{fibers},k_{fibers})</code>.
+</p>
+<p>The parameter values of the log normal model are in the order   
+</p>
+<p><code class="reqn">(\epsilon, \mu_{fines}, \sigma_{fines}, \mu_{fibers}, \sigma_{fibers})</code> (see Details below). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p> TRUE/FALSE vector of seven components used to tell which parameters of ggamma model to fix. These are fixed at the values given in the argument <code>parStart</code>).    The positive values in <code>parStart</code> for non-fixed parameters are starting values for the optimiser, the negative or zero values indicate that no starting values are assumed. Note, fixing parameter values currently works only with 'optim'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimizer</code></td>
+<td>
+<p>numerical optimization method used to minimize 'minus' the loglikelihood function of the observed data: 'optim', 'nlm' or 'nlm.fd' (nlm is based on finite-difference approximation of the derivatives). If optimizer==”optim” then the second argument specifies the numerical method to be used in 'optim' (”Nelder-Mead”, ”BFGS”, ”CG”, ”L-BFGS-B”, ”SANN”. The third element of 
+<code>optimizer</code> indicates whether the finite difference approximation should be used ('fd') or analytical gradient ('grad') for the 'BFGS', 'CG' and 'L-BFGS-B' methods. The default is <code>optimizer=c("optim",</code> <code>"L-BFGS-B","grad")</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+<p>Bounds on the parameters for the "L-BFGS-B" method. The order of the bounds values has to be the same as the order of the <code>parStart</code>. Note that these bounds are on the original rather than transformed scale of the parameters used for optimization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>either '0' for no parallel computing to be used; or '1' (default) for one less than
+the number of cores; or user-supplied cluster on which to do estimation. <code>cluster</code> can only be used with OFA analyzed data (a cluster here can be some cores of a single machine).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to <code>optim</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The probability density function of the three-parameter generalized gamma distribution proposed by Stacy (1962) can be written as
+</p>
+<p style="text-align: center;"><code class="reqn">f(y;b,d,k) = d   b^{-d k}   y^{d k-1}  \exp[-(y/b)^d] / \Gamma(k),</code>
+</p>
+
+<p>where <code class="reqn">b &gt; 0</code>, <code class="reqn">d &gt; 0</code>, <code class="reqn">k &gt; 0</code>,
+and <code class="reqn">y &gt; 0</code>.
+</p>
+<p>The probability density function of the log normal distribution can be written as
+</p>
+<p style="text-align: center;"><code class="reqn">f(y;\mu, \sigma) =\exp[-(\log (y)-\mu)^2/(2\sigma^2)]/(y \sigma\sqrt{2\pi}), </code>
+</p>
+
+<p>where <code class="reqn">\sigma &gt; 0</code> and <code class="reqn">y &gt; 0</code>. 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cov.par</code></td>
+<td>
+<p>approximate covariance matrix of the estimated parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov.logpar</code></td>
+<td>
+<p>approximate covariance matrix of the transformed estimated parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>the log likelihood value corresponding to the estimated parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>model used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.fibers</code></td>
+<td>
+<p>estimated mean value of the fiber lengths in the standing tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.fines</code></td>
+<td>
+<p>estimated mean value of the fine lengths in the standing tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.cell</code></td>
+<td>
+<p>estimated mean value of the cell lengths in the standing tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop.fines</code></td>
+<td>
+<p>estimated proportion of fines in the standing tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>the estimated parameters on the original scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logpar</code></td>
+<td>
+<p>the estimated values of the transformed parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>termcode</code></td>
+<td>
+<p>an integer indicating why the optimization process terminated (see <code>optim</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>indicates why the optimization algorithm terminated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>number of iterations of the optimization method taken to get convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>TRUE/FALSE vector denoting if a parameter of ggamma model is fixed or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of observations</p>
+</td>
+</tr>
+</table>
+<h3>Warning </h3>
+
+<p>Fixing the parameters with the generalized gamma model may lead to unstable results of the optim method.</p>
+
+
+<h3>Note</h3>
+
+ 
+<p>The idea and some of the code for fixing parameters with <code>optim()</code> is due to Barry Rowlingson, October 2011.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sara Sjöstedt de Luna, Konrad Abramowicz, Natalya Pya Arnqvist
+</p>
+
+
+<h3>References</h3>
+
+<p>Svensson, I., Sjöstedt de Luna, S., Bondesson, L. (2006). Estimation of wood fibre length distributions from censored data through an EM algorithm. <em>Scandinavian Journal of Statistics</em>, <b>33</b>(3), 503–522.
+</p>
+<p>Chen, Z. Q., Abramowicz, K., Raczkowski, R., Ganea, S., Wu, H. X., Lundqvist, S. O., Mörling, T., Sjöstedt de Luna, S., Gil, M.R.G., Mellerowicz, E. J. (2016). Method for accurate fiber length determination from increment cores for large-scale population analyses in Norway spruce. <em>Holzforschung</em>. Volume <b>70</b>(9), 829–838.
+</p>
+<p>Stacy, E. W. (1962). A generalization of the gamma distribution.
+<em>Annals of Mathematical Statistics</em>, <b>33</b>(3), 1187–1192.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fiberLD)
+## using microscopy data (uncut fiber lengths in the increment core)
+data(microscopy)
+dat &lt;- microscopy[1:200]
+m1 &lt;- fled(data=dat,data.type="microscopy",model="ggamma",r=2.5) 
+summary(m1)
+plot(m1)
+
+## and with log normal model...
+m2 &lt;- fled(data=dat,data.type="microscopy",model="lognorm",r=2.5)
+summary(m2)
+plot(m2)
+
+## Not run:  
+## using data measured by an optical fiber analyser
+data(ofa) 
+d1 &lt;- fled(data=ofa,model="lognorm",r=2.5)
+summary(d1)
+plot(d1)
+x11()
+plot(d1,select=2,density.scale="uncut.core")
+
+## change the model to generalized gamma
+## and set lower and upper bounds on the parameters for 
+## the "L-BFGS-B" method ... 
+d2 &lt;- fled(data=ofa,model="ggamma",r=2.5,lower=c(.12,1e-3,.05,rep(.3,4)),
+      upper=c(.5,2,rep(7,5)),cluster=1) 
+d2
+summary(d2)
+plot(d2,select=1)
+
+
+## change "ML" default method to a stochastic version of the EM algorithm...
+d3 &lt;- fled(data=ofa,model="lognorm",r=2.5,method="SEM",cluster=0)
+d3
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

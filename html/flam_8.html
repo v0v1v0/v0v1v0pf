@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.flam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Predicts Observations for a New Covariate Matrix and Fit from <code>flam</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>This function makes predictions from a specified covariate matrix for a fit of the class "flam" with user-specified tuning parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'flam'
+predict(object, new.x, lambda, alpha, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>an object of the class "flam".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new.x</code></td>
+<td>
+
+<p>the covariate matrix for which to make predictions - the number of columns should match that of <code>object$x</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>the desired value for the tuning parameter lambda. This does not need to be a value in <code>object$all.lambda</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>the desired value for the tuning parameter alpha. This does not need to be a value in <code>object$all.alpha</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments to be passed. These are ignored in this function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is likely that <code>new.x[,i]</code> contains values not contained in <code>object$x[,i]</code>. Predictions for that particular case are taken to be a linear interpolation of the nearest neighboring values in <code>object$x[,i]</code>, i.e., the closest smaller value and the closest larger value.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector containing the fitted y values for <code>new.x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ashley Petersen
+</p>
+
+
+<h3>References</h3>
+
+<p>Petersen, A., Witten, D., and Simon, N. (2014). Fused Lasso Additive Model. arXiv preprint arXiv:1409.5391.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flam</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#See ?'flam-package' for a full example of how to use this package
+
+#generate data
+set.seed(1)
+data &lt;- sim.data(n = 100, scenario = 1, zerof = 0, noise = 1)
+
+#fit model for a range of tuning parameters
+flam.out &lt;- flam(x = data$x, y = data$y)
+
+#we can make predictions for a covariate matrix with new observations
+#choose desired alpha and lambda
+alpha &lt;- flam.out$all.alpha[15]; lambda &lt;- flam.out$all.lambda[15]
+#new.x with 20 observations and the same number of features as flam.out$x
+new.data &lt;- sim.data(n = 20, scenario = 1, zerof = 0, noise = 1)
+new.x &lt;- new.data$x
+#make predictions
+y.hat &lt;- predict(flam.out, new.x = new.x, lambda = lambda, alpha = alpha)
+#which can be compared to the true y
+plot(new.data$y, y.hat, xlab="y", ylab=expression(hat(y)))
+abline(0,1,lty=2)
+
+#can also make predictions for any alpha and lambda:
+predict(flam.out, new.x = new.x, lambda = 2, alpha = 0.9)
+</code></pre>
+
+
+</div>

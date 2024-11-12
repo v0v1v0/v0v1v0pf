@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fr_flexp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Scaling Exponent Response, assuming replacement</h2>
+
+<h3>Description</h3>
+
+<p>Scaling exponent response (assuming replacement) based on ideas dating back to Real (1977, at least)</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    flexp_fit(data, samp, start, fixed, boot=FALSE, windows=FALSE)
+    flexp_nll(b, q, h, T, X, Y)
+    flexp(X, b, q, h, T)
+    </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>A dataframe containing X and Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp </code></td>
+<td>
+<p>A vector specifying the rows of data to use in the fit. Provided by <code>boot()</code> or manually, as required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>A named list. Starting values for items to be optimised.  Usually 'a' and 'h'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed </code></td>
+<td>
+<p>A names list. 'Fixed data' (not optimised). Usually 'T'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot </code></td>
+<td>
+<p>A logical. Is the function being called for use by <code>boot()</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows </code></td>
+<td>
+<p>A logical. Is the operating system Microsoft Windows?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b, q, h </code></td>
+<td>
+<p>The search coefficient (<em>b</em>), scaling exponent (<em>q</em>) and the handling time (<em>h</em>). Usually items to be optimised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T </code></td>
+<td>
+<p><em>T</em>, the total time available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>The X variable. Usually prey density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>The Y variable.  Usually the number of prey consumed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This implements a type-II response with a scaling exponent on the capture rate (<em>a</em>), based on the use of Hill's exponents described by Real (1977). When <code class="reqn">q \ge 0</code> the response becomes progressively more 'type-III-ish'. Integer values of <em>q</em> have useful interpretations based in enzymatic biochemistry but have been extended to many other fields (e.g. Flynn et al. 1997), including functional response analysis (Vucic-Pestic et al. 2010). Importantly, this function assumes that prey are replaced throughout the experiment (c.f. <code>flexpnr</code> which does not). 
+</p>
+<p>The capture rate (<em>a</em>) follows the following relationship:
+</p>
+<p style="text-align: center;"><code class="reqn">a = b X^q</code>
+</p>
+
+<p>and then (<em>a</em>) is used to calculate the number of prey eaten (<em>Ne</em>) following the same relationship as <code>hollingsII</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">N_e=\frac{a N_0 T}{1+a N_0 h}</code>
+</p>
+
+<p>where <em>b</em> is a search coefficient and other coefficients are as defined in <code>hollingsII</code>. Indeed when <code class="reqn">q = 0</code>, then <code class="reqn">a = b</code> and the relationship collapses to traditional type-II Holling's Disc Equation. There is, therefore, a useful test on <code class="reqn">q = 0</code> in the summary of the fit.  
+</p>
+<p>None of these functions are designed to be called directly, though they are all exported so that the user can call them directly if desired. The intention is that they are called via <code>frair_fit</code>, which calls them in the order they are specified above.
+</p>
+<p><code>flexp_fit</code> does the heavy lifting and also pulls double duty as the <code>statistic</code> function for bootstrapping (<em>via</em> <code>boot()</code> in the boot package). The <code>windows</code> argument if required to prevent needless calls to <code>require(frair)</code> on platforms that can manage sane parallel processing.
+</p>
+<p>The core fitting is done by <code>mle2</code> from the <code>bbmle</code> package and users are directed there for more information. <code>mle2</code> uses the <code>flexp_nll</code> function to optimise <code>flexp</code>.
+</p>
+<p>Further references and recommended reading can be found on the help page for frair_fit.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>References</h3>
+
+<p>Real LA (1977) The Kinetics of Functional Response. <em>The American Naturalist</em> 111: 289–300.
+</p>
+<p>Vucic-Pestic O, Rall BC, Kalinkat G, Brose U (2010) Allometric functional response model: body masses constrain interaction strengths. <em>Journal of Animal Ecology</em> 79: 249–256. doi:10.1111/j.1365-2656.2009.01622.x.
+</p>
+<p>Flynn KJ, Fasham MJR, Hipkin CR (1997) Modelling the interactions between ammonium and nitrate uptake in marine phytoplankton. <em>Philosophical Transactions of the Royal Society B: Biological Sciences</em> 352: 1625–1645.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>, <code>flexpnr</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(bythotrephes)
+# NB: The flexpnr model is not correct for the experimental design of the bythotrephes data
+
+expofit &lt;- frair_fit(eaten~density, data=bythotrephes, 
+                response='flexpnr', start=list(b = 0.5, q = 1, h = 0.15), 
+                fixed=list(T=12/24))
+## Plot
+plot(expofit)
+lines(expofit, col=2)
+
+## Inspect
+summary(expofit$fit) 
+</code></pre>
+
+
+</div>

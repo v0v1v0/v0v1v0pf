@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>crrmulti</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Competing risks multivariable regression: <code>finalfit</code> model wrapper</h2>
+
+<h3>Description</h3>
+
+<p>Using <code>finalfit</code> conventions, produces multivariable Competing Risks
+Regression models for a set of explanatory variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">crrmulti(.data, dependent, explanatory, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>Data frame or tibble.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent</code></td>
+<td>
+<p>Character vector of length 1: name of survival object in
+form <code>Surv(time, status)</code>. <code>Status</code> default values should be 0
+censored (e.g. alive), 1 event of interest (e.g. died of disease of
+interest), 2 competing event (e.g. died of other cause).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explanatory</code></td>
+<td>
+<p>Character vector of any length: name(s) of explanatory
+variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to <code>crr</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Uses <code>crr</code> with <code>finalfit</code> modelling conventions.
+Output can be passed to <code>fit2df</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A multivariable <code>crr</code> fitted model
+class <code>crr</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fit2df, finalfit_merge</code>
+</p>
+<p>Other finalfit model wrappers: 
+<code>coxphmulti()</code>,
+<code>coxphuni()</code>,
+<code>crruni()</code>,
+<code>glmmixed()</code>,
+<code>glmmulti_boot()</code>,
+<code>glmmulti()</code>,
+<code>glmuni()</code>,
+<code>lmmixed()</code>,
+<code>lmmulti()</code>,
+<code>lmuni()</code>,
+<code>svyglmmulti()</code>,
+<code>svyglmuni()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr)
+melanoma = boot::melanoma
+melanoma = melanoma %&gt;%
+  mutate(
+    # Cox PH to determine cause-specific hazards
+    status_coxph = ifelse(status == 2, 0, # "still alive"
+      ifelse(status == 1, 1, # "died of melanoma"
+        0)), # "died of other causes is censored"
+        
+    # Fine and Gray to determine subdistribution hazards
+    status_crr = ifelse(status == 2, 0, # "still alive"
+      ifelse(status == 1, 1, # "died of melanoma"
+        2)), # "died of other causes"
+    sex = factor(sex),
+    ulcer = factor(ulcer)
+  )
+
+dependent_coxph = c("Surv(time, status_coxph)")
+dependent_crr = c("Surv(time, status_crr)")
+explanatory = c("sex", "age", "ulcer")
+
+# Create single well-formatted table
+melanoma %&gt;%
+  summary_factorlist(dependent_crr, explanatory, column = TRUE, fit_id = TRUE) %&gt;%
+  ff_merge(
+    melanoma %&gt;%
+      coxphmulti(dependent_coxph, explanatory) %&gt;%
+      fit2df(estimate_suffix = " (Cox PH multivariable)")
+    ) %&gt;%
+  ff_merge(
+    melanoma %&gt;%
+      crrmulti(dependent_crr, explanatory) %&gt;%
+      fit2df(estimate_suffix = " (competing risks multivariable)")
+    ) %&gt;%
+  select(-fit_id, -index) %&gt;%
+  dependent_label(melanoma, dependent_crr)
+</code></pre>
+
+
+</div>

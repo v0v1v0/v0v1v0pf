@@ -1,0 +1,462 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fan</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fan Plot of Distributions Percentiles Over Time.
+</h2>
+
+<h3>Description</h3>
+
+<p>Visualise sequential distributions using a range of plotting styles.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fan(data = NULL, data.type="simulations", style = "fan", type = "percentile",
+  probs = if(type=="percentile") seq(0.01, 0.99, 0.01) else c(0.5, 0.8, 0.95), 
+  start = 1, frequency = 1, anchor = NULL, anchor.time=NULL,
+  fan.col = heat.colors, alpha = if (style == "spaghetti") 0.5 else 1, 
+  n.fan = NULL,
+  ln = if(length(probs)&lt;10) probs else 
+    probs[round(probs,2) %in% round(seq(0.1, 0.9, 0.1),2)],
+  ln.col = if(style=="spaghetti") "gray" else NULL, 
+  med.ln = if(type=="interval") TRUE else FALSE, 
+  med.col= "orange",
+  rlab = ln, rpos = 4, roffset = 0.1, rcex = 0.8, rcol = NULL, 
+  llab = FALSE, lpos = 2, loffset = roffset, lcex = rcex, lcol = rcol, 
+  upplab = "U", lowlab = "L", medlab=if(type == "interval") "M" else NULL,
+  n.spag = 30, 
+  space = if(style=="boxplot") 1/frequency else 0.9/frequency, 
+  add = FALSE, ylim = range(data)*0.8, ...)
+fan0(data = NULL, data.type = "simulations", style = "fan", type = "percentile",
+  probs = if(type=="percentile") seq(0.01, 0.99, 0.01) else c(0.5, 0.8, 0.95), 
+  start = 1, frequency = 1, anchor = NULL, anchor.time=NULL,
+  fan.col = heat.colors, alpha = if (style == "spaghetti") 0.5 else 1, 
+  n.fan = NULL,
+  ln = NULL,
+  ln.col = if(style=="spaghetti") "gray" else NULL, 
+  med.ln = if(type=="interval") TRUE else FALSE, 
+  med.col= "orange",
+  rlab = ln, rpos = 4, roffset = 0.1, rcex = 0.8, rcol = NULL, 
+  llab = FALSE, lpos = 2, loffset = roffset, lcex = rcex, lcol = rcol, 
+  upplab = "U", lowlab = "L", medlab=if(type == "interval") "M" else NULL,
+  n.spag = 30, 
+  space = if(style=="boxplot") 1/frequency else 0.9/frequency, 
+  add = TRUE, ylim = range(data)*0.8, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Set of sequential simulation data, where rows represent simulation number and columns represent some form of time index. 
+If <code>data.type = "values"</code>, data must instead be a set of quantile values by rows for a set of probabilities (which need to be provided in <code>probs</code> and by column for some form of time index.
+</p>
+<p>Data can take multiple classes, where the contents are converted to a <code>matrix</code>. If the input is a <code>mts</code> or <code>zoo</code>, the time series properties will be inherted (and <code>start</code> and <code>frequency</code> arguments will be ignored).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.type</code></td>
+<td>
+
+<p>Indicates if <code>data</code> are sets of pre-calculated values based for defined probabilities <code>data.type = "values"</code> or simulated data <code>data.type = "simulations"</code>. That later is the default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>style</code></td>
+<td>
+
+<p>Plot style, choose from <code>fan</code> (default), <code>spaghetti</code> <code>boxplot</code> or <code>boxfan</code>. See Examples and Details Sections for further explanation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Type of percentiles to plot in <code>fan</code> or <code>boxfan</code>. Choose from, <code>percentile</code> (default) or <code>interval</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+
+<p>Probabilities related to percentiles or prediction intervals to be plotted (dependent on the <code>type</code> function. These values control the number of shades used in the <code>fan</code> or <code>boxfan</code>. These must be between 0 and 100 (inclusive) or 0 and 1. Percentiles greater than 50 (or 0.5), if not given, are automatically calculated as 100-<code>p</code>, to ensure symmetric fan. Values can be non-integers. Default to single percentile values when <code>type="percetinle"</code> and the 50th, 80th and 95th prediction interval when <code>type="interval"</code> is set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>The time of the first distribution in <code>sims</code>. Similar to use in <code>ts</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequency</code></td>
+<td>
+
+<p>The number of distribution in <code>sims</code> per unit of time in <code>sims</code>. Similar to use in <code>ts</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anchor</code></td>
+<td>
+
+<p>Optional data value to anchor a forecast fan on. Typically this will be the last observation of the observed data series.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anchor.time</code></td>
+<td>
+
+<p>Optional data value for the time of the anchor. Useful for irregular time series.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fan.col</code></td>
+<td>
+
+<p>Palette of colours used in the <code>fan</code> or <code>boxfan</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.fan</code></td>
+<td>
+
+<p>The number of colours to use in the fan.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>Factor modifying the opacity alpha; typically in [0,1].
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ln</code></td>
+<td>
+
+<p>Vector of number to plot contour lines on-top <code>fan</code> or <code>boxfan</code>. Must correspond to calculated percentiles in <code>probs</code>. By default for <code>fan</code> takes either every percentile or prediction interval given in the <code>probs</code> argument (if less then 10) or, when there are more than 10 <code>probs</code> passed, the either every decile or every prediction interval that are a multiple of 10 and given in <code>probs</code>. No lines plotted by default for <code>fan0</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>med.ln</code></td>
+<td>
+
+<p>Add a median line to fan. Might be of particular use if <code>type="interval"</code>. Only works when <code>data.type = "simulations"</code> and one of <code>fan</code>, <code>boxfan</code> or <code>spaghetti</code> styles.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ln.col</code></td>
+<td>
+
+<p>Line colour to be imposed on top of the fan. By default takes the darkest colour from <code>fan.col</code> argument, unless <code>style="spaghetti"</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>med.col</code></td>
+<td>
+
+<p>Median Line colour. By default this is set to the first colour in <code>fan.col</code>. Users might wish to change to highlight the median.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rlab</code></td>
+<td>
+
+<p>Vector of labels at the end (right) of corresponding percentiles or prediction intervals of the <code>fan</code> or <code>boxfan</code>. Must be in calculated in the <code>probs</code> argument. By default plotted alongside values provided to the <code>ln</code> argument.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rpos</code></td>
+<td>
+
+<p>Position of right labels for the <code>fan</code> or <code>boxfan</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roffset</code></td>
+<td>
+
+<p>Offset of right labels for the <code>fan</code> or <code>boxfan</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rcex</code></td>
+<td>
+
+<p>Text size of right labels for the <code>fan</code> or <code>boxfan</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rcol</code></td>
+<td>
+
+<p>Colour of text for right labels for the <code>fan</code> or <code>boxfan</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>llab</code></td>
+<td>
+
+<p>Can take either 1) a <code>TRUE</code> or <code>FALSE</code> value to plot label at the start (right) of the  corresponding percentiles or prediction intervals given in <code>rlab</code>, default is <code>FALSE</code> or 2) a original vector of percentiles or prediction intervals. Must be in calculated in the <code>probs</code> argument. Only works for <code>fan</code> or <code>boxfan</code> styles.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lpos</code></td>
+<td>
+
+<p>Position of left labels for the <code>fan</code> or <code>boxfan</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loffset</code></td>
+<td>
+
+<p>Offset of left labels for the <code>fan</code> or <code>boxfan</code>.By default takes the same value as <code>roffset</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lcex</code></td>
+<td>
+
+<p>Text size of left labels for the <code>fan</code> or <code>boxfan</code>. By default takes the same value as <code>rex</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lcol</code></td>
+<td>
+
+<p>Colour of text for left labels for the <code>fan</code> or <code>boxfan</code>.  By default takes the same value as <code>rcol</code>. See <code>text</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upplab</code></td>
+<td>
+
+<p>Prefix character string for upper labels to be used for the <code>fan</code> or <code>boxfan</code> when <code>type="interval"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowlab</code></td>
+<td>
+
+<p>Prefix character string for lower labels to be used for the <code>fan</code> or <code>boxfan</code> when <code>type="interval"</code> .
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medlab</code></td>
+<td>
+
+<p>Character string for median label.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.spag</code></td>
+<td>
+
+<p>Number of simulations to plot in the <code>spaghetti</code> plot.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>space</code></td>
+<td>
+
+<p>Space between boxes in the <code>boxfan</code> plot.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+
+<p>Add to active plot. By default <code>FALSE</code> for <code>fan</code> and <code>TRUE</code> for <code>fan0</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+
+<p>Passed to <code>plot</code> when <code>add = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Additional arguments passed to <code>boxplot</code> for <code>fan</code> and to <code>plot</code> for <code>fan0</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Visualise sequential distributions using a range of plotting styles. Sequential distribution data can be input as either simulations or pre-computed values over time (columns). For the later, the user should declare input data as percentiles by setting <code>data.type = "values"</code>. Plots are added to existing graphic devices. Users can choose from four different styles.
+</p>
+<p>The <code>fan</code> and <code>boxfan</code> style plot distributions based on used-defined shading scheme, controlled by the <code>fan.col</code> argument. Additional lines and text are added to illustrate major contours on the probability distribution. Lines and labels can be suppressed by adding <code>ln = NULL</code> and <code>rlab = NULL</code>. Labels to the left of the fan can also be specified using the <code>llab</code> argument. Colours are by default taken from the <code>heat.colors</code> palette. Alternatives can be specified using <code>fan.col</code> (see the example below). The joining of a forecast fan to data is controlled be the anchor argument.
+</p>
+<p>The <code>spaghetti</code> style, plots random draws (when <code>data.type = "simulations"</code> is set) along the sequence of distributions. The number of draws is controlled by the <code>n.spag</code> argument. The transparency of the lines is controlled by <code>alpha</code>.
+</p>
+<p>The <code>boxplot</code> style, adds a box plot for simulated data at the appropriate location, according to the <code>start</code> and <code>frquency</code> arguments. Gaps between box plots are controlled by <code>space</code> argument. Additional arguments are passed to <code>boxplot</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>See details
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Guy J. Abel
+</p>
+
+
+<h3>References</h3>
+
+<p>Abel, G. J. (2015). fanplot: An R Package for visualising sequential distributions. <em>The R Journal</em> 7 (2) 15–23.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+## Basic Fan: fan0()
+##
+fan0(th.mcmc)
+
+##
+## Basic Fan: fan()
+##
+# empty plot
+plot(NULL, xlim = c(1, 945), ylim = range(th.mcmc)*0.85)
+
+# add fan
+fan(th.mcmc)
+
+##
+## 20 or so examples of fan charts and
+## spaghetti plots based on the th.mcmc object
+##
+## Make sure you have zoo, tsbugs, RColorBrewer and 
+## colorspace packages installed
+##
+## Not run: 
+# demo("sv_fan", "fanplot")
+
+## End(Not run)
+
+##
+## Fans for forecasted values
+##
+## Not run: 
+#create time series
+net &lt;- ts(ips$net, start=1975)
+
+# fit model
+library("forecast")
+m &lt;- auto.arima(net)
+
+# plot in forecast package (limited customisation possible)
+plot(forecast(m, h=5))
+
+# another plot in forecast (with some customisation, no
+# labels or anchoring possible at the moment)
+plot(forecast(m, h=5, level=c(50,80,95)), 
+     shadecols=rev(heat.colors(3)))
+
+# simulate future values
+mm &lt;- matrix(NA, nrow=1000, ncol=5)
+for(i in 1:1000)
+  mm[i,] &lt;- simulate(m, nsim=5)
+
+# interval fan chart
+plot(net, xlim=c(1975,2020), ylim=c(-100,300))
+fan(mm, type="interval", start=2013)
+
+# anchor fan chart
+plot(net, xlim=c(1975,2020), ylim=c(-100,300))
+fan(mm, type="interval", start=2013, 
+    anchor=net[time(net)==2012])
+
+# anchor spaghetti plot with underlying fan chart
+plot(net, xlim=c(1975,2020), ylim=c(-100,300))
+fan(mm, type="interval", start=2013, 
+    anchor=net[time(net)==2012], alpha=0, ln.col="orange")
+fan(mm, type="interval", start=2013, 
+    anchor=net[time(net)==2012], alpha=0.5, style="spaghetti")
+
+## End(Not run)
+
+##
+## Box Plots
+##
+# sample every 21st day of theta_t
+th.mcmc21 &lt;- th.mcmc[, seq(1, 945, 21)]
+plot(NULL, xlim = c(1, 945), ylim = range(th.mcmc21))
+fan(th.mcmc21, style = "boxplot", frequency = 1/21)
+
+# additional arguments for boxplot
+plot(NULL, xlim = c(1, 945), ylim = range(th.mcmc21))
+fan(th.mcmc21, style = "boxplot", frequency = 1/21, 
+ outline = FALSE, col = "red", notch = TRUE)
+
+##
+## Fan Boxes
+##
+plot(NULL, xlim = c(1, 945), ylim = range(th.mcmc21))
+fan(th.mcmc21, style = "boxfan", type = "interval", frequency = 1/21)
+
+# more space between boxes
+plot(NULL, xlim = c(1, 945), ylim = range(th.mcmc21))
+fan(th.mcmc21, style = "boxfan", type = "interval", 
+ frequency = 1/21, space = 10)
+
+# overlay spaghetti
+fan(th.mcmc21, style = "spaghetti", 
+ frequency = 1/21, n.spag = 50, ln.col = "red", alpha=0.2) 
+</code></pre>
+
+
+</div>

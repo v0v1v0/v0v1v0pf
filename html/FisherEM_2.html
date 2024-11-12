@@ -1,0 +1,320 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bfem</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Bayesian Fisher-EM algorithm.</h2>
+
+<h3>Description</h3>
+
+<p>The Bayesian Fisher-EM algorithm is built on a Bayesian formulation of the
+model used in the <code>fem</code>. It is a subspace clustering method for
+high-dimensional data. It is based on a Gaussian Mixture Model and on the
+idea that the data lives in a common and low dimensional subspace. A VEM-like
+algorithm estimates both the discriminative subspace and the parameters of
+the mixture model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bfem(
+  Y,
+  K = 2:6,
+  model = "AkjBk",
+  method = "gs",
+  crit = "icl",
+  maxit.em = 100,
+  eps.em = 1e-06,
+  maxit.ve = 3,
+  eps.ve = 1e-04,
+  lambda = 1000,
+  emp.bayes = T,
+  init = "kmeans",
+  nstart = 10,
+  Tinit = c(),
+  kernel = "",
+  disp = FALSE,
+  mc.cores = (detectCores() - 1),
+  subset = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>The data matrix. 
+Categorical variables and missing values are not
+allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>An integer vector specifying the numbers of mixture components
+(clusters) among which the model selection criterion will choose the most
+appropriate number of groups. Default is 2:6.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A vector of Bayesian discriminative latent mixture (BDLM) models
+to fit. There are 12 different models: "DkBk", "DkB", "DBk", "DB", "AkjBk",
+"AkjB", "AkBk", "AkBk", "AjBk", "AjB", "ABk", "AB".  The option "all"
+executes the Fisher-EM algorithm on the 12 DLM models and select the best
+model according to the maximum value obtained by model selection criterion.
+Similar to <code>fem</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method used for the fitting of the projection matrix
+associated to the discriminative subspace. Three methods are available:
+'gs' (Gram-Schmidt, the original proposition), 'svd' (based on SVD, faster)
+and 'reg' (the Fisher criterion is rewritten as a regression problem). The
+'gs' method is the default method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit</code></td>
+<td>
+<p>The model selection criterion to use for selecting the most
+appropriate model for the data. There are 3 possibilities: "bic", "aic" or
+"icl". Default is "icl".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit.em</code></td>
+<td>
+<p>The maximum number of iterations before the stop of the main
+EM loop in the BFEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps.em</code></td>
+<td>
+<p>The threshold value for the likelihood differences (Aitken's
+criterion) to stop the BFEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit.ve</code></td>
+<td>
+<p>The maximum number of iterations before the stop of the
+VE-step loop (fixed point algorithm)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps.ve</code></td>
+<td>
+<p>The threshold value for the likelihood differences (Aitken's
+criterion) to stop the BFEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The initial value for the variance of the Gaussian prior on the
+means in the latent space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emp.bayes</code></td>
+<td>
+<p>Should the hyper-parameters (mean and variance) of the prior be updated ? Default to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>The initialization method for the Fisher-EM algorithm. There are
+4 options: "random" for a randomized initialization, "kmeans" for an
+initialization by the kmeans algorithm, "hclust" for hierarchical
+clustering initialization or "user" for a specific initialization through
+the parameter "Tinit". Default is "kmeans". Notice that for "kmeans" and
+"random", several initializations are asked and the initialization
+associated with the highest likelihood is kept (see "nstart").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart</code></td>
+<td>
+<p>The number of restart if the initialization is "kmeans" or
+"random". In such a case, the initialization associated with the highest
+likelihood is kept.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tinit</code></td>
+<td>
+<p>A n x K matrix which contains posterior probabilities for
+initializing the algorithm (each line corresponds to an individual).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p>It enables to deal with the n &lt; p problem. By default, no
+kernel (" ") is used. But the user has the choice between 3 options for the
+kernel: "linear", "sigmoid" or "rbf".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp</code></td>
+<td>
+<p>If true, some messages are printed during the clustering. Default
+is false.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.cores</code></td>
+<td>
+<p>The number of CPUs to use to fit in parallel the different
+models (only for non-Windows platforms). Default is the number of available
+cores minus 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>A positive integer defining the size of the subsample, default
+is NULL. In case of large data sets, it might be useful to fit a FisherEM
+model on a subsample of the data, and then use this model to predict
+cluster assignments for the whole data set. Notice that in, such a case,
+likelihood values and model selection criteria are computed for the
+subsample and not the whole data set.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list is returned: </p>
+  
+<ul>
+<li>
+<p> K - The number of groups.
+</p>
+</li>
+<li>
+<p> cls - the group membership of each individual estimated by the BFEM algorithm 
+</p>
+</li>
+<li>
+<p> Tinit - The initial posterior probalities used to start the algorithm 
+</p>
+</li>
+<li>
+<p> d - the dimension of the discriminative subspace 
+</p>
+</li>
+<li>
+<p> elbos - A vector containing the evolution of the variational lower bound at each iteration 
+</p>
+</li>
+<li>
+<p> loglik - The final value of the variational lower bound 
+</p>
+</li>
+<li>
+<p> n_ite - The number of iteration until convergence of the BFEM algorithm 
+</p>
+</li>
+<li>
+<p> P - the posterior probabilities of each individual for each group 
+</p>
+</li>
+<li>
+<p> U - The loading matrix which determines the orientation of the discriminative subspace 
+</p>
+</li>
+<li>
+<p> param - A list containing the estimated parameters of the model 
+</p>
+
+<ul>
+<li>
+<p> PI - The mixture proportions 
+</p>
+</li>
+<li>
+<p> Sigmak - An array containing estimated cluster covariances in the latent space 
+</p>
+</li>
+<li>
+<p> Beta - The noise variance in each cluster 
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> var_param - A list containing the variational distribution parameters
+</p>
+
+<ul>
+<li>
+<p> logtau - A n x K matrix containing the logarithm of the multinomial parameters of q(Z) 
+</p>
+</li>
+<li>
+<p> Varmeank - A K x d matrix containing the variational mean 
+</p>
+</li>
+<li>
+<p> Varcovk -  A d x d x K array containing the variational covariance matrices.
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> proj - The projected data on the discriminative subspace. 
+</p>
+</li>
+<li>
+<p> aic - The value of the Akaike information criterion 
+</p>
+</li>
+<li>
+<p> bic - The value of the Bayesian information criterion 
+</p>
+</li>
+<li>
+<p> icl - The value of the integrated completed likelihood criterion 
+</p>
+</li>
+<li>
+<p> method - The method used in the F-step 
+</p>
+</li>
+<li>
+<p> call - The call of the function 
+</p>
+</li>
+<li>
+<p> crit - The model selection criterion used </p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>fem</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Chang's 1983 setting
+simu = simu_bfem(300, which = "Chang1983")
+Y = simu$Y
+res.bfem = bfem(Y, K = 2:6, model=c('AB'), init = 'kmeans', nstart = 1, 
+               maxit.em = 10, eps.em = 1e-3, maxit.ve = 3, mc.cores = 2)
+
+</code></pre>
+
+
+</div>

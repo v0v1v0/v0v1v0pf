@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getPx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract Px from fitted objects</h2>
+
+<h3>Description</h3>
+
+<p>Extract esimates of Px from an object returned by <code>fitplc</code>, <code>fitplcs</code>, <code>fitcond</code> or <code>fitconds</code>. This function allows extraction of estimates of P88 or other values when the fit estimated P50 (or other). 
+</p>
+<p>With the Weibull model, it appears to be more robust to set <code>x=50</code> when fitting the curve, and extracting other points with <code>getPx</code>.
+</p>
+<p>See examples for use of this function. Note that the confidence interval is based on the bootstrap resampling performed by <code>fitplc</code>. If the bootstrap was not performed durinf the fit (i.e. <code>boot=FALSE</code> in <code>fitplc</code> or elsewhere), it only returns the fitted values, and not the confidence intervals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getPx(object, x = 50, coverage = 0.95, rescale_Px = FALSE, ...)
+
+## Default S3 method:
+getPx(object, x = 50, coverage = 0.95,
+  rescale_Px = FALSE, ...)
+
+## S3 method for class 'manyplcfit'
+getPx(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object returned by any of the fitting functions (e.g. <code>fitplc</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The x in Px, that is, if P50 should be returned, x=50. Can be a vector, to return multiple points at once.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coverage</code></td>
+<td>
+<p>The desired coverage of the confidence interval (0.95 is the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale_Px</code></td>
+<td>
+<p>Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). If you fitted <code>fitcond</code> with <code>rescale_Px = TRUE</code>, make sure to set TRUE here as well to be consistent (it is not assumed from the fitted model, yet).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to methods (none yet).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that this function does not return a standard error, because the bootstrap confidence interval will be rarely symmetrical. If you like, you can calculate it as the mean of the half CI width (and note it as an 'approximate standard error'). A better approach is to only report the CI and not the SE.
+</p>
+<p>Sometimes the upper CI cannot be calculated and will be reported as <code>NA</code>. This indicates that the upper confidence bound is outside the range of the data, and can therefore not be reliably reported. It is especially common when <code>x</code> is large, say for P88.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>default</code>: Calculate Px for a single fitted curve.
+</p>
+</li>
+<li> <p><code>manyplcfit</code>: Calculate Px for many fitted curves.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A fit
+somefit &lt;- fitplc(stemvul, x=50, model="sigmoid")
+
+# Extract P12, P88
+# Note NA for upper CI for P88; this is quite common
+# and should be interpreted as falling outside the range of the data.
+getPx(somefit, x=c(12,88))
+
+# Extract P88 from multiple fitted curves
+fits &lt;- fitplcs(stemvul, "Species", boot=FALSE)
+getPx(fits, 88)
+
+</code></pre>
+
+
+</div>

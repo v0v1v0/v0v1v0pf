@@ -1,0 +1,222 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastNaiveBayes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast Naive Bayes Classifier for different Distributions</h2>
+
+<h3>Description</h3>
+
+<p>Extremely fast implementation of a Naive Bayes Classifier.
+</p>
+<p>A Naive Bayes classifier that assumes independence between the feature variables. Currently, either a Bernoulli,
+multinomial, or Gaussian distribution can be used. The bernoulli distribution should be used when the features are 0 or 1 to
+indicate the presence or absence of the feature in each document. The multinomial distribution should be used when the
+features are the frequency that the feature occurs in each document. Finally, the Gaussian distribution
+should be used with numerical variables. The distribution parameter is used to mix different distributions
+for different columns in the input matrix
+</p>
+<p>Use fastNaiveBayes(...) or fnb.train(...) for a mixed event distribution model. fnb.bernoulli, fnb.multinomial, fnb.gaussian and
+for the specific distributions
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastNaiveBayes(
+  x,
+  y,
+  priors = NULL,
+  laplace = 0,
+  sparse = FALSE,
+  check = TRUE,
+  distribution = fnb.detect_distribution(x)
+)
+
+## Default S3 method:
+fastNaiveBayes(
+  x,
+  y,
+  priors = NULL,
+  laplace = 0,
+  sparse = FALSE,
+  check = TRUE,
+  distribution = fnb.detect_distribution(x)
+)
+
+fnb.bernoulli(x, y, priors = NULL, laplace = 0, sparse = FALSE, check = TRUE)
+
+## Default S3 method:
+fnb.bernoulli(x, y, priors = NULL, laplace = 0, sparse = FALSE, check = TRUE)
+
+fnb.gaussian(x, y, priors = NULL, sparse = FALSE, check = TRUE)
+
+## Default S3 method:
+fnb.gaussian(x, y, priors = NULL, sparse = FALSE, check = TRUE)
+
+fnb.multinomial(x, y, priors = NULL, laplace = 0, sparse = FALSE, check = TRUE)
+
+## Default S3 method:
+fnb.multinomial(x, y, priors = NULL, laplace = 0, sparse = FALSE, check = TRUE)
+
+fnb.poisson(x, y, priors = NULL, sparse = FALSE, check = TRUE)
+
+## Default S3 method:
+fnb.poisson(x, y, priors = NULL, sparse = FALSE, check = TRUE)
+
+fnb.train(
+  x,
+  y,
+  priors = NULL,
+  laplace = 0,
+  sparse = FALSE,
+  check = TRUE,
+  distribution = fnb.detect_distribution(x)
+)
+
+## Default S3 method:
+fnb.train(
+  x,
+  y,
+  priors = NULL,
+  laplace = 0,
+  sparse = FALSE,
+  check = TRUE,
+  distribution = fnb.detect_distribution(x)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric matrix, or a dgcMatrix. For bernoulli should only contain 0's and 1's. For multinomial should only
+contain integers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a factor of classes to classify</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priors</code></td>
+<td>
+<p>a numeric vector with the priors. If left empty the priors will be determined by the relative frequency of the classes in the data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>laplace</code></td>
+<td>
+<p>A number used for Laplace smoothing. Default is 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>Use a sparse matrix? If true a sparse matrix will be constructed from x.
+It's possible to directly feed a sparse dgcMatrix as x, which will set this parameter to TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check</code></td>
+<td>
+<p>Whether to enable formal checks on input. Recommended to set to TRUE. Set to FALSE will make it faster, but at your own risk.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distribution</code></td>
+<td>
+<p>A list with distribution names and column names for which to use the distribution, see examples.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>fastNaiveBayes(...) will convert non numeric columns to one hot encoded features to use with the Bernoulli event
+model. NA's in x will be set to 0 by default and observations with NA in y will be removed.
+</p>
+<p>The distribution that is used for each feature is determined by a set of rules:
+- if the column only contains 0's and 1's a Bernoulli event model will be used
+- if the column only contains whole numbers a Multinomial event model will be used
+- if none of the above a Gaussian event model will be used.
+</p>
+<p>By setting sparse = TRUE the numeric matrix x will be converted to a sparse dgcMatrix. This can be considerably faster
+in case few observations have a value different than 0.
+</p>
+<p>It's also possible to directly supply a sparse dgcMatrix, which can be a lot faster in case a fastNaiveBayes model
+is trained multiple times on the same matrix or a subset of this. See examples for more details. Bear in mind that
+converting to a sparse matrix can actually be slower depending on the data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A fitted object of class "fastNaiveBayes". It has four components:
+</p>
+
+<dl>
+<dt>model</dt>
+<dd>
+<p>Fitted fastNaiveBayes model</p>
+</dd>
+<dt>names</dt>
+<dd>
+<p>Names of features used to train this fastNaiveBayes model</p>
+</dd>
+<dt>distribution</dt>
+<dd>
+<p>Distribution used for each column of x</p>
+</dd>
+<dt>levels</dt>
+<dd>
+<p>Levels of y</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p><code>predict.fastNaiveBayes</code> for the predict function for the fastNaiveBayes model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">rm(list = ls())
+library(fastNaiveBayes)
+cars &lt;- mtcars
+y &lt;- as.factor(ifelse(cars$mpg &gt; 25, "High", "Low"))
+x &lt;- cars[,2:ncol(cars)]
+
+mod &lt;- fastNaiveBayes(x, y, laplace = 1)
+
+pred &lt;- predict(mod, newdata = x)
+mean(y!=pred)
+
+mod &lt;- fnb.train(x, y, laplace = 1)
+
+pred &lt;- predict(mod, newdata = x)
+mean(y!=pred)
+
+dist &lt;- fnb.detect_distribution(x)
+
+bern &lt;- fnb.bernoulli(x[,dist$bernoulli], y, laplace = 1)
+pred &lt;- predict(bern, x[,dist$bernoulli])
+mean(y!=pred)
+
+mult &lt;- fnb.multinomial(x[,dist$multinomial], y, laplace = 1)
+pred &lt;- predict(mult, x[,dist$multinomial])
+mean(y!=pred)
+
+gauss &lt;- fnb.gaussian(x[,dist$gaussian], y)
+pred &lt;- predict(gauss, x[,dist$gaussian])
+mean(y!=pred)
+
+</code></pre>
+
+
+</div>

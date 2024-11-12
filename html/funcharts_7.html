@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>control_charts_pca_mfd_real_time</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Real-time T2 and SPE control charts for multivariate functional data</h2>
+
+<h3>Description</h3>
+
+<p>This function produces a list of data frames,
+each of them is produced by <code>control_charts_pca</code>
+and is needed to plot control charts for monitoring
+multivariate functional covariates
+each evolving up to an intermediate domain point.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">control_charts_pca_mfd_real_time(
+  pca_list,
+  components_list = NULL,
+  mfdobj_x_test,
+  mfdobj_x_tuning = NULL,
+  alpha = 0.05,
+  limits = "standard",
+  seed,
+  nfold = NULL,
+  tot_variance_explained = 0.9,
+  single_min_variance_explained = 0,
+  absolute_error = FALSE,
+  ncores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pca_list</code></td>
+<td>
+<p>A list of lists produced by <code>pca_mfd_real_time</code>,
+containing a list of multivariate functional principal component analysis
+models estimated
+on functional data each evolving up to an intermediate domain point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>components_list</code></td>
+<td>
+<p>A list of components given as input to <code>pca_mfd</code>
+for each intermediate domain point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_test</code></td>
+<td>
+<p>A list created using
+<code>get_mfd_df_real_time</code> or
+<code>get_mfd_list_real_time</code>, denoting a list of functional data objects
+in the phase II monitoring data set,
+each evolving up to an intermediate domain point,
+with observations of the multivariate functional data.
+The length of this list and <code>pca_list</code> must be equal,
+and their elements in the same position in the list
+must correspond to the same intermediate domain point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x_tuning</code></td>
+<td>
+<p>A list created using
+<code>get_mfd_df_real_time</code> or
+<code>get_mfd_list_real_time</code>, denoting a list of functional data objects
+in the tuning data set (used to estimate control chart limits),
+each evolving up to an intermediate domain point,
+with observations of the multivariate functional data
+The length of this list and <code>pca_list</code> must be equal,
+and their elements in the same position in the list
+must correspond to the same intermediate domain point.
+If NULL, the training data, i.e. the functional data
+in <code>pca_list</code>,
+are also used as the tuning data set.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>See <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limits</code></td>
+<td>
+<p>See <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Deprecated: See <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfold</code></td>
+<td>
+<p>See <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tot_variance_explained</code></td>
+<td>
+<p>See <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>single_min_variance_explained</code></td>
+<td>
+<p>See <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absolute_error</code></td>
+<td>
+<p>See <code>control_charts_pca</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>If you want parallelization, give the number of cores/threads
+to be used when creating objects separately for different instants.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of <code>data.frame</code>s each
+produced by <code>control_charts_pca</code>,
+corresponding to a given instant.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pca_mfd_real_time</code>, <code>control_charts_pca</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air1 &lt;- lapply(air, function(x) x[1:8, , drop = FALSE])
+air2 &lt;- lapply(air, function(x) x[9:10, , drop = FALSE])
+mfdobj_x1_list &lt;- get_mfd_list_real_time(air1[c("CO", "temperature")],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+mfdobj_x2_list &lt;- get_mfd_list_real_time(air2[c("CO", "temperature")],
+                                         n_basis = 15,
+                                         lambda = 1e-2,
+                                         k_seq = c(0.5, 1))
+pca_list &lt;- pca_mfd_real_time(mfdobj_x1_list)
+
+cclist &lt;- control_charts_pca_mfd_real_time(
+  pca_list = pca_list,
+  components_list = 1:3,
+  mfdobj_x_test = mfdobj_x2_list)
+plot_control_charts_real_time(cclist, 1)
+
+</code></pre>
+
+
+</div>

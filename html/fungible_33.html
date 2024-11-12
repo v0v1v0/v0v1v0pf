@@ -1,0 +1,509 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>faIB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inter-Battery Factor Analysis by the Method of Maximum Likelihood</h2>
+
+<h3>Description</h3>
+
+<p>This function conducts maximum likelihood inter-battery factor analysis using procedures described by Browne (1979). 
+The unrotated solution can be rotated  (using the <span class="pkg">GPArotation</span> package) 
+from a user-specified number of random (orthogonal) starting configurations. 
+Based on the resulting complexity function value, the function determines the 
+number of local minima and, among these local solutions, will find the 
+"global minimum" (i.e., the minimized complexity value from the finite 
+number of solutions). See Details below for an elaboration on the global 
+minimum. This function can also return bootstrap standard errors of the factor solution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">faIB(
+  X = NULL,
+  R = NULL,
+  n = NULL,
+  NVarX = 4,
+  numFactors = 2,
+  itemSort = FALSE,
+  rotate = "oblimin",
+  bootstrapSE = FALSE,
+  numBoot = 1000,
+  CILevel = 0.95,
+  rotateControl = NULL,
+  Seed = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>(Matrix) A raw data matrix (or data frame) structured in a subject 
+(row) by variable (column) format. Defaults to <code>X = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>(Matrix) A correlation matrix. Defaults to <code>R = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>(Numeric) Sample size associated with either the raw data (X) or 
+the correlation matrix (R). Defaults to <code>n = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NVarX</code></td>
+<td>
+<p>(Integer) Given batteries X and Y, <code>NVarX</code> denotes the number of variables in battery X.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFactors</code></td>
+<td>
+<p>(Numeric) The number of factors to extract for subsequent 
+rotation. Defaults to <code>numFactors = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itemSort</code></td>
+<td>
+<p>(Logical) if <code>itemSort = TRUE</code> the factor loadings will be sorted within batteries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotate</code></td>
+<td>
+<p>(Character) Designate which rotation algorithm to apply. The 
+following are available rotation options: "oblimin", "quartimin", 
+"oblimax", "entropy", "quartimax", "varimax", "simplimax", 
+"bentlerT", "bentlerQ", "tandemI", "tandemII", "geominT", "geominQ", "cfT", 
+"cfQ", "infomaxT", "infomaxQ", "mccammon", "bifactorT", "bifactorQ", and 
+"none". Defaults to rotate = "oblimin". See <span class="pkg">GPArotation</span> package for more 
+details. Note that rotations ending in "T" and "Q" represent orthogonal and 
+oblique rotations, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrapSE</code></td>
+<td>
+<p>(Logical) Computes bootstrap standard errors. All bootstrap 
+samples are aligned to the global minimum solution. Defaults to 
+bootstrapSE = FALSE (no standard errors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numBoot</code></td>
+<td>
+<p>(Numeric) The number bootstraps. Defaults to numBoot = 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CILevel</code></td>
+<td>
+<p>(Numeric) The confidence level (between 0 and 1) of the bootstrap 
+confidence interval. Defaults to CILevel = .95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotateControl</code></td>
+<td>
+<p>(List) A list of control values to pass to the factor rotation algorithms.
+</p>
+
+<ul>
+<li> <p><strong>numberStarts</strong>: (Numeric) The number of random (orthogonal) 
+starting configurations for the chosen rotation method (e.g., oblimin). The first
+rotation will always commence from the unrotated factors orientation.
+Defaults to numberStarts = 10. 
+</p>
+</li>
+<li> <p><strong>gamma</strong>: (Numeric) This is a tuning parameter (between 0 
+and 1, inclusive) for an oblimin rotation.  See the <span class="pkg">GPArotation</span> 
+library's oblimin documentation for more details. Defaults to gamma = 0 
+(i.e., a quartimin rotation).
+</p>
+</li>
+<li> <p><strong>delta</strong>: (Numeric) This is a tuning parameter for the geomin
+rotation. It adds a small number (default = .01) to the squared factor 
+loadings before computing the geometric means in the discrepancy function.
+</p>
+</li>
+<li> <p><strong>kappa</strong>: (Numeric) The main parameterization of the 
+Crawford-Ferguson (CF) rotations (i.e., "cfT" and "cfQ" for orthogonal and 
+oblique CF rotation, respectively). Defaults to kappa = 0. 
+</p>
+</li>
+<li> <p><strong>k</strong>: (Numeric) A specific parameter of the simplimax rotation. 
+Defaults to k = the number of observed variables.
+</p>
+</li>
+<li> <p><strong>standardize</strong>: (Character) The standardization routine used 
+on the unrotated factor structure. The three options are "none", "Kaiser", 
+and "CM". Defaults to standardize = "none". 
+</p>
+
+<ul>
+<li> <p><strong>"none"</strong>: No standardization is applied to the unrotated 
+factor structure. 
+</p>
+</li>
+<li> <p><strong>"Kaiser"</strong>: Use a factor structure matrix that has been 
+normed by Kaiser's method (i.e., normalize all rows to have a unit length).
+</p>
+</li>
+<li> <p><strong>"CM"</strong>: Use a factor structure matrix that has been normed
+by the Cureton-Mulaik method.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>epsilon</strong>: (Numeric) The rotational convergence criterion to 
+use. Defaults to epsilon = 1e-5.
+</p>
+</li>
+<li> <p><strong>power</strong>: (Numeric) Raise factor loadings the the n-th power 
+in the <code>promaxQ</code> rotation. Defaults to power = 4.
+</p>
+</li>
+<li> <p><strong>maxItr</strong>: (Numeric) The maximum number of iterations for the 
+rotation algorithm. Defaults to maxItr = 15000.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Seed</code></td>
+<td>
+<p>(Integer) Starting seed for the random number generator.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li> <p><strong>Global Minimum</strong>: This function uses several random starting 
+configurations for factor rotations in an attempt to find the global 
+minimum solution. However, this function is not guaranteed to find the 
+global minimum. Furthermore, the global minimum solution need not be 
+more psychologically interpretable than any of the local solutions (cf. 
+Rozeboom, 1992). As is recommended, our function returns all local 
+solutions so users can make their own judgements.
+</p>
+</li>
+<li> <p><strong>Finding clusters of local minima</strong>: We find local-solution sets by sorting the rounded  
+rotation complexity values (to the number of  digits specified in the <code>epsilon</code> 
+argument of the <code>rotateControl</code> list) into sets with equivalent values. For example, 
+by default <code>epsilon = 1e-5.</code> and thus  will only evaluate the complexity 
+values to five significant digits. Any differences beyond that value will not effect the final sorting. 
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The <code>faIB</code> function will produce abundant output in addition 
+to the rotated inter-battery factor pattern and factor correlation matrices. 
+</p>
+
+<ul>
+<li> <p><strong>loadings</strong>: (Matrix) The rotated inter-battery factor solution with the 
+lowest evaluated discrepancy function. This solution has the lowest 
+discrepancy function <em>of the examined random starting configurations</em>. 
+It is not guaranteed to find the "true" global minimum. Note that multiple
+(or even all) local solutions can have the same discrepancy functions.
+</p>
+</li>
+<li> <p><strong>Phi</strong>: (Matrix) The factor correlations of the rotated factor 
+solution with the lowest evaluated discrepancy function (see Details).
+</p>
+</li>
+<li> <p><strong>fit</strong>: (Vector) A vector containing the following fit statistics:
+</p>
+
+<ul>
+<li> <p><strong>chiSq</strong>: Chi-square goodness of fit value (see Browne, 1979, for details). Note that we apply Lawley's (1959) correction when computing the chi-square value.
+</p>
+</li>
+<li> <p><strong>DF</strong>: Degrees of freedom for the estimated model. 
+</p>
+</li>
+<li> <p><strong>p-value</strong>: P-value associated with the above chi-square statistic.
+</p>
+</li>
+<li> <p><strong>MAD</strong>: Mean absolute difference between the model-implied and the sample across-battery correlation matrices. A lower value indicates better fit. 
+</p>
+</li>
+<li> <p><strong>AIC</strong>: Akaike's Information Criterion where a lower value indicates better fit. 
+</p>
+</li>
+<li> <p><strong>BIC</strong>: Bayesian Information Criterion where a lower value indicates better fit. 
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>R</strong>: (Matrix) Returns the (possibly sorted) correlation matrix, useful when raw data are supplied. 
+If <code>itemSort = TRUE</code> then the returned matrix is sorted to be consistent with the factor loading matrix.
+</p>
+</li>
+<li> <p><strong>Rhat</strong>: (Matrix) The (possibly sorted) reproduced correlation matrix.If <code>itemSort = TRUE</code> then the returned matrix is sorted to be consistent with the factor loading matrix.
+</p>
+</li>
+<li> <p><strong>Resid</strong>: (Matrix) A (possibly sorted) residual matrix (R - Rhat) for the between battery correlations. 
+</p>
+</li>
+<li> <p><strong>facIndeterminacy</strong>: (Vector) A vector (with length equal to the number of factors)
+containing Guttman's (1955) index of factor indeterminacy for each factor. 
+</p>
+</li>
+<li> <p><strong>localSolutions</strong>: (List) A list containing all local solutions 
+in ascending order of their factor loadings, rotation complexity values (i.e., the first solution 
+is the "global" minimum). Each solution returns the 
+</p>
+
+<ul>
+<li> <p><strong>loadings</strong>: (Matrix) the factor loadings, 
+</p>
+</li>
+<li> <p><strong>Phi</strong>: (Matrix) factor correlations, 
+</p>
+</li>
+<li> <p><strong>RotationComplexityValue</strong>: (Numeric) the complexity value of the rotation algorithm, 
+</p>
+</li>
+<li> <p><strong>facIndeterminacy</strong>: (Vector) A vector of factor indeterminacy indices for each common factor, and 
+</p>
+</li>
+<li> <p><strong>RotationConverged</strong>: (Logical) convergence status of the rotation algorithm. 
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>numLocalSets</strong> (Numeric) How many sets of local solutions
+with the same discrepancy value were obtained. 
+</p>
+</li>
+<li> <p><strong>localSolutionSets</strong>: (List) A list containing the sets of 
+unique local minima solutions. There is one list element for every unique 
+local solution that includes (a) the factor loadings matrix, (b) the factor 
+correlation matrix (if estimated), and (c) the discrepancy value of the rotation algorithm. 
+</p>
+</li>
+<li> <p><strong>rotate</strong> (Character) The chosen rotation algorithm.
+</p>
+</li>
+<li> <p><strong>rotateControl</strong>: (List) A list of the control parameters 
+passed to the rotation algorithm.
+</p>
+</li>
+<li> <p><strong>unSpunSolution</strong>: (List) A list of output parameters (e.g., loadings, Phi, etc) from 
+the rotated solution that was obtained by rotating directly from the unrotated (i.e., unspun) common factor orientation. 
+</p>
+</li>
+<li> <p><strong>Call</strong>: (call) A copy of the function call.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+
+<ul>
+<li>
+<p> Niels G. Waller (nwaller@umn.edu)
+</p>
+</li>
+<li>
+<p> Casey Giordano (Giord023@umn.edu)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Boruch, R. F., Larkin, J. D., Wolins, L., &amp; MacKinney, A. C. (1970). 
+Alternative methods of analysis: Multitrait-multimethod data. <em>Educational 
+and Psychological Measurement, 30</em>(4), 833–853. 
+https://doi.org/10.1177/0013164470030004055
+</p>
+<p>Browne, M. W.  (1979).  The maximum-likelihood solution in inter-battery factor analysis. 
+<em>British Journal of Mathematical and Statistical Psychology, 32</em>(1), 75-86.
+</p>
+<p>Browne, M. W.  (1980).  Factor analysis of multiple batteries by maximum likelihood.  
+<em>British Journal of Mathematical and Statistical Psychology, 33</em>(2), 184-199.
+</p>
+<p>Browne, M. W. (2001). An overview of analytic rotation in 
+exploratory factor analysis. <em>Multivariate Behavioral Research, 36</em>(1), 111-150.
+</p>
+<p>Burnham, K. P. &amp; Anderson, D. R.  (2004).  Multimodel inference: Understanding AIC and BIC in model selection.  
+<em>Sociological methods and research, 33</em>, 261-304.
+</p>
+<p>Cudeck, R. (1982). Methods for estimating between-battery factors,
+<em>Multivariate Behavioral Research, 17</em>(1), 47-68. 10.1207/s15327906mbr1701_3
+</p>
+<p>Cureton, E. E., &amp; Mulaik, S. A. (1975). The weighted varimax 
+rotation and the promax rotation. <em>Psychometrika, 40</em>(2), 183-195.
+</p>
+<p>Guttman, L. (1955). The determinacy of factor score matrices with 
+implications for five other basic problems of common factor theory. 
+<em>British Journal of Statistical Psychology, 8</em>(2), 65-81.
+</p>
+<p>Tucker, L. R.  (1958).  An inter-battery method of factor analysis.  
+<em>Psychometrika, 23</em>(2), 111-136.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Example 1:
+# Example from: Browne, M. W.  (1979). 
+#
+# Data originally reported in:
+# Thurstone, L. L. &amp; Thurstone, T. G. (1941). Factorial studies 
+# of intelligence. Psychometric Monograph (2), Chicago: Univ. 
+# Chicago Press.
+
+R.XY &lt;- matrix(c(
+ 1.00, .554, .227, .189, .461, .506, .408, .280, .241,
+ .554, 1.00, .296, .219, .479, .530, .425, .311, .311,
+ .227, .296, 1.00, .769, .237, .243, .304, .718, .730,
+ .189, .219, .769, 1.00, .212, .226, .291, .681, .661,
+ .461, .479, .237, .212, 1.00, .520, .514, .313, .245,
+ .506, .530, .243, .226, .520, 1.00, .473, .348, .290,
+ .408, .425, .304, .291, .514, .473, 1.00, .374, .306,
+ .280, .311, .718, .681, .313, .348, .374, 1.00, .672,
+ .241, .311, .730, .661, .245, .290, .306, .672, 1.00), 9, 9)
+
+
+dimnames(R.XY) &lt;- list(c( paste0("X", 1:4),
+                         paste0("Y", 1:5)),
+                       c( paste0("X", 1:4),
+                         paste0("Y", 1:5)))
+                         
+    out &lt;- faIB(R = R.XY,  
+                n = 710,
+                NVarX = 4, 
+                numFactors = 2,
+                itemSort = FALSE,
+                rotate = "oblimin",
+                rotateControl = list(standardize  = "Kaiser",
+                                     numberStarts = 10),
+                Seed = 1)
+
+ # Compare with Browne 1979 Table 2.
+ print(round(out$loadings, 2))
+ cat("\n\n")
+ print(round(out$Phi,2))
+ cat("\n\n MAD = ", round(out$fit["MAD"], 2),"\n\n")
+ print( round(out$facIndeterminacy,2) )
+ 
+ 
+ # Example 2:
+ ## Correlation values taken from Boruch et al.(1970) Table 2 (p. 838)
+ ## See also, Cudeck (1982) Table 1 (p. 59)
+ corValues &lt;- c(
+   1.0,
+   .11,  1.0,
+   .61,  .47, 1.0,
+   .42, -.02, .18,  1.0,
+   .75,  .33, .58,  .44, 1.0, 
+   .82,  .01, .52,  .33, .68,  1.0,
+   .77,  .32, .64,  .37, .80,  .65, 1.0,
+   .15, -.02, .04,  .08, .12,  .11, .13, 1.0,
+   -.04,  .22, .26, -.06, .07, -.10, .07, .09,  1.0,
+   .13,  .21, .23,  .05, .07,  .06, .12, .64,  .40, 1.0,
+   .01,  .04, .01,  .16, .05,  .07, .05, .41, -.10, .29, 1.0,
+   .27,  .13, .18,  .17, .27,  .27, .27, .68,  .18, .47, .33, 1.0,
+   .24,  .02, .12,  .12, .16,  .23, .18, .82,  .08, .55, .35, .76, 1.0,
+   .20,  .18, .16,  .17, .22,  .11, .29, .69,  .20, .54, .34, .68, .68, 1.0)
+ 
+ ## Generate empty correlation matrix
+ BoruchCorr &lt;- matrix(0, nrow = 14, ncol = 14)
+ 
+ ## Add upper-triangle correlations
+ BoruchCorr[upper.tri(BoruchCorr, diag = TRUE)] &lt;- corValues
+ BoruchCorr &lt;- BoruchCorr + t(BoruchCorr) - diag(14)
+ 
+ ## Add variable names to the correlation matrix
+ varNames &lt;- c("Consideration", "Structure", "Sup.Satisfaction", 
+ "Job.Satisfaction", "Gen.Effectiveness", "Hum.Relations", "Leadership")
+ 
+ ## Distinguish between rater X and rater Y
+ varNames &lt;- paste0(c(rep("X.", 7), rep("Y.", 7)), varNames)
+ 
+ ## Add row/col names to correlation matrix
+ dimnames(BoruchCorr) &lt;- list(varNames, varNames)
+ 
+ ## Estimate a model with one, two, and three factors
+ for (jFactors in 1:3) {
+   tempOutput &lt;- faIB(R          = BoruchCorr,
+                      n          = 111,
+                      NVarX      = 7,
+                      numFactors = jFactors,
+                      rotate     = "oblimin",
+                      rotateControl = list(standardize  = "Kaiser",
+                                           numberStarts = 100))
+   
+   cat("\nNumber of inter-battery factors:", jFactors,"\n")
+   print( round(tempOutput$fit,2) )
+ } # END for (jFactors in 1:3) 
+ 
+ ## Compare output with Cudeck (1982) Table 2 (p. 60)
+ BoruchOutput &lt;- 
+   faIB(R             = BoruchCorr,
+        n             = 111,
+        NVarX         = 7,
+        numFactors    = 2,
+        rotate        = "oblimin",
+        rotateControl = list(standardize = "Kaiser"))
+ 
+ ## Print the inter-battery factor loadings
+ print(round(BoruchOutput$loadings, 3)) 
+ print(round(BoruchOutput$Phi, 3)) 
+ 
+ 
+ 
+</code></pre>
+
+
+</div>

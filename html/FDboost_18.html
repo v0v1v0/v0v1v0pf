@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Clr and inverse clr transformation</h2>
+
+<h3>Description</h3>
+
+<p><code>clr</code> computes the clr or inverse clr transformation of a vector <code>f</code>
+with respect to integration weights <code>w</code>, corresponding to a Bayes Hilbert space
+<code class="reqn">B^2(\mu) = B^2(\mathcal{T}, \mathcal{A}, \mu)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clr(f, w = 1, inverse = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>a vector containing the function values (evaluated on a grid) of the 
+function <code class="reqn">f</code> to transform. If <code>inverse = TRUE</code>, <code>f</code> must be a density,
+i.e., all entries must be positive and usually <code>f</code> integrates to one. 
+If <code>inverse = FALSE</code>, <code>f</code> should integrate to zero, see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>a vector of length one or of the same length as <code>f</code> containing 
+positive integration weights. If <code>w</code> has length one, this
+weight is used for all function values. The integral of <code class="reqn">f</code> is approximated
+via <code class="reqn">\int_{\mathcal{T}} f \, \mathrm{d}\mu \approx 
+\sum_{j=1}^m</code> <code>w</code><code class="reqn">_j</code> <code>f</code><code class="reqn">_j</code>,
+where <code class="reqn">m</code> equals the length of <code>f</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inverse</code></td>
+<td>
+<p>if <code>TRUE</code>, the inverse clr transformation is computed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The clr transformation maps a density <code class="reqn">f</code> from <code class="reqn">B^2(\mu)</code> to
+<code class="reqn">L^2_0(\mu) := \{ f \in L^2(\mu) ~|~ \int_{\mathcal{T}} f \, \mathrm{d}\mu = 0\}</code>
+via
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{clr}(f) := \log f - \frac{1}{\mu (\mathcal{T})} \int_{\mathcal{T}} \log f \, \mathrm{d}\mu.</code>
+</p>
+
+<p>The inverse clr transformation maps a function <code class="reqn">f</code> from
+<code class="reqn">L^2_0(\mu)</code> to <code class="reqn">B^2(\mu)</code> via
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{clr}^{-1}(f) := \frac{\exp f}{\int_{\mathcal{T}} \exp f \, \mathrm{d}\mu}.</code>
+</p>
+
+<p>Note that in contrast to Maier et al. (2021), this definition of the inverse
+clr transformation includes normalization, yielding the respective probability 
+density function (representative of the equivalence class of proportional
+functions in <code class="reqn">B^2(\mu)</code>). 
+</p>
+<p>The (inverse) clr transformation depends not only on <code class="reqn">f</code>, but also on the
+underlying measure space <code class="reqn">\left( \mathcal{T}, \mathcal{A}, \mu\right)</code>, 
+which determines the integral. In <code>clr</code> this is specified via the 
+integration weights <code>w</code>. E.g., for a discrete set <code class="reqn">\mathcal{T}</code>
+with <code class="reqn">\mathcal{A} = \mathcal{P}(\mathcal{T})</code> the power set of 
+<code class="reqn">\mathcal{T}</code> and <code class="reqn">\mu = \sum_{t \in T} \delta_t</code> the sum of dirac
+measures at <code class="reqn">t \in \mathcal{T}</code>, the default <code>w = 1</code> is
+the correct choice. In this case, integrals are indeed computed exactly, not
+only approximately. 
+For an interval <code class="reqn">\mathcal{T} = [a, b]</code>
+with <code class="reqn">\mathcal{A} = \mathcal{B}</code> the Borel <code class="reqn">\sigma</code>-algebra 
+restricted to <code class="reqn">\mathcal{T}</code> and <code class="reqn">\mu = \lambda</code> the Lebesgue measure,
+the choice of <code>w</code> depends on the grid on which the function was evaluated:
+<code>w</code><code class="reqn">_j</code> must correspond to the length of the subinterval of <code class="reqn">[a, b]</code>, which 
+<code>f</code><code class="reqn">_j</code> represents.
+E.g., for a grid with equidistant distance <code class="reqn">d</code>, where the boundary grid 
+values are <code class="reqn">a + \frac{d}{2}</code> and <code class="reqn">b - \frac{d}{2}</code>
+(i.e., the grid points are centers of intervals of size <code class="reqn">d</code>),
+equal weights <code class="reqn">d</code> should be chosen for <code>w</code>. 
+</p>
+<p>The clr transformation is crucial for density-on-scalar regression 
+since estimating the clr transformed model in <code class="reqn">L^2_0(\mu)</code> is equivalent
+to estimating the original model in <code class="reqn">B^2(\mu)</code> (as the clr transformation
+is an isometric isomorphism), see also the vignette "FDboost_density-on-scalar_births"
+and Maier et al. (2021).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of the same length as <code>f</code> containing the (inverse) clr 
+transformation of <code>f</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eva-Maria Maier
+</p>
+
+
+<h3>References</h3>
+
+<p>Maier, E.-M., Stoecker, A., Fitzenberger, B., Greven, S. (2021):
+Additive Density-on-Scalar Regression in Bayes Hilbert Spaces with an Application to Gender Economics.
+arXiv preprint arXiv:2110.11771.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Continuous case (T = [0, 1] with Lebesgue measure):
+# evaluate density of a Beta distribution on an equidistant grid
+g &lt;- seq(from = 0.005, to = 0.995, by = 0.01)
+f &lt;- dbeta(g, 2, 5)
+# compute clr transformation with distance of two grid points as integration weight
+f_clr &lt;- clr(f, w = 0.01)
+# visualize result
+plot(g, f_clr , type = "l")
+abline(h = 0, col = "grey")
+# compute inverse clr transformation (w as above)
+f_clr_inv &lt;- clr(f_clr, w = 0.01, inverse = TRUE)
+# visualize result
+plot(g, f, type = "l")
+lines(g, f_clr_inv, lty = 2, col = "red")
+
+### Discrete case (T = {1, ..., 12} with sum of dirac measures at t in T):
+data("birthDistribution", package = "FDboost")
+# fit density-on-scalar model with effects for sex and year
+model &lt;- FDboost(birth_densities_clr ~ 1 + bolsc(sex, df = 1) + 
+                   bbsc(year, df = 1, differences = 1),
+                 # use bbsc() in timeformula to ensure integrate-to-zero constraint
+                 timeformula = ~bbsc(month, df = 4, 
+                                     # December is followed by January of subsequent year
+                                     cyclic = TRUE, 
+                                     # knots = {1, ..., 12} with additional boundary knot
+                                     # 0 (coinciding with 12) due to cyclic = TRUE
+                                     knots = 1:11, boundary.knots = c(0, 12), 
+                                     # degree = 1 with these knots yields identity matrix 
+                                     # as design matrix
+                                     degree = 1),
+                 data = birthDistribution, offset = 0, 
+                 control = boost_control(mstop = 1000))
+# Extract predictions (clr-transformed!) and transform them to Bayes Hilbert space
+predictions_clr &lt;- predict(model)
+predictions &lt;- t(apply(predictions_clr, 1, clr, inverse = TRUE))
+
+</code></pre>
+
+
+</div>

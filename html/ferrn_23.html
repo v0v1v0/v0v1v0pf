@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_bases</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to calculate smoothness and squintability</h2>
+
+<h3>Description</h3>
+
+<p>Function to calculate smoothness and squintability
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sample_bases(
+  idx,
+  data = sine1000,
+  n_basis = 300,
+  parallel = FALSE,
+  best = matrix(c(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1), nrow = 6),
+  min_proj_dist = NA,
+  step_size = NA,
+  seed = 123
+)
+
+## S3 method for class 'basis_df'
+print(x, width = NULL, ...)
+
+## S3 method for class 'basis_df'
+tbl_sum(x)
+
+calc_smoothness(
+  basis_df,
+  start_params = c(0.001, 0.5, 2, 2),
+  other_gp_params = NULL,
+  verbose = FALSE
+)
+
+## S3 method for class 'smoothness_res'
+print(x, width = NULL, ...)
+
+## S3 method for class 'smoothness_res'
+tbl_sum(x)
+
+calc_squintability(
+  basis_df,
+  method = c("ks", "nls"),
+  scale = TRUE,
+  bin_width = 0.005,
+  other_params = NULL
+)
+
+## S3 method for class 'squintability_res'
+print(x, width = NULL, ...)
+
+## S3 method for class 'squintability_res'
+tbl_sum(x)
+
+fit_ks(basis_df, idx, other_params = NULL)
+
+fit_nls(basis_df, other_params = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>idx</code></td>
+<td>
+<p>character, the name of projection pursuit index function, e.g.
+"holes"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a matrix or data frame, the high dimensional data to be projected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_basis</code></td>
+<td>
+<p>numeric, the number of random bases to generate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>logic, whether to use parallel computing for calculating the index.
+Recommend for the stringy index.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best</code></td>
+<td>
+<p>a matrix, the theoretical/ empirical best projection matrix to
+calculate the projection distance from the simulated random bases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_proj_dist</code></td>
+<td>
+<p>only for squintability, the threshold for projection
+distance for the random basis to be considered in sampling</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step_size</code></td>
+<td>
+<p>numeric, step size for interpolating from each random basis to
+the best basis, recommend 0.005</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>numeric, seed for sampling random bases</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>objects with specialised printing methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>only used when <code>max.levels</code> is NULL, see above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to or from other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis_df</code></td>
+<td>
+<p>the basis data frame returned from <code>sample_bases</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_params</code></td>
+<td>
+<p>list, the starting parameters for the Gaussian process
+for smoothness</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>other_gp_params</code></td>
+<td>
+<p>list, additional parameters to be passed to
+[GpGp::fit_model()]
+for calculating smoothness</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical, whether to print optimisation progression when
+fitting the Gaussian process</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>either "ks" (kernel smoothing) or "nls" (non-linear least
+square) for calculating squintability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>logic, whether to scale the index value to 0-1 in squintability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin_width</code></td>
+<td>
+<p>numeric, the bin width to average the index value
+before fitting the kernel, recommend to set as the same as 'step' parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>other_params</code></td>
+<td>
+<p>list additional parameters for fitting kernel smoothing
+or non-linear least square, see [stats::ksmooth()] and
+[stats::nls()] for details</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(GpGp)
+library(fields)
+library(tourr)
+basis_smoothness &lt;- sample_bases(idx = "holes")
+calc_smoothness(basis_smoothness)
+basis_squint &lt;- sample_bases(idx = "holes", n_basis = 100, step_size = 0.01, min_proj_dist = 1.5)
+calc_squintability(basis_squint, method = "ks", bin_width = 0.01)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

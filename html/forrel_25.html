@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>profileSim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation of complete DNA profiles</h2>
+
+<h3>Description</h3>
+
+<p>Simulation of DNA profiles for specified pedigree members. Some pedigree
+members may already be genotyped; in that case the simulation is conditional
+on these. The main work of this function is done by <code>markerSim()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">profileSim(
+  x,
+  N = 1,
+  ids = NULL,
+  markers = NULL,
+  seed = NULL,
+  numCores = 1,
+  simplify1 = TRUE,
+  verbose = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>ped</code> object or a list of such.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>The number of complete simulations to be performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>A character (or coercible to character) with ID labels indicating
+whose genotypes should be simulated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>markers</code></td>
+<td>
+<p>Either a vector indicating a subset of markers attached to
+<code>x</code>, or a named list of frequency vectors. By default (<code>NULL</code>), all
+attached markers are used. If a frequency list is given, marker objects are
+created and attached to <code>x</code>. Simulations are conditional on the locus
+attributes (allele frequencies, mutation models, etc) and any existing
+genotypes in the indicated markers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer seed for the random number generator (optional).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numCores</code></td>
+<td>
+<p>The number of cores to be used. The default is 1, i.e., no
+parallelisation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify1</code></td>
+<td>
+<p>A logical, by default TRUE, removing the outer list layer
+when <code>N = 1</code>. See Value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical, by default TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed on to <code>markerSim()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of <code>N</code> objects similar to <code>x</code>, but with simulated genotypes.
+Any previously attached markers are replaced by the simulated profiles. If
+the indicated markers contained genotypes for some pedigree members, these
+are still present in the simulated profiles.
+</p>
+<p>If <code>N = 1</code> and <code>simplify1 = TRUE</code>, the outer list layer is removed, i.e.,
+<code>profileSim(..., N = 1, simplify1 = T)</code> is equivalent to <code>profileSim(..., N = 1, simplify1 = F)[[1]]</code>. This is usually the desired object in
+interactive use, and works well with piping.
+</p>
+<p>When using <code>profileSim()</code> in other functions, it is recommended to add
+<code>simplify1 = FALSE</code> to safeguard against issues with <code>N = 1</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example pedigree with two brothers
+x = nuclearPed(children = c("B1", "B2"))
+
+### Simulate profiles using built-in freq database
+profileSim(x, markers = NorwegianFrequencies[1:3])
+
+### Conditioning on known genotypes for one brother
+
+# Attach two SNP markers with genotypes for B1
+y = x |&gt;
+  addMarker(B1 = "1/2", alleles = 1:2) |&gt;
+  addMarker(B1 = "1",   alleles = 1:2, chrom = "X")
+
+# Simulate 2 profiles of B2 conditional on the above
+profileSim(y, N = 2, ids = "B2", seed = 123)
+
+
+
+</code></pre>
+
+
+</div>

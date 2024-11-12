@@ -1,0 +1,459 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>log_llh_rcpp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Log-likelihood computation in RCPP</h2>
+
+<h3>Description</h3>
+
+<p>Log-likelihood computation in RCPP
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">log_llh_rcpp(
+  param,
+  nb.e.a,
+  nb.priorMean.beta,
+  nb.alpha,
+  competing_risk,
+  nb.alpha.CR,
+  variability_hetero,
+  S,
+  Zq,
+  sharedtype,
+  sharedtype_CR,
+  hazard_baseline,
+  hazard_baseline_CR,
+  ord.splines,
+  Xtime,
+  Utime,
+  nb_pointsGK,
+  Xs,
+  Us,
+  Xslope,
+  Uslope,
+  Xs.slope,
+  Us.slope,
+  indices_beta_slope,
+  Time,
+  st_calc,
+  B,
+  Bs,
+  wk,
+  Z,
+  P,
+  left_trunc,
+  Z_CR,
+  X_base,
+  offset,
+  U,
+  y.new.prog,
+  event1,
+  event2,
+  Ind,
+  Xs.0,
+  Us.0,
+  Xs.slope.0,
+  Us.slope.0,
+  P.0,
+  st.0,
+  Bs.0,
+  B.CR,
+  Bs.CR,
+  Bs.0.CR,
+  nb.e.a.sigma = nb.e.a.sigma,
+  nb.omega = nb.omega,
+  Otime = Otime,
+  Wtime = Wtime,
+  Os = Os,
+  Ws = Ws,
+  O_base = O_base,
+  W_base = W_base,
+  correlated_re = correlated_re,
+  Os.0 = Os.0,
+  Ws.0 = Ws.0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>a vector : paramaters to be estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.e.a</code></td>
+<td>
+<p>integer : number of RE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.priorMean.beta</code></td>
+<td>
+<p>integer : number of fixed effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.alpha</code></td>
+<td>
+<p>integer : number of covariates in survival model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>competing_risk</code></td>
+<td>
+<p>boolean : allow competing risk or not, FALSE by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.alpha.CR</code></td>
+<td>
+<p>integer : number of covariates in survival model for competing risks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variability_hetero</code></td>
+<td>
+<p>boolean : allow the heterogeneous variability or not</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>integer : the number of QMC points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Zq</code></td>
+<td>
+<p>vector : sobol points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sharedtype</code></td>
+<td>
+<p>vector : dependence structure for survival model : "RE" (random effects) or "CV" (current value) or "CVS" (current value and slope) or "S" (slope)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sharedtype_CR</code></td>
+<td>
+<p>vector : dependence structure for competing risk survival model : "RE" (random effects) or "CV" (current value) or "CVS" (current value and slope) or "S" (slope)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazard_baseline</code></td>
+<td>
+<p>char : baseline hazard function : "Exponential" or "Weibull" or "Splines"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazard_baseline_CR</code></td>
+<td>
+<p>char : baseline hazard function, competing risk : "Exponential" or "Weibull" or "Splines"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ord.splines</code></td>
+<td>
+<p>integer : the order of splines function for baseline hazard function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xtime</code></td>
+<td>
+<p>matrix : fixed effects at event time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Utime</code></td>
+<td>
+<p>matrix : RE at event time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb_pointsGK</code></td>
+<td>
+<p>integer : number of points for Gauss-Kronrod approximation, 7 or 15 (default)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xs</code></td>
+<td>
+<p>matrix : fixed effects at Gauss-Kronrod times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Us</code></td>
+<td>
+<p>matrix : RE at Gauss-Kronrod times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xslope</code></td>
+<td>
+<p>matrix : fixed effects of slope at event times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Uslope</code></td>
+<td>
+<p>matrix : RE of slope at event times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xs.slope</code></td>
+<td>
+<p>matrix : fixed effects of slope at Gauss-Kronrod times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Us.slope</code></td>
+<td>
+<p>matrix : RE of slope at Gauss-Kronrod times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indices_beta_slope</code></td>
+<td>
+<p>vector : position of beta which will be used in the slope computation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Time</code></td>
+<td>
+<p>vector : observed event times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>st_calc</code></td>
+<td>
+<p>matrix : Gauss-Kronrod times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>matrix : splines for baseline hazard function of event 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bs</code></td>
+<td>
+<p>matrix : splines for baseline survival function of event 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wk</code></td>
+<td>
+<p>vector : Gauss-Kronrod weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>matrix : covariates for survival function of event 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>vector : Time/2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left_trunc</code></td>
+<td>
+<p>boolean : left truncation indicator</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z_CR</code></td>
+<td>
+<p>matrix : covariates for survival function of event 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X_base</code></td>
+<td>
+<p>matrix : fixed effects for longitudinal submodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>vector : number of lines per subjects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>matrix : RE for longitudinal submodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.new.prog</code></td>
+<td>
+<p>vector : y measures for longitudinal submodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event1</code></td>
+<td>
+<p>vector : event 1 indicator</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event2</code></td>
+<td>
+<p>vector : event 2 indicator</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ind</code></td>
+<td>
+<p>integer : number of subjects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xs.0</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Us.0</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xs.slope.0</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Us.slope.0</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P.0</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>st.0</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bs.0</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B.CR</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bs.CR</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bs.0.CR</code></td>
+<td>
+<p>same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.e.a.sigma</code></td>
+<td>
+<p>integer : number of RE for variability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.omega</code></td>
+<td>
+<p>integer : number of fixed effects for variability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Otime</code></td>
+<td>
+<p>matrix : fixed effects of variability at event time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Wtime</code></td>
+<td>
+<p>matrix : RE of variability at event time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Os</code></td>
+<td>
+<p>matrix : fixed effects of variability at Gauss-Kronrod times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ws</code></td>
+<td>
+<p>matrix : random effects of variability at Gauss-Kronrod times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>O_base</code></td>
+<td>
+<p>matrix : fixed effects for variability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W_base</code></td>
+<td>
+<p>matrix : fixed effects for variability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correlated_re</code></td>
+<td>
+<p>boolean : indicator to allow all the random effects to be correlated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Os.0</code></td>
+<td>
+<p>matrix : same for left truncation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ws.0</code></td>
+<td>
+<p>matrix : same for left truncation</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The value of the log-likelihood
+</p>
+
+
+</div>

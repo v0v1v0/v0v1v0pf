@@ -1,0 +1,368 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fplsr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional partial least squares regression</h2>
+
+<h3>Description</h3>
+
+<p>Fits a functional partial least squares (PLSR) model using nonlinear partial least squares
+(NIPALS) algorithm or simple partial least squares (SIMPLS) algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fplsr(data, order = 6, type = c("simpls", "nipals"), unit.weights =
+ TRUE, weight = FALSE, beta = 0.1, interval = FALSE, method =
+  c("delta", "boota"), alpha = 0.05, B = 100, adjust = FALSE,
+   backh = 10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An object of class <code>fts</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Number of principal components to fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>When <code>type = "nipals"</code>, uses the NIPALS algorithm; when <code>type = "simpls"</code>, uses the SIMPLS algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit.weights</code></td>
+<td>
+<p>Constrains predictor loading weights to have unit norm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>When <code>weight = TRUE</code>, a set of geometrically decaying weights is applied to the decentralized data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>When <code>weight = TRUE</code>, the speed of geometric decay is governed by a weight parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>When <code>interval = TRUE</code>, produces distributional forecasts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method used for computing prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p><code>1-alpha</code> gives the nominal coverage probability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of replications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust</code></td>
+<td>
+<p>When <code>adjust = TRUE</code>, an adjustment is performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backh</code></td>
+<td>
+<p>When <code>adjust = TRUE</code>, an adjustment is performed by evaluating the difference between
+predicted and actual values in a testing set. <code>backh</code> specifies the testing set.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><em><b>Point forecasts:</b></em><br></p>
+<p>The NIPALS function implements the orthogonal scores algorithm, as described in Martens and Naes (1989).
+This is one of the two classical PLSR algorthms, the other is the simple partial least squares regression in DeJong (1993).
+The difference between these two approaches is that the NIPALS deflates the original predictors and responses,
+while the SIMPLS deflates the covariance matrix of original predictors and responses. Thus, SIMPLS is more computationally efficient than NIPALS.
+</p>
+<p>In a functional data set, the functional PLSR can be performed by setting the functional responses to be 1 lag ahead of the functional predictors.
+This idea has been adopted from the Autoregressive Hilbertian processes of order 1 (ARH(1)) of Bosq (2000).
+</p>
+<p><em><b>Distributional forecasts:</b></em><br></p>
+<p><em>Parametric method:</em>
+</p>
+<p>Influenced by the works of Denham (1997) and Phatak et al. (1993), one way of constructing prediction intervals in the PLSR
+is via a local linearization method (also known as the Delta method). It can be easily understood as the first two terms in a Taylor series
+expansion. The variance of coefficient estimators can be approximated, from which an analytic-formula based prediction intervals are constructed.
+</p>
+<p><em>Nonparametric method:</em>
+</p>
+<p>After discretizing and decentralizing functional data <code class="reqn">f_t(x)</code> and <code class="reqn">g_s(y)</code>, a PLSR model with <code class="reqn">K</code> latent components is built.
+Then, the fit residuals <code class="reqn">o_s(y_i)</code> between <code class="reqn">g_s(y_i)</code> and <code class="reqn">\hat{g}_s(y_i)</code> are calculated as
+</p>
+<p style="text-align: center;"><code class="reqn">o_s(y_i)=g_s(y_i)-\hat{g}_s(y_i), i=1,...,p.</code>
+</p>
+
+<p>The next step is to generate <code class="reqn">B</code> bootstrap samples <code class="reqn">o_s^b(y_i)</code> by randomly sampling with replacement
+from <code class="reqn">[o_1(y_i),...,o_n(y_i)]</code>. Adding bootstrapped residuals to the original
+response variables in order to generate new bootstrap responses,
+</p>
+<p style="text-align: center;"><code class="reqn">g_s^b(y_i)=g_s(y_i)+o_s^b(y_i).</code>
+</p>
+<p><br>
+Then, the PLSR models are constructed using the centered and discretized predictors and bootstrapped responses
+to obtain the boostrapped regression coefficients and point forecasts, from which the empirical prediction intervals and kernel density plots are constructed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following components is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p><code class="reqn">(p \times m)</code> matrix containing the regression coefficients. <code class="reqn">p</code> is the number of variables in
+the predictors and <code class="reqn">m</code> is the number of variables in the responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p><code class="reqn">(p \times order)</code> matrix containing the predictor loadings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+<p><code class="reqn">(m \times order)</code> matrix containing the response loadings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T</code></td>
+<td>
+<p><code>(ncol(data$y)-1) x order</code> matrix containing the predictor scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p><code class="reqn">(p\times order)</code> matrix containing the weights used to construct the latent components of predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Yscores</code></td>
+<td>
+<p><code>(ncol(data$y)-1) x order</code> matrix containing the response scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>projection</code></td>
+<td>
+<p><code class="reqn">(p\times order)</code> projection matrix used to convert predictors to predictor scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meanX</code></td>
+<td>
+<p>An object of class <code>fts</code> containing the column means of predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meanY</code></td>
+<td>
+<p>An object of class <code>fts</code> containing the column means of responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ypred</code></td>
+<td>
+<p>An object of class <code>fts</code> containing the 1-step-ahead predicted values of the responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted</code></td>
+<td>
+<p>An object of class <code>fts</code> containing the fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>An object of class <code>fts</code> containing the regression residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xvar</code></td>
+<td>
+<p>A vector with the amount of predictor variance explained by each number of component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xtotvar</code></td>
+<td>
+<p>Total variance in predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>When <code>weight = TRUE</code>, a set of geometrically decaying weights is given. When <code>weight = FALSE</code>, weights are all equal 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x1</code></td>
+<td>
+<p>Time period of a <code>fts</code> object, which can be obtained from <code>colnames(data$y)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y1</code></td>
+<td>
+<p>Variables of a <code>fts</code> object, which can be obtained from <code>data$x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ypred</code></td>
+<td>
+<p>Returns the original functional predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Returns the original functional responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootsamp</code></td>
+<td>
+<p>Bootstrapped point forecasts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb</code></td>
+<td>
+<p>Lower bound of prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ub</code></td>
+<td>
+<p>Upper bound of prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lbadj</code></td>
+<td>
+<p>Adjusted lower bound of prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ubadj</code></td>
+<td>
+<p>Adjusted upper bound of prediction intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lbadjfactor</code></td>
+<td>
+<p>Adjusted lower bound factor, which lies generally between 0.9 and 1.1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ubadjfactor</code></td>
+<td>
+<p>Adjusted upper bound factor, which lies generally between 0.9 and 1.1.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Han Lin Shang</p>
+
+
+<h3>References</h3>
+
+<p>S. Wold and A. Ruhe and H. Wold and W. J. Dunn (1984) "The collinearity problem in linear regression. The partial least squares (PLS) approach to generalized inverses", <em>SIAM Journal of Scientific and Statistical Computing</em>, <b>5</b>(3), 735-743.
+</p>
+<p>S. de Jong (1993) "SIMPLS: an alternative approach to partial least square regression", <em>Chemometrics and Intelligent Laboratory Systems</em>, <b>18</b>(3), 251-263.
+</p>
+<p>C J. F. Ter Braak and S. de Jong (1993) "The objective function of partial least squares regression", <em>Journal of Chemometrics</em>, <b>12</b>(1), 41-54.
+</p>
+<p>B. Dayal and J. MacGregor (1997) "Recursive exponentially weighted PLS and its applications to adaptive	control and prediction", <em>Journal of Process Control</em>, <b>7</b>(3), 169-179.
+</p>
+<p>B. D. Marx (1996) "Iteratively reweighted partial least squares estimation for generalized linear regression", <em>Technometrics</em>, <b>38</b>(4), 374-381.
+</p>
+<p>L. Xu and J-H. Jiang and W-Q. Lin and Y-P. Zhou and H-L. Wu and G-L. Shen and R-Q. Yu (2007) "Optimized sample-weighted partial least squares", <em>Talanta</em>, <b>71</b>(2), 561-566.
+</p>
+<p>A. Phatak and P. Reilly and A. Penlidis (1993) "An approach to interval estimation in partial least squares regression", <em>Analytica Chimica Acta</em>, <b>277</b>(2), 495-501.
+</p>
+<p>M. Denham (1997) "Prediction intervals in partial least squares", <em>Journal of Chemometrics</em>, <b>11</b>(1), 39-52.
+</p>
+<p>D. Bosq (2000) <em>Linear Processes in Function Spaces</em>, New York: Springer.
+</p>
+<p>N. Faber (2002) "Uncertainty estimation for multivariate regression coefficients", <em>Chemometrics and Intelligent Laboratory Systems</em>, <b>64</b>(2), 169-179.
+</p>
+<p>J. A. Fernandez Pierna and L. Jin and F. Wahl and N. M. Faber and D. L. Massart (2003) "Estimation of partial least squares regression prediction uncertainty when the reference values carry a sizeable measurement error", <em>Chemometrics and Intelligent Laboratory Systems</em>, <b>65</b>(2), 281-291.
+</p>
+<p>P. T. Reiss and R. T. Ogden (2007), "Functional principal component regression and functional partial least squares", <em>Journal of the American Statistical Association</em>, <b>102</b>(479), 984-996.
+</p>
+<p>C. Preda, G. Saporta (2005) "PLS regression on a stochastic process", <em>Computational Statistics and Data Analysis</em>, <b>48</b>(1), 149-158.
+</p>
+<p>C. Preda, G. Saporta, C. Leveder (2007) "PLS classification of functional data", <em>Computational Statistics</em>, <b>22</b>, 223-235.
+</p>
+<p>A. Delaigle and P. Hall (2012), "Methodology and theory for partial least squares applied to functional data", <em>Annals of Statistics</em>, <b>40</b>(1), 322-352.
+</p>
+<p>M. Febrero-Bande, P. Galeano, W. Gonz\'alez-Manteiga (2017), "Functional principal component regression and functional partial least-squares regression: An overview and a comparative study", <em>International Statistical Review</em>, <b>85</b>(1), 61-83.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ftsm</code>, <code>forecast.ftsm</code>, <code>plot.fm</code>,
+<code>summary.fm</code>, <code>residuals.fm</code>, <code>plot.fmres</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># When weight = FALSE, all observations are assigned equally.
+# When weight = TRUE, all observations are assigned geometrically decaying weights.
+fplsr(data = ElNino_ERSST_region_1and2, order = 6, type = "nipals")
+fplsr(data = ElNino_ERSST_region_1and2, order = 6)
+fplsr(data = ElNino_ERSST_region_1and2, weight = TRUE)
+fplsr(data = ElNino_ERSST_region_1and2, unit.weights = FALSE)
+fplsr(data = ElNino_ERSST_region_1and2, unit.weights = FALSE, weight = TRUE)
+
+# The prediction intervals are calculated numerically.
+fplsr(data = ElNino_ERSST_region_1and2, interval = TRUE, method = "delta")
+
+# The prediction intervals are calculated by bootstrap method.
+fplsr(data = ElNino_ERSST_region_1and2, interval = TRUE, method = "boota")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,434 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>datSumTree</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data - Aggregates tree and/or seedling data to the plot, condition,
+or subplot level.</h2>
+
+<h3>Description</h3>
+
+<p>Aggregates tree data (e.g., VOLCFNET) and/or seedling data (e.g., TPA_UNADJ) 
+to plot, condition, or subplot. Includes options for filtering tree data, 
+expanding to plot by multiplying by trees per acre (TPA_UNADJ), or adjusting 
+for nonresponse at the plot level (getadjplot).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">datSumTree(
+  tree = NULL,
+  seed = NULL,
+  cond = NULL,
+  plt = NULL,
+  subp_cond = NULL,
+  subplot = NULL,
+  datsource = "obj",
+  data_dsn = NULL,
+  tuniqueid = "PLT_CN",
+  cuniqueid = "PLT_CN",
+  puniqueid = "CN",
+  bycond = FALSE,
+  condid = "CONDID",
+  bysubp = FALSE,
+  subpuniqueid = "PLT_CN",
+  subpid = "SUBP",
+  tsumvarlst = NULL,
+  tsumvarnmlst = NULL,
+  addseed = FALSE,
+  seedonly = FALSE,
+  woodland = "Y",
+  TPA = TRUE,
+  tfun = sum,
+  ACI = FALSE,
+  tfilter = NULL,
+  lbs2tons = TRUE,
+  metric = FALSE,
+  getadjplot = FALSE,
+  adjtree = FALSE,
+  adjvar = "tadjfac",
+  adjTPA = 1,
+  NAto0 = FALSE,
+  tround = 5,
+  returnDT = TRUE,
+  savedata = FALSE,
+  savedata_opts = NULL,
+  dbconn = NULL,
+  dbconnopen = FALSE,
+  gui = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>Dataframe or comma-delimited file (*.csv). The tree-level table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Dataframe or comma-delimited file (*.csv). The seedling table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cond</code></td>
+<td>
+<p>Dataframe or comma-delimited file (*.csv). Condition-level table
+to join the aggregated Ftree data to, if bycond=TRUE. This table also may be
+used for condition proportion or strata variables used if adjcond or
+adjstrata = TRUE (See details below).  This table is optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plt</code></td>
+<td>
+<p>Dataframe, comma-delimited file (*.csv), or shapefile (*.shp).
+Plot-level table to join the aggregated tree data to, if bycond=FALSE. This
+table is optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subp_cond</code></td>
+<td>
+<p>Dataframe, comma-delimited file (*.csv), or shapefile (*.shp).
+Subplot condition-level table to use to sum condition proportions, 
+if bysubp=TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subplot</code></td>
+<td>
+<p>Dataframe, comma-delimited file (*.csv), or shapefile (*.shp).
+Subplot-level table to used to calculate adjustment factors, to remove 
+nonsampled conditions (SUBP_STATUS_CD = 3). This table is optional. If 
+included the aggregated tree data are joined to subplot before returning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datsource</code></td>
+<td>
+<p>String. Source of data ('obj', 'csv', 'sqlite', 'gdb').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_dsn</code></td>
+<td>
+<p>String. If datsource='sqlite', the name of SQLite database
+(*.sqlite).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tuniqueid</code></td>
+<td>
+<p>String. Unique identifier of plt in tree table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cuniqueid</code></td>
+<td>
+<p>String. Unique identifier of plt in cond table if cond is
+NOT NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>puniqueid</code></td>
+<td>
+<p>String. Unique identifier of plt table if plt is NOT NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bycond</code></td>
+<td>
+<p>Logical. If TRUE, the data are aggregated to the condition
+level (by: cuniqueid, condid). If FALSE, the data are aggregated to the plot
+level (by: puniqueid). If bysubp = TRUE and bycond = TRUE, data are 
+aggregated by subpuniqueid, subpid, condid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condid</code></td>
+<td>
+<p>String. Unique identifier for conditions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bysubp</code></td>
+<td>
+<p>Logical. If TRUE, data are aggregated to the subplot level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subpuniqueid</code></td>
+<td>
+<p>String. Unique identifier of plot in subplot and 
+subp_cond table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subpid</code></td>
+<td>
+<p>String. Unique identifier of each subplot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tsumvarlst</code></td>
+<td>
+<p>String (vector). Tree-level variable(s) to aggregate
+(e.g., "TPA_UNADJ", "BA"). Use "TPA_UNADJ" (tfun=sum) for summed tree
+count.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tsumvarnmlst</code></td>
+<td>
+<p>String (vector). Name of the tree-level variable(s) to
+aggregate (e.g., "TPALIVE", "BALIVE"). This list must have the same number
+of variables as tsumvarlst and be in respective order. If NULL, the default
+names will be tsumvar'_tfun' (e.g., "TPA_UNADJ_SUM", "BA_SUM").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addseed</code></td>
+<td>
+<p>Logical. If TRUE, add seedling counts to tree counts. Note:
+tdomvar must be 'SPCD' or 'SPGRPCD'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seedonly</code></td>
+<td>
+<p>Logical. If TRUE, seedling counts only. Note: tdomvar
+must be 'SPCD' or 'SPGRPCD'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>woodland</code></td>
+<td>
+<p>String. If woodland = 'Y', include woodland tree species
+where measured. If woodland = 'N', only include timber species. See 
+FIESTA::ref_species$WOODLAND ='Y/N'. If woodland = 'only', only include
+woodland species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TPA</code></td>
+<td>
+<p>Logical. If TRUE, tsumvarlst variable(s) are multiplied by the
+respective trees-per-acre variable (see details) to get per-acre
+measurements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tfun</code></td>
+<td>
+<p>Function. The name of the function to use to aggregate the data
+(e.g., sum, mean, max).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ACI</code></td>
+<td>
+<p>Logical. If TRUE, if ACI (All Condition Inventory) plots exist,
+any trees on these plots will be included in summary. If FALSE, you must
+include condition table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tfilter</code></td>
+<td>
+<p>String. Filter to subset the tree data before aggregating
+(e.g., "STATUSCD == 1"). This must be in R syntax. If tfilter=NULL, user is
+prompted.  Use tfilter="NONE" if no filters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lbs2tons</code></td>
+<td>
+<p>Logical. If TRUE, converts biomass or carbon variables from
+pounds to tons (1 pound = 0.0005 short tons).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>Logical. If TRUE, converts response to metric units based on
+FIESTA::ref_conversion, if any variable in tsumvarlst is in
+FIESTAutils::ref_units.  Note: if TPA, TPA is converted to trees per hectare
+(TPH: 1/ tpavar * 0.4046860).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getadjplot</code></td>
+<td>
+<p>Logical. If TRUE, adjustments are calculated for
+nonsampled conditions on plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjtree</code></td>
+<td>
+<p>Logical. If TRUE, trees are individually adjusted by
+adjustment factors.  Adjustment factors must be included in tree table (see
+adjvar).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjvar</code></td>
+<td>
+<p>String. If adjtree=TRUE, the name of the variable to use for
+multiplying by adjustment (e.g., tadjfac).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjTPA</code></td>
+<td>
+<p>Numeric. A tree-per-acre adjustment. Use for DESIGNCD=1
+(annual inventory), if using less than 4 subplots. If using only 1 sublot
+for estimate, adjTPA=4. The default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NAto0</code></td>
+<td>
+<p>Logical. If TRUE, convert NA values to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tround</code></td>
+<td>
+<p>Number. The number of digits to round to. If NULL, default=5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnDT</code></td>
+<td>
+<p>Logical. If TRUE, returns data.table object(s). If FALSE,
+returns data.frame object(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves data to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE. If out_layer = NULL,
+default = 'treesum'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbconn</code></td>
+<td>
+<p>Open database connection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbconnopen</code></td>
+<td>
+<p>Logical. If TRUE, keep database connection open.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gui</code></td>
+<td>
+<p>Logical. If gui, user is prompted for parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For adjcond (bycond=FALSE): <br> If you want to summarize trees-per-acre
+information aggregated to plot or condition level, you need to include a TPA
+variable in tree table. <br> For tsumvars = GROWCFGS, GROWBFSL, GROWCFAL,
+FGROWCFGS, FGROWBFSL, or FGROWCFAL, you must have TPAGROW_UNADJ <br> For
+tsumvars = MORTCFGS, MORTBFSL, MORTCFAL, FMORTCFGS, FMORTBFSL, or FMORTCFAL,
+you must have TPAMORT_UNADJ <br> For tsumvars = REMVCFGS, REMVBFSL, REMVCFAL,
+FREMVCFGS, FREMVBFSL, or FREMVCFAL, you must have TPAREMV_UNADJ <br></p>
+<p>If you want to adjust plot-level or subplot-level information by condition 
+proportions (adjplot), you need to include CONDID &amp; CONDPROP_UNADJ in cond 
+or tree table and COND_STATUS_CD. <br></p>
+
+
+<h3>Value</h3>
+
+<p>A list of the following items: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>treedat</code></td>
+<td>
+<p> Data frame. Plot or condition-level table with aggregated 
+tree attributes. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumvars</code></td>
+<td>
+<p> String vector. Name(s) of the output aggregated tree 
+attributes. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tunitlst</code></td>
+<td>
+<p> String list. Units of output, when available. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tfilter</code></td>
+<td>
+<p> String list. Filter used. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meta</code></td>
+<td>
+<p> Data frame. Associated metadata, when available. </p>
+</td>
+</tr>
+</table>
+<p>If savedata=TRUE<br> - treedat will be saved to the outfolder. <br> - a text
+file of input parameters is saved to outfolder
+('outfn'_parameters_'date'.txt).
+</p>
+
+
+<h3>Note</h3>
+
+<p>If a dat table is provided, the aggregated tree data will be merged to
+table and NULL values will be output as 0.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Aggregate LIVE_CANOPY_CVR_PCT to plot, weighted by CONDPROP_UNADJ
+treesum &lt;- datSumTree(tree = FIESTA::WYtree,
+                      tsumvarlst = "TPA_UNADJ")$treedat
+
+# Check results
+treesum[treesum$PLT_CN == 40404737010690,]
+FIESTA::WYtree[FIESTA::WYtree$PLT_CN == 40404737010690,]
+
+</code></pre>
+
+
+</div>

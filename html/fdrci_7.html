@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MV_q</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>MV q-values and confidence intervals</h2>
+
+<h3>Description</h3>
+
+<p>q-values with confidence intervals are generated, based in the Millstein and Volfson (MV) estimators.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MV_q(obsp, permp, pnm, ntests, cl = 0.95, c1 = NA)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obsp</code></td>
+<td>
+<p>observed vector of p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permp</code></td>
+<td>
+<p>list of dataframes that include a column of permutation
+p-values (or statistics) in each. The length of the list permp = number of
+permutations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pnm</code></td>
+<td>
+<p>name of column in each list component dataframe that includes
+p-values (or statistics).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntests</code></td>
+<td>
+<p>total number of observed tests, which is usually the same as
+the length of obsp and the number of rows in each permp dataframe. However,
+this may not be the case if results were filtered by a p-value threshold or
+statistic threshold. If filtering was conducted then thres must be smaller
+(more extreme) than the filtering criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>confidence level (default is .95).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1</code></td>
+<td>
+<p>overdispersion parameter. If this parameter is not specified
+(default initial value is NA), then the parameter is estimated from the
+data. If all tests are known to be independent, then this parameter should
+be set to 1.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Millstein and Volfson (2013) FDR is based on the idea that FDR is estimated at a level specified by the investigator. 
+Storey and Tibshirani (2003) developed the q-value concept, where FDR is estimated at each observed p-value. 
+However, Millstein and Volfson argued that in order to be informative, uncertainty in the estimate should be 
+quantified, thus the development of confidence intervals for FDR. The MV FDR estimator is less conservative than the BH estimator.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe which includes: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>q-value corresponding to the respective p-value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q.ll</code></td>
+<td>
+<p>q-value lower limit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q.ul</code></td>
+<td>
+<p>q-value upper limit</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Joshua Millstein
+</p>
+
+
+<h3>References</h3>
+
+<p>Millstein J, Volfson D. 2013. Computationally efficient permutation-based confidence interval estimation for tail-area FDR. 
+Frontiers in Genetics | Statistical Genetics and Methodology 4(179):1-11.
+</p>
+<p>Storey, John D., and Robert Tibshirani. "Statistical significance for genomewide studies." 
+Proceedings of the National Academy of Sciences 100.16 (2003): 9440-9445.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">ss=100
+nvar=100
+X = as.data.frame(matrix(rnorm(ss*nvar),nrow=ss,ncol=nvar))
+e = as.data.frame(matrix(rnorm(ss*nvar),nrow=ss,ncol=nvar))
+Y = .1*X + e
+nperm = 10
+
+myanalysis = function(X,Y){
+	ntests = ncol(X)
+	rslts = as.data.frame(matrix(NA,nrow=ntests,ncol=2))
+	names(rslts) = c("ID","pvalue")
+	rslts[,"ID"] = 1:ntests
+	for(i in 1:ntests){
+		fit = cor.test(X[,i],Y[,i],na.action="na.exclude",
+			alternative="two.sided",method="pearson")
+		rslts[i,"pvalue"] = fit$p.value
+	}
+	return(rslts)
+} # End myanalysis
+
+# Generate observed results
+obs = myanalysis(X,Y)
+
+# Generate permuted results
+perml = vector('list',nperm)
+for(p_ in 1:nperm){
+	X1 = X[order(runif(nvar)),]
+	perml[[p_]] = myanalysis(X1,Y)
+}
+
+q.values.MV = MV_q(obs$pvalue,perml,"pvalue",nvar)
+
+</code></pre>
+
+
+</div>

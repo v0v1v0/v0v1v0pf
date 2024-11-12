@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fxregimes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Dating Breaks Between Exchange Rate Regimes</h2>
+
+<h3>Description</h3>
+
+<p>Estimate changes/breaks between exchange rate regimes (based on exchange rate regression models).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fxregimes(formula, data, ..., hpc = c("none", "foreach"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a <code>"formula"</code> describing the linear model to be fit (as
+in <code>fxlm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>"zoo"</code> time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>gbreakpoints</code> (currently unexported,
+see below), most of the arguments are identical to the <code>formula</code> method of
+<code>breakpoints</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpc</code></td>
+<td>
+<p>a character specifying the high performance computing support.
+Default is <code>"none"</code>, can be set to <code>"foreach"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fxregimes</code> segments an exchange rate regression (Frankel-Wei regression)
+into different regimes. The breakpoints are chosen to maximize the likelihood of
+a Gaussian regression (with regime-specific variances). The number of breakpoints
+are selected according to information criteria (by default LWZ, but BIC is also
+reported).
+</p>
+<p>The computing engine behind <code>fxregime</code> is <code>gbreakpoints</code> that generalizes
+various aspects about <code>breakpoints</code>. Its interface
+is not yet fixed, hence it is not exported in the namespace (and not documented).
+Most arguments are similar to those of the <code>formula</code> method of <code>breakpoints</code>,
+in particular the minimal segment size <code>h</code> and the maximal number of breaks
+<code>breaks</code>. To select the default information criterion the new argument
+<code>ic</code> can be set either to <code>"LWZ"</code> (the default) or <code>"BIC"</code>.
+</p>
+<p>A set of methods for useful generic functions is available, including <code>plot</code>,
+<code>print</code>, <code>summary</code>, <code>lines</code>, <code>coef</code>, <code>fitted</code>, <code>residuals</code>,
+<code>breakfactor</code>, <code>breakpoints</code>, <code>breakdates</code>, etc. Mostly, they behave
+like their <code>"breakpoints"</code> counterparts. Querying information about the
+models on each segment is made particularly easy by providing a <code>refit</code>
+method that returns a list of <code>fxlm</code> objects.
+</p>
+<p>Optional support for high performance computing is available, currently using
+<code>foreach</code> for the dynamic programming algorithm.
+If <code>hpc = "foreach"</code> is to be used, a parallel backend should be registered
+before. See <code>foreach</code> for more information.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"fxregimes"</code> inheriting from <code>"gbreakpointsfull"</code>,
+<code>"gbreakpoints"</code>, <code>"breakpointsfull"</code>, <code>"breakpoints"</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Zeileis A., Kleiber C., Krämer W., Hornik K. (2003), Testing and Dating of
+Structural Changes in Practice, <em>Computational Statistics and Data Analysis</em>,
+<b>44</b>, 109-123.
+</p>
+<p>Shah A., Zeileis A., Patnaik I. (2005), What is the New Chinese
+Currency Regime?, Report 23, Department of Statistics and Mathematics,
+Wirtschaftsuniversitaet Wien, Research Report Series, November 2005.
+<a href="http://epub.wu.ac.at">http://epub.wu.ac.at</a>.
+</p>
+<p>Zeileis A., Shah A., Patnaik I. (2010), Testing, Monitoring, and Dating Structural
+Changes in Exchange Rate Regimes, <em>Computational Statistics and Data Analysis</em>,
+54(6), 1696–1706. <a href="http://dx.doi.org/10.1016/j.csda.2009.12.005">http://dx.doi.org/10.1016/j.csda.2009.12.005</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fxlm</code>, <code>fxregimes</code>,
+<code>refit</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load package and data
+library("fxregime")
+data("FXRatesCHF", package = "fxregime")
+
+## compute returns for CNY (and explanatory currencies)
+## for one year after abolishing fixed USD regime
+cny &lt;- fxreturns("CNY", frequency = "daily",
+  start = as.Date("2005-07-25"), end = as.Date("2006-07-24"),
+  other = c("USD", "JPY", "EUR", "GBP"))
+
+## compute all segmented regression with minimal segment size of
+## h = 20 and maximal number of breaks = 5.
+reg &lt;- fxregimes(CNY ~ USD + JPY + EUR + GBP,
+  data = cny, h = 20, breaks = 5, ic = "BIC")
+summary(reg)
+
+## minimum BIC is attained for 2-segment (1-break) model
+plot(reg)
+
+## two regimes
+## 1: tight USD peg
+## 2: slightly more relaxed USD peg
+round(coef(reg), digits = 3)
+sqrt(coef(reg)[, "(Variance)"])
+
+## inspect two individual models by re-fitting
+refit(reg)
+</code></pre>
+
+
+</div>

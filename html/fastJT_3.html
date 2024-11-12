@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastJT.select</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Conduct k-Fold Cross-Validation based on Jonckheere-Terpstra Test Statistics
+</h2>
+
+<h3>Description</h3>
+
+<p>A method to conduct <code>k</code>-fold cross-validation based the Jonckheere-Terpstra test statistics for large numbers of dependent and independent variables, with optional multi-threaded execution. The data are divided into <code>k</code> subsets, one of which is withheld while the remaining <code>k</code>-1 subsets are used to test the features. The process is repeated <code>k</code> times, with each of the subsets withheld exactly once as the validation data. The calculation of the standardized test statistics employs the null variance equation as defined by Hollander and Wolfe (1999, eq. 6.19) to account for ties in the data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastJT.select(Y, X, cvMesh=NULL, kFold=10L, selCrit=NULL, outTopN=15L, numThreads=1L)  	
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A matrix of continuous values, representing dependent variables, e.g. marker levels or other observed values. Row names should be sample IDs, and column names should be variable names. Required.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A matrix of integer values, representing independent variables, e.g. SNP counts or other classification features. Row names should be sample IDs, and column names should be feature IDs. Required.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvMesh</code></td>
+<td>
+<p>A user-defined function to specify how to separate the data into training and testing parts. The inputs of this function are a vector representing the sample IDs and <code>kFold</code>, an integer representing the number of folds for cross validation. The output of this function is a list of <code>kFold</code> vectors of sample IDs forming the testing subset for each fold. The default value is <code>NULL</code>, and if no function is specified, the data are partitioned sequentially into <code>kFold</code> equal sized subsets. Optional.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kFold</code></td>
+<td>
+<p>An integer to indicate the number of folds. Optional. The default value is 10.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selCrit</code></td>
+<td>
+<p>A user-defined function to specify the criteria for selecting the top features. The inputs of this function are <code>J</code>, the matrix of statistics resulting from <code>fastJT</code>, and <code>P</code>, the matrix of p-values from <code>pvalues(J)</code>. The output is a data frame containing the selected feature ID for each trait of interest. Optional. The default value is <code>NULL</code>, and if no function is specified, the features with the largest standardized Jonckheere-Terpstra test statistics are selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outTopN</code></td>
+<td>
+<p>An integer to indicate the number of top hits to be returned when <code>selCrit=NULL</code>. Unused if <code>selCrit!=NULL</code>. Optional. The default value is <code>15L</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numThreads</code></td>
+<td>
+<p>A integer to indicate the number of threads to be used in the computation. Optional. The default value is <code>1L</code> (sequential computation).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Three <code>lists</code> of length <code>kFold</code>
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>A <code>list</code> of matrices of standardized Jonckheere-Terpstra test statistics, one for each cross validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pval</code></td>
+<td>
+<p>A <code>list</code> of matrices of p-values, one for each cross validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XIDs</code></td>
+<td>
+<p>A <code>list</code> of matrices of the selected feature IDs, one for each cross validation.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Rows (samples) are assumed to be in the same order in <code>X</code> and <code>Y</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Hollander, M. and Wolfe, D. A. (1999) <em>Nonparametric Statistical Methods</em>. New York: Wiley, 2nd edition.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fastJT</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate dummy data	
+num_sample  &lt;- 100
+num_marker  &lt;- 10
+num_feature &lt;- 500
+set.seed(12345)
+Data &lt;- matrix(rnorm(num_sample*num_marker), num_sample, num_marker)
+Features &lt;- matrix(rbinom(num_sample*num_feature, 2, 0.5), num_sample, num_feature)
+colnames(Data) &lt;- paste0("Var:",1:num_marker)
+colnames(Features) &lt;- paste0("Ftr:",1:num_feature)
+
+res &lt;- fastJT.select(Y=Data, X=Features, cvMesh=NULL, kFold=5, 
+                     selCrit=NULL, outTopN=5, numThreads=1)
+res 
+</code></pre>
+
+
+</div>

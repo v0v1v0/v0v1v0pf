@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLLat.FDR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>False Discovery Rate for the Fused Lasso Latent Feature Model</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the false discovery rate (FDR) over a range of
+threshold values for a fitted Fused Lasso Latent Feature (FLLat)
+model.  Also plots the FDRs against the threshold values.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLLat.FDR(Y, Y.FLLat, n.thresh=50, fdr.control=0.05, pi0=1, n.perms=20)
+
+## S3 method for class 'FDR'
+plot(x, xlab="Threshold", ylab="FDR", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+  
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A matrix of data from an aCGH experiment (usually in the form
+of log intensity ratios) or some other type of copy number data.  Rows
+correspond to the probes and columns correspond to the samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y.FLLat</code></td>
+<td>
+<p>A FLLat model fitted to <code>Y</code>.  That is, an object
+of class <code>FLLat</code>, as returned by <code>FLLat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.thresh</code></td>
+<td>
+<p>The number of threshold values at which to estimate
+the FDR.  The default is <code class="reqn">50</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdr.control</code></td>
+<td>
+<p>A value at which to control the FDR.  The function
+will return the smallest threshold value which controls the FDR at the
+specified value.  The default is <code class="reqn">0.05</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi0</code></td>
+<td>
+<p>The proportion of true null hypotheses.  For probe location
+<code class="reqn">l</code> in sample <code class="reqn">s</code>, the null hypothesis <code class="reqn">H_0(l,s)</code> states
+that there is no copy number variation at that location.  The default
+is <code class="reqn">1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.perms</code></td>
+<td>
+<p>The number of permutations of the aCGH data used in
+estimating the FDRs.  The default is <code class="reqn">20</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class <code>FDR</code>, as returned by
+<code>FLLat.FDR</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab</code></td>
+<td>
+<p>The title for the <code class="reqn">x</code>-axis of the FDR plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab</code></td>
+<td>
+<p>The title for the <code class="reqn">y</code>-axis of the FDR plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further graphical parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Identifying regions of copy number variation (CNV) in aCGH data
+can be viewed in a multiple-testing framework.  For each probe
+location <code class="reqn">l</code> within sample <code class="reqn">s</code>, we are essentially testing the
+hypothesis <code class="reqn">H_0(l,s)</code> that there is no CNV at that location.
+The decision to reject each hypothesis can be based on the fitted
+values <code class="reqn">\hat{Y}=\hat{B}\hat{\Theta}</code> produced by the FLLat model.
+Specifically, for a given threshold value <code class="reqn">T</code>, we can declare
+location <code class="reqn">(l,s)</code> as exhibiting CNV if <code class="reqn">|\hat{y}_{ls}|\ge
+  T</code>.  The FDR is then defined to be the expected
+proportion of declared CNVs which are not true CNVs.
+</p>
+<p>The FDR for a fitted FLLat model is estimated in the following
+manner.  Firstly, <code>n.thresh</code> threshold values are chosen, equally
+spaced between <code class="reqn">0</code> and the largest absolute fitted value over all
+locations <code class="reqn">(l,s)</code>.  Then, for each threshold value, the estimated
+FDR is equal to </p>
+<p style="text-align: center;"><code class="reqn">FDR=\frac{\pi_0\times
+      V_0}{R}</code>
+</p>
+<p> where:
+</p>
+
+<ul>
+<li>
+<p> The quantity <code class="reqn">R</code> is the number of declared CNVs calculated
+from the fitted FLLat model, as described above.
+</p>
+</li>
+<li>
+<p> The quantity <code class="reqn">V_0</code> is the number of declared CNVs
+calculated from re-fitting the FLLat model to permuted versions of the
+data <code class="reqn">Y</code>.  In each permuted data set, the probe locations
+within each sample are permuted to approximate the null distribution
+of the data.
+</p>
+</li>
+<li>
+<p> The quantity <code class="reqn">\pi_0</code> is the proportion of true null
+hypotheses.  The default value of <code class="reqn">1</code> will result in conservative
+estimates of the FDR.  If warranted, smaller values of <code class="reqn">\pi_0</code>
+can be specified.
+</p>
+</li>
+</ul>
+<p>For more details, please see Nowak and others (2011) and the package
+vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FDR</code> with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>thresh.vals</code></td>
+<td>
+<p>The threshold values for which each FDR was
+estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FDRs</code></td>
+<td>
+<p>The estimated FDR for each value of <code>thresh.vals</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh.control</code></td>
+<td>
+<p>The smallest threshold value which controls the
+estimated FDR at <code>fdr.control</code>.</p>
+</td>
+</tr>
+</table>
+<p>There is a <code>plot</code> method for <code>FDR</code> objects.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Due to the randomness of the permutations, for reproducibility of
+results please set the random seed using <code>set.seed</code>
+before running <code>FLLat.FDR</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gen Nowak <a href="mailto:gen.nowak@gmail.com">gen.nowak@gmail.com</a>, Trevor Hastie, Jonathan
+R. Pollack, Robert Tibshirani and Nicholas Johnson.</p>
+
+
+<h3>References</h3>
+
+<p>G. Nowak, T. Hastie, J. R. Pollack and R. Tibshirani.  A
+Fused Lasso Latent Feature Model for Analyzing Multi-Sample aCGH
+Data. <em>Biostatistics</em>, 2011, doi: 10.1093/biostatistics/kxr012</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FLLat</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load simulated aCGH data.
+data(simaCGH)
+
+## Run FLLat for J = 5, lam1 = 1 and lam2 = 9.
+result &lt;- FLLat(simaCGH,J=5,lam1=1,lam2=9)
+
+## Estimate the FDRs.
+result.fdr &lt;- FLLat.FDR(simaCGH,result)
+
+## Plotting the FDRs against the threshold values.    
+plot(result.fdr)
+
+## The threshold value which controls the FDR at 0.05.
+result.fdr$thresh.control
+</code></pre>
+
+
+</div>

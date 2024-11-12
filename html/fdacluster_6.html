@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compare_caps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generates results of multiple clustering strategies</h2>
+
+<h3>Description</h3>
+
+<p>This function searches for clusters in the input data set using different
+strategies and generates an object of class <code>mcaps</code> which stores multiple
+objects of class <code>caps</code>. This is a helper function to facilitate comparison
+of clustering methods and choice of an <em>optimal</em> one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compare_caps(
+  x,
+  y,
+  n_clusters = 1:5,
+  metric = c("l2", "pearson"),
+  clustering_method = c("kmeans", "hclust-complete", "hclust-average", "hclust-single",
+    "dbscan"),
+  warping_class = c("affine", "dilation", "none", "shift", "srsf"),
+  centroid_type = c("mean", "medoid", "median", "lowess", "poly"),
+  cluster_on_phase = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric vector of length <code class="reqn">M</code> or a numeric matrix of shape
+<code class="reqn">N \times M</code> or an object of class <code>funData::funData</code>. If a numeric
+vector or matrix, it specifies the grid(s) of size <code class="reqn">M</code> on which each of
+the <code class="reqn">N</code> curves have been observed. If an object of class
+<code>funData::funData</code>, it contains the whole functional data set and the <code>y</code>
+argument is not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Either a numeric matrix of shape <code class="reqn">N \times M</code> or a numeric array
+of shape <code class="reqn">N \times L \times M</code> or an object of class <code>fda::fd</code>. If a
+numeric matrix or array, it specifies the <code class="reqn">N</code>-sample of
+<code class="reqn">L</code>-dimensional curves observed on grids of size <code class="reqn">M</code>. If an object
+of class <code>fda::fd</code>, it contains all the necessary information about the
+functional data set to be able to evaluate it on user-defined grids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_clusters</code></td>
+<td>
+<p>An integer vector specifying a set of clustering partitions
+to create. Defaults to <code>1:5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>A string specifying the metric used to compare curves. Choices
+are <code>"l2"</code> or <code>"pearson"</code>. Defaults to <code>"l2"</code>. Used only when
+<code>warping_class != "srsf"</code>. For the boundary-preserving warping class, the
+L2 distance between the SRSFs of the original curves is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustering_method</code></td>
+<td>
+<p>A character vector specifying one or more clustering
+methods to be fit. Choices are <code>"kmeans"</code>, <code>"hclust-complete"</code>,
+<code>"hclust-average"</code>, <code>"hclust-single"</code> or <code>"dbscan"</code>. Defaults to all of
+them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warping_class</code></td>
+<td>
+<p>A character vector specifying one or more classes of
+warping functions to use for curve alignment. Choices are <code>"affine"</code>,
+<code>"dilation"</code>, <code>"none"</code>, <code>"shift"</code> or <code>"srsf"</code>. Defaults to all of them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centroid_type</code></td>
+<td>
+<p>A character vector specifying one or more ways to
+compute centroids. Choices are <code>"mean"</code>, <code>"medoid"</code>, <code>"median"</code>, <code>"lowess"</code>
+or <code>"poly"</code>. Defaults to all of them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster_on_phase</code></td>
+<td>
+<p>A boolean specifying whether clustering should be
+based on phase variation or amplitude variation. Defaults to <code>FALSE</code> which
+implies amplitude variation.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>mcaps</code> which is a <code>tibble::tibble</code> storing the
+objects of class <code>caps</code> in correspondence of each combination of possible
+choices from the input arguments.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#----------------------------------
+# Compare k-means results with k = 1, 2, 3, 4, 5 using mean centroid and
+# various warping classes.
+## Not run: 
+sim30_mcaps &lt;- compare_caps(
+  x = simulated30_sub$x,
+  y = simulated30_sub$y,
+  warping_class = c("none", "shift", "dilation", "affine"),
+  clustering_method = "kmeans",
+  centroid_type = "mean"
+)
+
+## End(Not run)
+
+#----------------------------------
+# Then visualize the results
+# Either with ggplot2 via ggplot2::autoplot(sim30_mcaps)
+# or using graphics::plot()
+# You can visualize the WSS values:
+plot(sim30_mcaps, validation_criterion = "wss", what = "mean")
+plot(sim30_mcaps, validation_criterion = "wss", what = "distribution")
+# Or the average silhouette values:
+plot(sim30_mcaps, validation_criterion = "silhouette", what = "mean")
+plot(sim30_mcaps, validation_criterion = "silhouette", what = "distribution")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,211 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>group_metric</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Group metric</h2>
+
+<h3>Description</h3>
+
+<p>Group metric enables to extract data from metrics generated for each subgroup (values in protected variable)
+The closer metric values are to each other, the less bias particular model has. If <code>parity_loss</code> parameter is set to <code>TRUE</code>, distance between
+privileged and unprivileged subgroups will be measured. When plotted shows both fairness metric and chosen performance metric.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">group_metric(
+  x,
+  fairness_metric = NULL,
+  performance_metric = NULL,
+  parity_loss = FALSE,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class <code>fairness_object</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fairness_metric</code></td>
+<td>
+<p>character, fairness metric name, if <code>NULL</code> the default metric will be used which is TPR.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>performance_metric</code></td>
+<td>
+<p>character, performance metric name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parity_loss</code></td>
+<td>
+<p>logical, if <code>TRUE</code> parity loss will supersede basic metric</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical, whether to print information about metrics on console or not. Default <code>TRUE</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available metrics:
+</p>
+<p>Fairness metrics (Full names explained in <code>fairness_check</code> documentation):
+</p>
+
+<ul>
+<li>
+<p> TPR
+</p>
+</li>
+<li>
+<p> TNR
+</p>
+</li>
+<li>
+<p> PPV
+</p>
+</li>
+<li>
+<p> NPV
+</p>
+</li>
+<li>
+<p> FNR
+</p>
+</li>
+<li>
+<p> FPR
+</p>
+</li>
+<li>
+<p> FDR
+</p>
+</li>
+<li>
+<p> FOR
+</p>
+</li>
+<li>
+<p> TS
+</p>
+</li>
+<li>
+<p> ACC
+</p>
+</li>
+<li>
+<p> STP
+</p>
+</li>
+<li>
+<p> F1
+</p>
+</li>
+</ul>
+<p>Performance metrics
+</p>
+
+<ul>
+<li>
+<p> recall
+</p>
+</li>
+<li>
+<p> precision
+</p>
+</li>
+<li>
+<p> accuracy
+</p>
+</li>
+<li>
+<p> f1
+</p>
+</li>
+<li>
+<p> auc
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>group_metric</code> object.
+It is a list with following items:
+</p>
+
+<ul>
+<li>
+<p>group_metric_data - <code>data.frame</code> containing fairness metric scores for each model
+</p>
+</li>
+<li>
+<p>performance_data - <code>data.frame</code> containing performance metric scores for each model
+</p>
+</li>
+<li>
+<p>fairness_metric - name of fairness metric
+</p>
+</li>
+<li>
+<p>performance_metric - name of performance metric
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+gm &lt;- group_metric(fobject, "TPR", "f1", parity_loss = TRUE)
+plot(gm)
+
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200
+)
+
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_rf, fobject)
+
+gm &lt;- group_metric(fobject, "TPR", "f1", parity_loss = TRUE)
+
+plot(gm)
+
+
+</code></pre>
+
+
+</div>

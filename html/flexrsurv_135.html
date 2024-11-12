@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.flexrsurv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Summarizing Flexible Relative Survival Model Fits</h2>
+
+<h3>Description</h3>
+
+<p><code>summary</code> methods for class <code>flexrsurv</code>.
+Produces and prints summaries of the results of a fitted Relative Survival Model 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'flexrsurv'
+summary(object, correlation = FALSE, symbolic.cor = FALSE, ...)
+
+## S3 method for class 'summary.flexrsurv'
+print(x, digits = max(3L, getOption("digits") - 3L), 
+      symbolic.cor = x$symbolic.cor,
+      signif.stars = getOption("show.signif.stars"), ...)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>an object of class "flexrsurv", usually, a result of a call to <code>flexrsurv</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>"summary.flexrsurv"</code>, usually, a result of a call to <code>summary.flexrsurv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correlation</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, the correlation matrix of
+the estimated parameters is returned and printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symbolic.cor</code></td>
+<td>
+<p>logical. If <code>TRUE</code>, print the correlations in
+a symbolic form (see <code>symnum</code>) rather than as numbers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+
+<p>the number of significant digits to use when printing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signif.stars</code></td>
+<td>
+
+<p>logical. If TRUE,'significance stars' are printed for each coefficient.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>further arguments passed to or from other methods.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>print.summary.glm</code> tries to be smart about formatting the coefficients, standard errors, etc. 
+and additionally gives ‘significance stars’ if <code>signif.stars</code> is <code>TRUE</code>. 
+</p>
+<p>Correlations are printed to two decimal places (or symbolically): to see the actual correlations 
+print <code>summary(object)$correlation</code> directly.
+</p>
+<p>The dispersion of a GLM is not used in the fitting process, but it is needed to find standard 
+errors. If dispersion is not supplied or NULL, the dispersion is taken as 1 for the binomial and
+Poisson families, and otherwise estimated by the residual Chisquared statistic (calculated from 
+cases with non-zero weights) divided by the residual degrees of freedom.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function summary.flexrsurv computes and returns a list of summary statistics of the fitted flexible relative survival model given in <code>object</code>.
+The returned value is an object of class "<code>summary.flexrsurv</code>", which a list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the "<code>call</code>" component from <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>the "<code>terms</code>" component from <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>the matrix of coefficients, standard errors, z-values and p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov</code></td>
+<td>
+<p>the estimated covariance matrix of the estimated coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correlation</code></td>
+<td>
+<p>(only if <code>correlation</code> is true.) the estimated correlations of the estimated coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symbolic.cor</code></td>
+<td>
+<p>(only if <code>correlation</code> is true.) the value of the argument symbolic.cor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>the "<code>loglik</code>" component from object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df.residual</code></td>
+<td>
+<p>the "<code>df.residual</code>" component from object.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>summary</code>, <code>flexrsurv</code>, <code>flexrsurvclt</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+if (requireNamespace("relsurv", quietly = TRUE)) {
+	
+	# data from package relsurv
+	data(rdata, package="relsurv")
+	# rate table from package relsurv
+	data(slopop, package="relsurv")
+	
+	# get the death rate at event (or end of followup) from slopop for rdata
+	rdata$iage &lt;- findInterval(rdata$age*365.24+rdata$time, attr(slopop, "cutpoints")[[1]])
+	rdata$iyear &lt;- findInterval(rdata$year+rdata$time, attr(slopop, "cutpoints")[[2]])
+	therate &lt;- rep(-1, dim(rdata)[1])
+	for( i in 1:dim(rdata)[1]){
+	  therate[i] &lt;- slopop[rdata$iage[i], rdata$iyear[i], rdata$sex[i]]
+	}
+	
+	rdata$slorate &lt;- therate
+	
+	
+	# change sex coding
+	rdata$sex01 &lt;- rdata$sex -1
+	
+	# fit a relative survival model with a non linear effetc of age
+	
+	fit &lt;- flexrsurv(Surv(time,cens)~sex01+NLL(age, Knots=60, Degree=3), 
+	                 rate=slorate, data=rdata,
+	                 knots.Bh=1850,  # one interior knot at 5 years
+	                 degree.Bh=3,
+	                 Spline = "b-spline",
+	                 initbyglm=TRUE, 
+	                 initbands=seq(from=0, to=5400, by=200),
+	                 int_meth= "CAV_SIM",
+	                 step=50
+	                 )
+	
+	summary(fit)
+}
+
+</code></pre>
+
+
+</div>

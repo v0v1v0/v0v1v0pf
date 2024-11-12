@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>integrationWeights</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functions to compute integration weights</h2>
+
+<h3>Description</h3>
+
+<p>Computes trapezoidal integration weights (Riemann sums) for a functional variable 
+<code>X1</code> that has evaluation points <code>xind</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">integrationWeights(X1, xind, id = NULL)
+
+integrationWeightsLeft(X1, xind, leftWeight = c("first", "mean", "zero"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X1</code></td>
+<td>
+<p>for functional data that is observed on one common grid, 
+a matrix containing the observations of the functional variable. 
+For a functional variable that is observed on curve specific grids, a long vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xind</code></td>
+<td>
+<p>evaluation points (index) of functional variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>defaults to <code>NULL</code>. Only necessary for response in long format. 
+In this case <code>id</code> specifies which curves belong together.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leftWeight</code></td>
+<td>
+<p>one of <code>c("mean", "first", "zero")</code>. With left Riemann sums 
+different assumptions for the weight of the first observation are possible. 
+The default is to use the mean over all integration weights, <code>"mean"</code>. 
+Alternatively one can use the first integration weight, <code>"first"</code>, or 
+use the distance to zero, <code>"zero"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>integrationWeights()</code> computes trapezoidal integration weights, 
+that are symmetric. Per default those weights are used in the <code>bsignal</code>-base-learner. 
+In the special case of evaluation points (<code>xind</code>) with equal distances, 
+all integration weights are equal.
+</p>
+<p>The function <code>integrationWeightsLeft()</code> computes weights,
+that take into account only the distance to the prior observation point. 
+Thus one has to decide what to do with the first observation. 
+The left weights are adequate for historical effects like in <code>bhist</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Matrix with integration
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>bsignal</code> and <code>bhist</code> for the base-learners.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example for trapezoidal integration weights
+xind0 &lt;- seq(0,1,l = 5)
+xind &lt;- c(0, 0.1, 0.3, 0.7, 1)
+X1 &lt;- matrix(xind^2, ncol = length(xind0), nrow = 2)
+
+# Regualar observation points
+integrationWeights(X1, xind0)
+# Irregular observation points
+integrationWeights(X1, xind)
+
+# with missing value
+X1[1,2] &lt;- NA
+integrationWeights(X1, xind0)
+integrationWeights(X1, xind)
+
+## Example for left integration weights
+xind0 &lt;- seq(0,1,l = 5)
+xind &lt;- c(0, 0.1, 0.3, 0.7, 1)
+X1 &lt;- matrix(xind^2, ncol = length(xind0), nrow = 2)
+
+# Regular observation points
+integrationWeightsLeft(X1, xind0, leftWeight = "mean") 
+integrationWeightsLeft(X1, xind0, leftWeight = "first") 
+integrationWeightsLeft(X1, xind0, leftWeight = "zero")
+
+# Irregular observation points
+integrationWeightsLeft(X1, xind, leftWeight = "mean") 
+integrationWeightsLeft(X1, xind, leftWeight = "first") 
+integrationWeightsLeft(X1, xind, leftWeight = "zero")
+
+# obervation points that do not start with 0
+xind2 &lt;- xind + 0.5
+integrationWeightsLeft(X1, xind2, leftWeight = "zero")
+ 
+</code></pre>
+
+
+</div>

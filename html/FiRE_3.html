@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FiRE-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Finder of Rare Entities (FiRE) - To assign rareness/ outlierness score to every sample
+</h2>
+
+<h3>Description</h3>
+
+<p>This package sorts samples as per their rareness/ oultierness. Instead of dichotomized decisions, FiRE assigns rareness/ outlierness score to every sample. These scores can then be used to identify rare samples or outliers, with varying degrees of rareness. FiRE takes multiple estimations of the proximity between a pair of samples, in low-dimensional spaces to compute scores. </p>
+
+
+<h3>Details</h3>
+
+<p>FiRE is written in c++ and wrapped with Rcpp to create an R interface. To use FiRE, an object with the number of estimators (L), number of dimensions to be sampled per estimator (M), number of bins per estimator (H = 1017881), seed for random number generator (seed = 0) and verbose level (verbose = 0/1) needs to be created. Once the object is created, <code>fit</code> function needs to be called to hash all the samples into bins. Once hashing is done, <code>score</code> function needs to be called to retrieve score for every sample. Sample commands may be seen in the Examples section. The resulting model has four model parameters which may be accessed, dimensions (d) of size M sampled per estimator, thresholds (ths) of size M per d, weights(w) of size M generated per estimator and bin (b) of size H per estimator.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Prashant Gupta, prashant10991@gmail.com
+</p>
+<p>Aashi Jindal, jindal.aashi21@gmail.com
+</p>
+<p>Jayadeva, iitjd4@gmail.com
+</p>
+<p>Debarka Sengupta, debarka@gmail.com
+</p>
+<p>Maintainer: Prashant Gupta &lt;prashant10991@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>[1]Jindal, A., Gupta, P., Jayadeva and Sengupta, D., 2018. Discovery of rare cells from voluminous single cell expression data. Nature Communications, 9(1), p.4719.
+</p>
+<p>[2]Wang, Z., Dong, W., Josephson, W., Lv, Q., Charikar, M. and Li, K., 2007, June. Sizing sketches: a rank-based analysis for similarity search. In ACM SIGMETRICS Performance Evaluation Review (Vol. 35, No. 1, pp. 157-168). ACM.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+     ## L &lt;- number of estimators
+     ## M &lt;- Number of dims to sample
+     ## H &lt;- Number of bins
+     ## seed &lt;- seed for random number generator
+     ## verbose &lt;- verbose level
+
+     library('FiRE')
+     data(sample_data) #Samples * Features
+
+     data(sample_label)
+     ## Samples with label '1' represent abundant,
+     ## while samples with label '2' represent rare.
+
+     ## Saving rownames and colnames
+     rnames &lt;- rownames(sample_data)
+     cnames &lt;- colnames(sample_data)
+
+     ## Converting data.frame to matrix
+     sample_data &lt;- as.matrix(sample_data)
+     sample_label &lt;- as.matrix(sample_label)
+
+     L &lt;- 100 # Number of estimators
+     M &lt;- 50 # Dims to be sampled
+
+     # Model creation without optional parameter
+     model &lt;- new(FiRE::FiRE, L, M)
+
+     ## There are 3 more optional parameters they can be passed as
+     ## model &lt;- new(FiRE::FiRE, L, M, H, seed, verbose)
+
+     ## Hashing all samples
+     model$fit(sample_data)
+
+     ## Computing score of each sample
+     rareness_score &lt;- model$score(sample_data)
+
+     ## Apply IQR-based criteria to identify rare samples for further downstream analysis.
+     q3 &lt;- quantile(rareness_score, 0.75)
+     iqr &lt;- IQR(rareness_score)
+     th &lt;- q3 + (1.5*iqr)
+
+     ## Select indexes that satisfy IQR-based thresholding criteria.
+     indIqr &lt;- which(rareness_score &gt;= th)
+
+     ## Create a vector for binary predictions
+     predictions &lt;- rep(1, dim(sample_data)[1])
+     predictions[indIqr] &lt;- 2 #Replace predictions for rare samples with '2'.
+
+     ## To access model parameters
+     ## Parameters - generated weights
+     # model$w
+
+     ## Parameters - sample dimensions
+     # model$d
+
+     ## Parameters - generated thresholds
+     # model$ths
+
+     ## Parameters - Bins
+     # model$b
+</code></pre>
+
+
+</div>

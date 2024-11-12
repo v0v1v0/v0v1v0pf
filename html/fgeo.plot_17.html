@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_dbh_bubbles_by_quadrat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>List dbh bubble-plots by quadrat (good for .pdf output).</h2>
+
+<h3>Description</h3>
+
+<p>List dbh bubble-plots by quadrat (good for .pdf output).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_dbh_bubbles_by_quadrat(
+  vft,
+  title_quad = "Site Name, YYYY, Quadrat:",
+  header = header_dbh_bubbles(),
+  theme = theme_dbh_bubbles(),
+  lim_min = 0,
+  lim_max = 20,
+  subquadrat_side = 5,
+  tag_size = 2,
+  move_edge = 0,
+  status_d = "dead"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vft</code></td>
+<td>
+<p>A ForestGEO ViewFullTable (dataframe).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title_quad</code></td>
+<td>
+<p>A string to use as a title.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>header</code></td>
+<td>
+<p>A string to use as a header (see headers).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theme</code></td>
+<td>
+<p>An object of class "theme".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lim_min, lim_max</code></td>
+<td>
+<p>Minimum and maximum limits of the plot area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subquadrat_side</code></td>
+<td>
+<p>Length in meters of the side of a subquadrat.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tag_size</code></td>
+<td>
+<p>A number giving tag size. Passed to
+ggrepel::geom_text_repel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>move_edge</code></td>
+<td>
+<p>A number to adjust the extension of the grid lines beyond
+the plot limits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status_d</code></td>
+<td>
+<p>A character string indicating the value of the variable
+status that corresponds to dead stems.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list which each element is a plot of class ggplot.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other plot functions: 
+<code>autoplot.fgeo_habitat()</code>,
+<code>autoplot.sp_elev()</code>,
+<code>autoplot_by_species.sp_elev()</code>,
+<code>elev()</code>,
+<code>plot_tag_status_by_subquadrat()</code>,
+<code>sp_elev()</code>,
+<code>sp()</code>
+</p>
+<p>Other functions to list plots from ForestGEO ViewFullTable: 
+<code>plot_tag_status_by_subquadrat()</code>
+</p>
+<p>Other functions to plot dbh bubbles: 
+<code>header_dbh_bubbles()</code>,
+<code>theme_dbh_bubbles()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">assert_is_installed("fgeo.x")
+
+# Create a small VieFullTable
+first_n &lt;- function(x, n) x %in% sort(unique(x))[1:n]
+small_vft &lt;- fgeo.x::vft_4quad %&gt;%
+  dplyr::filter(first_n(CensusID, 1) &amp; first_n(QuadratID, 2)) %&gt;%
+  dplyr::sample_n(50)
+
+plot_dbh_bubbles_by_quadrat(small_vft)
+
+# To print all plots into a .pdf file see `?pdf()`
+plot_dbh_bubbles_by_quadrat(small_vft)
+
+# Be careful if subsetting by DBH: You may unintentionally remove dead trees.
+# You should explicietly inlcude missing `DBH` values with `is.na(DBH)`
+include_missing_dbh &lt;- subset(small_vft, DBH &gt; 20 | is.na(DBH))
+plot_dbh_bubbles_by_quadrat(include_missing_dbh)
+
+# Customizing the maps ----------------------------------------------------
+# A custom title and header
+myheader &lt;- paste(
+  " ",
+  "Head column 1                     Head column 2                          ",
+  " ",
+  " ........................................................................",
+  " ........................................................................",
+  sep = "\n"
+)
+
+plot_dbh_bubbles_by_quadrat(
+  small_vft,
+  title_quad = "My Site, 2018. Quad:",
+  header = myheader
+)
+
+# Skip R CMD check for speed
+
+# Tweak the theme with ggplot
+library(ggplot2)
+
+plot_dbh_bubbles_by_quadrat(
+  small_vft,
+  title_quad = "My Site, 2018. Quad:",
+  header = header_dbh_bubbles("spanish"),
+  tag_size = 3,
+  theme = theme_dbh_bubbles(
+    axis.text = NULL, # NULL shows axis.text; element_blank() doesn't.
+    plot.title = element_text(size = 15),
+    plot.subtitle = element_text(size = 5),
+    panel.background = element_rect(fill = "grey")
+  )
+)
+
+</code></pre>
+
+
+</div>

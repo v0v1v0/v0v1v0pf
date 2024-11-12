@@ -1,0 +1,237 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fof_pc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function-on-function linear regression based on principal components</h2>
+
+<h3>Description</h3>
+
+<p>Function-on-function linear regression based on
+principal components.
+This function performs multivariate functional principal component analysis
+(MFPCA)
+to extract multivariate functional principal components
+from the multivariate functional covariates as well as from the
+functional response, then it builds a linear regression model
+of the response scores on the
+covariate scores.
+Both functional covariates and response are standardized before
+the regression.
+See Centofanti et al. (2021) for additional details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fof_pc(
+  mfdobj_y,
+  mfdobj_x,
+  tot_variance_explained_x = 0.95,
+  tot_variance_explained_y = 0.95,
+  tot_variance_explained_res = 0.95,
+  components_x = NULL,
+  components_y = NULL,
+  type_residuals = "standard"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_y</code></td>
+<td>
+<p>A multivariate functional data object of class
+mfd denoting the functional response variable.
+Although it is a multivariate functional data object, it must
+have only one functional variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_x</code></td>
+<td>
+<p>A multivariate functional data object of class
+mfd denoting the functional covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tot_variance_explained_x</code></td>
+<td>
+<p>The minimum fraction of variance
+that has to be explained
+by the multivariate functional principal components retained into
+the MFPCA model fitted on the functional covariates.
+Default is 0.95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tot_variance_explained_y</code></td>
+<td>
+<p>The minimum fraction of variance that
+has to be explained
+by the multivariate functional principal components retained into
+the MFPCA model fitted on the functional response.
+Default is 0.95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tot_variance_explained_res</code></td>
+<td>
+<p>The minimum fraction of variance
+that has to be explained
+by the multivariate functional principal components retained into
+the MFPCA model fitted on the functional residuals
+of the functional regression model.
+Default is 0.95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>components_x</code></td>
+<td>
+<p>A vector of integers with the components over which
+to project the functional covariates.
+If NULL, the first components that explain a minimum fraction of variance
+equal to <code>tot_variance_explained_x</code>
+is selected.
+#' If this is not NULL, the criteria to select components are ignored.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>components_y</code></td>
+<td>
+<p>A vector of integers with the components over which
+to project the functional response.
+If NULL, the first components that explain a minimum fraction of variance
+equal to <code>tot_variance_explained_y</code>
+is selected.
+#' If this is not NULL, the criteria to select components are ignored.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type_residuals</code></td>
+<td>
+<p>A character value that can be
+"standard" or "studentized".
+If "standard", the MFPCA on functional residuals is calculated on
+the standardized covariates and response.
+If "studentized", the MFPCA on studentized version of
+the functional residuals is calculated on the
+non-standardized covariates and response.
+See Centofanti et al. (2021) for additional details.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following arguments:
+</p>
+
+<ul>
+<li> <p><code>mod</code>: an object of class <code>lm</code> that is a linear regression model
+where
+the response variables are the MFPCA scores of the response variable and
+the covariates are the MFPCA scores of the functional covariates.
+<code>mod$coefficients</code> contains the matrix of coefficients
+of the functional regression basis functions,
+</p>
+</li>
+<li> <p><code>beta_fd</code>: a <code>bifd</code> object containing the
+bivariate functional regression coefficients <code class="reqn">\beta(s,t)</code>
+estimated with the function-on-function linear regression model,
+</p>
+</li>
+<li> <p><code>fitted.values</code>: a multivariate functional data object of
+class mfd with the fitted values of the
+functional response observations based on the
+function-on-function linear regression model,
+</p>
+</li>
+<li> <p><code>residuals_original_scale</code>: a multivariate functional data object
+of class mfd
+with the functional residuals of the
+function-on-function linear regression model on the original scale,
+i.e. they are the difference between
+<code>mfdobj_y</code> and <code>fitted.values</code>,
+</p>
+</li>
+<li> <p><code>residuals</code>: a multivariate functional data object of class mfd
+with the functional residuals of the
+function-on-function linear regression model,
+standardized or studentized depending on
+the argument <code>type_residuals</code>,
+</p>
+</li>
+<li> <p><code>type_residuals</code>: the same as the provided argument,
+</p>
+</li>
+<li> <p><code>pca_x</code>: an object of class <code>pca_mfd</code>
+obtained by doing MFPCA on the functional covariates,
+</p>
+</li>
+<li> <p><code>pca_y</code>: an object of class <code>pca_mfd</code>
+obtained by doing MFPCA on the functional response,
+</p>
+</li>
+<li> <p><code>pca_res</code>: an object of class <code>pca_mfd</code>
+obtained by doing MFPCA on the functional residuals,
+</p>
+</li>
+<li> <p><code>components_x</code>: a vector of integers
+with the components selected in the <code>pca_x</code> model,
+</p>
+</li>
+<li> <p><code>components_y</code>: a vector of integers
+with the components selected in the <code>pca_y</code> model,
+</p>
+</li>
+<li> <p><code>components_res</code>: a vector of integers
+with the components selected in the <code>pca_res</code> model,
+</p>
+</li>
+<li> <p><code>y_standardized</code>: the standardized functional response
+obtained doing <code>scale_mfd(mfdobj_y)</code>,
+</p>
+</li>
+<li> <p><code>tot_variance_explained_x</code>: the same as the provided argument
+</p>
+</li>
+<li> <p><code>tot_variance_explained_y</code>: the same as the provided argument
+</p>
+</li>
+<li> <p><code>tot_variance_explained_res</code>: the same as the provided argument
+</p>
+</li>
+<li> <p><code>get_studentized_residuals</code>: a function that allows
+to calculate studentized residuals on new data,
+given the estimated function-on-function linear regression model.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Centofanti F, Lepore A, Menafoglio A, Palumbo B, Vantini S. (2021)
+Functional Regression Control Chart.
+<em>Technometrics</em>, 63(3), 281–294. <a href="doi:10.1080/00401706.2020.1753581">doi:10.1080/00401706.2020.1753581</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air &lt;- lapply(air, function(x) x[1:10, , drop = FALSE])
+fun_covariates &lt;- c("CO", "temperature")
+mfdobj &lt;- get_mfd_list(air, lambda = 1e-2)
+mfdobj_y &lt;- mfdobj[, "NO2"]
+mfdobj_x &lt;- mfdobj[, fun_covariates]
+mod &lt;- fof_pc(mfdobj_y, mfdobj_x)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pca.fd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Functional Principal Components Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>Functional Principal components analysis aims to display types of
+variation across a sample of functions.  Principal components analysis
+is an exploratory data analysis that tends to be an early part of many
+projects.  These modes of variation are called $principal components$
+or $harmonics.$  This function computes these harmonics, the
+eigenvalues that indicate how important each mode of variation, and
+harmonic scores for individual functions. If the functions are
+multivariate, these harmonics are combined into a composite function
+that summarizes joint variation among the several functions that make
+up a multivariate functional observation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pca.fd(fdobj, nharm = 2, harmfdPar=fdPar(fdobj),
+       centerfns = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdobj</code></td>
+<td>
+
+<p>a functional data object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nharm</code></td>
+<td>
+
+<p>the number of harmonics or principal components to compute.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>harmfdPar</code></td>
+<td>
+
+<p>a functional parameter object that defines the
+harmonic or principal component functions to be estimated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centerfns</code></td>
+<td>
+
+<p>a logical value:
+if TRUE, subtract the mean function from each function before
+computing principal components.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>an object of class "pca.fd" with these named entries:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>harmonics</code></td>
+<td>
+
+<p>a functional data object for the harmonics or eigenfunctions
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+
+<p>the complete set of eigenvalues
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+
+<p>s matrix of scores on the principal components or harmonics
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varprop</code></td>
+<td>
+
+<p>a vector giving the proportion of variance explained
+by each eigenfunction
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meanfd</code></td>
+<td>
+
+<p>a functional data object giving the mean function
+</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cca.fd</code>,
+<code>pda.fd</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldpar &lt;- par(no.readonly=TRUE)
+#  carry out a PCA of temperature
+#  penalize harmonic acceleration, use varimax rotation
+
+daybasis65 &lt;- create.fourier.basis(c(0, 365), nbasis=65, period=365)
+nbasis &lt;-65
+harmaccelLfd &lt;- vec2Lfd(c(0,(2*pi/365)^2,0), c(0, 365))
+harmfdPar    &lt;- fdPar(fd(matrix(0,nbasis,1), daybasis65), harmaccelLfd, 
+                      lambda=1e5)
+daytempfd &lt;- smooth.basis(day.5, CanadianWeather$dailyAv[,,"Temperature.C"],
+                   daybasis65, fdnames=list("Day", "Station", "Deg C"))$fd
+
+daytemppcaobj &lt;- pca.fd(daytempfd, nharm=4, harmfdPar)
+daytemppcaVarmx &lt;- varmx.pca.fd(daytemppcaobj)
+#  plot harmonics
+op &lt;- par(mfrow=c(2,2))
+plot.pca.fd(daytemppcaobj, cex.main=0.9)
+
+plot.pca.fd(daytemppcaVarmx, cex.main=0.9)
+par(op)
+
+plot(daytemppcaobj$harmonics)
+plot(daytemppcaVarmx$harmonics)
+par(oldpar)
+</code></pre>
+
+
+</div>

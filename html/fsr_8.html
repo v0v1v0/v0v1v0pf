@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsr_components</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a component</h2>
+
+<h3>Description</h3>
+
+<p><code>create_component()</code> builds an object of class <code>component</code>.
+A component consists of a crisp spatial object (<code>sfg</code> object) labeled with a membership degree in ]0, 1].
+It is a flexible function since the crisp spatial object can be provided by using different formats.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_component(obj, md, ...)
+
+component_from_sfg(sfg, md)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>A crisp spatial object in a specific format (see details below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>md</code></td>
+<td>
+<p>A numeric value indicating the membership degree of the component. It must be a value in ]0, 1].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>&lt;<code>dynamic-dots</code>&gt; Different parameters that are used to convert a crisp spatial object from a specific representation (see more in details below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sfg</code></td>
+<td>
+<p>An <code>sfg</code> object. It should be either of type <code>POINT</code>, <code>MULTIPOINT</code>, <code>LINESTRING</code>,
+<code>MULTILINESTRING</code>, <code>POLYGON</code> or <code>MULTIPOLYGON</code>. Other types of spatial objects are not allowed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>create_component()</code> function creates a <code>component</code> object. Internally, it is a pair of an <code>sfg</code> object and a membership degree in ]0, 1].
+</p>
+<p><code>obj</code> can be either (see restrictions regarding its data type below):
+</p>
+
+<ul>
+<li>
+<p> an <code>sfg</code> object.
+</p>
+</li>
+<li>
+<p> a character vector containing the WKT representation of a crisp spatial object.
+</p>
+</li>
+<li>
+<p> a structure of class <code>"WKB"</code> with the WKB or EWKB representation of a crisp spatial object. If the EWKB representation is used, then you have to provide the additional parameter <code>EWKB = TRUE</code> in <code>...</code>.
+</p>
+</li>
+<li>
+<p> a vector, list, or matrix containing coordinate pairs to be used when creating the <code>sfg</code> object.
+This means that it has a similar behavior to the family of functions <code>st</code> of the <code>sf</code> package (e.g., <code>st_point()</code>, <code>st_multipoint()</code>, etc.).
+Thus, you have to provide the additional parameter <code>type</code> in <code>...</code>, which should be either <code>"POINT"</code>, <code>"LINE"</code>, or <code>"REGION"</code>.
+</p>
+</li>
+</ul>
+<p>It is important to emphasize that the crisp spatial object must be a simple or complex point, line, or region (i.e., polygon) object.
+That is, it should be a <code>POINT</code>, <code>MULTIPOINT</code>, <code>LINESTRING</code>, <code>MULTILINESTRING</code>, <code>POLYGON</code> or <code>MULTIPOLYGON</code> object.
+If other types of crisp spatial objects are given, an error will be thrown.
+</p>
+<p>The <code>component_from_sfg()</code> function is deprecated.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>component</code> object that can be added to a spatial plateau object (i.e., a <code>pgeometry</code> object).
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://onlinelibrary.wiley.com/doi/10.1111/tgis.13044">Carniel, A. C.; Venâncio, P. V. A. B; Schneider, M. fsr: An R package for fuzzy spatial data handling. Transactions in GIS, vol. 27, no. 3, pp. 900-927, 2023.</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># first way: providing sfg objects
+library(sf)
+
+pts &lt;- rbind(c(1, 2), c(3, 2))
+comp1 &lt;- create_component(st_multipoint(pts), 0.2) 
+
+lpts &lt;- rbind(c(2, 2), c(3, 3))
+comp2 &lt;- create_component(st_linestring(lpts), 0.1) 
+
+matrix_obj &lt;- matrix(c(1,1,8,1,8,8,1,8,1,1), ncol = 2, byrow = TRUE)
+rpts &lt;- list(matrix_obj)
+comp3 &lt;- create_component(st_polygon(rpts), 0.4)
+
+# second way: providing WKT representations
+comp4 &lt;- create_component("POINT(10 35)", 0.5)
+comp5 &lt;- create_component("MULTILINESTRING((-29 -27, -36 -31, -45 -33), (-45 -33, -46 -32))", 0.9)
+comp6 &lt;- create_component("POLYGON((75 29, 77 29, 77 29, 75 29))", 1)
+
+# third way: providing WKB representations
+wkb = structure(list("0x0101000020e610000000000000000000000000000000000040"), class = "WKB")
+comp7 &lt;- create_component(wkb, 0.8, EWKB = TRUE)
+
+# fourth way: providing coordinate pairs
+coords1 = rbind(c(2,2), c(3,3))
+coords2 = rbind(c(1,1), c(3,2))
+
+comp8 &lt;- create_component(coords1, 0.45, type = "LINE")
+comp9 &lt;- create_component(coords2, 0.32, type = "POINT")
+</code></pre>
+
+
+</div>

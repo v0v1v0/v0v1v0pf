@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>.integrate_beta</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Integration of likelihood function based on the beta assumption.</h2>
+
+<h3>Description</h3>
+
+<p>Internal function to integrate the likelihood getting the <code class="reqn">\Delta</code>Cq value (the argument <code>del</code>) over the entire range of the allele ratio (0 to 1). Vectorized for multiple bulk samples. Having the same arguments with .integrate_gamma.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">.integrate_beta(
+  del,
+  SHR,
+  SHS,
+  zeroAmount,
+  targetScale,
+  sdMeasure,
+  xsm = 2,
+  EPCR,
+  cubmethod = "hcubature",
+  relTol = 0.1,
+  absTol = 1e-08,
+  maxEval = 10^6
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>del</code></td>
+<td>
+<p>Numeric vector of the observed <code class="reqn">\Delta</code>Cq values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SHR</code></td>
+<td>
+<p>The gamma shape parameters for the mutant (R) portion of the bulk samples. Should be the same vector length as del. Each element of SHR is defined as K*(the assumed number of R allele in the bulk sample: 1, 2, 3, ..., n-1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SHS</code></td>
+<td>
+<p>The gamma shape parameters for the wild (S) portion of the bulk samples. Should be the same length as del. Each element of SHS is defined as K*(the assumed number of S allele in the bulk sample).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeroAmount</code></td>
+<td>
+<p>(In RED-<code class="reqn">\Delta\Delta</code>Cq method) residue rate of restriction enzyme digestion, or (in general <code class="reqn">\Delta\Delta</code>Cq analyses) small portion of the off-target allele on the target locus of the test sample, which will be amplified in the PCR. It needs to be always specified by the user as a number between 0 and 1, usually near 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetScale</code></td>
+<td>
+<p>(<code class="reqn">\delta_{T}</code>) Scalar. The relative template DNA amount of the target locus to the houskeeping locus. If known, given as a positive numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdMeasure</code></td>
+<td>
+<p>(<code class="reqn">\sigma_{c}</code>) Scalar. The measurement error (standard deviation) on each Cq value following Normal(0, <code class="reqn">\sigma_{c}^2</code>). If known, given as a positive numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xsm</code></td>
+<td>
+<p>Specify the accumulation of the standard deviation of the Cq measuring errors when the *-Cq values are fed as difference. For <code class="reqn">\Delta</code>Cq values, sdMeasure times two. For <code class="reqn">\Delta\Delta</code>Cq, sdMeasure times four. Default is two and used in most cases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EPCR</code></td>
+<td>
+<p>(<code class="reqn">\eta</code>) Scalar. Amplification efficiency per PCR cycle. If known, given as a positive numeric. When <code>EPCR = 1</code>, template DNA doubles every cycle (<code>EPCR + 1 = 2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cubmethod</code></td>
+<td>
+<p>Cubature method passed to the integrator function. See the section "Methods for cubintegrate".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relTol</code></td>
+<td>
+<p>The maximum tolerance passed to the cubature method. Though the default of cubature::cubintegrate function is 1e-5, the accuracy is reduced here to acceralate the integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absTol</code></td>
+<td>
+<p>The absolute tolerance passed to the cubature method. The default is 1e-8, which is less accurate than the default of cubintegrate function (1e-12) but considered enough for the estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxEval</code></td>
+<td>
+<p>Maximum number of function evaluations needed. The default is 10^6, which is same as the cubintegrate default.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A numeric vector of marginal likelihoods having the same length as <code>del</code>.
+</p>
+
+
+<h3>Methods for cubintegrate</h3>
+
+<p>The following methods are available for <code>cubintegrate()</code>: cubmethod = c("hcubature", "pcubature", "cuhre", "divonne", "suave", "vegas").
+<br><code>hcubature</code> is considerably fast, but less accurate with larger <code>reltol</code>. <code>cuhre</code> is moderately fast and the most accurate in most <code>relTol</code> range. If you can wait longer, <code>hcubature</code> with <code>relTol = 1e-4</code> or <code>cuhre</code> with <code>relTol = 1e-1</code> is recommended.
+At <code>reltol = 1e-1</code>, <code>hcubature</code> is three times faster than <code>cuhre</code>, but the log-likelihood fluctuate by 0.1 (by 0.001 in <code>cuhre</code>).
+The speed and accuracy of <code>hcubature</code> at <code>reltol = 1e-5</code> is comparable with <code>cuhre</code> at <code>reltol = 1e-1</code>.
+<br><code>pcubature</code> and <code>divonne</code> frequently returns <code>NaN</code> and are not recommended.
+<br><code>suave</code> and <code>vegas</code> are Monte Carlo integration and slow. They are certainly accurate even at <code>reltol = 1</code>, but interior to <code>cuhre</code> with same <code>reltol</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other integrators: 
+<code>.integrate_gamma()</code>
+</p>
+
+
+</div>

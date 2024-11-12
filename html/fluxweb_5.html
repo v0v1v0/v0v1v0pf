@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>make.stability</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>making network stability</h2>
+
+<h3>Description</h3>
+
+<p>Find the smallest scalar multiplying a variable from losses insuring system stability
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">make.stability(val.mat, biomasses, losses, efficiencies, growth.rate,
+  losses.scale = NULL, bioms.prefs = TRUE, bioms.losses = TRUE,
+  ef.level = "prey", interval = c(1e-12, 1), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>val.mat</code></td>
+<td>
+<p>A matrix describing fluxes between species (usually a result of <code>fluxing</code> function).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biomasses</code></td>
+<td>
+<p>A vector of species biomasses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>losses</code></td>
+<td>
+<p>A vector or an array of species energy losses (excluding predation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>efficiencies</code></td>
+<td>
+<p>A vector or an array of conversion efficiencies of species in the adjacency matrix. These values describe the proportion of consumed energy that is converted to biomass of the consumer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growth.rate</code></td>
+<td>
+<p>A vector defining growth rate of basal species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>losses.scale</code></td>
+<td>
+<p>Defines a Column from <code>losses</code> on which scalar multiplication will be tested. (default <code>NULL</code> if the value is independent of losses).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bioms.prefs</code></td>
+<td>
+<p>Logical, if <code>TRUE</code> (default) preferences are scaled accordingly to species biomasses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bioms.losses</code></td>
+<td>
+<p>Logical, if <code>TRUE</code> (default) losses are scaled with biomass.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ef.level</code></td>
+<td>
+<p>Set to <code>"prey"</code> if efficiencies are defined by prey, <code>"pred"</code> if they are a property of the predator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>Search interval for returned value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optional parameters for function <code>uniroot</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function assumes a monotonous increase of stability with multiplication by a scalar value. Solution is estimated from the <code>uniroot</code> function, and stability using the <code>fluxing</code> function
+Thus, accordingly to <code>uniroot</code> solving criteria, if stability values at the two extremum parts of the interval are of same sign, an error is raised.
+</p>
+<p>Behavior of the multiplicative term depends on the type of losses:
+</p>
+
+<ul>
+<li>
+<p><code>losses.scale = NULL</code> and <code>is.vector(losses)</code>: multiplication will be applied to the <code>losses</code> vector.
+</p>
+</li>
+<li>
+<p><code>losses.scale = NULL</code> and <code>is.matrix(losses)</code>: multiplication will be independent of any columns from <code>losses</code>.
+</p>
+</li>
+<li>
+<p><code>losses.scale = FALSE</code> : value used for multiplication always independent of losses.
+</p>
+</li>
+<li>
+<p>other values: should refer to an element of losses.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list from <code>uniroot</code> function.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>uniroot</code> for root estimate and <code>stability.value</code> for assessing system stability.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+losses = 0.15 * groups.level$bodymasses^(-0.25)
+
+# growth rates of basal sppecies
+growth.rates = rep(NA, dim(groups.level$mat)[1])
+growth.rates[colSums(groups.level$mat) == 0] = 0.5
+
+val.mat = fluxing(groups.level$mat, 
+                  groups.level$biomasses, 
+                  losses, 
+                  groups.level$efficiencies, 
+                  bioms.pref = TRUE, 
+                  ef.level = "pred")
+make.stability(val.mat, 
+               groups.level$biomasses, 
+               losses, 
+               groups.level$efficiencies, 
+               growth.rates, 
+               ef.level = "pred")
+
+</code></pre>
+
+
+</div>

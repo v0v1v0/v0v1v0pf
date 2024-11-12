@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fwsim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fisher-Wright Population Simulation</h2>
+
+<h3>Description</h3>
+
+<p>This package provides tools to simulate a population under the Fisher-Wright model with a stepwise neutral mutation process on <code class="reqn">r</code> loci, where mutations on loci happen independently. The population sizes are either fixed (traditional/original Fisher-Wright model) or random Poisson distributed with exponential growth supported. Intermediate generations can be saved in order to study e.g. drift.
+</p>
+<p>For stochastic population sizes:
+Model described in detail at <a href="http://arxiv.org/abs/1210.1773">http://arxiv.org/abs/1210.1773</a>. Let <code class="reqn">M</code> be the population size at generation <code class="reqn">i</code> and <code class="reqn">N</code> the population size at generation <code class="reqn">i + 1</code>.
+Then we assume that <code class="reqn">N</code> conditionally on <code class="reqn">M</code> is <code class="reqn">\mbox{Poisson}(\alpha M)</code> distributed for <code class="reqn">\alpha &gt; 0</code> (<code class="reqn">\alpha &gt; 1</code> gives expected growth and <code class="reqn">0 &lt; \alpha &lt; 1</code> gives expected decrease).
+</p>
+<p>For each haplotype <code class="reqn">x</code> occuring <code class="reqn">m</code> times in the <code class="reqn">i</code>'th generation, the number
+of children <code class="reqn">n</code> is <code class="reqn">\mbox{Poisson}(\alpha m)</code> distributed independently of other haplotypes. 
+It then follows that the sum of the number of haplotypes follows a <code class="reqn">\mbox{Poisson}(\alpha M)</code> distribution (as just stated in the previous paragraph) and that <code class="reqn">n</code> conditionally on <code class="reqn">N</code> follows a <code class="reqn">\mbox{Binomial}(N, m/M)</code> as expected.
+</p>
+<p>The mutation model can be e.g. the stepwise neutral mutation model. See <code>init_mutmodel</code> for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fwsim(G, H0, N0, mutmodel, alpha = 1.0, SNP = FALSE, 
+  save_generations = NULL, progress = TRUE, trace = FALSE, ensure_children = FALSE, ...)
+fwsim_fixed(G, H0, N0, mutmodel, SNP = FALSE, 
+  save_generations = NULL, progress = TRUE, trace = FALSE, ...)
+## S3 method for class 'fwsim'
+print(x, ...)
+## S3 method for class 'fwsim'
+summary(object, ...)
+## S3 method for class 'fwsim'
+plot(x, which = 1L, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p> number of generations to evolve (integer, remember postfix L).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0</code></td>
+<td>
+<p> haplotypes of the initial population. Must be a vector or matrix (if more than one initial haplotype). The number of loci is the length or number of columns of <code>H0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N0</code></td>
+<td>
+<p> count of the <code>H0</code> haplotypes. The i'th element is the count of the haplotype <code>H0[i, ]</code>. <code>sum(N0)</code> is the size of initial population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutmodel</code></td>
+<td>
+<p> a <code>mutmodel</code> object created with <code>init_mutmodel</code>. Alternatively, a numeric vector of length r of mutation probabilities (this will create a stepwise mutation model with r loci divide the mutation probabilities evenly between upwards and downwards mutation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p> vector of length 1 or <code>G</code> of growth factors (1 correspond to expected constant population size). If length 1, the value is reused in creating a vector of length <code>G</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SNP</code></td>
+<td>
+<p> to make alleles modulus 2 to immitate SNPs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save_generations</code></td>
+<td>
+<p> to save intermediate populations. <code>NULL</code> means that no intermediate population will be saved. Else, a vector of the generation numbers to save.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p> whether to print progress of the evolution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p> whether to print trace of the evolution (more verbose than <code>progress</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ensure_children</code></td>
+<td>
+<p> Ensures that every generation has at least one child; implemented by getting <code class="reqn">\mbox{Poisson}(\alpha M) + 1</code> children.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>fwsim</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>fwsim</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>A number specifying the plot (currently only 1: the actual population sizes vs the expected sizes).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> not used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>fwsim</code> object with elements
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p> the parameters used for the simulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saved_populations</code></td>
+<td>
+<p> a list of haplotypes in the intermediate populations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>population</code></td>
+<td>
+<p> haplotypes in the end population after <code>G</code> generations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop_sizes</code></td>
+<td>
+<p> the population size for each generation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected_pop_sizes</code></td>
+<td>
+<p> the expected population size for each generation</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Mikkel Meyer Andersen &lt;mikl@math.aau.dk&gt; and Poul Svante Eriksen</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># SMM (stepwise mutation model) example
+set.seed(1)
+fit &lt;- fwsim(G = 100L, H0 = c(0L, 0L, 0L), N0 = 10000L, 
+  mutmodel = c(Loc1 = 0.001, Loc2 = 0.002, Loc3 = 0.003))
+summary(fit)
+fit
+
+# SMM (stepwise mutation model) example
+H0 &lt;- matrix(c(0L, 0L, 0L), 1L, 3L, byrow = TRUE)
+
+mutmodel &lt;- init_mutmodel(modeltype = 1L, 
+  mutpars = matrix(c(c(0.003, 0.001), rep(0.004, 2), rep(0.001, 2)), 
+                   ncol = 3, 
+                   dimnames = list(NULL, c("DYS19", "DYS389I", "DYS391"))))
+mutmodel
+
+set.seed(1)
+fit &lt;- fwsim(G = 100L, H0 = H0, N0 = 10000L, mutmodel = mutmodel)
+
+xtabs(N ~ DYS19 + DYS389I, fit$population)
+plot(1L:fit$pars$G, fit$pop_sizes, type = "l", 
+  ylim = range(range(fit$pop_sizes), range(fit$expected_pop_sizes)))
+points(1L:fit$pars$G, fit$expected_pop_sizes, type = "l", col = "red")
+
+set.seed(1)
+fit_fixed &lt;- fwsim_fixed(G = 100L, H0 = H0, N0 = 10000L, mutmodel = mutmodel)
+
+# LMM (logistic mutation model) example
+mutpars.locus1 &lt;- c(0.149,   2.08,    18.3,   0.149,   0.374,   27.4) # DYS19
+mutpars.locus2 &lt;- c(0.500,   1.18,    18.0,   0.500,   0.0183,  349)  # DYS389I
+mutpars.locus3 &lt;- c(0.0163,  17.7,    11.1,   0.0163,  0.592,   14.1) # DYS391
+mutpars &lt;- matrix(c(mutpars.locus1, mutpars.locus2, mutpars.locus3), ncol = 3)
+colnames(mutpars) &lt;- c("DYS19", "DYS389I", "DYS391")
+mutmodel &lt;- init_mutmodel(modeltype = 2L, mutpars = mutpars)
+mutmodel
+
+set.seed(1)
+H0_LMM &lt;- matrix(c(15L, 13L, 10L), 1L, 3L, byrow = TRUE)
+fit_LMM &lt;- fwsim(G = 100L, H0 = H0_LMM, N0 = 10000L, mutmodel = mutmodel)
+xtabs(N ~ DYS19 + DYS389I, fit_LMM$population)
+</code></pre>
+
+
+</div>

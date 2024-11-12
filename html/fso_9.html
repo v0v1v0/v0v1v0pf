@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fso</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuzzy Set Ordination</h2>
+
+<h3>Description</h3>
+
+<p>Compute a fuzzy set for samples along a specified environmental or
+experimental gradient based on
+sample similarities and gradient values as weights.  The fuzzy set memberships
+represent the degree to which a sample is similar to one end of the
+gradient while not similar to the other.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+fso(formula,dis,data,permute=FALSE,...)
+## Default S3 method:
+fso(x,dis,permute=FALSE,...)
+## S3 method for class 'fso'
+summary(object,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula in the form of ~x+y+z (no LHS)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dis</code></td>
+<td>
+<p>a dist object such as that returned by <code>dist</code>,
+<code>dsvdis</code>, or ‘vegdist’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame that holds variables listed in the formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permute</code></td>
+<td>
+<p>if FALSE, estimate probabilities from Z distribution for correlation;
+if numeric, estimate probabilities from permutation of input</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numerical vector, a matrix, or numeric dataframe</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class ‘fso’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>generic arguments for future use</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm converts the input to a full symmetric similarity matrix
+and bounds [0,1] (if necessary).  It then calculates
+several fuzzy sets: 
+</p>
+<p style="text-align: center;"><code class="reqn">mu_a(i) = (x_i-min(x))/(max(x)-min(x))</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">mu_b(i) = 1 - mu_a(i)</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">mu_c(i) = \Bigl(\sum_j mu_a(j) \times y_{i,j}i\Bigr) / \sum_j \mu_a(j)</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">mu_d(i) = (\sum_j mu_b(j) \times y_{i,j}) / \sum_j \mu_b(j)</code>
+</p>
+
+<p>A separate fuzzy set ordination is calculated for each term in the
+formula.  If x is a matrix or dataframe a separate fuzzy set ordination is
+calculated for each column or field.
+</p>
+<p>If permute is numeric, the permutation is performed permute-1 times,
+and the probability is estimated as 
+<code class="reqn">(correlations &gt;= observed + 1)/permute</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class ‘fso’ which has the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>the fuzzy membership values for individual plots in the fuzzy
+set.  If x is a matrix or dataframe then mu is also a matrix of the 
+same dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a copy of data vector or matrix y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>the correlation between the original vector and the fuzzy
+set.  If x is a matrix or dataframe then r is a vector with length equal
+to the number of columns in the matrix or dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>the probability of obtaining a correlation between the data
+and fuzzy set as large as observed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>the correlation of pair-wise distances among each fuzzy set
+compared to the dissimilarity matrix from which the fso was constructed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>the variable name(s) from matrix y</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Fuzzy set ordination is a method of multivariate analysis employed in 
+vegetation analysis.
+</p>
+<p>fso can be run with the first argument either a dataframe or a formula
+(with no left hand side).  The formula version has distinct advantages:
+</p>
+<p>1) The data= argument allows the user to specify a data frame
+containing the variables of interest.  In this way variables
+need not be local.
+</p>
+<p>2) The formula version handles categorical variables by converting
+them to dummy variables.  In the default version, all variables 
+must be quantitative or binary.
+</p>
+<p>3) The formula version is somewhat more graceful about handling
+missing values in the data.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Roberts
+<a href="mailto:droberts@montana.edu">droberts@montana.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Roberts, D.W. 1986. Ordination on the basis of fuzzy set theory.
+Vegetatio 66:123-131.
+</p>
+<p>Roberts, D.W. 2007.  Statistical analysis of multidimensional fuzzy set 
+ordinations.  Ecology 89:1246-1260.
+</p>
+<p>Roberts, D.W.  2009.  Comparison of multidimensional fuzzy set ordination
+with CCA and DB-RDA.  Ecology.  90:2622-2634.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    library(labdsv)
+    data(bryceveg)
+    data(brycesite)
+    dis &lt;- dsvdis(bryceveg,'bray/curtis')
+    elev.fso &lt;- fso(brycesite$elev,dis)
+    elev.fso &lt;- fso(~elev,dis,data=brycesite)
+    plot.fso(elev.fso)
+    summary(elev.fso)
+</code></pre>
+
+
+</div>

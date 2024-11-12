@@ -1,0 +1,251 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fd.estimate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimating Fractal Dimensions of Time Series and Two-dimensional Data</h2>
+
+<h3>Description</h3>
+
+<p>The functions compute a set of fractal dimensions <code class="reqn">D</code>
+for time series and two-dimensional data 
+via various methods using a sliding window
+technique.  There is one <code class="reqn">D</code> computed for each method and for
+each sliding window of a given size that is moved along the data.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'numeric'
+ fd.estimate(data, methods = "madogram", window.size = length(data), 
+    step.size = window.size, trim = TRUE, keep.data = FALSE, 
+    keep.loglog = FALSE, parallel = FALSE, nr.nodes = NULL, 
+    debuglevel = 0, ...)
+	
+## S3 method for class 'matrix'
+ fd.estimate(data, methods = "transect.var", window.size = ncol(data),
+    step.size = window.size, trim = TRUE, keep.data = FALSE, 
+    keep.loglog = FALSE, parallel = FALSE, nr.nodes = NULL, 
+    debuglevel = 0, ...)
+          </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Vector, matrix or data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methods</code></td>
+<td>
+<p>Vector of character strings specifying methods for which
+<code class="reqn">D</code> is estimated. Possible values for one-dimensional data are “<code>variogram</code>”, “<code>madogram</code>”, “<code>rodogram</code>”, “<code>variation</code>”,  “<code>incr1</code>”, “<code>boxcount</code>”, “<code>hallwood</code>”,  
+“<code>periodogram</code>”,
+“<code>wavelet</code>”, “<code>dctII</code>”, and “<code>genton</code>”. For matrix or data frame the function accepts methods “<code>transect.var</code>”, “<code>transect.incr1</code>”,
+“<code>isotropic</code>”, “<code>squareincr</code>”, and “<code>filter1</code>” (see <code>fd.get.available.methods</code>). Alternatively, it can be a list of lists where each list item contains an entry “name” being the method name and entries corresponding to arguments passed to the specific methods (see Example and
+<code>fd.estim.method</code> for details.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window.size</code></td>
+<td>
+<p>Size (in number of data points) of the
+sliding window.  It should be between 2 and length of 
+<code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step.size</code></td>
+<td>
+<p>Number of data points by which the sliding
+window is moved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>Logical.  If <code>TRUE</code>, the estimates are trimmed into the theoretically permissible interval, i.e. between 1 and 2 in one-dimensional case and between 2 and 3 in two-dimensional case.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.data</code></td>
+<td>
+<p>Logical.  If <code>TRUE</code>, the data are kept in the
+resulting object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.loglog</code></td>
+<td>
+<p>Logical.  If <code>TRUE</code>, the resulting object contains a list with objects of class <code>FDloglog</code> used for the estimation in each iteration and for each method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical determining if the process should run in parallel. If <code>TRUE</code>, the
+package <span class="pkg">snowFT</span> is required. In such a 
+case, all local library paths must be included
+in the environment variable <code>R_LIBS</code>. In the one-dimensional case, the granularity of the process is given by the number of sliding windows. In the two-dimensional case, the number of spawn processes is equal to the number of sliding windows in the vertical direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nr.nodes</code></td>
+<td>
+<p>Number of nodes on which the computation should be
+processed if <code>parallel</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debuglevel</code></td>
+<td>
+<p>Controls the amount of debugging
+messages. The functions produce messages on levels 1 - 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to lower level functions (defined in
+<code>fd.estim.method</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In case of one-dimensional time series, the function  initiates a sliding window
+of the given size at the beginning of the time series.  The
+window is moved along the data by the
+given step size. If <code>parallel</code> is <code>TRUE</code>, computation on each window happens in parallel.
+In the two-dimensional case, the window is initiated in the top left corner of the data matrix and moved horizontally by the given step size, as well as vertically by the same step size. If the process is running in parallel, processing each row is done in parallel. 
+In both cases, in each iteration estimates of fractal dimension for
+data within the sliding window are
+computed using the given estimation methods. 
+</p>
+<p>Note that the estimation results are <code>NA</code> for any sliding window that
+contains <code>NA</code> values.
+</p>
+<p>Arguments that are to be passed to specific methods can be given either directly, if they applies to all given methods. Or, they can be given as a list via the <code>methods</code> argument: There is one list per method that must  contain the entry “name” being the method name. Remaining entries in the list corespond to one argument each (see Example below). 
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class
+<code>FractalDim</code> which consists of the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p>Dimension of the resulting arrays <code>fd</code> and
+<code>scale</code> (see below). 
+In the one-dimensional case, possible values are 1 and 2.  <code>dim = 1</code> means that there has been only one iteration and there is one element in the above arrays per each method used. If <code>dim = 2</code>, rows correspond to iterations and columns correspond to methods. Estimation on two-dimensional data can in addition result in <code>dim = 3</code>, in which case the first and second dimensions correspond to vertical and horizontal iterations, respectively, and the third dimension corresponds to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fd</code></td>
+<td>
+<p>A <code>dim</code>-dimensional array of fractal dimensions. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>A <code>dim</code>-dimensional array of scales, 
+derived from the intercept of the log-log plots on which <code>fd</code> 
+were computed.  Values are transformed to the scale of the
+original data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methods</code></td>
+<td>
+<p>Vector of methods given in the <code>methods</code> argument.
+The order of the elements corresponds to the order of
+estimates in the “method”-dimension of the above <code>dim</code>-dimensional arrays.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methods.coding</code></td>
+<td>
+<p>Vector of internal coding of <code>methods</code>. 
+The order of the elements corresponds to the order in <code>methods</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Value of the argument <code>data</code>, if <code>keep.data = TRUE</code>,
+otherwise <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.dim</code></td>
+<td>
+<p>Dimension of <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window.size</code></td>
+<td>
+<p>Size of the actual sliding window used in the computation. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step.size</code></td>
+<td>
+<p>Step size by which the sliding window was moved in the computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglog</code></td>
+<td>
+<p>If <code>keep.loglog=TRUE</code>, this is a list containing for each iteration a lists of <code>FDloglog</code> objects used in the estimation, one per method. The numbering of the methods corresponds to the method order in <code>methods</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>fd.estim.method</code>, <code>fd.get.available.methods</code>, <code>FDloglog</code>, <code>fd.get</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(RandomFields)
+n &lt;- 10000
+# generate a time series
+rf &lt;- GaussRF(x = c(0, 1, 1/n), model = "stable", 
+       grid = TRUE, gridtriple = TRUE,
+       param = c(mean=0, variance=1, nugget=0, scale=100, kappa=1))
+
+# Plots for two sliding windows of each of the four methods below.
+# Argument nlags is common to all methods;
+# the 'variation' method has in addition argument p.index
+par(mfrow=c(2,4)) # one row per window
+fd &lt;- fd.estimate(rf, 
+       methods = list(list(name="variation", p.index=0.5), 
+       					"variogram", "hallwood", "boxcount"),
+       window.size = 5000, step.size = 5000, plot.loglog = TRUE, nlags = 10)
+    
+# 2d random fields
+n &lt;- 200
+rf2d &lt;- GaussRF(x = c(0,1, 1/n), y = c(0,1, 1/n), model = "stable", 
+         grid = TRUE, gridtriple = TRUE,
+         param = c(mean=0, variance=1, nugget=0, scale=1, kappa=1))
+par(mfrow=c(2,2))
+# plots for 4 sliding windows (2 horizontal, 2 vertical)
+fd2d &lt;- fd.estimate(rf2d, methods="filter1",
+         window.size = 100, step.size=100, plot.loglog = TRUE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

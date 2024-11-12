@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fm_nonconvex_hull</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute an extension of a spatial object</h2>
+
+<h3>Description</h3>
+
+<p>Constructs a potentially nonconvex extension of a spatial object by
+performing dilation by <code>convex + concave</code> followed by
+erosion by <code>concave</code>. This is equivalent to dilation by <code>convex</code> followed
+by closing (dilation + erosion) by <code>concave</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fm_nonconvex_hull(x, ...)
+
+## S3 method for class 'sfc'
+fm_nonconvex_hull(
+  x,
+  convex = -0.15,
+  concave = convex,
+  preserveTopology = TRUE,
+  dTolerance = NULL,
+  crs = fm_crs(x),
+  ...
+)
+
+fm_extensions(x, convex = -0.15, concave = convex, dTolerance = NULL, ...)
+
+## S3 method for class 'matrix'
+fm_nonconvex_hull(x, ...)
+
+## S3 method for class 'sf'
+fm_nonconvex_hull(x, ...)
+
+## S3 method for class 'Spatial'
+fm_nonconvex_hull(x, ...)
+
+## S3 method for class 'sfg'
+fm_nonconvex_hull(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A spatial object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed on to the <code>fm_nonconvex_hull()</code> sub-methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convex</code></td>
+<td>
+<p>numeric vector; How much to extend</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>concave</code></td>
+<td>
+<p>numeric vector; The minimum allowed reentrant curvature. Default equal to <code>convex</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preserveTopology</code></td>
+<td>
+<p>logical; argument to <code>sf::st_simplify()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dTolerance</code></td>
+<td>
+<p>If not zero, controls the <code>dTolerance</code> argument to <code>sf::st_simplify()</code>.
+The default is <code>pmin(convex, concave) / 40</code>, chosen to
+give approximately 4 or more subsegments per circular quadrant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crs</code></td>
+<td>
+<p>Options crs object for the resulting polygon</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Morphological dilation by <code>convex</code>, followed by closing by
+<code>concave</code>, with minimum concave curvature radius <code>concave</code>.  If
+the dilated set has no gaps of width between </p>
+<p style="text-align: center;"><code class="reqn">2 \textrm{convex} (\sqrt{1+2
+\textrm{concave}/\textrm{convex}} - 1)</code>
+</p>
+
+<p>and <code class="reqn">2\textrm{concave}</code>, then the minimum convex curvature radius is
+<code>convex</code>.
+</p>
+<p>The implementation is based on the identity </p>
+<p style="text-align: center;"><code class="reqn">\textrm{dilation}(a) \&amp;
+\textrm{closing}(b) = \textrm{dilation}(a+b) \&amp; \textrm{erosion}(b)</code>
+</p>
+<p> where all operations
+are with respect to disks with the specified radii.
+</p>
+<p>When <code>convex</code>, <code>concave</code>, or <code>dTolerance</code> are negative,
+<code>fm_diameter * abs(...)</code> is used instead.
+</p>
+<p>Differs from <code>sf::st_buffer(x, convex)</code> followed by
+<code>sf::st_concave_hull()</code> (available from GEOS 3.11)
+in how the amount of allowed concavity is controlled.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fm_nonconvex_hull()</code> returns an extended object as an <code>sfc</code>
+polygon object (regardless of the <code>x</code> class).
+</p>
+<p><code>fm_extensions()</code> returns a list of <code>sfc</code> objects.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>fm_nonconvex_hull()</code>: Basic nonconvex hull method.
+</p>
+</li>
+<li> <p><code>fm_extensions()</code>: Constructs a potentially nonconvex extension of a spatial object by
+performing dilation by <code>convex + concave</code> followed by
+erosion by <code>concave</code>. This is equivalent to dilation by <code>convex</code> followed
+by closing (dilation + erosion) by <code>concave</code>.
+</p>
+</li>
+</ul>
+<h3>INLA compatibility</h3>
+
+<p>For mesh and curve creation, the <code>fm_rcdt_2d_inla()</code>, <code>fm_mesh_2d_inla()</code>,
+and <code>fm_nonconvex_hull_inla()</code> methods will keep the interface syntax used by
+<code>INLA::inla.mesh.create()</code>, <code>INLA::inla.mesh.2d()</code>, and
+<code>INLA::inla.nonconvex.hull()</code> functions, respectively, whereas the
+<code>fm_rcdt_2d()</code>, <code>fm_mesh_2d()</code>, and <code>fm_nonconvex_hull()</code> interfaces may be
+different, and potentially change in the future.
+</p>
+
+
+<h3>References</h3>
+
+<p>Gonzalez and Woods (1992), Digital Image Processing
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fm_nonconvex_hull_inla()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">inp &lt;- matrix(rnorm(20), 10, 2)
+out &lt;- fm_nonconvex_hull(inp, convex = 1)
+plot(out)
+points(inp, pch = 20)
+if (TRUE) {
+  inp &lt;- sf::st_as_sf(as.data.frame(matrix(1:6, 3, 2)), coords = 1:2)
+  bnd &lt;- fm_extensions(inp, convex = c(0.75, 2))
+  plot(fm_mesh_2d(boundary = bnd, max.edge = c(0.25, 1)), asp = 1)
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.basis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Regression with scalar response using basis representation.</h2>
+
+<h3>Description</h3>
+
+<p>Computes functional regression between functional explanatory variable
+<code class="reqn">X(t)</code> and scalar response <code class="reqn">Y</code> using basis representation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.basis(
+  fdataobj,
+  y,
+  basis.x = NULL,
+  basis.b = NULL,
+  lambda = 0,
+  Lfdobj = vec2Lfd(c(0, 0), rtt),
+  weights = rep(1, n),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdataobj</code></td>
+<td>
+<p><code>fdata</code> class object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Scalar response with length <code>n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.x</code></td>
+<td>
+<p>Basis for functional explanatory data <code>fdataobj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.b</code></td>
+<td>
+<p>Basis for functional beta parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A roughness penalty. By default, no penalty <code>lambda=0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj</code></td>
+<td>
+<p>See eval.penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p style="text-align: center;"><code class="reqn">Y=\big&lt;X,\beta\big&gt;+\epsilon=\int_{T}{X(t)\beta(t)dt+\epsilon}</code>
+</p>
+ 
+<p>where <code class="reqn"> \big&lt; \cdot , \cdot \big&gt;</code> denotes the inner product on
+<code class="reqn">L_2</code> and <code class="reqn">\epsilon</code> are random errors with mean zero, finite
+variance <code class="reqn">\sigma^2</code> and <code class="reqn">E[X(t)\epsilon]=0</code>.
+</p>
+<p>The function uses the basis representation proposed by Ramsay and Silverman (2005) to model the
+relationship between the scalar response and the functional covariate by
+basis representation of the observed functional data
+<code class="reqn">X(t)\approx\sum_{k=1}^{k_{n1}} c_k \xi_k(t)</code> and the unknown
+functional parameter <code class="reqn">\beta(t)\approx\sum_{k=1}^{k_{n2}} b_k
+\phi_k(t)</code>. <br></p>
+<p>The functional linear models estimated by the expression: </p>
+<p style="text-align: center;"><code class="reqn">\hat{y}=
+\big&lt; X,\hat{\beta} \big&gt; =
+C^{T}\psi(t)\phi^{T}(t)\hat{b}=\tilde{X}\hat{b}</code>
+</p>
+<p> where
+<code class="reqn">\tilde{X}(t)=C^{T}\psi(t)\phi^{T}(t)</code>, and
+<code class="reqn">\hat{b}=(\tilde{X}^{T}\tilde{X})^{-1}\tilde{X}^{T}y</code>
+and so,
+<code class="reqn">\hat{y}=\tilde{X}\hat{b}=\tilde{X}(\tilde{X}^{T}\tilde{X})^{-1}\tilde{X}^{T}y=Hy</code>
+where <code class="reqn">H</code> is the hat matrix with degrees of freedom: <code class="reqn">df=tr(H)</code>.<br></p>
+<p>If <code class="reqn">\lambda&gt;0</code> then <code>fregre.basis</code> incorporates a
+roughness penalty: <br><code class="reqn">\hat{y}=\tilde{X}\hat{b}=\tilde{X}(\tilde{X}^{T}\tilde{X}+\lambda
+R_0)^{-1}\tilde{X}^{T}y= H_{\lambda}y</code> where <code class="reqn">R_0</code> is the penalty matrix.<br></p>
+<p>This function allows covariates of class <code>fdata</code>, <code>matrix</code>,
+<code>data.frame</code> or directly covariates of class <code>fd</code>.  The function
+also gives default values to arguments <code>basis.x</code> and <code>basis.b</code> for
+representation on the basis of functional data <code class="reqn">X(t)</code> and the functional
+parameter <code class="reqn">\beta(t)</code>, respectively.
+</p>
+<p>If <code>basis=</code><code>NULL</code> creates the <code>bspline</code> basis by
+<code>create.bspline.basis</code>. <br> If the functional covariate
+<code>fdataobj</code> is a matrix or data.frame, it creates an object of class
+"fdata" with default attributes, see <code>fdata</code>.<br> If
+<code>basis.x$type=``fourier''</code> and <code>basis.b$type=``fourier''</code>, the
+basis are orthonormal and the function decreases the number of fourier basis
+elements on the <code class="reqn">min(k_{n1},k_{n2})</code>, where
+<code class="reqn">k_{n1}</code> and <code class="reqn">k_{n2}</code> are the number of basis element of
+<code>basis.x</code> and <code>basis.b</code> respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return:
+</p>
+
+<ul>
+<li> <p>call: The matched call. 
+</p>
+</li>
+<li> <p>coefficients: A named vector of coefficients
+</p>
+</li>
+<li> <p>residuals: <code>y</code> minus <code>fitted values</code>. 
+</p>
+</li>
+<li> <p>fitted.values: Estimated scalar response. 
+</p>
+</li>
+<li> <p>beta.est: beta parameter estimated of class <code>fd</code> 
+</p>
+</li>
+<li> <p>weights:(only for' weighted fits) the specified weights. 
+</p>
+</li>
+<li> <p>df.residual: The residual degrees of' freedom. 
+</p>
+</li>
+<li> <p>r2: Coefficient of determination. 
+</p>
+</li>
+<li> <p>sr2: Residual' variance. 
+</p>
+</li>
+<li> <p>Vp: Estimated covariance matrix for the parameters.
+</p>
+</li>
+<li> <p>H: Hat matrix. 
+</p>
+</li>
+<li> <p>y: Response.
+</p>
+</li>
+<li> <p>fdataobj: Functional explanatory data of class <code>fdata</code>.
+</p>
+</li>
+<li> <p>a.est: Intercept parameter estimated 
+</p>
+</li>
+<li> <p>basis.b: Basis used' for beta parameter estimation. 
+</p>
+</li>
+<li> <p>lambda.opt: A roughness penalty.
+</p>
+</li>
+<li> <p>Lfdobj: Order of a derivative or a linear differential operator.
+</p>
+</li>
+<li> <p>P: Penalty matrix. 
+</p>
+</li>
+<li> <p>lm: Return <code>lm</code> object 
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., and Silverman, Bernard W. (2006), <em>
+Functional Data Analysis</em>, 2nd ed., Springer, New York.
+</p>
+<p>Febrero-Bande, M., Oviedo de la Fuente, M. (2012).  <em>Statistical
+Computing in Functional Data Analysis: The R Package fda.usc.</em> Journal of
+Statistical Software, 51(4), 1-28. <a href="https://www.jstatsoft.org/v51/i04/">https://www.jstatsoft.org/v51/i04/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also as: <code>fregre.basis.cv</code>,
+<code>summary.fregre.fd</code> and <code>predict.fregre.fd</code>.<br>
+Alternative method: <code>fregre.pc</code> and <code>fregre.np</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# fregre.basis
+data(tecator)
+names(tecator)
+absorp=tecator$absorp.fdata
+ind=1:129
+x=absorp[ind,]
+y=tecator$y$Fat[ind]
+tt=absorp[["argvals"]]
+res1=fregre.basis(x,y)
+summary(res1)
+basis1=create.bspline.basis(rangeval=range(tt),nbasis=19)
+basis2=create.bspline.basis(rangeval=range(tt),nbasis=9)
+res5=fregre.basis(x,y,basis1,basis2)
+summary(res5)
+x.d2=fdata.deriv(x,nbasis=19,nderiv=1,method="bspline",class.out="fdata")
+res7=fregre.basis(x.d2,y,basis1,basis2)
+summary(res7)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

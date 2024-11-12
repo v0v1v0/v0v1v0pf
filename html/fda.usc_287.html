@@ -1,0 +1,359 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rp.flm.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Goodness-of fit test for the functional linear model using random
+projections</h2>
+
+<h3>Description</h3>
+
+<p>Tests the composite null hypothesis of a Functional Linear Model with scalar
+response (FLM), </p>
+<p style="text-align: center;"><code class="reqn">H_0:\,Y=\langle
+X,\beta\rangle+\epsilon\quad\mathrm{vs}\quad H_1:\,Y\neq\langle
+X,\beta\rangle+\epsilon.</code>
+</p>
+<p> If <code class="reqn">\beta=\beta_0</code> is provided, then
+the simple hypothesis <code class="reqn">H_0:\,Y=\langle X,\beta_0\rangle+\epsilon</code> is tested. The way of testing the null hypothesis
+is via a norm (Cramer-von Mises or Kolmogorov-Smirnov) in the empirical
+process indexed by the projections.
+</p>
+<p>No NA's are allowed neither in the functional covariate nor in the scalar
+response.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rp.flm.test(
+  X.fdata,
+  Y,
+  beta0.fdata = NULL,
+  B = 1000,
+  n.proj = 10,
+  est.method = "pc",
+  p = NULL,
+  p.criterion = "SICc",
+  pmax = 20,
+  type.basis = "bspline",
+  projs = 0.95,
+  verbose = TRUE,
+  same.rwild = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X.fdata</code></td>
+<td>
+<p>functional observations in the class
+<code>fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>scalar responses for the FLM. Must be a vector with the same number
+of elements as functions are in <code>X.fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta0.fdata</code></td>
+<td>
+<p>functional parameter for the simple null hypothesis, in
+the <code>fdata</code> class. The <code>argvals</code> and
+<code>rangeval</code> arguments of <code>beta0.fdata</code> must be the same of
+<code>X.fdata</code>. If <code>beta0.fdata=NULL</code> (default), the function will test
+for the composite null hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap replicates to calibrate the distribution of the
+test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.proj</code></td>
+<td>
+<p>vector with the number of projections to consider.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est.method</code></td>
+<td>
+<p>estimation method for <code class="reqn">\beta</code>, only used in the
+composite case. There are three methods: 
+</p>
+ 
+<ul>
+<li> <p>list("\"pc\"") if <code>p</code> is given, then <code class="reqn">\beta</code> is estimated by
+<code>fregre.pc</code>. Otherwise, <code>p</code> is chosen using <code>fregre.pc.cv</code> and the <code>p.criterion</code> criterion.
+</p>
+</li>
+<li> <p>list("\"pls\"") if <code>p</code> is given, <code class="reqn">\beta</code> is estimated by <code>fregre.pls</code>. 
+Otherwise, <code>p</code> is chosen using <code>fregre.pls.cv</code> and the <code>p.criterion</code> criterion.
+</p>
+</li>
+<li> <p>list("\"basis\"") if <code>p</code> is given, <code class="reqn">\beta</code> is estimated by <code>fregre.basis</code>. 
+Otherwise, <code>p</code> is' chosen using <code>fregre.basis.cv</code> and the <code>p.criterion</code> criterion. 
+Both in <code>fregre.basis</code> and <code>fregre.basis.cv</code>, the same basis for
+<code>basis.x</code> and <code>basis.b</code> is considered. 
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>number of elements for the basis representation of
+<code>beta0.fdata</code> and <code>X.fdata</code> with the <code>est.method</code> (only
+composite hypothesis). If not supplied, it is estimated from the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.criterion</code></td>
+<td>
+<p>for <code>est.method</code> equal to <code>"pc"</code> or
+<code>"pls"</code>, either <code>"SIC"</code>, <code>"SICc"</code> or one of the criterions
+described in <code>fregre.pc.cv</code>. For <code>"basis"</code> a value
+for <code>type.CV</code> in <code>fregre.basis.cv</code> such as
+<code>GCV.S</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pmax</code></td>
+<td>
+<p>maximum size of the basis expansion to consider in when using
+<code>p.criterion</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.basis</code></td>
+<td>
+<p>type of basis if <code>est.method = "basis"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>projs</code></td>
+<td>
+<p>a <code>fdata</code> object containing the random
+directions employed to project <code>X.fdata</code>. If numeric, the convenient
+value for <code>ncomp</code> in <code>rdir.pc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether to show or not information about the testing
+progress.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>same.rwild</code></td>
+<td>
+<p>wether to employ the same wild bootstrap residuals for
+different projections or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to create.basis (not
+<code>rangeval</code> that is taken as the <code>rangeval</code> of <code>X.fdata</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object with class <code>"htest"</code> whose underlying structure is a
+list containing the following components: 
+</p>
+
+<ul>
+<li> <p>list("p.values.fdr") a matrix of size <code>c(n.proj, 2)</code>, containing
+in each row the FDR p-values of the CvM and KS tests up to that projection.
+</p>
+</li>
+<li> <p>list("proj.statistics") a matrix of size <code>c(max(n.proj), 2)</code>
+with the value of the test statistic on each projection.
+</p>
+</li>
+<li> <p>list("boot.proj.statistics") an array of size <code>c(max(n.proj), 2,
+B)</code> with the values of the bootstrap test statistics for each projection.
+</p>
+</li>
+<li> <p>list("proj.p.values") a matrix of size <code>c(max(n.proj), 2)</code>
+</p>
+</li>
+<li> <p>list("method") information about the test performed and the kind of
+estimation performed. 
+</p>
+</li>
+<li> <p>list("B") number of bootstrap replicates used. 
+</p>
+</li>
+<li> <p>list("n.proj") number of projections specified
+</p>
+</li>
+<li> <p>list("projs") random directions employed to project <code>X.fdata</code>.
+</p>
+</li>
+<li> <p>list("type.basis") type of basis for <code>est.method = "basis"</code>.
+</p>
+</li>
+<li> <p>list("beta.est") estimated functional parameter <code class="reqn">\hat \beta</code> in the composite hypothesis. For the simple hypothesis, <code>beta0.fdata</code>. 
+</p>
+</li>
+<li> <p>list("p") number of basis elements considered for estimation of <code class="reqn">\beta</code>. 
+</p>
+</li>
+<li> <p>list("p.criterion") criterion employed for selecting <code>p</code>. 
+</p>
+</li>
+<li> <p>list("data.name") the character string "Y = &lt;X, b&gt; + e" 
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Eduardo Garcia-Portugues (<a href="mailto:edgarcia@est-econ.uc3m.es">edgarcia@est-econ.uc3m.es</a>) and
+Manuel Febrero-Bande (<a href="mailto:manuel.febrero@usc.es">manuel.febrero@usc.es</a>).
+</p>
+
+
+<h3>References</h3>
+
+<p>Cuesta-Albertos, J.A., Garcia-Portugues, E., Febrero-Bande, M.
+and Gonzalez-Manteiga, W. (2017). Goodness-of-fit tests for the functional
+linear model based on randomly projected empirical processes.
+arXiv:1701.08363. <a href="https://arxiv.org/abs/1701.08363">https://arxiv.org/abs/1701.08363</a>
+</p>
+<p>Garcia-Portugues, E., Gonzalez-Manteiga, W. and Febrero-Bande, M. (2014). A
+goodness-of-fit test for the functional linear model with scalar response.
+Journal of Computational and Graphical Statistics, 23(3), 761–778.
+<a href="https://doi.org/10.1080/10618600.2013.812519">doi:10.1080/10618600.2013.812519</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Simulated example
+
+set.seed(345678)
+t &lt;- seq(0, 1, l = 101)
+n &lt;- 100
+X &lt;- r.ou(n = n, t = t, alpha = 2, sigma = 0.5)
+beta0 &lt;- fdata(mdata = cos(2 * pi * t) - (t - 0.5)^2, argvals = t,
+               rangeval = c(0,1))
+Y &lt;- inprod.fdata(X, beta0) + rnorm(n, sd = 0.1)
+
+# Test all cases
+rp.flm.test(X.fdata = X, Y = Y, est.method = "pc")
+rp.flm.test(X.fdata = X, Y = Y, est.method = "pls")
+rp.flm.test(X.fdata = X, Y = Y, est.method = "basis", 
+            p.criterion = fda.usc.devel::GCV.S)
+rp.flm.test(X.fdata = X, Y = Y, est.method = "pc", p = 5)
+rp.flm.test(X.fdata = X, Y = Y, est.method = "pls", p = 5)
+rp.flm.test(X.fdata = X, Y = Y, est.method = "basis", p = 5)
+rp.flm.test(X.fdata = X, Y = Y, beta0.fdata = beta0)
+
+# Composite hypothesis: do not reject FLM
+rp.test &lt;- rp.flm.test(X.fdata = X, Y = Y, est.method = "pc")
+rp.test$p.values.fdr
+pcvm.test &lt;- flm.test(X.fdata = X, Y = Y, est.method = "pc", B = 1e3,
+                      plot.it = FALSE)
+pcvm.test
+
+# Estimation of beta
+par(mfrow = c(1, 3))
+plot(X, main = "X")
+plot(beta0, main = "beta")
+lines(rp.test$beta.est, col = 2)
+lines(pcvm.test$beta.est, col = 3)
+plot(density(Y), main = "Density of Y", xlab = "Y", ylab = "Density")
+rug(Y)
+
+# Simple hypothesis: do not reject beta = beta0
+rp.flm.test(X.fdata = X, Y = Y, beta0.fdata = beta0)$p.values.fdr
+flm.test(X.fdata = X, Y = Y, beta0.fdata = beta0, B = 1e3, plot.it = FALSE)
+
+# Simple hypothesis: reject beta = beta0^2
+rp.flm.test(X.fdata = X, Y = Y, beta0.fdata = beta0^2)$p.values.fdr
+flm.test(X.fdata = X, Y = Y, beta0.fdata = beta0^2, B = 1e3, plot.it = FALSE)
+
+# Tecator dataset
+
+# Load data
+data(tecator)
+absorp &lt;- tecator$absorp.fdata
+ind &lt;- 1:129 # or ind &lt;- 1:215
+x &lt;- absorp[ind, ]
+y &lt;- tecator$y$Fat[ind]
+
+# Composite hypothesis
+rp.tecat &lt;- rp.flm.test(X.fdata = x, Y = y, est.method = "pc")
+pcvm.tecat &lt;- flm.test(X.fdata = x, Y = y, est.method = "pc", B = 1e3,
+                       plot.it = FALSE)
+rp.tecat$p.values.fdr[c(5, 10), ]
+pcvm.tecat
+
+# Simple hypothesis
+zero &lt;- fdata(mdata = rep(0, length(x$argvals)), argvals = x$argvals,
+              rangeval = x$rangeval)
+rp.flm.test(X.fdata = x, Y = y, beta0.fdata = zero)
+flm.test(X.fdata = x, Y = y, beta0.fdata = zero, B = 1e3)
+
+# With derivatives
+rp.tecat &lt;- rp.flm.test(X.fdata = fdata.deriv(x, 1), Y = y, est.method = "pc")
+rp.tecat$p.values.fdr
+rp.tecat &lt;- rp.flm.test(X.fdata = fdata.deriv(x, 2), Y = y, est.method = "pc")
+rp.tecat$p.values.fdr
+
+# AEMET dataset
+
+# Load data
+data(aemet)
+wind.speed &lt;- apply(aemet$wind.speed$data, 1, mean)
+temp &lt;- aemet$temp
+
+# Remove the 5% of the curves with less depth (i.e. 4 curves)
+par(mfrow = c(1, 1))
+res.FM &lt;- depth.FM(temp, draw = TRUE)
+qu &lt;- quantile(res.FM$dep, prob = 0.05)
+l &lt;- which(res.FM$dep &lt;= qu)
+lines(aemet$temp[l], col = 3)
+
+# Data without outliers
+wind.speed &lt;- wind.speed[-l]
+temp &lt;- temp[-l]
+
+# Composite hypothesis
+rp.aemet &lt;- rp.flm.test(X.fdata = temp, Y = wind.speed, est.method = "pc")
+pcvm.aemet &lt;- flm.test(X.fdata = temp, Y = wind.speed, B = 1e3,
+                       est.method = "pc", plot.it = FALSE)
+rp.aemet$p.values.fdr
+apply(rp.aemet$p.values.fdr, 2, range)
+pcvm.aemet
+
+# Simple hypothesis
+zero &lt;- fdata(mdata = rep(0, length(temp$argvals)), argvals = temp$argvals,
+              rangeval = temp$rangeval)
+flm.test(X.fdata = temp, Y = wind.speed, beta0.fdata = zero, B = 1e3,
+         plot.it = FALSE)
+rp.flm.test(X.fdata = temp, Y = wind.speed, beta0.fdata = zero)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

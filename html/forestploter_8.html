@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>forest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forest plot</h2>
+
+<h3>Description</h3>
+
+<p>A data frame will be used for the basic layout of the forest plot.
+Graphical parameters can be set using the <code>forest_theme</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">forest(
+  data,
+  est,
+  lower,
+  upper,
+  sizes = 0.4,
+  ref_line = ifelse(x_trans %in% c("log", "log2", "log10"), 1, 0),
+  vert_line = NULL,
+  ci_column,
+  is_summary = NULL,
+  xlim = NULL,
+  ticks_at = NULL,
+  ticks_digits = NULL,
+  ticks_minor = NULL,
+  arrow_lab = NULL,
+  x_trans = "none",
+  xlab = NULL,
+  footnote = NULL,
+  title = NULL,
+  nudge_y = 0,
+  fn_ci = makeci,
+  fn_summary = make_summary,
+  index_args = NULL,
+  theme = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data to be displayed in the forest plot</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>Point estimation. Can be a list for multiple columns
+and/or multiple groups. If the length of the list is larger than
+then length of <code>ci_column</code>, then the values reused for each column
+and considered as different groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>Lower bound of the confidence interval, same as <code>est</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>Upper bound of the confidence interval, same as <code>est</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizes</code></td>
+<td>
+<p>Size of the point estimation box, can be a unit, vector or a list.
+Values will be used as it is, no transformation will be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_line</code></td>
+<td>
+<p>X-axis coordinates of zero line, default is 1. Provide an atomic
+vector if different reference line for each <code>ci_column</code> is desired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vert_line</code></td>
+<td>
+<p>Numerical vector, add additional vertical line at given value.
+Provide a list of numerical vector element if different vertical line for each
+<code>ci_column</code> is desired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci_column</code></td>
+<td>
+<p>Column number of the data the CI will be displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is_summary</code></td>
+<td>
+<p>A logical vector indicating if the value is a summary value,
+which will have a diamond shape for the estimate. Can not be used with multiple
+group <code>forestplot</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlim</code></td>
+<td>
+<p>Limits for the x axis as a vector of length 2, i.e. c(low, high). It
+will take the minimum and maximum of the lower and upper value if not provided.
+This will apply to all CI columns if provided, and will be calculated automatically
+for each column if not provided. This should be a list with the same length of
+<code>ci_column</code> if different <code>xlim</code> for different column is desired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ticks_at</code></td>
+<td>
+<p>Set X-axis tick-marks point. This will apply to all CI columns if
+provided, and will be calculated automatically for each column if not provided.
+This should be a list if different <code>ticks_at</code> for different column is desired.
+Although many efforts have been made to automatically get a pretty ticks break,
+it will not give a perfect solution, especially if <code>'log2'</code> and <code>'log10'</code>
+defined for <code>x_trans</code>. Please provide this value if possible.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ticks_digits</code></td>
+<td>
+<p>Number of digits for the x-axis, default is <code>NULL</code> to calculate
+an integer based on <code>ticks_at</code> if provided or <code>lower</code> and <code>upper</code> if not.
+This should be a numerical vector if different rounding will be applied to different
+column. If an integer is specified, for example <code>1L</code>, trailing zeros after
+the decimal mark will be dropped. Specify numeric, for example  <code>1</code>, to keep
+the trailing zero after the decimal mark.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ticks_minor</code></td>
+<td>
+<p>A numeric vector of positions to draw ticks without labels (optional).
+The values provided here can be superset or disjoint sets of <code>ticks_at</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arrow_lab</code></td>
+<td>
+<p>Labels for the arrows, string vector of length two (left and
+right). The theme of arrow will inherit from the x-axis. This should be a list
+if different arrow labels for each column is desired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_trans</code></td>
+<td>
+<p>Change axis scale, Allowed values are one of c("none", "log", "log2",
+"log10"). Default is <code>"none"</code>, no transformation will be applied.
+The formatted label will be used for <code>scale  = "log2"</code> or <code>"log10"</code>, change
+this in <code>x_trans</code>. Set this to <code>"log"</code> if x-axis tick marks assume values
+are exponential, e.g. for logistic regression (OR), survival estimates (HR), Poisson
+regression etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab</code></td>
+<td>
+<p>X-axis labels, it will be put under the x-axis. An atomic vector should
+be provided if different <code>xlab</code> for different column is desired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>footnote</code></td>
+<td>
+<p>Footnote for the forest plot, will be aligned at left bottom
+of the plot. Please adjust the line length with line break to avoid the overlap
+with the arrow and/or x-axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+<p>The text for the title.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nudge_y</code></td>
+<td>
+<p>Horizontal adjustment to nudge groups by, must be within 0 to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn_ci</code></td>
+<td>
+<p>Name of the function to draw confidence interval, default is
+<code>makeci</code>. You can specify your own drawing function to draw the
+confidence interval, but the function needs to accept arguments <code>
+"est", "lower", "upper", "sizes", "xlim", "pch", "gp", "t_height", "nudge_y"</code>.
+Please refer to the <code>makeci</code> function for the details of these
+parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn_summary</code></td>
+<td>
+<p>Name of the function to draw summary confidence interval,
+default is <code>make_summary</code>. You can specify your own drawing
+function to draw the summary confidence interval, but the function needs to
+accept arguments <code>"est", "lower", "upper", "sizes", "xlim", "gp"</code>.
+Please refer to the <code>make_summary</code> function for the details of
+these parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index_args</code></td>
+<td>
+<p>A character vector, name of the arguments used for indexing
+the row and column. This should be the name of the arguments that is working
+the same way as <code>est</code>, <code>lower</code> and <code>upper</code>. Check out the
+examples in the <code>make_boxplot</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theme</code></td>
+<td>
+<p>Theme of the forest plot, see <code>forest_theme</code> for
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed on to the <code>fn_ci</code> and <code>fn_summary</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>gtable</code> object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gtable</code> <code>tableGrob</code>
+<code>forest_theme</code> <code>make_boxplot</code>
+<code>makeci</code>  <code>make_summary</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(grid)
+# Read provided sample example data
+dt &lt;- read.csv(system.file("extdata", "example_data.csv", package = "forestploter"))
+
+# Keep needed columns
+dt &lt;- dt[,1:6]
+
+# indent the subgroup if there is a number in the placebo column
+dt$Subgroup &lt;- ifelse(is.na(dt$Placebo),
+                      dt$Subgroup,
+                      paste0("   ", dt$Subgroup))
+
+# NA to blank or NA will be transformed to carachter.
+dt$Treatment &lt;- ifelse(is.na(dt$Treatment), "", dt$Treatment)
+dt$Placebo &lt;- ifelse(is.na(dt$Placebo), "", dt$Placebo)
+dt$se &lt;- (log(dt$hi) - log(dt$est))/1.96
+
+# Add blank column for the forest plot to display CI.
+# Adjust the column width with space.
+dt$` ` &lt;- paste(rep(" ", 20), collapse = " ")
+
+# Create confidence interval column to display
+dt$`HR (95% CI)` &lt;- ifelse(is.na(dt$se), "",
+                             sprintf("%.2f (%.2f to %.2f)",
+                                     dt$est, dt$low, dt$hi))
+
+# Define theme
+tm &lt;- forest_theme(base_size = 10,
+                   refline_gp = gpar(col = "red"),
+                   footnote_gp = gpar(col = "#636363", fontface = "italic"))
+
+p &lt;- forest(dt[,c(1:3, 8:9)],
+            est = dt$est,
+            lower = dt$low,
+            upper = dt$hi,
+            sizes = dt$se,
+            ci_column = 4,
+            ref_line = 1,
+            arrow_lab = c("Placebo Better", "Treatment Better"),
+            xlim = c(0, 4),
+            ticks_at = c(0.5, 1, 2, 3),
+            footnote = "This is the demo data. Please feel free to change\nanything you want.",
+            theme = tm)
+
+# Print plot
+plot(p)
+</code></pre>
+
+
+</div>

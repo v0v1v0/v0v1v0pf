@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ctbu</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-temporal bottom-up reconciliation</h2>
+
+<h3>Description</h3>
+
+<p>Cross-temporal bottom-up reconciled forecasts for all series at any temporal
+aggregation level are computed by appropriate summation of the high-frequency
+bottom base forecasts <code class="reqn">\widehat{\mathbf{B}^{[1]}}</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">\widetilde{\mathbf{X}} = \mathbf{S}_{cs}\widehat{\mathbf{B}^{[1]}}\mathbf{S}'_{te},</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{S}_{cs}</code> and <code class="reqn">\mathbf{S}_{te}</code> are the cross-sectional and
+temporal structural matrices, respectively.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ctbu(base, agg_mat, agg_order, tew = "sum", sntz = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>A (<code class="reqn">n_b \times hm</code>) numeric matrix containing high-frequency bottom base
+forecasts; <code class="reqn">n_b</code> is the total number of high-frequency bottom variables, <code class="reqn">m</code> is
+the max aggregation order, and <code class="reqn">h</code> is the forecast horizon for the lowest frequency
+time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_mat</code></td>
+<td>
+<p>A (<code class="reqn">n_a \times n_b</code>) numeric matrix representing the cross-sectional
+aggregation matrix. It maps the <code class="reqn">n_b</code> bottom-level (free)
+variables into the <code class="reqn">n_a</code> upper (constrained) variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_order</code></td>
+<td>
+<p>Highest available sampling frequency per seasonal cycle (max. order
+of temporal aggregation, <code class="reqn">m</code>), or a vector representing a subset of <code class="reqn">p</code> factors
+of <code class="reqn">m</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tew</code></td>
+<td>
+<p>A string specifying the type of temporal aggregation. Options include:
+"<code>sum</code>" (simple summation, <em>default</em>), "<code>avg</code>" (average),
+"<code>first</code>" (first value of the period), and "<code>last</code>"
+(last value of the period).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sntz</code></td>
+<td>
+<p>If <code>TRUE</code>, the negative base forecasts are
+set to zero before applying bottom-up.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix of cross-temporal reconciled forecasts.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Bottom-up reconciliation: 
+<code>csbu()</code>,
+<code>tebu()</code>
+</p>
+<p>Cross-temporal framework: 
+<code>ctboot()</code>,
+<code>ctcov()</code>,
+<code>ctlcc()</code>,
+<code>ctmo()</code>,
+<code>ctrec()</code>,
+<code>cttd()</code>,
+<code>cttools()</code>,
+<code>iterec()</code>,
+<code>tcsrec()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# Aggregation matrix for Z = X + Y
+A &lt;- t(c(1,1))
+# (2 x 4) high frequency bottom base forecasts matrix (simulated),
+# agg_order = 4 (annual-quarterly)
+hfbts &lt;- matrix(rnorm(4*2, 2.5), 2, 4)
+
+reco &lt;- ctbu(base = hfbts, agg_mat = A, agg_order = 4)
+
+# Non negative reconciliation
+hfbts[1,4] &lt;- -hfbts[1,4] # Making negative one of the quarterly base forecasts for variable X
+nnreco &lt;- ctbu(base = hfbts, agg_mat = A, agg_order = 4, sntz = TRUE)
+
+</code></pre>
+
+
+</div>

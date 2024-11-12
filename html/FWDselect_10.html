@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>selection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Selecting a subset of <code>q</code> variables</h2>
+
+<h3>Description</h3>
+
+<p>Main function for selecting the best subset of <code class="reqn">q</code> variables.
+Note that the selection procedure can be used with lm, glm or gam functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">selection(x, y, q, prevar = NULL, criterion = "deviance", method = "lm",
+  family = "gaussian", seconds = FALSE, nmodels = 1, nfolds = 5,
+  cluster = TRUE, ncores = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A data frame containing all the covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A vector with the response values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>An integer specifying the size of the subset of variables to be
+selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prevar</code></td>
+<td>
+<p>A vector containing the number of the best subset of
+<code>q-1</code> variables. <code>NULL</code>, by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>The information criterion to be used.
+Default is the deviance. Other functions provided
+are the coefficient of determination (<code>"R2"</code>), the residual
+variance (<code>"variance"</code>), the Akaike information criterion (<code>"aic"</code>),
+AIC with a correction for finite sample sizes (<code>"aicc"</code>)
+and the Bayesian information criterion (<code>"bic"</code>). The deviance,
+coefficient of determination and variance are calculated by cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character string specifying which regression method is used,
+i.e., linear models (<code>"lm"</code>), generalized additive models
+(<code>"glm"</code>) or generalized additive models (<code>"gam"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>A description of the error distribution and link function to be
+used in the model: (<code>"gaussian"</code>), (<code>"binomial"</code>) or
+(<code>"poisson"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seconds</code></td>
+<td>
+<p>A logical value. By default, <code>FALSE</code>.  If <code>TRUE</code>
+then, rather than returning the single best model only, the function returns
+a few of the best models (equivalent).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmodels</code></td>
+<td>
+<p>Number of secondary models to be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>Number of folds for the cross-validation procedure, for
+<code>deviance</code>, <code>R2</code> or <code>variance</code> criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>A logical value. If  <code>TRUE</code> (default), the
+procedure is  parallelized. Note that there are cases without enough
+repetitions (e.g., a low number of initial variables) that R will gain in
+performance through serial computation. R takes time to distribute tasks
+across the processors also it will need time for binding them all together
+later on. Therefore, if the time for distributing and gathering pieces
+together is greater than the time need for single-thread computing, it does
+not worth parallelize.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>An integer value specifying the number of cores to be used
+in the parallelized procedure. If <code>NULL</code> (default), the number of cores to be used
+is equal to the number of cores of the machine - 1.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Best model</code></td>
+<td>
+<p>The best model. If <code>seconds=TRUE</code>, it returns
+also the best alternative models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Variable name</code></td>
+<td>
+<p>Names of the variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Variable number</code></td>
+<td>
+<p>Number of the variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Information criterion</code></td>
+<td>
+<p>Information criterion used and its value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Prediction</code></td>
+<td>
+<p>The prediction of the best model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(FWDselect)
+data(diabetes)
+x = diabetes[ ,2:11]
+y = diabetes[ ,1]
+obj1 = selection(x, y, q = 1, method = "lm", criterion = "variance", cluster = FALSE)
+obj1
+
+# second models
+obj11 = selection(x, y, q = 1, method = "lm", criterion = "variance",
+seconds = TRUE, nmodels = 2, cluster = FALSE)
+obj11
+
+# prevar argument
+obj2 = selection(x, y, q = 2, method = "lm", criterion = "variance", cluster = FALSE)
+obj2
+obj3 = selection(x, y, q = 3, prevar = obj2$Variable_numbers,
+method = "lm", criterion = "variance", cluster = FALSE)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,73 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sortClus</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sort Species by fuzzyq Clustering</h2>
+
+<h3>Description</h3>
+
+<p>Sort species in a matrix or data frame to match the resulting species order
+of a <code>fuzzyq</code> object. This is useful prior to plotting Commonness
+Indices derived from bootstrap replicates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sortClus(M, fq)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>A matrix or data frame with information of species in columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fq</code></td>
+<td>
+<p>A list of class <code>fuzzyq</code> returned by <code>FuzzyQ::fuzzyq</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A matrix or data frame with information of species in columns sorted
+according to <code>fq$spp</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(antsA)
+FQAnts &lt;- fuzzyq(antsA, sorting = TRUE)
+# Compute species Commonness Indices of species of 1,000 bootstrap
+# replicates:
+BS.FQAnts &lt;- fuzzyqBoot (antsA, N = 1e3, level='spp')
+
+# Compute 95 % confidence intervals, percentile method, default values:
+BS.sppCI1 &lt;- fuzzyqCI(BS.FQAnts)
+
+# Plot Commonness Indices and their respective confidence intervals:
+BS.sppCI1 &lt;- sortClus(BS.sppCI1, FQAnts)
+spp &lt;- FQAnts$spp
+col.RC &lt;- c("brown2", "turquoise3") # two colors to plot rare and common
+# species
+plot(spp[, 3], cex.axis = 0.8, xaxt= 'n', ylab = "Commoness index",
+   ylim = c(0, max(BS.sppCI1)), xlab = "Species", col = col.RC[spp[, 1] + 1],
+   pch = 16, cex = 0.8, las = 1)
+ebar.int &lt;- seq_len(nrow(spp))
+arrows(ebar.int, BS.sppCI1["Lower", ], ebar.int, BS.sppCI1["Upper", ],
+   length= 0, col = col.RC[spp[, 1] + 1])
+axis(1, at = ebar.int, labels = rownames(spp), las = 2, cex.axis = 0.6)
+
+</code></pre>
+
+
+</div>

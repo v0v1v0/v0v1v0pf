@@ -1,0 +1,221 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model predictions for familiar models and model ensembles</h2>
+
+<h3>Description</h3>
+
+<p>Fits the model or ensemble of models to the data and shows the
+result.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predict(object, ...)
+
+## S4 method for signature 'familiarModel'
+predict(
+  object,
+  newdata,
+  type = "default",
+  time = NULL,
+  dir_path = NULL,
+  ensemble_method = "median",
+  stratification_threshold = NULL,
+  stratification_method = NULL,
+  percentiles = NULL,
+  ...
+)
+
+## S4 method for signature 'familiarEnsemble'
+predict(
+  object,
+  newdata,
+  type = "default",
+  time = NULL,
+  dir_path = NULL,
+  ensemble_method = "median",
+  stratification_threshold = NULL,
+  stratification_method = NULL,
+  percentiles = NULL,
+  ...
+)
+
+## S4 method for signature 'familiarNoveltyDetector'
+predict(object, newdata, type = "novelty", ...)
+
+## S4 method for signature 'list'
+predict(
+  object,
+  newdata,
+  type = "default",
+  time = NULL,
+  dir_path = NULL,
+  ensemble_method = "median",
+  stratification_threshold = NULL,
+  stratification_method = NULL,
+  percentiles = NULL,
+  ...
+)
+
+## S4 method for signature 'character'
+predict(
+  object,
+  newdata,
+  type = "default",
+  time = NULL,
+  dir_path = NULL,
+  ensemble_method = "median",
+  stratification_threshold = NULL,
+  stratification_method = NULL,
+  percentiles = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A familiar model or ensemble of models that should be used for
+prediction. This can also be a path to the ensemble model, one or more
+paths to models, or a list of models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>to be documented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Data to which the models are fitted. <code>familiar</code> performs
+checks on the data to ensure that all features required for fitting the
+model are present, and no additional levels are present in categorical
+features. Unlike other <code>predict</code> methods, <code>newdata</code> cannot be missing in
+<code>familiar</code>, as training data are not stored with the models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of prediction made. The following values are directly
+supported:
+</p>
+
+<ul>
+<li> <p><code>default</code>: Default prediction, i.e. value estimates for <code>count</code> and
+<code>continuous</code> outcomes, predicted class probabilities and class for
+<code>binomial</code> and <code>multinomial</code> and the model response for <code>survival</code>
+outcomes.
+</p>
+</li>
+<li> <p><code>survival_probability</code>: Predicts survival probabilities at the time
+specified by <code>time</code>. Only applicable to <code>survival</code> outcomes. Some models
+may not allow for predicting survival probabilities based on their
+response.
+</p>
+</li>
+<li> <p><code>novelty</code>: Predicts novelty of each sample, which can be used for
+out-of-distribution detection.
+</p>
+</li>
+<li> <p><code>risk_stratification</code>: Predicts the strata to which the data belongs. Only
+for <code>survival</code> outcomes.
+</p>
+</li>
+</ul>
+<p>Other values for type are passed to the fitting method of the actual
+underlying model. For example for generalised linear models (<code>glm</code>) <code>type</code>
+can be <code>link</code>, <code>response</code> or <code>terms</code> as well. Some of these model-specific
+prediction types may fail to return results if the model has been trimmed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>Time at which the response (<code>default</code>) or survival probability
+(<code>survival_probability</code>) should be predicted for <code>survival</code> outcomes. Some
+models have a response that does not depend on <code>time</code>, e.g. <code>cox</code>, whereas
+others do, e.g. <code>random_forest</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir_path</code></td>
+<td>
+<p>Path to the folder containing the models. Ensemble objects
+are stored with the models detached. In case the models were moved since
+creation, <code>dir_path</code> can be used to specify the current folder.
+Alternatively the <code>update_model_dir_path</code> method can be used to update the
+path.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ensemble_method</code></td>
+<td>
+<p>Method for ensembling predictions from models for the
+same sample. Available methods are:
+</p>
+
+<ul>
+<li> <p><code>median</code> (default): Use the median of the predicted values as the ensemble
+value for a sample.
+</p>
+</li>
+<li> <p><code>mean</code>: Use the mean of the predicted values as the ensemble value for a
+sample.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratification_threshold</code></td>
+<td>
+<p>Threshold value(s) used for stratifying
+instances into risk groups. If this parameter is specified,
+<code>stratification_method</code> and any threshold values that come with the model
+are ignored, and <code>stratification_threshold</code> is used instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratification_method</code></td>
+<td>
+<p>Selects the stratification method from which the
+threshold values should be selected. If the model or ensemble of models
+does not contain thresholds for the indicated method, an error is returned.
+In addition this argument is ignored if a <code>stratification_threshold</code> is
+set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>percentiles</code></td>
+<td>
+<p>Currently unused.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This method is used to predict values for instances specified by the
+<code>newdata</code> using the model or ensemble of models specified by the <code>object</code>
+argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.table</code> with predicted values.
+</p>
+
+
+</div>

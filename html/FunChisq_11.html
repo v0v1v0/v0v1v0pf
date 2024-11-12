@@ -1,0 +1,241 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fun.chisq.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Model-Free Functional Chi-Squared and Exact Tests
+</h2>
+
+<h3>Description</h3>
+
+<p>Asymptotic chi-squared, normalized chi-squared or exact tests on contingency tables to determine model-free functional dependency of the column variable on the row variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fun.chisq.test(
+  x,
+  method = c("fchisq", "nfchisq", "adapted",
+             "exact", "exact.qp", "exact.dp", "exact.dqp",
+             "default", "normalized", "simulate.p.value"),
+  alternative = c("non-constant", "all"), log.p=FALSE,
+  index.kind = c("conditional", "unconditional"),
+  simulate.nruns = 2000,
+  exact.mode.bound=TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>a matrix representing a contingency table. The row variable represents the independent variable or all unique combinations of multiple independent variables. The column variable is the dependent variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>a character string to specify the method to compute the functional chi-squared test statistic and its p-value. The options are <code>"fchisq"</code> (equivalent to <code>"default"</code>, the default), <code>"nfchisq"</code> (equivalent to <code>"normalized"</code>), <code>"exact"</code>, <code>"adapted"</code>, <code>"exact.qp"</code>, <code>"exact.dp"</code>, <code>"exact.dqp"</code> or <code>"simulate.p.value"</code>. See Details.
+</p>
+<p>Note: <code>"default"</code> and <code>"normalized"</code> are deprecated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+
+<p>a character string to specify the alternative hypothesis. The options are <code>"non-constant"</code> (default, non-constant functions) and <code>"all"</code> (all types of functions including constant ones).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.p</code></td>
+<td>
+
+<p>logical; if <code>TRUE</code>, the p-value is given as <code>log(p)</code>. Taking the log improves the accuracy when p-value is close to zero. The default is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index.kind</code></td>
+<td>
+
+<p>a character string to specify the kind of function index xi.f to be estimated. The options are <code>"conditional"</code> (default) and <code>"unconditional"</code>. See Details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulate.nruns</code></td>
+<td>
+
+<p>A number to specify the number of tables generated to simulate the null distribution. Default is <code>2000</code>. Only used when <code>method="simulate.p.value"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact.mode.bound</code></td>
+<td>
+
+<p>logical; if <code>TRUE</code>, a fast branch-and-bound algorithm is used for the exact functional test (<code>method="exact"</code>). If <code>FALSE</code>, a slow brute-force enumeration method is used to provide a  reference for runtime analysis. Both options provide the same exact p-value. The default is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The functional chi-squared test determines whether the column variable is a function of the row variable in contingency table <code>x</code> (Zhang and Song 2013; Zhang 2014). This function supports three hypothesis testing methods:
+</p>
+<p>When <code>method="fchisq"</code> (equivalent to <code>"default"</code>, the default), the test statistic is computed as described in (Zhang and Song 2013; Zhang 2014) and the p-value is computed using the chi-squared distribution.
+</p>
+<p>When <code>method="nfchisq"</code> (equivalent to <code>"normalized"</code>), the test statistic is obtained by shifting and scaling the original test statistic (Zhang and Song 2013; Zhang 2014); and the p-value is computed using the standard normal distribution (Box et al. 2005). The normalized chi-squared, more conservative on the degrees of freedom, was used by the Best Performer NMSUSongLab in HPN-DREAM (DREAM8) Breast Cancer Network Inference Challenges.
+</p>
+<p>When <code>method="exact"</code>, <code>"exact.qp"</code> (quadratic programming) (Zhong and Song 2019a; Zhong 2019), <code>"exact.dp"</code> (dynamic programming) (Nguyen 2018; Nguyen et al. 2020), or <code>"exact.dqp"</code> (dynamic and quadratic programming) (Nguyen 2018; Nguyen et al. 2020), an exact functional test is performed. The option of <code>"exact"</code> uses <code>"exact.dqp"</code>, the fastest method. All methods compute an exact p-value.
+</p>
+<p>When <code>method="adapted"</code>, the adapted functional chi-squared test (Kumar and Song 2022) is used. The test statistic is obtained by evaluating the most populous portrait or square (number of rows &lt;= number of columns) table in the contingency table <code>x</code>. The p-value is computed using the chi-squared distribution. This option should be used to determine the functional direction between variables in <code>x</code>.
+</p>
+<p>For the <code>"exact.qp"</code> and <code>"exact.dp"</code> options, if the sample size is no more than 200 or the average cell count is less than five, and the table size is no more than 10 in either row or column, the exact test will not be called and the asymptotic functional chi-squared test (<code>method="fchisq"</code>) is used instead.  
+
+</p>
+<p>For <code>"exact.dqp"</code>, the exact functional test will always be performed.
+</p>
+<p>For 2-by-2 contingency tables, the asymptotic test options (<code>method="fchisq"</code> or <code>"nfchisq"</code>) are recommended to test functional dependency, instead of the exact functional test.
+</p>
+<p>When <code>method="simulate.p.value"</code>, a simulated null distribution is used to calculate <code>p-value</code>. The null distribution is a multinomial distribution that is the product of two marginal distributions. Like other Monte Carlo based methods, this method is slower but may be more accurate than other methods based on asymptotic distributions.
+</p>
+<p><code>index.kind</code> specifies the kind of function index to be computed. If the experimental design controls neither the row nor column marginal sums, <code>index.kind = "unconditional"</code> is recommended; If the column marginal sums are controlled, <code>index.kind = "conditional"</code> is recommended. The <code>conditional</code> function index is the square root of Goodman-Kruskal's tau (Goodman and Kruskal 1954). The choice of <code>index.kind</code> affects only the function index xi.f value, but not the test statistic or p-value.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with class "<code>htest</code>" containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>the functional chi-squared statistic if <code>method = "fchisq"</code>, <code>"default"</code>, or <code>"exact"</code>; or the normalized functional chi-squared statistic if <code>method = "nfchisq"</code> or <code>"normalized"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>degrees of freedom for the functional chi-squared statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>p-value of the functional test. If <code>method = "fchisq"</code> (or <code>"default"</code>), it is computed by an asymptotic chi-squared distribution; if <code>method = "nfchisq"</code> (or <code>"normalized"</code>), it is computed by the standard normal distribution; if <code>method</code> <code>= "exact"</code>, it is computed by an exact hypergeometric distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>an estimate of function index between 0 and 1. The value of 1 indicates a strictly mathematical function. It is asymmetrical with respect to transpose of the input contingency table, different from the symmetrical Cramer's V based on the Pearson's chi-squared test statistic. See (Zhong and Song 2019b; Kumar et al. 2018) for the definition of function index.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yang Zhang, Hua Zhong, Hien Nguyen, Sajal Kumar, and Joe Song
+</p>
+
+
+<h3>References</h3>
+
+<p>Box GE, Hunter JS, Hunter WG (2005).
+<em>Statistics for Experimenters: Design, Innovation and Discovery</em>, 2nd edition.
+Wiley-Interscience, New York.<br><br> Goodman LA, Kruskal WH (1954).
+“Measures of Association for Cross Classifications.”
+<em>Journal of the American Statistical Association</em>, <b>49</b>(268), 732–764.<br><br> Kumar S, Song M (2022).
+“Overcoming biases in causal inference of molecular interactions.”
+<em>Bioinformatics</em>, <b>38</b>(10), 2818–2825.
+<a href="https://doi.org/10.1093/bioinformatics/btac206">doi:10.1093/bioinformatics/btac206</a>.<br><br> Kumar S, Zhong H, Sharma R, Li Y, Song M (2018).
+“Scrutinizing functional interaction networks from RNA-binding proteins to their targets in cancer.”
+In <em>IEEE International Conference on Bioinformatics and Biomedicine</em>, 185–190.
+<a href="https://doi.org/10.1109/BIBM.2018.8621502">doi:10.1109/BIBM.2018.8621502</a>.<br><br> Nguyen HH (2018).
+<em>Inference of Functional Dependency via Asymmetric, Optimal, and Model-free Statistics</em>.
+Ph.D. thesis, Department of Computer Science, New Mexico State University, Las Cruces, NM, USA.<br><br> Nguyen HH, Zhong H, Song M (2020).
+“Optimality, accuracy, and efficiency of an exact functional test.”
+In <em>Proceedings of the Twenty-Ninth International Joint Conference on Artificial Intelligence, IJCAI-20</em>, 2683–2689.
+<a href="https://doi.org/10.24963/ijcai.2020/372">doi:10.24963/ijcai.2020/372</a>.<br><br> Zhang Y (2014).
+<em>Nonparametric Statistical Methods for Biological Network Inference</em>.
+Ph.D. thesis, Department of Computer Science, New Mexico State University, Las Cruces, NM, USA.<br><br> Zhang Y, Song M (2013).
+“Deciphering interactions in causal networks without parametric assumptions.”
+<em>arXiv Molecular Networks</em>, arXiv:1311.2707.
+<a href="https://arxiv.org/abs/1311.2707">https://arxiv.org/abs/1311.2707</a>.<br><br> Zhong H (2019).
+<em>Model-free Gene-to-zone Network Inference of Molecular Mechanisms in Biology</em>.
+Ph.D. thesis, Department of Computer Science, New Mexico State University, Las Cruces, NM, USA.<br><br> Zhong H, Song M (2019a).
+“A fast exact functional test for directional association and cancer biology applications.”
+<em>IEEE/ACM Transactions on Computational Biology and Bioinformatics</em>, <b>16</b>(3), 818–826.
+<a href="https://doi.org/10.1109/TCBB.2018.2809743">doi:10.1109/TCBB.2018.2809743</a>.<br><br> Zhong H, Song M (2019b).
+“Directional association test reveals high-quality putative cancer driver biomarkers including noncoding RNAs.”
+<em>BMC Med Genomics</em>, <b>12</b>(7), 129.
+<a href="https://doi.org/10.1186/s12920-019-0565-9">doi:10.1186/s12920-019-0565-9</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For data discretization, an option is optimal univariate clustering via package <span class="pkg">Ckmeans.1d.dp</span>. A second option is joint multivariate discretization via package <span class="pkg">GridOnClusters</span>.
+</p>
+<p>For symmetrical dependency tests on discrete data, see Pearson's chi-squared test <code>chisq.test</code>, Fisher's exact test <code>fisher.test</code>, and mutual information methods in package <span class="pkg">entropy</span>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Example 1. Asymptotic functional chi-squared test
+x &lt;- matrix(c(20,0,20,0,20,0,5,0,5), 3)
+fun.chisq.test(x) # strong functional dependency
+fun.chisq.test(t(x)) # weak functional dependency
+
+# Example 2. Normalized functional chi-squared test
+x &lt;- matrix(c(8,0,8,0,8,0,2,0,2), 3)
+fun.chisq.test(x, method="nfchisq") # strong functional dependency
+fun.chisq.test(t(x), method="nfchisq") # weak functional dependency
+
+# Example 3. Exact functional chi-squared test
+x &lt;- matrix(c(4,0,4,0,4,0,1,0,1), 3)
+fun.chisq.test(x, method="exact") # strong functional dependency
+fun.chisq.test(t(x), method="exact") # weak functional dependency
+
+# Example 4. Exact functional chi-squared test on a real data set
+#            (Shen et al., 2002)
+# x is a contingency table with row variable for p53 mutation and
+#   column variable for CIMP
+x &lt;- matrix(c(12,26,18,0,8,12), nrow=2, ncol=3, byrow=TRUE)
+
+# Example 5. Adpated functional chi-squared test
+x &lt;- matrix(c(20, 0, 1, 0, 1, 20, 3, 2, 15, 2, 5, 2), 3, 4, byrow=TRUE)
+fun.chisq.test(x, method="adapted") # strong functional dependency
+fun.chisq.test(t(x), method="adapted") # weak functional dependency
+
+# Test the functional dependency: p53 mutation -&gt; CIMP
+fun.chisq.test(x, method="exact")
+
+# Test the functional dependency CIMP -&gt; p53 mutation
+fun.chisq.test(t(x), method="exact")
+
+# Example 6. Asymptotic functional chi-squared test with simulated distribution
+x &lt;- matrix(c(20,0,20,0,20,0,5,0,5), 3)
+fun.chisq.test(x, method="simulate.p.value")
+fun.chisq.test(x, method="simulate.p.value", simulate.n = 1000)
+
+</code></pre>
+
+
+</div>

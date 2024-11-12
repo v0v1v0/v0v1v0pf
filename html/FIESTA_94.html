@@ -1,0 +1,249 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spZonalRast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spatial - Extracts summary statistics by polygon (i.e., zone) for a raster.</h2>
+
+<h3>Description</h3>
+
+<p>Extracts summary statistics by polygon, or zone for a raster (single or
+multi-band).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spZonalRast(
+  polyv,
+  polyv_dsn = NULL,
+  polyv.att = NULL,
+  rastfn,
+  rastfolder = NULL,
+  bands = NULL,
+  zonalstat,
+  pixelfun = NULL,
+  validate = FALSE,
+  outname = NULL,
+  showext = FALSE,
+  rastlut = NULL,
+  rast.NODATA = NULL,
+  savedata = FALSE,
+  savedata_opts = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>polyv</code></td>
+<td>
+<p>sf R object or String. Polygon data to identify zones. Can be a
+spatial polygon object, full pathname to a shapefile, or name of a layer
+within a database.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>polyv_dsn</code></td>
+<td>
+<p>String. Data source name (dsn; e.g., sqlite or shapefile
+pathname) of zonal layer. The dsn varies by driver. See gdal OGR vector
+formats (https://www.gdal.org/ogr_formats.html). Optional if polyv is sf
+object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>polyv.att</code></td>
+<td>
+<p>String. Name of attribute in polyv to identify zones for
+summarizing raster statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rastfn</code></td>
+<td>
+<p>String or Raster. File name with extension, or raster
+object.  Note: raster objects must be written to file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rastfolder</code></td>
+<td>
+<p>String. Name of the folder with raster layers. Optional.
+Useful if all raster layers are in same folder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bands</code></td>
+<td>
+<p>Numeric vector. If rast is a multi-layer raster and only 1 or
+some layers are desired, specify layer number(s) in a vector format. If
+NULL, all layers are summed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zonalstat</code></td>
+<td>
+<p>String vector. Zonal statistic(s) to return for rasters
+with continuous data ("mean", "sum", "majority", "minority", "variety",
+"npixels") or rasters with discrete data ("count", "proportion").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pixelfun</code></td>
+<td>
+<p>Function. A function to apply to the individual pixel values
+before calculating sum and mean. The function should accept a single numeric
+argument (pixel value) and return a single numeric argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>validate</code></td>
+<td>
+<p>Logical. If TRUE, validates polyv and clippolyv before 
+clipping. Uses sf::st_make_valid with default parameters 
+(geos_method='valid_structure', geos_keep_collapsed=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outname</code></td>
+<td>
+<p>String. Variable name for output. The output names will use
+outname as a prefix to summary statistics (i.e., 'outname'.mean,
+'outname'.sum).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showext</code></td>
+<td>
+<p>Logical. If TRUE, layer extents are displayed in plot window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rastlut</code></td>
+<td>
+<p>Data frame. A look up table to recode raster values. Must be
+2 columns: Column 1 with raster values and column 2 with recode values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rast.NODATA</code></td>
+<td>
+<p>Numeric. NODATA value (if not already defined) or other 
+values to ignore. These values will be removed from output zonal table. 
+NODATA values defined in raster are removed before zonal statistic 
+calculations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, the zonal data are saved to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE. If out_layer = NULL,
+default = 'zonalext'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Use spZonalRast() to prompt for input.
+</p>
+<p>If the projection of polyv is different than the projection of rast, the
+polyv SpatialPolygons object is converted to the projection of rast (See
+note about on-the-fly projection conversion).
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>zonalext</code></td>
+<td>
+<p> Data frame. Zonal statistics by polygon attribute
+(attribute). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outname</code></td>
+<td>
+<p> String vector. Names of zonal statistic
+variables generated in zonalext data frame. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rasterfile</code></td>
+<td>
+<p> String
+vector. Names of raster file(s) associated with zonal statistic. </p>
+</td>
+</tr>
+</table>
+<p>If savedata=TRUE, outdat data frame is saved to outfolder (Default name:
+zonalext_'date'.csv).
+</p>
+
+
+<h3>Note</h3>
+
+<p>rast.NODATA<br> NODATA values are raster pixel values that have no data
+of interest, including pixels within the extent of the layer, but outside
+the area of interest. Sometimes these pixels have been defined previously.
+The defined NODATA pixels are imported to R as NULL values. When not
+previously defined, the pixels outside the area of interest will be the
+minimum or maximum value depending on the data type (e.g., 16-bit signed:
+min=-32,768; max=32,768) or byte size (1 byte: min=0; max=255).  These
+NODATA values will be added to the zonal statistic calculations if not
+specified in rast.NODATA.
+</p>
+<p>On-the-fly projection conversion<br> The spTransform (sf) method is used
+for on-the-fly map projection conversion and datum transformation using
+PROJ.4 arguments. Datum transformation only occurs if the +datum tag is
+present in the both the from and to PROJ.4 strings. The +towgs84 tag is used
+when no datum transformation is needed. PROJ.4 transformations assume NAD83
+and WGS84 are identical unless other transformation parameters are
+specified.  Be aware, providing inaccurate or incomplete CRS information may
+lead to erroneous data shifts when reprojecting. See spTransform help
+documentation for more details.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Set up data from `FIESTA`
+WYbhdistfn &lt;- system.file("extdata",
+                          "sp_data/WYbighorn_districtbnd.shp",
+                          package = "FIESTA")
+demfn &lt;- system.file("extdata",
+                     "sp_data/WYbighorn_dem_250m.img",
+                     package = "FIESTA")
+
+# Import spatial data with `spImportSpatial`
+WYbhdist &lt;- spImportSpatial(WYbhdistfn)
+
+# Extract mean and sum in `WYbhdist`
+spZonalRast(polyv = WYbhdist, 
+            polyv.att = "DISTRICTNA", 
+            rastfn = demfn, 
+            zonalstat = c("mean", "sum")) 
+
+</code></pre>
+
+
+</div>

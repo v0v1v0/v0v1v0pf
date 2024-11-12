@@ -1,0 +1,394 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>factorize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Factorize tensor product model</h2>
+
+<h3>Description</h3>
+
+<p>Factorize an FDboost tensor product model into the response and covariate parts 
+</p>
+<p style="text-align: center;"><code class="reqn">h_j(x, t) = \sum_{k} v_j^{(k)}(t) h_j^{(k)}(x), j = 1, ..., J,</code>
+</p>
+
+<p>for effect visualization as proposed in Stoecker, Steyer and Greven (2022).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">factorize(x, ...)
+
+## S3 method for class 'FDboost'
+factorize(x, newdata = NULL, newweights = 1, blwise = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a model object of class FDboost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>new data the factorization is based on. 
+By default (<code>NULL</code>), the factorization is carried out on the data used for fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newweights</code></td>
+<td>
+<p>vector of the length of the data or length one, 
+containing new weights used for factorization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blwise</code></td>
+<td>
+<p>logical, should the factorization be carried out base-learner-wise (<code>TRUE</code>, default)
+or for the whole model simultaneously.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The mboost infrastructure is used for handling the orthogonal response 
+directions <code class="reqn">v_j^{(k)}(t)</code> in one <code>mboost</code>-object 
+(with <code class="reqn">k</code> running over iteration indices) and the effects into the respective 
+directions <code class="reqn">h_j^{(k)}(t)</code> in another <code>mboost</code>-object, 
+both of subclass <code>FDboost_fac</code>. 
+The number of boosting iterations of <code>FDboost_fac</code>-objects cannot be 
+further increased as in regular <code>mboost</code>-objects.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list of two mboost models of class <code>FDboost_fac</code> containing basis functions
+for response and covariates, respectively, as base-learners.
+</p>
+<p>A factorized model
+</p>
+
+
+<h3>References</h3>
+
+<p>Stoecker, A., Steyer L. and Greven, S. (2022):
+Functional additive models on manifolds of planar shapes and forms
+&lt;arXiv:2109.02624&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p>[FDboost_fac-class]
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(FDboost)
+
+# generate irregular toy data -------------------------------------------------------
+
+n &lt;- 100
+m &lt;- 40
+# covariates
+x &lt;- seq(0,2,len = n)
+# time &amp; id
+set.seed(90384)
+t &lt;- runif(n = n*m, -pi,pi)
+id &lt;- sample(1:n, size = n*m, replace = TRUE)
+
+# generate components
+fx &lt;- ft &lt;- list()
+fx[[1]] &lt;- exp(x)
+d &lt;- numeric(2)
+d[1] &lt;- sqrt(c(crossprod(fx[[1]])))
+fx[[1]] &lt;- fx[[1]] / d[1]
+fx[[2]] &lt;- -5*x^2
+fx[[2]] &lt;- fx[[2]] - fx[[1]] * c(crossprod(fx[[1]], fx[[2]])) # orthogonalize fx[[2]]
+d[2] &lt;- sqrt(c(crossprod(fx[[2]])))
+fx[[2]] &lt;- fx[[2]] / d[2]
+ft[[1]] &lt;- sin(t)
+ft[[2]] &lt;- cos(t)
+ft[[1]] &lt;- ft[[1]] / sqrt(sum(ft[[1]]^2))
+ft[[2]] &lt;- ft[[2]] / sqrt(sum(ft[[2]]^2))
+
+mu1 &lt;- d[1] * fx[[1]][id] * ft[[1]]
+mu2 &lt;- d[2] * fx[[2]][id] * ft[[2]]
+# add linear covariate
+ft[[3]] &lt;- t^2 * sin(4*t) 
+ft[[3]] &lt;- ft[[3]] - ft[[1]] * c(crossprod(ft[[1]], ft[[3]]))
+ft[[3]] &lt;- ft[[3]] - ft[[2]] * c(crossprod(ft[[2]], ft[[3]]))
+ft[[3]] &lt;- ft[[3]] / sqrt(sum(ft[[3]]^2))
+set.seed(9234)
+fx[[3]] &lt;- runif(0,3, n = length(x))
+fx[[3]] &lt;- fx[[3]] - fx[[1]] * c(crossprod(fx[[1]], fx[[3]]))
+fx[[3]] &lt;- fx[[3]] - fx[[2]] * c(crossprod(fx[[2]], fx[[3]]))
+d[3] &lt;- sqrt(sum(fx[[3]]^2))
+fx[[3]] &lt;- fx[[3]] / d[3]
+
+mu3 &lt;- d[3] * fx[[3]][id] * ft[[3]]
+
+mu &lt;- mu1 + mu2 + mu3
+# add some noise
+y &lt;- mu + rnorm(length(mu), 0, .01)
+# and noise covariate
+z &lt;- rnorm(n)
+
+# fit FDboost model -------------------------------------------------------
+
+dat &lt;- list(y = y, x = x, t = t, x_lin = fx[[3]], id = id)
+m &lt;- FDboost(y ~ bbs(x, knots = 5, df = 2, differences = 0) + 
+               # bbs(z, knots = 2, df = 2, differences = 0) + 
+               bols(x_lin, intercept = FALSE, df = 2)
+               , ~ bbs(t),
+             id = ~ id, 
+             offset = 0, #numInt = "Riemann", 
+             control = boost_control(nu = 1), 
+             data = dat)
+MU &lt;- split(mu, id)
+PRED &lt;- split(predict(m), id)
+Ti &lt;- split(t, id)
+t0 &lt;- seq(-pi, pi, length.out = 40)
+MU &lt;- do.call(cbind, Map(function(mu, t) approx(t, mu, t0)$y,
+          MU, Ti)) 
+PRED &lt;- do.call(cbind, Map(function(mu, t) approx(t, mu, t0)$y,
+            PRED, Ti))
+
+opar &lt;- par(mfrow = c(2,2))
+image(t0, x, MU)
+contour(t0, x, MU, add = TRUE)
+image(t0, x, PRED)
+contour(t0, x, PRED, add = TRUE)
+persp(t0, x, MU, zlim = range(c(MU, PRED), na.rm = TRUE))
+persp(t0, x, PRED, zlim = range(c(MU, PRED), na.rm = TRUE))
+par(opar)
+
+# factorize model ---------------------------------------------------------
+
+fac &lt;- factorize(m)
+
+vi &lt;- as.data.frame(varimp(fac$cov))
+# if(require(lattice))
+#   barchart(variable ~ reduction, group = blearner, vi, stack = TRUE)
+
+cbind(d^2, sort(vi$reduction, decreasing = TRUE)[1:3])
+
+
+x_plot &lt;- list(x, x, fx[[3]])
+
+cols &lt;- c("cornflowerblue", "darkseagreen", "darkred")
+opar &lt;- par(mfrow = c(3,2))
+wch &lt;- c(1,2,10)
+for(w in 1:length(wch)) {
+  plot.mboost(fac$resp, which = wch[w], col = "darkgrey", ask = FALSE,
+       main = names(fac$resp$baselearner[wch[w]]))
+  lines(sort(t), ft[[w]][order(t)]*max(d), col = cols[w], lty = 2)
+  plot(fac$cov, which = wch[w], 
+       main = names(fac$cov$baselearner[wch[w]]))
+  points(x_plot[[w]], d[w] * fx[[w]] / max(d), col = cols[w], pch = 3)
+}
+par(opar)
+
+# re-compose predictions
+preds &lt;- lapply(fac, predict)
+predf &lt;- rowSums(preds$resp * preds$cov[id, ])
+PREDf &lt;- split(predf, id)
+PREDf &lt;- do.call(cbind, Map(function(mu, t) approx(t, mu, t0)$y,
+                            PREDf, Ti))
+opar &lt;- par(mfrow = c(1,2))
+image(t0,x, PRED, main = "original prediction")
+contour(t0,x, PRED, add = TRUE)
+image(t0,x,PREDf, main = "recomposed")
+contour(t0,x, PREDf, add = TRUE)
+par(opar)
+
+stopifnot(all.equal(PRED, PREDf))
+
+# check out other methods
+set.seed(8399)
+newdata_resp &lt;- list(t = sort(runif(60, min(t), max(t))))
+a &lt;- predict(fac$resp, newdata = newdata_resp, which = 1:5)
+plot(newdata_resp$t, a[, 1])
+# coef method
+cf &lt;- coef(fac$resp, which = 1)
+
+
+# check factorization on a new dataset ------------------------------------
+
+t_grid &lt;- seq(-pi,pi,len = 30)
+x_grid &lt;- seq(0,2,len = 30)
+x_lin_grid &lt;- seq(min(dat$x_lin), max(dat$x_lin), len = 30)
+
+# use grid data for factorization
+griddata &lt;- expand.grid(
+  # time 
+  t = t_grid,
+  # covariates
+  x = x_grid,
+  x_lin = 0
+)
+
+griddata_lin &lt;- expand.grid(
+  t = seq(-pi, pi, len = 30),
+  x = 0,
+  x_lin = x_lin_grid
+)
+
+griddata &lt;- rbind(griddata, griddata_lin)
+
+griddata$id &lt;- as.numeric(factor(paste(griddata$x, griddata$x_lin, sep = ":")))
+
+fac2 &lt;- factorize(m, newdata = griddata)
+
+ratio &lt;- -max(abs(predict(fac$resp, which = 1))) / max(abs(predict(fac2$resp, which = 1)))
+
+opar &lt;- par(mfrow = c(3,2))
+wch &lt;- c(1,2,10)
+for(w in 1:length(wch)) {
+  plot.mboost(fac$resp, which = wch[w], col = "darkgrey", ask = FALSE,
+                                main = names(fac$resp$baselearner[wch[w]]))
+  
+  lines(sort(griddata$t), 
+        ratio*predict(fac2$resp, which = wch[w])[order(griddata$t)], 
+        col = cols[w], lty = 2)
+  plot(fac$cov, which = wch[w], 
+       main = names(fac$cov$baselearner[wch[w]]))
+  this_x &lt;- fac2$cov$model.frame(which = wch[w])[[1]][[1]]
+    lines(sort(this_x), 1/ratio*predict(fac2$cov, which = wch[w])[order(this_x)], 
+          col = cols[w], lty = 1)
+}
+par(opar)
+
+# check predictions
+p &lt;- predict(fac2$resp, which = 1)
+library(FDboost)
+
+# generate regular toy data --------------------------------------------------
+
+n &lt;- 100
+m &lt;- 40
+# covariates
+x &lt;- seq(0,2,len = n)
+# time 
+t &lt;- seq(-pi,pi,len = m)
+# generate components
+fx &lt;- ft &lt;- list()
+fx[[1]] &lt;- exp(x)
+d &lt;- numeric(2)
+d[1] &lt;- sqrt(c(crossprod(fx[[1]])))
+fx[[1]] &lt;- fx[[1]] / d[1]
+fx[[2]] &lt;- -5*x^2
+fx[[2]] &lt;- fx[[2]] - fx[[1]] * c(crossprod(fx[[1]], fx[[2]])) # orthogonalize fx[[2]]
+d[2] &lt;- sqrt(c(crossprod(fx[[2]])))
+fx[[2]] &lt;- fx[[2]] / d[2]
+ft[[1]] &lt;- sin(t)
+ft[[2]] &lt;- cos(t)
+ft[[1]] &lt;- ft[[1]] / sqrt(sum(ft[[1]]^2))
+ft[[2]] &lt;- ft[[2]] / sqrt(sum(ft[[2]]^2))
+mu1 &lt;- d[1] * fx[[1]] %*% t(ft[[1]])
+mu2 &lt;- d[2] * fx[[2]] %*% t(ft[[2]])
+# add linear covariate
+ft[[3]] &lt;- t^2 * sin(4*t) 
+ft[[3]] &lt;- ft[[3]] - ft[[1]] * c(crossprod(ft[[1]], ft[[3]]))
+ft[[3]] &lt;- ft[[3]] - ft[[2]] * c(crossprod(ft[[2]], ft[[3]]))
+ft[[3]] &lt;- ft[[3]] / sqrt(sum(ft[[3]]^2))
+set.seed(9234)
+fx[[3]] &lt;- runif(0,3, n = length(x))
+fx[[3]] &lt;- fx[[3]] - fx[[1]] * c(crossprod(fx[[1]], fx[[3]]))
+fx[[3]] &lt;- fx[[3]] - fx[[2]] * c(crossprod(fx[[2]], fx[[3]]))
+d[3] &lt;- sqrt(sum(fx[[3]]^2))
+fx[[3]] &lt;- fx[[3]] / d[3]
+mu3 &lt;- d[3] * fx[[3]] %*% t(ft[[3]])
+
+mu &lt;- mu1 + mu2 + mu3
+# add some noise
+y &lt;- mu + rnorm(length(mu), 0, .01)
+# and noise covariate
+z &lt;- rnorm(n)
+
+# fit FDboost model -------------------------------------------------------
+
+dat &lt;- list(y = y, x = x, t = t, x_lin = fx[[3]])
+m &lt;- FDboost(y ~ bbs(x, knots = 5, df = 2, differences = 0) + 
+               # bbs(z, knots = 2, df = 2, differences = 0) + 
+               bols(x_lin, intercept = FALSE, df = 2)
+               , ~ bbs(t), offset = 0, 
+             control = boost_control(nu = 1), 
+             data = dat)
+
+opar &lt;- par(mfrow = c(1,2))
+image(t, x, t(mu))
+contour(t, x, t(mu), add = TRUE)
+image(t, x, t(predict(m)))
+contour(t, x, t(predict(m)), add = TRUE)
+par(opar)
+
+# factorize model ---------------------------------------------------------
+
+fac &lt;- factorize(m)
+
+vi &lt;- as.data.frame(varimp(fac$cov))
+# if(require(lattice))
+#   barchart(variable ~ reduction, group = blearner, vi, stack = TRUE)
+
+cbind(d^2, vi$reduction[c(1:2, 10)])
+
+
+x_plot &lt;- list(x, x, fx[[3]])
+
+cols &lt;- c("cornflowerblue", "darkseagreen", "darkred")
+opar &lt;- par(mfrow = c(3,2))
+wch &lt;- c(1,2,10)
+for(w in 1:length(wch)) {
+  plot.mboost(fac$resp, which = wch[w], col = "darkgrey", ask = FALSE,
+       main = names(fac$resp$baselearner[wch[w]]))
+  lines(t, ft[[w]]*max(d), col = cols[w], lty = 2)
+  plot(fac$cov, which = wch[w], 
+       main = names(fac$cov$baselearner[wch[w]]))
+  points(x_plot[[w]], d[w] * fx[[w]] / max(d), col = cols[w], pch = 3)
+}
+par(opar)
+
+# re-compose prediction
+preds &lt;- lapply(fac, predict)
+PREDSf &lt;- array(0, dim = c(nrow(preds$resp),nrow(preds$cov)))
+for(i in 1:ncol(preds$resp))
+  PREDSf &lt;- PREDSf + preds$resp[,i] %*% t(preds$cov[,i])
+
+opar &lt;- par(mfrow = c(1,2))
+image(t,x, t(predict(m)), main = "original prediction")
+contour(t,x, t(predict(m)), add = TRUE)
+image(t,x,PREDSf, main = "recomposed")
+contour(t,x, PREDSf, add = TRUE)
+par(opar)
+# =&gt; matches
+stopifnot(all.equal(as.numeric(t(predict(m))), as.numeric(PREDSf)))
+
+# check out other methods
+set.seed(8399)
+newdata_resp &lt;- list(t = sort(runif(60, min(t), max(t))))
+a &lt;- predict(fac$resp, newdata = newdata_resp, which = 1:5)
+plot(newdata_resp$t, a[, 1])
+# coef method
+cf &lt;- coef(fac$resp, which = 1)
+
+</code></pre>
+
+
+</div>

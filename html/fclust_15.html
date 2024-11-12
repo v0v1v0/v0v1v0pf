@@ -1,0 +1,277 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FKM.gk.ent</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gustafson and Kessel - like fuzzy k-means with entropy regularization</h2>
+
+<h3>Description</h3>
+
+<p>Performs the Gustafson and Kessel - like fuzzy <em>k</em>-means clustering algorithm with entropy regularization. 
+<br> Differently from fuzzy <em>k</em>-means, it is able to discover non-spherical clusters.
+<br> The entropy regularization allows us to avoid using the artificial fuzziness parameter <em>m</em>. This is replaced by the degree of fuzzy entropy <em>ent</em>, related to the concept of temperature in statistical physics.
+An interesting property of the fuzzy <em>k</em>-means with entropy regularization is that the prototypes are obtained as weighted means with weights equal to the membership degrees (rather than to the membership degrees at
+the power of <em>m</em> as is for the fuzzy k-means).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"> 
+ FKM.gk.ent (X, k, ent, vp, RS, stand, startU, index, alpha, conv, maxit, seed)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Matrix or data.frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>An integer value or vector specifying the number of clusters for which the <code>index</code> is to be calculated (default: 2:6)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ent</code></td>
+<td>
+<p>Degree of fuzzy entropy (default: 1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vp</code></td>
+<td>
+<p>Volume parameter (default: rep(1,k))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RS</code></td>
+<td>
+<p>Number of (random) starts (default: 1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stand</code></td>
+<td>
+<p>Standardization: if <code>stand=1</code>, the clustering algorithm is run using standardized data (default: no standardization)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startU</code></td>
+<td>
+<p>Rational start for the membership degree matrix <code>U</code> (default: no rational start)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>Cluster validity index to select the number of clusters: <code>"PC"</code> (partition coefficient), <code>"PE"</code> (partition entropy), <code>"MPC"</code> (modified partition coefficient), <code>"SIL"</code> (silhouette), <code>"SIL.F"</code> (fuzzy silhouette), <code>"XB"</code> (Xie and Beni) (default: "SIL.F")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Weighting coefficient for the fuzzy silhouette index <code>SIL.F</code> (default: 1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>Convergence criterion (default: 1e-9)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>Maximum number of iterations (default: 1e+6)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Seed value for random number generation (default: NULL)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>startU</code> is given, the argument <code>k</code> is ignored (the number of clusters is <code>ncol(startU)</code>).
+<br> If <code>startU</code> is given, the first element of <code>value</code>, <code>cput</code> and <code>iter</code> refer to the rational start.
+<br> If a cluster covariance matrix becomes singular, the algorithm stops and the element of <code>value</code> is NaN.
+<br> The default value for <code>ent</code> is in general not reasonable if <code>FKM.gk.ent</code> is run using raw data. 
+<br> The update of the membership degrees requires the computation of exponential functions. In some cases, this may produce <code>NaN</code> values and the algorithm stops. Such a problem is usually solved by running <code>FKM.gk.ent</code> using standardized data (<code>stand=1</code>).
+<br> The Babuska et al. variant in <code>FKM.gkb.ent</code> is recommended.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of class <code>fclust</code>, which is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>Membership degree matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>Prototype matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>Array containing the covariance matrices of all the clusters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clus</code></td>
+<td>
+<p>Matrix containing the indexes of the clusters where the objects are assigned (column 1) and the associated membership degrees (column 2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medoid</code></td>
+<td>
+<p>Vector containing the indexes of the medoid objects (<code>NULL</code> for <code>FKM.gk.ent</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>Vector containing the loss function values for the <code>RS</code> starts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>Vector containing the values of the cluster validity index</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Vector containing the numbers of iterations for the <code>RS</code> starts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of clusters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>Parameter of fuzziness (<code>NULL</code> for <code>FKM.gk.ent</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ent</code></td>
+<td>
+<p>Degree of fuzzy entropy</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>Parameter of the polynomial fuzzifier (<code>NULL</code> for <code>FKM.gk.ent</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vp</code></td>
+<td>
+<p>Volume parameter (default: <code>rep(1,max(k)</code>). If <code>k</code> is a vector, for each group the first <code>k</code> element of <code>vp</code>are considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>Noise distance (<code>NULL</code> for <code>FKM.gk.ent</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gam</code></td>
+<td>
+<p>Weighting parameter for the fuzzy covariance matrices (<code>NULL</code> for <code>FKM.gk.ent</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcn</code></td>
+<td>
+<p>Maximum condition number for the fuzzy covariance matrices (<code>NULL</code> for <code>FKM.gk.ent</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stand</code></td>
+<td>
+<p>Standardization (Yes if <code>stand=1</code>, No if <code>stand=0</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xca</code></td>
+<td>
+<p>Data used in the clustering algorithm (standardized data if <code>stand=1</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Raw data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>Dissimilarity matrix (<code>NULL</code> for <code>FKM.gk.ent</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>Matched call</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Paolo Giordani, Maria Brigida Ferraro, Alessio Serafini</p>
+
+
+<h3>References</h3>
+
+<p>Ferraro M.B., Giordani P., 2013. A new fuzzy clustering algorithm with entropy regularization. Proceedings of the meeting on Classification and Data Analysis (CLADAG).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FKM.gkb.ent</code>, <code>Fclust</code>, <code>Fclust.index</code>, <code>print.fclust</code>, <code>summary.fclust</code>, <code>plot.fclust</code>, <code>unemployment</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## unemployment data
+data(unemployment)
+## Gustafson and Kessel-like fuzzy k-means with entropy regularization, 
+##fixing the number of clusters
+clust=FKM.gk.ent(unemployment,k=3,ent=0.2,RS=10,stand=1)
+## Not run: 
+## Gustafson and Kessel-like fuzzy k-means with entropy regularization,
+##selecting the number of clusters
+clust=FKM.gk.ent(unemployment,k=2:6,ent=0.2,RS=10,stand=1)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

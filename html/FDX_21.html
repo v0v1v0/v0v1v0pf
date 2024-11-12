@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kernel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kernel functions</h2>
+
+<h3>Description</h3>
+
+<p>Kernel functions transform observed p-values or their support according to
+[HLR], [PB] and [HGR]. The output is used by <code>discrete.LR</code>,
+<code>discrete.PB</code> and <code>discrete.GR</code>, respectively.
+For each procedure, there is a kernel for fast computation and one for
+calculation of critical values. Kernels followed by ".crit", e.g.
+<code>kernel.DGR.crit</code>, compute and return these critical values, while
+kernels ending in ".fast" only transform p-values and are therefore faster.
+The end user should not use these functions directly.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kernel_DLR_fast(
+  pCDFlist,
+  pvalues,
+  adaptive = TRUE,
+  alpha = 0.05,
+  stepUp = FALSE,
+  zeta = 0.5,
+  support = 0L
+)
+
+kernel_DLR_crit(
+  pCDFlist,
+  pvalues,
+  sorted_pv,
+  adaptive = TRUE,
+  alpha = 0.05,
+  zeta = 0.5,
+  stepUp = FALSE
+)
+
+kernel_DGR_fast(pCDFlist, pvalues, adaptive = TRUE, alpha = 0.05)
+
+kernel_DGR_crit(
+  pCDFlist,
+  pvalues,
+  sorted_pv,
+  adaptive = TRUE,
+  alpha = 0.05,
+  zeta = 0.5
+)
+
+kernel_DPB_fast(pCDFlist, pvalues, adaptive = TRUE, alpha = 0.05, exact = TRUE)
+
+kernel_DPB_crit(
+  pCDFlist,
+  pvalues,
+  sorted_pv,
+  adaptive = TRUE,
+  alpha = 0.05,
+  zeta = 0.5,
+  exact = TRUE
+)
+
+kernel_wLR_fast(qvalues, weights, alpha = 0.05, geom_weighting = FALSE)
+
+kernel_wGR_fast(qvalues, weights, alpha = 0.05, geom_weighting = FALSE)
+
+kernel_wPB_fast(
+  qvalues,
+  weights,
+  alpha = 0.05,
+  geom_weighting = FALSE,
+  exact = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pCDFlist</code></td>
+<td>
+<p>a list of the supports of the CDFs of the p-values. Each support is represented by a vector that must be in increasing order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalues</code></td>
+<td>
+<p>a numeric vector. Contains all values of the p-values supports if we search for the critical constants. If not, contains only the observed p-values. Must be sorted in increasing order!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adaptive</code></td>
+<td>
+<p>a boolean specifying whether to conduct an adaptive procedure or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the target FDP, a number strictly between 0 and 1. For <code>*.fast</code> kernels, it is only necessary, if <code>stepUp = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepUp</code></td>
+<td>
+<p>a numeric vector. Identical to <code>pvalues</code> for a step-down procedure. Equals <code>c.m</code> for a step-up procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta</code></td>
+<td>
+<p>the target probability of not exceeding the desired FDP, a number strictly between 0 and 1. If <code>zeta=NULL</code> (the default), then <code>zeta</code> is chosen equal to <code>alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>support</code></td>
+<td>
+<p>a numeric vector. Contains all values of the p-values supports. Ignored, if <code>stepUp = FALSE</code>. Must be sorted in increasing order!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sorted_pv</code></td>
+<td>
+<p>a vector of observed p-values, in increasing order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>a boolean specifying whether to compute the Poisson-Binomial distribution exactly or by a normal approximation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qvalues</code></td>
+<td>
+<p>a numeric vector. Contains weighted raw p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>a numeric vector. Contains the weights of the p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom_weighting</code></td>
+<td>
+<p>a boolean specifying whether to conduct geometric
+(<code>TRUE</code>) or arithmetic (<code>FALSE</code>)
+weighting.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>For ".fast" kernels, a vector of transformed p-values is returned; ".crit"
+kernels return a list object with critical constants (<code>$crit.consts</code>)
+and transformed p-values (<code>$pval.transf</code>).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FDX-package</code>, <code>discrete.LR</code>
+<code>discrete.GR</code>, <code>discrete.PB</code>,
+<code>weighted.LR</code>, <code>weighted.GR</code>,
+<code>discrete.PB</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">X1 &lt;- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
+X2 &lt;- c(0, 0, 1, 3, 2, 1, 2, 2, 2)
+N1 &lt;- rep(148, 9)
+N2 &lt;- rep(132, 9)
+Y1 &lt;- N1 - X1
+Y2 &lt;- N2 - X2
+df &lt;- data.frame(X1, Y1, X2, Y2)
+df
+
+# Construction of the p-values and their supports (fisher.pvalues.support
+# is from 'DiscreteFDR' package!)
+df.formatted &lt;- fisher.pvalues.support(counts = df, input = "noassoc")
+raw.pvalues &lt;- df.formatted$raw
+pCDFlist &lt;- df.formatted$support
+
+alpha &lt;- 0.05
+
+# If not searching for critical constants, we use only the observed p-values
+sorted.pvals &lt;- sort(raw.pvalues)
+y.DLR.fast &lt;- kernel_DLR_fast(pCDFlist, sorted.pvals, TRUE)
+y.NDGR.fast &lt;- kernel_DGR_fast(pCDFlist, sorted.pvals, FALSE)$pval.transf
+# transformed values
+y.DLR.fast
+y.NDGR.fast
+
+# compute support
+pv.list &lt;- sort(unique(unlist(pCDFlist)))
+y.DGR.crit &lt;- kernel_DGR_crit(pCDFlist, pv.list, sorted.pvals, TRUE)
+y.NDPB.crit &lt;- kernel_DPB_crit(pCDFlist, pv.list, sorted.pvals, FALSE)
+# critical constants
+y.DGR.crit$crit.consts
+y.NDPB.crit$crit.consts
+# transformed values
+y.DGR.crit$pval.transf
+y.NDPB.crit$pval.transf
+
+</code></pre>
+
+
+</div>

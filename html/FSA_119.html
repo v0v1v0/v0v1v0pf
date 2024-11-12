@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nlsTracePlot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds model fits from nls iterations to active plot.</h2>
+
+<h3>Description</h3>
+
+<p>Adds model fits from iterations of the <code>nls</code> algorithm as returned when <code>trace=TRUE</code>. Useful for diagnosing model fitting problems or issues associated with starting values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nlsTracePlot(
+  object,
+  fun,
+  from = NULL,
+  to = NULL,
+  n = 199,
+  lwd = 2,
+  col = NULL,
+  rev.col = FALSE,
+  legend = "topright",
+  cex.leg = 0.9,
+  box.lty.leg = 0,
+  add = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object saved from <code>nls</code> or from <code>capture.output</code> using <code>try</code> with <code>nls</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>A function that represents the model being fit in <code>nls</code>. This must take the x-axis variable as the first argument and model parameters as a vector in the second argument. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from, to</code></td>
+<td>
+<p>The range over which the function will be plotted. Defaults to range of the x-axis of the active plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of value at which to evaluate the function for plotting (i.e., the number of values from <code>from</code> to <code>to</code>). Larger values make smoother lines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd</code></td>
+<td>
+<p>A numeric used to indicate the line width of the fitted line.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>A single character string that is a palette from <code>hcl.pals</code> or a vector of character strings containing colors for the fitted lines at each trace.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rev.col</code></td>
+<td>
+<p>A logical that indicates that the order of colors for plotting the lines should be reversed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend</code></td>
+<td>
+<p>Controls use and placement of the legend. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.leg</code></td>
+<td>
+<p>A single numeric value that represents the character expansion value for the legend. Ignored if <code>legend=FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>box.lty.leg</code></td>
+<td>
+<p>A single numeric values that indicates the type of line to use for the box around the legend. The default is to not plot a box.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>A logical indicating whether the lines should be added to the existing plot (defaults to <code>=TRUE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Nonlinear models fit with the <code>nls</code> function start with starting values for model parameters and iteratively search for other model parameters that continuously reduce the residual sum-of-squares (RSS) until some pre-determined criterion suggest that the RSS cannot be (substantially) further reduced. With good starting values and well-behaved data, the minimum RSS may be found in a few (&lt;10) iterations. However, poor starting values or poorly behaved data may lead to a prolonged and possibly failed search. An understanding of the iterations in a prolonged or failed search may help identify the failure and lead to choices that may result in a successful search. The <code>trace=TRUE</code> argument of <code>nls</code> allows one to see the values at each iterative step. The function documented here plots the “trace” results at each iteration on a previously existing plot of the data. This creates a visual of the iterative process.
+</p>
+<p>The <code>object</code> argument may be an object saved from a successful run of <code>nls</code>. See the examples with <code>SpotVA1</code> and <code>CodNorwegion</code>.
+</p>
+<p>However, if <code>nls</code> fails to converge to a solution then no useful object is returned. In this case, <code>trace=TRUE</code> must be added to the failed <code>nls</code> call. The call is then wrapped in <code>try</code> to work-around the failed convergence error. This is also wrapped in <code>capture.output</code> to capture the “trace” results. This is then saved to an object that which can then be the <code>object</code> of the function documented here. This process is illustrated with the example using <code>BSkateGB</code>.
+</p>
+<p>The function in <code>fun</code> is used to make predictions given the model parameter values at each step of the iteration. This function must accept the explanatory/independent variable as its first argument and values for all model parameters in a vector as its second argument. These types of functions are returned by <code>vbFuns</code>, <code>GompertzFuns</code>, <code>logisticFuns</code>, and <code>RichardsFuns</code> for common growth models and <code>srFuns</code> for common stock-recruitment models. See the examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with the residual sum-of-squares in the first column and parameter estimates in the remaining columns for each iteration (rows) of <code>nls</code> as provided when <code>trace=TRUE</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The position of the “legend” can be controlled in three ways. First, if <code>legend=TRUE</code>, then the R console is suspended until the user places the legend on the plot by clicking on the point where the upper-left corner of the legend should appear. Second, <code>legend=</code> can be set to one of <code>"bottomright"</code>, <code>"bottom"</code>, <code>"bottomleft"</code>, <code>"left"</code>, <code>"topleft"</code>, <code>"top"</code>, <code>"topright"</code>, <code>"right"</code> and <code>"center"</code>. In this case, the legend will be placed inside the plot frame at the given location. Finally, <code>legend=</code> can be set to a vector of length two which identifies the plot coordinates for the upper-left corner of where the legend should be placed. A legend will not be drawn if <code>legend=FALSE</code> or <code>legend=NULL</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Derek H. Ogle, <a href="mailto:DerekOgle51@gmail.com">DerekOgle51@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Examples following a successful fit
+vb1 &lt;- vbFuns()
+fit1 &lt;- nls(tl~vb1(age,Linf,K,t0),data=SpotVA1,start=list(Linf=12,K=0.3,t0=0))
+plot(tl~age,data=SpotVA1,pch=21,bg="gray40")
+nlsTracePlot(fit1,vb1,legend="bottomright")
+
+r1 &lt;- srFuns("Ricker")
+fitSR1 &lt;- nls(log(recruits)~log(r1(stock,a,b)),data=CodNorwegian,start=list(a=3,b=0.03))
+plot(recruits~stock,data=CodNorwegian,pch=21,bg="gray40",xlim=c(0,200))
+nlsTracePlot(fitSR1,r1)
+
+# no plot, but returns trace results as a matrix
+( tmp &lt;- nlsTracePlot(fitSR1,r1,add=FALSE) )
+
+## Not run: 
+if (require(FSAdata)) {
+  data(BSkateGB,package="FSAdata")
+  wtr &lt;- droplevels(subset(BSkateGB,season=="winter"))
+  bh1 &lt;- srFuns()
+  trc &lt;- capture.output(try(
+  fitSR1 &lt;- nls(recruits~bh1(spawners,a,b),wtr,
+                start=srStarts(recruits~spawners,data=wtr),trace=TRUE)
+  ))
+  plot(recruits~spawners,data=wtr,pch=21,bg="gray40")
+  nlsTracePlot(trc,bh1)
+  # zoom in on y-axis
+  plot(recruits~spawners,data=wtr,pch=21,bg="gray40",ylim=c(0.02,0.05))
+  nlsTracePlot(trc,bh1,legend="top")
+  # return just the trace results
+  ( tmp &lt;- nlsTracePlot(trc,bh1,add=FALSE) )
+}
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

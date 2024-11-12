@@ -1,0 +1,89 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>data_CompCor_Params</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>fMRI data for <code>scrub</code> and <code>CompCor</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>fMRI data for <code>scrub</code> and <code>CompCor</code>
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Wide numeric data matrix (<code class="reqn">T observations</code> by <code class="reqn">V variables</code>, <code class="reqn">T &lt;&lt; V</code>).
+For example, if <code>X</code> represents an fMRI run, <code class="reqn">T</code> should be the number
+of timepoints and <code class="reqn">V</code> should be the number of brainordinate vertices/voxels.
+</p>
+<p>Or, a 4D array or NIFTI or file path to a NIFTI (<code class="reqn">I</code> by <code class="reqn">J</code> by <code class="reqn">K</code> by <code class="reqn">T</code>
+observations), in which case <code>ROI_data</code> must be provided.
+(The vectorized data will be <code class="reqn">T timepoints</code> by <code class="reqn">V_{in-mask} voxels</code>)
+</p>
+<p>Or, a <code>ciftiTools</code> <code>"xifti"</code> object or a file path to a CIFTI
+(The vectorized data will be <code class="reqn">T timepoints</code> by <code class="reqn">V_{left+right+sub} grayordinates</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROI_data</code></td>
+<td>
+<p>Indicates the data ROI. Allowed arguments depend on <code>X</code>:
+</p>
+<p>If <code>X</code> is a matrix, this must be a length <code class="reqn">V</code> logical vector, where
+the data ROI is indicated by <code>TRUE</code> values. If <code>"infer"</code> (default), all
+columns of <code>X</code> will be included in the data ROI (<code>rep(TRUE, V)</code>).
+</p>
+<p>If <code>X</code> is an array or NIFTI, this must be either a vector of values
+to expect for out-of-mask voxels in <code>X</code>, or a (file path to a) 3D NIFTI.
+In the latter case, each of the volume dimensions should match the first
+three dimensions of <code>X</code>. Voxels in the data ROI should be indicated by
+<code>TRUE</code> and all other voxels by <code>FALSE</code>. If <code>"infer"</code> (default),
+will be set to <code>c(0, NA, NaN)</code> (include all voxels which are not constant
+<code>0</code>, <code>NA</code>, or <code>NaN</code>).
+</p>
+<p>If <code>X</code> is a <code>"xifti"</code> this must be the <code>brainstructures</code>
+argument to <code>read_cifti</code>. If <code>"infer"</code> (default),
+<code>brainstructures</code> will be set to <code>"all"</code> (use both left and right
+cortex vertices, and subcortical voxels).
+</p>
+<p>If <code>NULL</code>, the data ROI will be empty. This is useful for obtaining just
+the noise ROI, if the data and noise are located in separate files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROI_noise</code></td>
+<td>
+<p>Indicates the noise ROIs for aCompCor. Should be a list where
+each entry corresponds to a distinct noise ROI. The names of the list should
+be the ROI names, e.g. <code>"white_matter"</code> and <code>"csf"</code>. The expected
+formats of the list entries depends on <code>X</code>:
+</p>
+<p>For all types of <code>X</code>, <code>ROI_noise</code> entries can be a matrix of noise
+ROI data. The matrix should have <code class="reqn">T</code> rows, with each column being a
+data location's timeseries.
+</p>
+<p>If <code>X</code> is a matrix, entries can also indicate a noise ROI within <code>X</code>.
+These entries must be a length <code class="reqn">V</code> logical vector with <code>TRUE</code> values
+indicating locations in <code>X</code> within that noise ROI. Since the ROIs must
+not overlap, the masks must be mutually exclusive with each other, and with
+<code>ROI_data</code>.
+</p>
+<p>If <code>X</code> is an array or NIFTI, entries can also indicate a noise ROI within <code>X</code>.
+These entries must be a logical array or (file path to) a 3D NIFTI with the
+same spatial dimensions as <code>X</code>, and with <code>TRUE</code> values indicating
+voxels inside the noise ROI. Since the ROIs must not overlap, the masks must
+be mutually exclusive with each other, and with <code>ROI_data</code>.
+</p>
+<p>(If <code>X</code> is a <code>"xifti"</code>, entries must be data matrices, since no
+grayordinate locations in <code>X</code> are appropriate noise ROIs).</p>
+</td>
+</tr>
+</table>
+</div>

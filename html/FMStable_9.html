@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>moments</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convolutions of Finite Moment Log Stable Distributions and the
+Moments of such Distributions</h2>
+
+<h3>Description</h3>
+
+<p>If <code class="reqn">X_1, \dots , X_n</code> are independent random variables with the same stable
+distribution then <code class="reqn">X_1+ \dots +X_n</code> has a stable distribution with the same
+alpha.  The function <code>iidcombine</code> allows the parameters of the
+resulting stable distribution to be computed.
+Because stable distributions are infinitely divisible, it is also easy
+to find the parameters describing the distribution of <code class="reqn">X_1</code> from the
+parameters describing the distribution of <code class="reqn">X_1+ \dots +X_n</code>.
+</p>
+<p>Convolutions of maximally skew stable distributions correspond to
+products of logstable distributions.  The raw moments of these distributions
+(i.e. moments about zero, not moments about the mean)
+can be readily computed using the function <code>moments</code>.
+Note that the raw moments of the convolution of two independent
+distributions are the products of the corresponding moments of the
+component distributions, so the accuracy of <code>iidcombine</code> can be
+checked by using <code>moments</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">iidcombine(n, stableParamObj)
+moments(powers, stableParamObj, log=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Number of random variables to be convoluted.  May be any
+positive number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>powers</code></td>
+<td>
+<p>Raw moments of logstable distributions to be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stableParamObj</code></td>
+<td>
+<p>An object of class <code>stableParameters</code> which
+describes a maximally skew stable distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>Logical; if <code>TRUE</code>, the logarithms of moments are returned.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The value returned by <code>iidcombine</code>
+is another object of class <code>stableParameters</code>.
+The value returned by <code>moments</code> is a numeric vector
+giving the values of the specified raw moments.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Objects of class <code>stableParameters</code> can be created using
+functions such as <code>setParam</code>.
+The taking of convolutions is sometimes associated with the computing of
+values of options using functions such as <code>callFMstable</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">yearDsn &lt;- fitGivenQuantile(mean=1, sd=2, prob=.7, value=.1)
+upper &lt;- exp(-yearDsn$location)	# Only sensible for alpha&lt;.5
+x &lt;- exp(seq(from=log(.0001), to=log(upper), length=50))
+plot(x, pFMstable(x, yearDsn), type="l", ylim=c(.2,1), lwd=2, xlab="Price",
+  ylab="Distribution function of future price")
+half &lt;- iidcombine(.5, yearDsn)
+lines(x, pFMstable(x, half), lty=2, lwd=2)
+quarter &lt;- iidcombine(.25, yearDsn)
+lines(x, pFMstable(x, quarter), lty=3, lwd=2)
+legend("bottomright", legend=paste(c("1","1/2","1/4"),"year"), lty=c(1,2,3),
+  lwd=c(2,2,2))
+moments(1:2, yearDsn)
+moments(1:2, half)
+moments(1:2, quarter)
+
+# Check logstable against lognormal
+iidcombine(2, setMomentsFMstable(.5, .2, alpha=2))
+p &lt;- lnorm.param(.5, .2)
+2*p$meanlog		# Gives the mean
+log(p$sdlog)	# Gives the logscale
+</code></pre>
+
+
+</div>

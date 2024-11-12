@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gowdis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gower Dissimilarity</h2>
+
+<h3>Description</h3>
+
+<p><code>gowdis</code> measures the Gower (1971) dissimilarity for mixed variables, including asymmetric binary variables. Variable weights can be specified. <code>gowdis</code> implements Podani's (1999) extension to ordinal variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gowdis(x, w, asym.bin = NULL, ord = c("podani", "metric", "classic"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>matrix or data frame containing the variables. Variables can be <code>numeric</code>, <code>ordered</code>, or <code>factor</code>. Symmetric or asymmetric binary variables should be <code>numeric</code> and only contain 0 and 1. <code>character</code> variables will be converted to <code>factor</code>. <code>NA</code>s are tolerated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>vector listing the weights for the variables in <code>x</code>. Can be missing, in which case all variables have equal weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asym.bin</code></td>
+<td>
+<p>vector listing the asymmetric binary variables in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ord</code></td>
+<td>
+<p>character string specifying the method to be used for ordinal variables (i.e. <code>ordered</code>). <code>"podani"</code> refers to Eqs. 2a-b of Podani (1999), while <code>"metric"</code> refers to his Eq. 3 (see ‘details’); both options convert ordinal variables to ranks. <code>"classic"</code> simply treats ordinal variables as continuous variables. Can be abbreviated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>gowdis</code> computes the Gower (1971) similarity coefficient exactly as described by Podani (1999), then converts it to a dissimilarity coefficient by using <code class="reqn">D = 1 - S</code>. It integrates variable weights as described by Legendre and Legendre (1998).
+</p>
+<p>Let <code class="reqn">\mathbf{X} = \{x_{ij}\} </code> be a matrix containing <code class="reqn">n</code> objects (rows) and <code class="reqn">m</code> columns (variables). The similarity <code class="reqn">G_{jk}</code> between objects <code class="reqn">j</code> and <code class="reqn">k</code> is computed as
+</p>
+<p style="text-align: center;"><code class="reqn">G_{jk} = \frac{\sum_{i=1}^{n} w_{ijk} s_{ijk}}{\sum_{i=1}^{n} w_{ijk}}</code>
+</p>
+<p>,
+</p>
+<p>where <code class="reqn">w_{ijk}</code> is the weight of variable <code class="reqn">i</code> for the <code class="reqn">j</code>-<code class="reqn">k</code> pair, and <code class="reqn">s_{ijk}</code> is the partial similarity of variable <code class="reqn">i</code> for the <code class="reqn">j</code>-<code class="reqn">k</code> pair,
+</p>
+<p>and where <code class="reqn">w_{ijk} = 0</code> if objects <code class="reqn">j</code> and <code class="reqn">k</code> cannot be compared because <code class="reqn">x_{ij}</code> or <code class="reqn">x_{ik}</code> is unknown (i.e. <code>NA</code>).
+</p>
+<p>For binary variables, <code class="reqn">s_{ijk} = 0</code> if <code class="reqn">x_{ij} \neq x_{ik}</code>, and  <code class="reqn">s_{ijk} = 1</code> if <code class="reqn">x_{ij} = x_{ik} = 1</code> or if <code class="reqn">x_{ij} = x_{ik} = 0</code>.
+</p>
+<p>For asymmetric binary variables, same as above except that <code class="reqn">w_{ijk} = 0</code> if <code class="reqn">x_{ij} = x_{ik} = 0</code>.
+</p>
+<p>For nominal variables, <code class="reqn">s_{ijk} = 0</code> if <code class="reqn">x_{ij} \neq x_{ik}</code> and <code class="reqn">s_{ijk} = 1</code> if <code class="reqn">x_{ij} = x_{ik}</code>.
+</p>
+<p>For continuous variables,
+</p>
+<p style="text-align: center;"><code class="reqn">s_{ijk} = 1 - \frac{|x_{ij} - x_{ik}|} {x_{i.max} - x_{i.min}} </code>
+</p>
+
+<p>where <code class="reqn">x_{i.max}</code> and <code class="reqn">x_{i.min}</code> are the maximum and minimum values of variable <code class="reqn">i</code>, respectively.
+</p>
+<p>For ordinal variables, when <code>ord = "podani"</code> or <code>ord = "metric"</code>, all <code class="reqn">x_{ij}</code> are replaced by their ranks <code class="reqn">r_{ij}</code> determined over all objects (such that ties are also considered), and then
+</p>
+<p>if <code>ord = "podani"</code>
+</p>
+<p><code class="reqn">s_{ijk} = 1</code> if <code class="reqn">r_{ij} = r_{ik}</code>, otherwise
+</p>
+<p style="text-align: center;"><code class="reqn"> s_{ijk} = 1 - \frac{|r_{ij} - r_{ik}| - (T_{ij} - 1)/2 - (T_{ik} - 1)/2 }{r_{i.max} - r_{i.min} - (T_{i.max} - 1)/2 - (T_{i.min}-1)/2 }</code>
+</p>
+
+<p>where <code class="reqn">T_{ij}</code> is the number of objects which have the same rank score for variable <code class="reqn">i</code> as object <code class="reqn">j</code> (including <code class="reqn">j</code> itself), <code class="reqn">T_{ik}</code> is the number of objects which have the same rank score for variable <code class="reqn">i</code> as object <code class="reqn">k</code> (including <code class="reqn">k</code> itself), <code class="reqn">r_{i.max}</code> and <code class="reqn">r_{i.min}</code> are the maximum and minimum ranks for variable <code class="reqn">i</code>, respectively, <code class="reqn">T_{i,max}</code> is the number of objects with the maximum rank, and <code class="reqn">T_{i.min}</code> is the number of objects with the minimum rank.
+</p>
+<p>if <code>ord = "metric"</code>
+</p>
+<p style="text-align: center;"><code class="reqn">s_{ijk} = 1 - \frac{|r_{ij} - r_{ik}|}{r_{i.max} - r_{i.min}} </code>
+</p>
+
+<p>When <code>ord = "classic"</code>, ordinal variables are simply treated as continuous variables.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>dist</code> with the following attributes: <code>Labels</code>, <code>Types</code> (the variable types, where 'C' is continuous/numeric, 'O' is ordinal, 'B' is symmetric binary, 'A' is asymmetric binary, and 'N' is nominal), <code>Size</code>, <code>Metric</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Etienne Laliberté <a href="mailto:etiennelaliberte@gmail.com">etiennelaliberte@gmail.com</a> <a href="https://www.elaliberte.info/">https://www.elaliberte.info/</a>, with some help from Philippe Casgrain for the C interface.</p>
+
+
+<h3>References</h3>
+
+<p>Gower, J. C. (1971) A general coefficient of similarity and some of its properties. <em>Biometrics</em> <b>27</b>:857-871.
+</p>
+<p>Legendre, P. and L. Legendre (1998) <em>Numerical Ecology</em>. 2nd English edition. Amsterdam: Elsevier.
+</p>
+<p>Podani, J. (1999) Extending Gower's general coefficient of similarity to ordinal characters. <em>Taxon</em> <b>48</b>:331-340.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>daisy</code> is similar but less flexible, since it does not include variable weights and does not treat ordinal variables as described by Podani (1999). Using <code>ord = "classic"</code> reproduces the behaviour of <code>daisy</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">ex1 &lt;- gowdis(dummy$trait)
+ex1
+
+# check attributes
+attributes(ex1)
+
+# to include weights
+w &lt;- c(4,3,5,1,2,8,3,6)
+ex2 &lt;- gowdis(dummy$trait, w)
+ex2
+
+# variable 7 as asymmetric binary
+ex3 &lt;- gowdis(dummy$trait, asym.bin = 7)
+ex3
+
+# example with trait data from New Zealand vascular plant species
+ex4 &lt;- gowdis(tussock$trait)
+</code></pre>
+
+
+</div>

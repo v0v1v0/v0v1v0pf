@@ -1,0 +1,288 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fdr_od</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tail-area FDR and Confidence Interval</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to estimate FDR, corresponding confidence
+interval, and pi0, the proportion of true null hypotheses, given a selected
+significance threshold, and results from permuted data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fdr_od(
+  obsp,
+  permp = NULL,
+  pnm,
+  ntests,
+  thres,
+  cl = 0.95,
+  c1 = NA,
+  meff = TRUE,
+  seff = TRUE,
+  mymat,
+  nperms = 5
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obsp</code></td>
+<td>
+<p>observed vector of p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permp</code></td>
+<td>
+<p>list of dataframes that include a column of permutation
+p-values (or statistics) in each. The length of the list permp = number of
+permutations. If <code>permp = NULL</code>, then the parametric estimator is calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pnm</code></td>
+<td>
+<p>name of column in each list component dataframe that includes
+p-values (or statistics).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntests</code></td>
+<td>
+<p>total number of observed tests, which is usually the same as
+the length of obsp and the number of rows in each permp dataframe. However,
+this may not be the case if results were filtered by a p-value threshold or
+statistic threshold. If filtering was conducted then thres must be smaller
+(more extreme) than the filtering criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thres</code></td>
+<td>
+<p>significance threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>confidence level (default is .95).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1</code></td>
+<td>
+<p>overdispersion parameter. If this parameter is not specified
+(default initial value is NA), then the parameter is estimated from the
+data. If all tests are known to be independent, then this parameter should
+be set to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meff</code></td>
+<td>
+<p>(For parametric estimation, if <code>permp = NULL</code>.) Logical. <code>TRUE</code> implies the calculation of the effective number of tests based on the JM estimator (Default is <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seff</code></td>
+<td>
+<p>(For parametric estimation, if <code>permp = NULL</code>.) Logical. <code>TRUE</code> implies the calculation of the effective number of rejected hypotheses based on the JM estimator (Default is <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mymat</code></td>
+<td>
+<p>(For parametric estimation, if <code>permp = NULL</code>.) Matrix. Design matrix used to calculate the p-values provided in <code>obsp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nperms</code></td>
+<td>
+<p>(For parametric estimation, if <code>permp = NULL</code>.) Integer. Number of permutations needed to estimate the effective number of (rejected) tests. (Must be non-zero, default is 5)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If a very large number of tests are conducted, it may be useful to filter
+results, that is, save only results of those tests that meet some relaxed
+nominal significance threshold. This alleviates the need to record results
+for tests that are clearly non-significant. Results from fdr_od() are valid
+as long as thres &lt; the relaxed nomimal significance threshold for both
+observed and permuted results. It is not necessary for the input to fdr_od()
+to be p-values, however, fdr_od() is designed for statistics in which
+smaller values are more extreme than larger values as is the case for
+p-values. Therefore, if raw statistics are used, then a transformation may
+be necessary to insure that smaller values are more likely associated with
+false null hypotheses than larger values. In certain situations, for
+instance when a large proportion of tests meet the significance threshold,
+<code>pi0</code> is estimated to be very small, and thus has a large influence on the FDR
+estimate. To limit this influence, <code>pi0</code> is constrained to be .5 or greater,
+resulting in a more conservative estimate under these conditions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For the permutation-based estimator: 
+A list which includes: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>FDR </code></td>
+<td>
+<p>FDR point estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll
+</code></td>
+<td>
+<p>lower confidence limit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ul </code></td>
+<td>
+<p>upper confidence limit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi0
+</code></td>
+<td>
+<p>proportion of true null hypotheses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1 </code></td>
+<td>
+<p>overdispersion parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S </code></td>
+<td>
+<p>observed number of positive tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sp </code></td>
+<td>
+<p>total number of
+positive tests summed across all permuted result sets</p>
+</td>
+</tr>
+</table>
+<p>For the parametric-based estimator:
+A list which includes: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>FDR </code></td>
+<td>
+<p>FDR point estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll
+</code></td>
+<td>
+<p>lower confidence limit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ul </code></td>
+<td>
+<p>upper confidence limit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>total number of tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M.eff</code></td>
+<td>
+<p>effective number of tests. <code>NA</code> if <code>meff = FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S </code></td>
+<td>
+<p>observed number of positive tests</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.eff </code></td>
+<td>
+<p>effective number of positive tests. <code>NA</code> if <code>seff = FALSE</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Joshua Millstein, Eric S. Kawaguchi
+</p>
+
+
+<h3>References</h3>
+
+<p>Millstein J, Volfson D. 2013. Computationally efficient
+permutation-based confidence interval estimation for tail-area FDR.
+Frontiers in Genetics | Statistical Genetics and Methodology 4(179):1-11.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ss=100
+nvar=100
+X = as.data.frame(matrix(rnorm(ss*nvar),nrow=ss,ncol=nvar))
+e = as.data.frame(matrix(rnorm(ss*nvar),nrow=ss,ncol=nvar))
+Y = .1*X + e
+nperm = 10
+
+myanalysis = function(X,Y){
+	ntests = ncol(X)
+	rslts = as.data.frame(matrix(NA,nrow=ntests,ncol=2))
+	names(rslts) = c("ID","pvalue")
+	rslts[,"ID"] = 1:ntests
+	for(i in 1:ntests){
+		fit = cor.test(X[,i],Y[,i],na.action="na.exclude",
+			alternative="two.sided",method="pearson")
+		rslts[i,"pvalue"] = fit$p.value
+	}
+	return(rslts)
+} # End myanalysis
+
+# Generate observed results
+obs = myanalysis(X,Y)
+
+## Generate permuted results
+perml = vector('list',nperm)
+for(p_ in 1:nperm){
+	X1 = X[order(runif(nvar)),]
+	perml[[p_]] = myanalysis(X1,Y)
+}
+
+## FDR results (permutation)
+fdr_od(obs$pvalue,perml,"pvalue",nvar, thres = .05)
+
+## FDR results (parametric)
+fdr_od(obs$pvalue, permp = NULL, thres = 0.05, meff = FALSE, seff = FALSE, mymat = X)
+</code></pre>
+
+
+</div>

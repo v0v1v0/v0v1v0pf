@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fuzzyConsensus</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuzzy consensus among model predictions</h2>
+
+<h3>Description</h3>
+
+<p>This function takes a data frame or a (multilayer) SpatRaster map of favourability predictions (i.e., directly comparable predictions obtained from presence probability; see <code>Fav</code>) and it computes the consensus favourability, i.e., a row-wise weighted mean in which larger weights are assigned to models with higher loadings in the first axis of a principal components analysis (Baquero et al. 2021).</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fuzzyConsensus(data, weights = "PCA1", simplif = TRUE, plot = TRUE, 
+biplot = FALSE, verbosity = 2, do.par = TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>matrix, data frame or (multilayer) 'SpatRaster' map containing the favourability values to combine.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>method for computing the weights for the weighted average of favourability values. Currently only "PCA1" is implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplif</code></td>
+<td>
+<p>logical value. If TRUE (the default), the output includes only the numeric vector of weighted mean favourability. If set to FALSE, the output will include also the complete PCA result (if weights="PCA1").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>logical value indicating whether to produce a barplot of the PCA axis loadings. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biplot</code></td>
+<td>
+<p>logical value indicating whether to produce a <code>biplot</code> of the PCA. The default is FALSE, as it makes computation slower.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbosity</code></td>
+<td>
+<p>integer value indicating the amount of messages to display in the console. The default is to emit all messages available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.par</code></td>
+<td>
+<p>logical value indicating whether to override the current plotting parameters (restoring them on exit). The default is TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Species distribution models are often computed using different modelling methods and/or climate scenarios. One way to summarize or combine them is to do a principal components analysis (PCA) of the different model predictions: The first axis of this PCA captures consistent spatial patterns in the predicted values across the different models (Araujo, Pearson, et al. 2005; Araujo, Whittaker, et al. 2005; Marmion et al. 2009; Thuiller 2004). However, the units of the PCA axes are difficult to interpret. Baquero et al. (2021) solved this by computing a weighted average of the favourability values (which are commensurable and therefore directly comparable across species and study areas; Real et al. 2006, Acevedo &amp; Real 2012), using the loadings of the first PCA axis as weights. The result is therefore in the same scale as favourability, and it incorporates the degree of consensus among models, which dictates how much weight each model has in the prediction, thus avoiding disparate predictions to be blindly mixed and averaged out (Baquero et al. 2021).
+</p>
+
+
+<h3>Value</h3>
+
+<p>If simplif=TRUE (the default), the function returns a numeric vector with length equal to the number of rows in 'data' (if 'data' is a matrix or data frame), or a 'SpatRaster' layer (if 'data' is a 'SpatRaster' object), with the consensus among the input favourabilities. If simplif=FALSE, the function returns a list containing, additionally, the output of <code>prcomp</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A. Marcia Barbosa</p>
+
+
+<h3>References</h3>
+
+<p>Acevedo P. &amp; Real R. (2012) Favourability: Concept, distinctive characteristics and potential usefulness. Naturwissenschaften, 99: 515-522
+</p>
+<p>Araujo M.B., Pearson R.G., Thuiller W. &amp; Erhard M. (2005) Validation of species-climate impact models under climate change. Global Change Biology, 11: 1504-1513
+</p>
+<p>Araujo M.B., Whittaker R.J., Ladle R.J. &amp; Erhard M. (2005) Reducing uncertainty in projections of extinction risk from climate change. Global Ecology and Biogeography, 14: 529-538
+</p>
+<p>Baquero R.A., Barbosa A.M., Ayllon D., Guerra C., Sanchez E., Araujo M.B. &amp; Nicola G.G. (2021) Potential distributions of invasive vertebrates in the Iberian Peninsula under projected changes in climate extreme events. Diversity and Distributions, 27(11): 2262-2276
+</p>
+<p>Marmion M., Parviainen M., Luoto M., Heikkinen R.K. &amp; Thuiller W. (2009) Evaluation of consensus methods in predictive species distribution modelling. Diversity and Distributions 15: 59-69
+</p>
+<p>Real R., Barbosa A.M. &amp; Vargas J.M. (2006) Obtaining environmental favourability functions from logistic regression. Environmental and Ecological Statistics 13: 237-245
+</p>
+<p>Thuiller W. (2004) Patterns and uncertainties of species' range shifts under climate change. Global Change Biology, 10: 2020-2027
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>weighted.mean</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# this example requires having the 'gam' package installed
+
+data(rotif.env)
+
+library(gam)
+
+
+# get two different model predictions for one of the species in this dataset:
+
+names(rotif.env)
+vars &lt;- names(rotif.env)[5:17]
+
+form_glm &lt;- as.formula(paste("Ttetra ~", paste(vars, collapse = "+")))
+mod_glm &lt;- glm(form_glm, family = binomial, data = rotif.env)
+pred_glm &lt;- predict(mod_glm, rotif.env, type = "response")
+
+form_gam &lt;- as.formula(paste("Ttetra ~", paste("s(", vars, ")", collapse = "+")))
+mod_gam &lt;- gam(form_gam, family = binomial, data = rotif.env)
+pred_gam &lt;- predict(mod_gam, rotif.env, type = "response")
+
+
+# convert probability predictions to favourability:
+
+fav_glm &lt;- Fav(pred = pred_glm, sample.preval = prevalence(model = mod_glm))
+fav_gam &lt;- Fav(pred = pred_gam, sample.preval = prevalence(model = mod_gam))
+
+
+# compute the consensus favourability of these two models:
+
+fav_consensus &lt;- fuzzyConsensus(cbind(fav_glm, fav_gam))
+
+cor(cbind(fav_glm, fav_gam, fav_consensus))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

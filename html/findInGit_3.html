@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>findInGit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find pattern in files of a 'git' repository</h2>
+
+<h3>Description</h3>
+
+<p>Find a pattern in the files with a given extension, in all
+branches of a 'git' repository.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">findInGit(
+  ext,
+  pattern,
+  wholeWord = FALSE,
+  ignoreCase = FALSE,
+  perl = FALSE,
+  excludePattern = NULL,
+  excludeFoldersPattern = NULL,
+  root = ".",
+  output = "viewer"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ext</code></td>
+<td>
+<p>file extension, e.g. <code>"R"</code> or <code>"js"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>pattern to search for, a regular expression, e.g.
+<code>"function"</code> or <code>"^function"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wholeWord</code></td>
+<td>
+<p>logical, whether to match the whole pattern</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignoreCase</code></td>
+<td>
+<p>logical, whether to ignore the case</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perl</code></td>
+<td>
+<p>logical, whether <code>pattern</code> is a Perl regular expression</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>excludePattern</code></td>
+<td>
+<p>a pattern; exclude from search the files and folders
+which match this pattern</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>excludeFoldersPattern</code></td>
+<td>
+<p>a pattern; exclude from search the folders
+which match this pattern</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>path to the root directory to search from</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>one of <code>"viewer"</code>, <code>"dataframe"</code> or
+<code>"viewer+dataframe"</code>; see examples</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A dataframe if <code>output="dataframe"</code>, otherwise a
+<code>htmlwidget</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">findGit &lt;- Sys.which("git") != ""
+if(findGit){
+
+library(findInGit)
+library(R.utils) # to use the `copyDirectory` function
+folder1 &lt;- system.file("htmlwidgets", package = "findInGit")
+folder2 &lt;- system.file("htmlwidgets", "lib", package = "findInGit")
+tmpDir &lt;- paste0(tempdir(), "_gitrepo")
+dir.create(tmpDir)
+# set tmpDir as the working directory
+cd &lt;- setwd(tmpDir)
+# copy folder1 in tmpDir
+copyDirectory(folder1, recursive = FALSE)
+# initialize git repo
+system("git init")
+# add all files to git
+system("git add -A")
+# commit files
+system('git commit -m "mycommit1"')
+# create a new branch
+system("git checkout -b newbranch")
+# copy folder2 in tmpDir, under the new branch
+copyDirectory(folder2, recursive = FALSE)
+# add all files to git
+system("git add -A")
+# commit files
+system('git commit -m "mycommit2"')
+
+# now we can try `findInGit`
+findInGit(ext = "js", pattern = "ansi")
+
+# get results in a dataframe:
+findInGit(ext = "js", pattern = "ansi", output = "dataframe")
+
+# one can also get the widget and the dataframe:
+fig &lt;- findInGit(ext = "css", pattern = "color", output = "viewer+dataframe")
+fig
+FIG2dataframe(fig)
+
+# return to initial current directory
+setwd(cd)
+# delete tmpDir
+unlink(tmpDir, recursive = TRUE, force = TRUE)
+
+}
+</code></pre>
+
+
+</div>

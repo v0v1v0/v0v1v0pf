@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>df2lambda</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Convert Degrees of Freedom to a Smoothing Parameter Value
+</h2>
+
+<h3>Description</h3>
+
+<p>The degree of roughness of an estimated function is controlled by a
+smoothing parameter $lambda$ that directly multiplies the penalty.
+However, it can be difficult to interpret or choose this value, and it
+is often easier to determine the roughness by choosing a value that is
+equivalent of the degrees of freedom used by the smoothing procedure.
+This function converts a degrees of freedom value into a multiplier
+$lambda$.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">df2lambda(argvals, basisobj, wtvec=rep(1, n), Lfdobj=0,
+          df=nbasis)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+
+<p>a vector containing argument values associated with the values to
+be smoothed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basisobj</code></td>
+<td>
+
+<p>a basis function object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wtvec</code></td>
+<td>
+
+<p>a vector of weights for the data to be smoothed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj</code></td>
+<td>
+
+<p>either a nonnegative integer or a linear differential operator object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+
+<p>the degrees of freedom to be converted.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The conversion requires a one-dimensional optimization and may be
+therefore computationally intensive.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a positive smoothing parameter value $lambda$
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lambda2df</code>, 
+<code>lambda2gcv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#  Smooth growth curves using a specified value of
+#  degrees of freedom.
+#  Set up the ages of height measurements for Berkeley data
+age &lt;- c( seq(1, 2, 0.25), seq(3, 8, 1), seq(8.5, 18, 0.5))
+#  Range of observations
+rng &lt;- c(1,18)
+#  Set up a B-spline basis of order 6 with knots at ages
+knots  &lt;- age
+norder &lt;- 6
+nbasis &lt;- length(knots) + norder - 2
+hgtbasis &lt;- create.bspline.basis(rng, nbasis, norder, knots)
+#  Find the smoothing parameter equivalent to 12
+#  degrees of freedom
+lambda &lt;- df2lambda(age, hgtbasis, df=12)
+#  Set up a functional parameter object for estimating
+#  growth curves.  The 4th derivative is penalyzed to
+#  ensure a smooth 2nd derivative or acceleration.
+Lfdobj &lt;- 4
+growfdPar &lt;- fdPar(fd(matrix(0,nbasis,1),hgtbasis), Lfdobj, lambda)
+#  Smooth the data.  The data for the girls are in matrix
+#  hgtf.
+hgtffd &lt;- smooth.basis(age, growth$hgtf, growfdPar)$fd
+#  Plot the curves
+oldpar &lt;- par(no.readonly=TRUE)
+plot(hgtffd)
+par(oldpar)
+</code></pre>
+
+
+</div>

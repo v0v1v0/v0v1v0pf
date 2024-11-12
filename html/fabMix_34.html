@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>overfittingMFA_CCU</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Basic MCMC sampler for the <code>CCU</code> model
+</h2>
+
+<h3>Description</h3>
+
+<p>Gibbs sampling for fitting a CCU mixture model of factor analyzers.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">overfittingMFA_CCU(x_data, originalX, outputDirectory, Kmax, m, thinning, burn, 
+	g, h, alpha_prior, alpha_sigma, beta_sigma, 
+	start_values, q, zStart, gibbs_z, lowerTriangular)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x_data</code></td>
+<td>
+
+<p>normalized data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>originalX</code></td>
+<td>
+
+<p>observed raw data (only for plotting purpose)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputDirectory</code></td>
+<td>
+
+<p>Name of the output folder
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kmax</code></td>
+<td>
+
+<p>Number of mixture components
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+
+<p>Number of iterations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thinning</code></td>
+<td>
+
+<p>Thinning of chain
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burn</code></td>
+<td>
+
+<p>Burn-in period
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>Prior parameter <code class="reqn">g</code>. Default value: <code class="reqn">g = 2</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+
+<p>Prior parameter <code class="reqn">h</code>. Default value: <code class="reqn">h = 1</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_prior</code></td>
+<td>
+
+<p>Parameters of the Dirichlet prior distribution of mixture weights.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_sigma</code></td>
+<td>
+
+<p>Prior parameter <code class="reqn">\alpha</code>. Default value: <code class="reqn">\alpha = 2</code>.	
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_sigma</code></td>
+<td>
+
+<p>Prior parameter <code class="reqn">\beta</code>. Default value: <code class="reqn">\beta = 1</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_values</code></td>
+<td>
+
+<p>Optional (not used)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+
+<p>Number of factors.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zStart</code></td>
+<td>
+
+<p>Optional (not used)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gibbs_z</code></td>
+<td>
+
+<p>Optional
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowerTriangular</code></td>
+<td>
+
+<p>logical value indicating whether a lower triangular parameterization should be imposed on the matrix of factor loadings (if TRUE) or not. Default: TRUE.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Set of files written in <code>outputDirectory</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Panagiotis Papastamoulis
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library('fabMix')
+n = 8                # sample size
+p = 5                # number of variables
+q = 2                # number of factors
+K = 2                # true number of clusters
+
+sINV_diag = 1/((1:p))    # diagonal of inverse variance of errors
+set.seed(100)
+syntheticDataset &lt;- simData(sameLambda=TRUE,K.true = K, n = n, q = q, p = p, 
+                        sINV_values = sINV_diag)
+colnames(syntheticDataset$data) &lt;- paste0("x_",1:p)
+Kmax &lt;- 4       # number of components for the overfitted mixture model
+
+set.seed(1)
+overfittingMFA_CCU(x_data = syntheticDataset$data, 
+	originalX = syntheticDataset$data, outputDirectory = 'outDir', 
+	Kmax = Kmax, m = 5, burn = 1, 
+	g = 0.5, h = 0.5, alpha_prior = rep(1, Kmax), 
+	alpha_sigma = 0.5, beta_sigma = 0.5, 
+	start_values = FALSE, q = 2,  gibbs_z = 1)
+list.files('outDir')
+unlink('outDir', recursive = TRUE)
+
+</code></pre>
+
+
+</div>

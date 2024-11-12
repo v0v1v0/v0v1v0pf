@@ -1,0 +1,422 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fkf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast Kalman filter</h2>
+
+<h3>Description</h3>
+
+<p>This function allows for fast and flexible Kalman filtering. Both, the
+measurement and transition equation may be multivariate and parameters
+are allowed to be time-varying. In addition “NA”-values in the
+observations are supported. <code>fkf</code> wraps the <code>C</code>-function
+<code>FKF</code> which fully relies on linear algebra subroutines contained
+in BLAS and LAPACK.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fkf(a0, P0, dt, ct, Tt, Zt, HHt, GGt, yt)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>a0</code></td>
+<td>
+<p>A <code>vector</code> giving the initial value/estimation of the state variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P0</code></td>
+<td>
+<p>A <code>matrix</code> giving the variance of <code>a0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>A <code>matrix</code> giving the intercept of the transition equation (see <b>Details</b>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ct</code></td>
+<td>
+<p>A <code>matrix</code> giving the intercept of the measurement equation (see <b>Details</b>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tt</code></td>
+<td>
+<p>An <code>array</code> giving the factor of the transition equation (see <b>Details</b>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Zt</code></td>
+<td>
+<p>An <code>array</code> giving the factor of the measurement equation (see <b>Details</b>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HHt</code></td>
+<td>
+<p>An <code>array</code> giving the variance of the innovations of the transition equation (see <b>Details</b>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GGt</code></td>
+<td>
+<p>An <code>array</code> giving the variance of the disturbances of the measurement equation (see <b>Details</b>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yt</code></td>
+<td>
+<p>A <code>matrix</code> containing the observations. “NA”-values are allowed (see <b>Details</b>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>State space form</strong>
+</p>
+<p>The following notation is closest to the one of Koopman et al.
+The state space model is represented by the transition equation and
+the measurement equation. Let <code class="reqn">m</code> be the dimension of the state
+variable, <code class="reqn">d</code> be the dimension of the observations, and <code class="reqn">n</code>
+the number of observations. The transition equation and the
+measurement equation are given by
+</p>
+<p style="text-align: center;"><code class="reqn">\alpha_{t + 1} = d_t + T_t \cdot \alpha_t + H_t \cdot \eta_t</code>
+</p>
+ 
+<p style="text-align: center;"><code class="reqn">y_t = c_t + Z_t \cdot \alpha_t + G_t \cdot \epsilon_t,</code>
+</p>
+
+<p>where <code class="reqn">\eta_t</code> and <code class="reqn">\epsilon_t</code> are iid
+<code class="reqn">N(0, I_m)</code> and iid <code class="reqn">N(0, I_d)</code>,
+respectively, and <code class="reqn">\alpha_t</code> denotes the state
+variable. The parameters admit the following dimensions:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code class="reqn">\alpha_{t} \in R^{m}</code> </td>
+<td style="text-align: left;">
+<code class="reqn">d_{t} \in R^m</code> </td>
+<td style="text-align: left;">
+<code class="reqn">\eta_{t} \in R^m</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code class="reqn">T_{t} \in R^{m \times m}</code> </td>
+<td style="text-align: left;">
+<code class="reqn">H_{t} \in R^{m \times m}</code> </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code class="reqn">y_{t} \in R^d</code> </td>
+<td style="text-align: left;">
+<code class="reqn">c_t \in R^d</code> </td>
+<td style="text-align: left;">
+<code class="reqn">\epsilon_{t} \in R^d</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code class="reqn">Z_{t} \in R^{d \times m}</code> </td>
+<td style="text-align: left;">
+<code class="reqn">G_{t} \in R^{d \times d}</code> </td>
+<td style="text-align: left;"> 
+</td>
+</tr>
+</table>
+<p>Note that <code>fkf</code> takes as input <code>HHt</code> and <code>GGt</code> which
+corresponds to <code class="reqn">H_t H_t^\prime</code> and <code class="reqn">G_t G_t^\prime</code>. 
+</p>
+
+<p><strong>Iteration:</strong>
+</p>
+<p>The filter iterations are implemented using the expected values
+</p>
+<p style="text-align: center;"><code class="reqn">a_{t} = E[\alpha_t | y_1,\ldots,y_{t-1}]</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">a_{t|t} = E[\alpha_t | y_1,\ldots,y_{t}]</code>
+</p>
+
+<p>and variances
+</p>
+<p style="text-align: center;"><code class="reqn">P_{t} = Var[\alpha_t | y_1,\ldots,y_{t-1}]</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">P_{t|t} = Var[\alpha_t | y_1,\ldots,y_{t}]</code>
+</p>
+
+<p>of the state <code class="reqn">\alpha_{t}</code> in the following way
+(for the case of no NA's):
+</p>
+<p>Initialisation: Set <code class="reqn">t=1</code> with <code class="reqn">a_{t} = a0</code> and <code class="reqn">P_{t}=P0</code>
+</p>
+<p>Updating equations:
+</p>
+<p style="text-align: center;"><code class="reqn">v_t = y_t - c_t - Z_t a_t</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">F_t = Z_t P_t Z_t^{\prime} + G_t G_t^\prime</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">K_t = P_t Z_t^{\prime} F_{t}^{-1}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">a_{t|t} = a_t + K_t v_t</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">P_{t|t} = P_t - P_t Z_t^\prime K_t^\prime</code>
+</p>
+
+<p>Prediction equations:
+</p>
+<p style="text-align: center;"><code class="reqn">a_{t+1} = d_{t} + T_{t} a_{t|t}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">P_{t+1} = T_{t} P_{t|t} T_{t}^{\prime} + H_t H_t^\prime</code>
+</p>
+
+<p>Next iteration: Set <code class="reqn">t=t+1</code> and goto “Updating equations”.
+</p>
+
+<p><strong>NA-values:</strong>
+</p>
+<p>NA-values in the observation matrix <code>yt</code> are supported.  If
+particular observations <code>yt[,i]</code> contain NAs, the NA-values are
+removed and the measurement equation is adjusted accordingly.  When
+the full vector <code>yt[,i]</code> is missing the Kalman filter reduces to
+a prediction step.
+</p>
+
+<p><strong>Parameters:</strong>
+</p>
+<p>The parameters can either be constant or deterministic
+time-varying. Assume the number of observations is <code class="reqn">n</code>
+(i.e. <code class="reqn">y = (y_t)_{t = 1, \ldots, n}, y_t = (y_{t1}, \ldots,
+  y_{td})</code>). Then, the parameters admit the following
+classes and dimensions:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <code>dt</code> </td>
+<td style="text-align: left;"> either a <code class="reqn">m \times n</code> (time-varying) or a <code class="reqn">m \times 1</code> (constant) matrix. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>Tt</code> </td>
+<td style="text-align: left;"> either a <code class="reqn">m \times m \times n</code> or a <code class="reqn">m \times m \times 1</code> array. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>HHt</code> </td>
+<td style="text-align: left;"> either a <code class="reqn">m \times m \times n</code> or a <code class="reqn">m \times m \times 1</code> array. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>ct</code> </td>
+<td style="text-align: left;"> either a <code class="reqn">d \times n</code> or a <code class="reqn">d \times 1</code> matrix. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>Zt</code> </td>
+<td style="text-align: left;"> either a <code class="reqn">d \times m \times n</code> or a <code class="reqn">d \times m \times 1</code> array. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>GGt</code> </td>
+<td style="text-align: left;"> either a <code class="reqn">d \times d \times n</code> or a <code class="reqn">d \times d \times 1</code> array. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>yt</code> </td>
+<td style="text-align: left;"> a <code class="reqn">d \times n</code> matrix.
+  </td>
+</tr>
+</table>
+<p><strong>BLAS and LAPACK routines used:</strong>
+</p>
+<p>The <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>fkf</code> basically wraps the <code>C</code>-function
+<code>FKF</code>, which entirely relies on linear algebra subroutines
+provided by BLAS and LAPACK. The following functions are used:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+    BLAS: </td>
+<td style="text-align: left;"> <code>dcopy</code>, <code>dgemm</code>, <code>daxpy</code>. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    LAPACK: </td>
+<td style="text-align: left;"> <code>dpotri</code>, <code>dpotrf</code>.
+  </td>
+</tr>
+</table>
+<p><code>FKF</code> is called through the <code>.Call</code> interface.  Internally,
+<code>FKF</code> extracts the dimensions, allocates memory, and initializes
+the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-objects to be returned. <code>FKF</code> subsequently calls
+<code>cfkf</code> which performs the Kalman filtering.
+</p>
+<p>The only critical part is to compute the inverse of <code class="reqn">F_t</code>
+and the determinant of <code class="reqn">F_t</code>. If the inverse can not be
+computed, the filter stops and returns the corresponding message in
+<code>status</code> (see <b>Value</b>). If the computation of the
+determinant fails, the filter will continue, but the log-likelihood
+(element <code>logLik</code>) will be “NA”.
+</p>
+<p>The inverse is computed in two steps:
+First, the Cholesky factorization of <code class="reqn">F_t</code> is
+calculated by <code>dpotrf</code>. Second, <code>dpotri</code> calculates the
+inverse based on the output of <code>dpotrf</code>. <br>
+The determinant of <code class="reqn">F_t</code> is computed using again the
+Cholesky decomposition.
+</p>
+<p>The first element of both <code>at</code> and <code>Pt</code> is filled with the
+function arguments <code>a0</code> and <code>P0</code>, and the last, i.e. the (n +
+1)-th, element of <code>at</code> and <code>Pt</code> contains the predictions for the next time step.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An S3-object of class “fkf”, which is a list with the following elements:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+    <code>att</code> </td>
+<td style="text-align: left;"> A <code class="reqn">m \times n</code>-matrix containing the filtered state variables, i.e. att[,t] = <code class="reqn">a_{t|t}</code>.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>at</code> </td>
+<td style="text-align: left;"> A <code class="reqn">m \times (n + 1)</code>-matrix containing the predicted state variables, i.e. at[,t] = <code class="reqn">a_t</code>.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>Ptt</code> </td>
+<td style="text-align: left;"> A <code class="reqn">m \times m \times n</code>-array containing the variance of <code>att</code>, i.e. Ptt[,,t] = <code class="reqn">P_{t|t}</code>.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>Pt</code> </td>
+<td style="text-align: left;"> A <code class="reqn">m \times m \times (n + 1)</code>-array containing the variances of <code>at</code>, i.e. Pt[,,t] = <code class="reqn">P_t</code>.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>vt</code> </td>
+<td style="text-align: left;"> A <code class="reqn">d \times n</code>-matrix of the prediction errors i.e. vt[,t] = <code class="reqn">v_t</code>.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>Ft</code> </td>
+<td style="text-align: left;"> A <code class="reqn">d \times d \times n</code>-array which contains the variances of <code>vt</code>, i.e. Ft[,,t] = <code class="reqn">F_t</code>.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>Kt</code> </td>
+<td style="text-align: left;"> A <code class="reqn">m \times d \times n</code>-array containing the “Kalman gain” i.e. Kt[,,t] = <code class="reqn">k_t</code>.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>logLik</code> </td>
+<td style="text-align: left;"> The log-likelihood. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+    <code>status</code> </td>
+<td style="text-align: left;"> A vector which contains the status of LAPACK's <code>dpotri</code> and <code>dpotrf</code>. <code class="reqn">(0, 0)</code> means successful exit.</td>
+</tr>
+<tr>
+<td style="text-align: right;">
+  <code>sys.time</code> </td>
+<td style="text-align: left;"> The time elapsed as an object of class “proc_time”.
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Harvey, Andrew C. (1990). <em>Forecasting, Structural Time Series
+Models and the Kalman Filter</em>.  Cambridge University Press.
+</p>
+<p>Hamilton, James D. (1994). <em>Time Series Analysis</em>.  Princeton
+University Press.
+</p>
+<p>Koopman, S. J., Shephard, N., Doornik, J. A. (1999).
+<em>Statistical algorithms for models in state space using SsfPack
+2.2</em>. Econometrics Journal, Royal Economic Society, vol. 2(1), pages
+107-160.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot</code> to visualize and analyze <code>fkf</code>-objects, <code>KalmanRun</code> from the stats package, function <code>dlmFilter</code> from package <code>dlm</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## &lt;---------------------------------------------------------------------------&gt;
+## Example: Local level model for the Nile's annual flow.
+## &lt;---------------------------------------------------------------------------&gt;
+## Transition equation:
+## alpha[t+1] = alpha[t] + eta[t], eta[t] ~ N(0, HHt)          
+## Measurement equation:
+## y[t] = alpha[t] + eps[t], eps[t] ~  N(0, GGt)
+
+y &lt;- Nile
+y[c(3, 10)] &lt;- NA  # NA values can be handled
+
+## Set constant parameters:
+dt &lt;- ct &lt;- matrix(0) 
+Zt &lt;- Tt &lt;- matrix(1)
+a0 &lt;- y[1]            # Estimation of the first year flow 
+P0 &lt;- matrix(100)     # Variance of 'a0'
+
+## Estimate parameters:
+fit.fkf &lt;- optim(c(HHt = var(y, na.rm = TRUE) * .5,
+                   GGt = var(y, na.rm = TRUE) * .5),
+                 fn = function(par, ...)
+                 -fkf(HHt = matrix(par[1]), GGt = matrix(par[2]), ...)$logLik,
+                 yt = rbind(y), a0 = a0, P0 = P0, dt = dt, ct = ct,
+                 Zt = Zt, Tt = Tt)
+
+## Filter Nile data with estimated parameters:
+fkf.obj &lt;- fkf(a0, P0, dt, ct, Tt, Zt, HHt = matrix(fit.fkf$par[1]),
+               GGt = matrix(fit.fkf$par[2]), yt = rbind(y))
+
+## Compare with the stats' structural time series implementation:
+fit.stats &lt;- StructTS(y, type = "level")
+
+fit.fkf$par
+fit.stats$coef
+
+## Plot the flow data together with fitted local levels:
+plot(y, main = "Nile flow")
+lines(fitted(fit.stats), col = "green")
+lines(ts(fkf.obj$att[1, ], start = start(y), frequency = frequency(y)), col = "blue")
+legend("top", c("Nile flow data", "Local level (StructTS)", "Local level (fkf)"),
+       col = c("black", "green", "blue"), lty = 1)
+
+</code></pre>
+
+
+</div>

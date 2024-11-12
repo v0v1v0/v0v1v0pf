@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>test.CausalANOVA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimating the AMEs and AMIEs after Regularization with the CausalANOVA.</h2>
+
+<h3>Description</h3>
+
+<p><code>test.CausalANOVA</code> estimates the AMEs and AMIEs with confidence
+intervals after regularization with <code>CausalANOVA</code>function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">test.CausalANOVA(
+  fit,
+  newdata,
+  collapse.level = TRUE,
+  diff = FALSE,
+  pair.id = NULL,
+  cluster = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>The output from <code>CausalANOAV</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>A data frame to use for re-estimating the AMEs and AMIEs with
+confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collapse.level</code></td>
+<td>
+<p>A logical indicating whether to collapse insignificant
+levels within factors as suggested by the <code>CausalANOVA</code> output users
+provide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff</code></td>
+<td>
+<p>A logical indicating whether the outcome is the choice between a
+pair. If <code>diff=TRUE</code>, <code>pair.id</code> should specify a pair of
+comparison. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pair.id</code></td>
+<td>
+<p>(optional).Unique identifiers for each pair of comparison.
+This option is used when <code>diff=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>Unique identifies with which cluster standard errors are
+computed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Details in <code>CausalANOVA</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>The output of class <code>CausalANOVA</code>.</p>
+</td>
+</tr></table>
+<h3>Author(s)</h3>
+
+<p>Naoki Egami and Kosuke Imai.
+</p>
+
+
+<h3>References</h3>
+
+<p>Egami, Naoki and Kosuke Imai. 2019. Causal Interaction in
+Factorial Experiments: Application to Conjoint Analysis, Journal of the American Statistical Association.
+<a href="http://imai.fas.harvard.edu/research/files/int.pdf">http://imai.fas.harvard.edu/research/files/int.pdf</a>
+</p>
+<p>Lim, M. and Hastie, T. 2015. Learning interactions via hierarchical
+group-lasso regularization. Journal of Computational and Graphical
+Statistics 24, 3, 627–654.
+</p>
+<p>Post, J. B. and Bondell, H. D. 2013. “Factor selection and structural
+identification in the interaction anova model.” Biometrics 69, 1, 70–79.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>CausalANOVA.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## ####################################### 
+## With Screening and Collapsing
+## #######################################
+data(Carlson)
+## Specify the order of each factor
+Carlson$newRecordF&lt;- factor(Carlson$newRecordF,ordered=TRUE,
+                            levels=c("YesLC", "YesDis","YesMP",
+                                     "noLC","noDis","noMP","noBusi"))
+Carlson$promise &lt;- factor(Carlson$promise,ordered=TRUE,levels=c("jobs","clinic","education"))
+Carlson$coeth_voting &lt;- factor(Carlson$coeth_voting,ordered=FALSE,levels=c("0","1"))
+Carlson$relevantdegree &lt;- factor(Carlson$relevantdegree,ordered=FALSE,levels=c("0","1"))
+
+## Sample Splitting
+train.ind &lt;- sample(unique(Carlson$respcodeS), 272, replace=FALSE)
+test.ind &lt;- setdiff(unique(Carlson$respcodeS), train.ind)
+Carlson.train &lt;- Carlson[is.element(Carlson$respcodeS,train.ind), ]
+Carlson.test &lt;- Carlson[is.element(Carlson$respcodeS,test.ind), ]
+ 
+#################### AMEs and two-way AMIEs ####################
+fit.r2 &lt;- CausalANOVA(formula=won ~ newRecordF + promise + coeth_voting + relevantdegree,
+                      data=Carlson.train, pair.id=Carlson.train$contestresp,diff=TRUE,
+                      screen=TRUE, collapse=TRUE,
+                      cluster=Carlson.train$respcodeS, nway=2)
+summary(fit.r2)
+
+## refit with test.CausalANOVA
+fit.r2.new &lt;- test.CausalANOVA(fit.r2, newdata=Carlson.test, diff=TRUE,
+                               pair.id=Carlson.test$contestresp, cluster=Carlson.test$respcodeS)
+
+summary(fit.r2.new)
+plot(fit.r2.new)
+plot(fit.r2.new, type="ConditionalEffect", fac.name=c("newRecordF","coeth_voting"))
+ConditionalEffect(fit.r2.new, treat.fac="newRecordF", cond.fac="coeth_voting")
+</code></pre>
+
+
+</div>

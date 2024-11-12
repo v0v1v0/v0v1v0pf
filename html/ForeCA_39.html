@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spectral_entropy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates spectral entropy of a time series</h2>
+
+<h3>Description</h3>
+
+<p>Estimates <em>spectral entropy</em> from a univariate (or multivariate) 
+normalized spectral density.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spectral_entropy(
+  series = NULL,
+  spectrum.control = list(),
+  entropy.control = list(),
+  mvspectrum.output = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>series</code></td>
+<td>
+<p>univariate time series of length <code class="reqn">T</code>.  In the rare case
+that users want to call this for a multivariate time <code>series</code>, note 
+that the estimated spectrum is in general <em>not</em> normalized for the computation. 
+Only if the original data is whitened, then it is normalized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spectrum.control</code></td>
+<td>
+<p>list; control settings for spectrum estimation. 
+See <code>complete_spectrum_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy.control</code></td>
+<td>
+<p>list; control settings for entropy estimation.
+See <code>complete_entropy_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mvspectrum.output</code></td>
+<td>
+<p>optional; one can directly provide an estimate of 
+the spectrum of <code>series</code>. Usually the output of <code>mvspectrum</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>mvspectrum</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <em>spectral entropy</em> equals the Shannon entropy of the spectral density
+<code class="reqn">f_x(\lambda)</code> of a stationary process <code class="reqn">x_t</code>: 
+</p>
+<p style="text-align: center;"><code class="reqn"> 
+H_s(x_t) = - \int_{-\pi}^{\pi} f_x(\lambda) \log f_x(\lambda) d \lambda, 
+</code>
+</p>
+
+<p>where the density is normalized such that 
+<code class="reqn">\int_{-\pi}^{\pi} f_x(\lambda) d \lambda = 1</code>. An estimate of <code class="reqn">f(\lambda)</code>
+can be obtained 
+by the (smoothed) periodogram (see <code>mvspectrum</code>); thus using discrete, and 
+not continuous entropy.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A non-negative real value for the spectral entropy <code class="reqn">H_s(x_t)</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Jerry D. Gibson and Jaewoo Jung (2006). “The
+Interpretation of Spectral Entropy Based Upon Rate Distortion Functions”.
+IEEE International Symposium on Information Theory, pp. 277-281.
+</p>
+<p>L. L. Campbell, “Minimum coefficient rate for stationary random processes”, 
+Information and Control, vol. 3, no. 4, pp. 360 - 371, 1960.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Omega</code>, <code>discrete_entropy</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+eps &lt;- rnorm(100)
+spectral_entropy(eps)
+
+phi.v &lt;- seq(-0.95, 0.95, by = 0.1)
+kMethods &lt;- c("mvspec", "pgram")
+SE &lt;- matrix(NA, ncol = length(kMethods), nrow = length(phi.v))
+for (ii in seq_along(phi.v)) {
+  xx.tmp &lt;- arima.sim(n = 200, list(ar = phi.v[ii]))
+  for (mm in seq_along(kMethods)) {
+    SE[ii, mm] &lt;- spectral_entropy(xx.tmp, spectrum.control = 
+                                     list(method = kMethods[mm]))
+  }
+}
+
+matplot(phi.v, SE, type = "l", col = seq_along(kMethods))
+legend("bottom", kMethods, lty = seq_along(kMethods), 
+       col = seq_along(kMethods))
+       
+# AR vs MA
+SE.arma &lt;- matrix(NA, ncol = 2, nrow = length(phi.v))
+SE.arma[, 1] &lt;- SE[, 2]
+
+for (ii in seq_along(phi.v)){
+  yy.temp &lt;- arima.sim(n = 1000, list(ma = phi.v[ii]))
+  SE.arma[ii, 2] &lt;- 
+    spectral_entropy(yy.temp, spectrum.control = list(method = "mvspec"))
+}
+
+matplot(phi.v, SE.arma, type = "l", col = 1:2, xlab = "parameter (phi or theta)",
+        ylab = "Spectral entropy")
+abline(v = 0, col = "blue", lty = 3)
+legend("bottom", c("AR(1)", "MA(1)"), lty = 1:2, col = 1:2)
+
+</code></pre>
+
+
+</div>

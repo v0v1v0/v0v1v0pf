@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simplifyFCS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simplify FCS</h2>
+
+<h3>Description</h3>
+
+<p>Reduces the amount of data in a data set without altering its overall structure
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simplifyFCS(g, tau, step = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>A vector containing the FCS data analysis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>A vector that represents the time frame between data acquisitions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>A numeric value that affects the final length of the vector</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The simplifyFCS function performs a log10 weighted binning of the autocorrelation function (acf). It balance the weight of the long-time scale trending behavior of the acf curve, which commonly contain G(tau) points that fluctuate around the zero-correlation regime, hence overweighting fitting with ‘noisy data’. simplifyFCS reduce the weight of the long-time scale trending behavior (ms to sec), preserving the structure of the short-time scales.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of the FCS data with reduced length
+</p>
+
+
+<h3>Note</h3>
+
+<p>the step parameter must be between 0 and 1
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Adan O. Guerrero
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gcf</code>, <code>var, mean</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+f &lt;- Cy5_100nM$f
+acqTime &lt;- 2E-6
+f &lt;- as.vector(f)
+time &lt;- (1:length(f))*acqTime
+cy5 &lt;- data.frame(t = time, f)
+
+g &lt;- fcs(x = cy5$f)
+len &lt;- 1:length(g)
+tau &lt;-cy5$t[len]
+G &lt;- data.frame(tau,g)
+
+sfcs &lt;- simplifyFCS(G$g, G$tau, step = 0.5)
+plot(sfcs$g~sfcs$tau, log = "x", type = "l",
+     xlab = expression(tau(s)),
+     ylab = expression(G(tau)), main = "Cy5")
+
+# Comparison, original with simplify
+plot(G, type = 'l', log = 'x')
+lines(sfcs$g~sfcs$tau, col = "red")
+
+</code></pre>
+
+
+</div>

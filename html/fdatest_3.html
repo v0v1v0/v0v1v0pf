@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ITP1bspline</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+One population Interval Testing Procedure with B-spline basis
+</h2>
+
+<h3>Description</h3>
+
+<p>The function implements the Interval Testing Procedure for testing the center of symmetry of a functional population evaluated on a uniform grid. Data are represented by means of the B-spline expansion and the significance of each basis coefficient is tested with an interval-wise control of the Family Wise Error Rate. The default parameters of the basis expansion lead to the piece-wise interpolating function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ITP1bspline(data, mu = 0, order = 2, nknots = dim(data)[2], B = 10000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Pointwise evaluations of the functional data set on a uniform grid. <code>data</code> is a matrix of dimensions <code>c(n,J)</code>, with <code>J</code> evaluations on columns and <code>n</code> units on rows.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+
+<p>The center of symmetry under the null hypothesis: either a constant (in this case, a constant function is used) or a <code>J</code>-dimensional vector containing the evaluations on the same grid which <code>data</code> are evaluated. The default is <code>mu=0</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+
+<p>Order of the B-spline basis expansion. The default is <code>order=2</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknots</code></td>
+<td>
+
+<p>Number of knots of the B-spline basis expansion. The default is <code>nknots=dim(data)[2]</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+
+<p>The number of iterations of the MC algorithm to evaluate the p-values of the permutation tests. The defualt is <code>B=10000</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ITP1bspline</code> returns an object of <code>class</code> "<code>ITP1</code>".
+</p>
+<p>An object of class "<code>ITP1</code>" is a list containing at least the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>basis</code></td>
+<td>
+<p>String vector indicating the basis used for the first phase of the algorithm. In this case equal to <code>"B-spline"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>String vector indicating the type of test performed. In this case equal to <code>"1pop"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>Center of symmetry under the null hypothesis (as entered by the user).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>Matrix of dimensions <code>c(n,p)</code> of the <code>p</code> coefficients of the B-spline basis expansion. Rows are associated to units and columns to the basis index.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval</code></td>
+<td>
+<p>Uncorrected p-values for each basis coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval.matrix</code></td>
+<td>
+<p>Matrix of dimensions <code>c(p,p)</code> of the p-values of the multivariate tests. The element <code>(i,j)</code> of matrix <code>pval.matrix</code> contains the p-value of the joint NPC test of the components <code>(j,j+1,...,j+(p-i))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corrected.pval</code></td>
+<td>
+<p>Corrected p-values for each basis coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>Labels indicating the population membership of each data (in this case always equal to <code>1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.eval</code></td>
+<td>
+<p>Evaluation on a fine uniform grid of the functional data obtained through the basis expansion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heatmap.matrix</code></td>
+<td>
+<p>Heatmap matrix of p-values (used only for plots).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Alessia Pini, Simone Vantini
+</p>
+
+
+<h3>References</h3>
+
+<p>A. Pini and S. Vantini (2013). The Interval Testing Procedure: Inference for Functional Data Controlling the Family Wise Error Rate on Intervals. <em>MOX-report 13/2013</em>, Politecnico di Milano.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>ITP1fourier</code>, <code>ITP2bspline</code>, <code>ITP2fourier</code>, <code>ITP2pafourier</code>, and <code>ITPimage</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Importing the NASA temperatures data set
+data(NASAtemp)
+# Performing the ITP for two populations with the B-spline basis
+ITP.result &lt;- ITP1bspline(NASAtemp$paris,mu=4,nknots=50,B=1000)
+# Plotting the results of the ITP
+plot(ITP.result,xrange=c(0,12),main='Paris temperatures')
+
+# Plotting the p-value heatmap
+ITPimage(ITP.result,abscissa.range=c(0,12))
+
+
+# Selecting the significant components for the radius at 5% level
+which(ITP.result$corrected.pval &lt; 0.05)
+
+</code></pre>
+
+
+</div>

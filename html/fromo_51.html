@@ -1,0 +1,270 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>running_sd3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute first K moments over a sliding window</h2>
+
+<h3>Description</h3>
+
+<p>Compute the (standardized) 2nd through kth moments, the mean, and the number of elements over
+an infinite or finite sliding window, returning a matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">running_sd3(v, window = NULL, wts = NULL, na_rm = FALSE, min_df = 0L,
+  used_df = 1, restart_period = 100L, check_wts = FALSE,
+  normalize_wts = TRUE)
+
+running_skew4(v, window = NULL, wts = NULL, na_rm = FALSE, min_df = 0L,
+  used_df = 1, restart_period = 100L, check_wts = FALSE,
+  normalize_wts = TRUE)
+
+running_kurt5(v, window = NULL, wts = NULL, na_rm = FALSE, min_df = 0L,
+  used_df = 1, restart_period = 100L, check_wts = FALSE,
+  normalize_wts = TRUE)
+
+running_sd(v, window = NULL, wts = NULL, na_rm = FALSE, min_df = 0L,
+  used_df = 1, restart_period = 100L, check_wts = FALSE,
+  normalize_wts = TRUE)
+
+running_skew(v, window = NULL, wts = NULL, na_rm = FALSE, min_df = 0L,
+  used_df = 1, restart_period = 100L, check_wts = FALSE,
+  normalize_wts = TRUE)
+
+running_kurt(v, window = NULL, wts = NULL, na_rm = FALSE, min_df = 0L,
+  used_df = 1, restart_period = 100L, check_wts = FALSE,
+  normalize_wts = TRUE)
+
+running_cent_moments(v, window = NULL, wts = NULL, max_order = 5L,
+  na_rm = FALSE, max_order_only = FALSE, min_df = 0L, used_df = 0,
+  restart_period = 100L, check_wts = FALSE, normalize_wts = TRUE)
+
+running_std_moments(v, window = NULL, wts = NULL, max_order = 5L,
+  na_rm = FALSE, min_df = 0L, used_df = 0, restart_period = 100L,
+  check_wts = FALSE, normalize_wts = TRUE)
+
+running_cumulants(v, window = NULL, wts = NULL, max_order = 5L,
+  na_rm = FALSE, min_df = 0L, used_df = 0, restart_period = 100L,
+  check_wts = FALSE, normalize_wts = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>a vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window</code></td>
+<td>
+<p>the window size. if given as finite integer or double, passed through.
+If <code>NULL</code>, <code>NA_integer_</code>, <code>NA_real_</code> or <code>Inf</code> are given, equivalent
+to an infinite window size. If negative, an error will be thrown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wts</code></td>
+<td>
+<p>an optional vector of weights. Weights are ‘replication’
+weights, meaning a value of 2 is shorthand for having two observations
+with the corresponding <code>v</code> value. If <code>NULL</code>, corresponds to
+equal unit weights, the default. Note that weights are typically only meaningfully defined
+up to a multiplicative constant, meaning the units of weights are
+immaterial, with the exception that methods which check for minimum df will,
+in the weighted case, check against the sum of weights. For this reason,
+weights less than 1 could cause <code>NA</code> to be returned unexpectedly due
+to the minimum condition. When weights are <code>NA</code>, the same rules for checking <code>v</code>
+are applied. That is, the observation will not contribute to the moment
+if the weight is <code>NA</code> when <code>na_rm</code> is true. When there is no
+checking, an <code>NA</code> value will cause the output to be <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_rm</code></td>
+<td>
+<p>whether to remove NA, false by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_df</code></td>
+<td>
+<p>the minimum df to return a value, otherwise <code>NaN</code> is returned.
+This can be used to prevent moments from being computed on too few observations.
+Defaults to zero, meaning no restriction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>used_df</code></td>
+<td>
+<p>the number of degrees of freedom consumed, used in the denominator
+of the centered moments computation. These are subtracted from the number of
+observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restart_period</code></td>
+<td>
+<p>the recompute period. because subtraction of elements can cause
+loss of precision, the computation of moments is restarted periodically based on 
+this parameter. Larger values mean fewer restarts and faster, though less accurate
+results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_wts</code></td>
+<td>
+<p>a boolean for whether the code shall check for negative
+weights, and throw an error when they are found. Default false for speed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize_wts</code></td>
+<td>
+<p>a boolean for whether the weights should be
+renormalized to have a mean value of 1. This mean is computed over elements
+which contribute to the moments, so if <code>na_rm</code> is set, that means non-NA
+elements of <code>wts</code> that correspond to non-NA elements of the data
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_order</code></td>
+<td>
+<p>the maximum order of the centered moment to be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_order_only</code></td>
+<td>
+<p>for <code>running_cent_moments</code>, if this flag is set, only compute
+the maximum order centered moment, and return in a vector.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Computes the number of elements, the mean, and the 2nd through kth
+centered (and typically standardized) moments, for <code class="reqn">k=2,3,4</code>. These
+are computed via the numerically robust one-pass method of Bennett <em>et. al.</em>
+</p>
+<p>Given the length <code class="reqn">n</code> vector <code class="reqn">x</code>, we output matrix <code class="reqn">M</code> where
+<code class="reqn">M_{i,j}</code> is the <code class="reqn">order - j + 1</code> moment (<em>i.e.</em>
+excess kurtosis, skewness, standard deviation, mean or number of elements)
+of <code class="reqn">x_{i-window+1},x_{i-window+2},...,x_{i}</code>.
+Barring <code>NA</code> or <code>NaN</code>, this is over a window of size <code>window</code>.
+During the 'burn-in' phase, we take fewer elements.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Typically a matrix, where the first columns are the kth, k-1th through 2nd standardized, 
+centered moments, then a column of the mean, then a column of the number of (non-nan) elements in the input,
+with the following exceptions:
+</p>
+
+<dl>
+<dt>running_cent_moments</dt>
+<dd>
+<p>Computes arbitrary order centered moments. When <code>max_order_only</code> is set,
+only a column of the maximum order centered moment is returned.</p>
+</dd>
+<dt>running_std_moments</dt>
+<dd>
+<p>Computes arbitrary order standardized moments, then the standard deviation, the mean,
+and the count. There is not yet an option for <code>max_order_only</code>, but probably should be.</p>
+</dd>
+<dt>running_cumulants</dt>
+<dd>
+<p>Computes arbitrary order cumulants, and returns the kth, k-1th, through the second 
+(which is the variance) cumulant, then the mean, and the count.</p>
+</dd>
+</dl>
+<h3>Note</h3>
+
+<p>the kurtosis is <em>excess kurtosis</em>, with a 3 subtracted, and should be nearly zero
+for Gaussian input.
+</p>
+<p>The moment computations provided by fromo are 
+numerically robust, but will often <em>not</em> provide the
+same results as the 'standard' implementations,
+due to differences in roundoff. We make every attempt to balance
+speed and robustness. User assumes all risk from using
+the fromo package.
+</p>
+<p>Note that when weights are given, they are treated as replication weights.
+This can have subtle effects on computations which require minimum
+degrees of freedom, since the sum of weights will be compared to
+that minimum, not the number of data points. Weight values
+(much) less than 1 can cause computations to return <code>NA</code>
+somewhat unexpectedly due to this condition, while values greater
+than one might cause the computation to spuriously return a value
+with little precision.
+</p>
+<p>As this code may add and remove observations, numerical imprecision
+may result in negative estimates of squared quantities, like the
+second or fourth moments.  We do not currently correct for this
+issue, although it may be somewhat mitigated by setting a smaller
+<code>restart_period</code>. In the future we will add a check for
+this case. Post an issue if you experience this bug.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Steven E. Pav <a href="mailto:shabbychef@gmail.com">shabbychef@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Terriberry, T. "Computing Higher-Order Moments Online."
+<a href="http://people.xiph.org/~tterribe/notes/homs.html">http://people.xiph.org/~tterribe/notes/homs.html</a>
+</p>
+<p>J. Bennett, et. al., "Numerically Stable, Single-Pass, 
+Parallel Statistics Algorithms," Proceedings of IEEE
+International Conference on Cluster Computing, 2009.
+<a href="https://www.semanticscholar.org/paper/Numerically-stable-single-pass-parallel-statistics-Bennett-Grout/a83ed72a5ba86622d5eb6395299b46d51c901265">https://www.semanticscholar.org/paper/Numerically-stable-single-pass-parallel-statistics-Bennett-Grout/a83ed72a5ba86622d5eb6395299b46d51c901265</a>
+</p>
+<p>Cook, J. D. "Accurately computing running variance."
+<a href="http://www.johndcook.com/standard_deviation.html">http://www.johndcook.com/standard_deviation.html</a>
+</p>
+<p>Cook, J. D. "Comparing three methods of computing 
+standard deviation."
+<a href="http://www.johndcook.com/blog/2008/09/26/comparing-three-methods-of-computing-standard-deviation">http://www.johndcook.com/blog/2008/09/26/comparing-three-methods-of-computing-standard-deviation</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- rnorm(1e5)
+xs3 &lt;- running_sd3(x,10)
+xs4 &lt;- running_skew4(x,10)
+
+if (require(moments)) {
+    set.seed(123)
+    x &lt;- rnorm(5e1)
+    window &lt;- 10L
+    kt5 &lt;- running_kurt5(x,window=window)
+    rm1 &lt;- t(sapply(seq_len(length(x)),function(iii) { 
+                xrang &lt;- x[max(1,iii-window+1):iii]
+                c(moments::kurtosis(xrang)-3.0,moments::skewness(xrang),
+                sd(xrang),mean(xrang),length(xrang)) },
+             simplify=TRUE))
+    stopifnot(max(abs(kt5 - rm1),na.rm=TRUE) &lt; 1e-12)
+}
+
+xc6 &lt;- running_cent_moments(x,window=100L,max_order=6L)
+
+</code></pre>
+
+
+</div>

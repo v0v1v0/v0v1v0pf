@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_shap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>DEPRECATED - Add SHAP values to (multi-)flashlight</h2>
+
+<h3>Description</h3>
+
+<p>The function calls <code>light_breakdown()</code> for <code>n_shap</code> observations and adds the
+resulting (approximate) SHAP decompositions as static element "shap" to the
+(multi)-flashlight for further analyses.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_shap(x, ...)
+
+## Default S3 method:
+add_shap(x, ...)
+
+## S3 method for class 'flashlight'
+add_shap(
+  x,
+  v = NULL,
+  visit_strategy = c("permutation", "importance", "v"),
+  n_shap = 200,
+  n_max = Inf,
+  n_perm = 12,
+  seed = NULL,
+  use_linkinv = FALSE,
+  verbose = TRUE,
+  ...
+)
+
+## S3 method for class 'multiflashlight'
+add_shap(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "flashlight" or "multiflashlight".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed from or to other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Vector of variables to assess contribution for.
+Defaults to all except those specified by "y", "w" and "by".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>visit_strategy</code></td>
+<td>
+<p>In what sequence should variables be visited? By <code>n_perm</code>
+"permutation" (slow), by "importance" (fast), or as "v" (not recommended).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_shap</code></td>
+<td>
+<p>Number of SHAP decompositions to calculate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>Maximum number of rows in <code>data</code> to consider in the reference data.
+Set to lower value if <code>data</code> is large.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_perm</code></td>
+<td>
+<p>Number of permutations of random visit sequences.
+Only used if <code>visit_strategy = "permutation"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer random seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_linkinv</code></td>
+<td>
+<p>Should retransformation function be applied?
+We suggest to keep the default (<code>FALSE</code>) as the values can be retransformed later.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Should progress bar be shown? Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We offer two approximations to SHAP: For <code>visit_strategy = "importance"</code>,
+the breakdown algorithm (see reference) is used with importance based visit order.
+Use the default <code>visit_strategy = "permutation"</code> to run breakdown for
+multiple random permutations, averaging the results.
+This approximation will be closer to exact SHAP values, but very slow.
+Most available arguments can be chosen to reduce computation time.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "flashlight" or "multiflashlight"
+with additional element "shap" of class "shap" (and "list").
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>add_shap(default)</code>: Default method not implemented yet.
+</p>
+</li>
+<li> <p><code>add_shap(flashlight)</code>: Variable attribution to single observation for a flashlight.
+</p>
+</li>
+<li> <p><code>add_shap(multiflashlight)</code>: Add SHAP to multiflashlight.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>A. Gosiewska and P. Biecek (2019). IBREAKDOWN: Uncertainty of model explanations
+for non-additive predictive models. ArXiv &lt;arxiv.org/abs/1903.11420&gt;.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+fit &lt;- lm(Sepal.Length ~ . + Petal.Length:Species, data = iris)
+x &lt;- flashlight(model = fit, label = "lm", data = iris, y = "Sepal.Length")
+x &lt;- add_shap(x)
+is.shap(x$shap)
+plot(light_importance(x, type = "shap"))
+plot(light_scatter(x, type = "shap", v = "Petal.Length"))
+plot(light_scatter(x, type = "shap", v = "Petal.Length", by = "Species"))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

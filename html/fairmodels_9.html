@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>disparate_impact_remover</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Disparate impact remover</h2>
+
+<h3>Description</h3>
+
+<p>Disparate impact remover is a pre-processing bias mitigation method. It removes bias hidden in numeric columns in data. It changes distribution of ordinal features of data with regard to
+earth mover distance. It works best if among subgroups there is similar number of observations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">disparate_impact_remover(data, protected, features_to_transform, lambda = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p><code>data.frame</code>, data to be transformed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>protected</code></td>
+<td>
+<p>factor, vector containing sensitive information such as gender, race etc... If vector is character it will transform it to factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>features_to_transform</code></td>
+<td>
+<p>character, vector of column names to be transformed. Columns must have numerical, ordinal values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>numeric, amount of repair desired. Value from 0 to 1, where 0 will return almost unchanged dataset and 1 fully repaired dataset</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is implementation of geometric method which preserves ranks unlike combinatorial repair. <code>lambda</code> close to 1 denotes that distributions will be very close to each other
+and <code>lambda</code> close to 0 means that densities will barely change. Note that although <code>lambda</code> equal 0 should mean that original data will be returned, it usually changes distributions slightly due to
+pigeonholing. The number of pigeonholes is fixed and equal to min101, unique(a), where a is vector with values for subgroup. So if some subgroup is not numerous and
+the distribution is discrete with small number of variables then there will be small number of pigeonholes. It will affect data significantly.
+</p>
+
+
+<h3>Value</h3>
+
+<p>repaired data (<code>data.frame</code> object)
+</p>
+
+
+<h3>References</h3>
+
+<p>This method was implemented based on Feldman, Friedler, Moeller, Scheidegger, Venkatasubramanian 2015 <a href="https://arxiv.org/pdf/1412.3756.pdf">https://arxiv.org/pdf/1412.3756.pdf</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library("ggplot2")
+
+set.seed(1)
+# custom data frame with kind and score
+custom_data &lt;- data.frame(
+  kind = as.factor(c(rep("second", 500), rep("first", 500))),
+  score = c(rnorm(500, 400, 40), rnorm(500, 600, 100))
+)
+
+ggplot(custom_data, aes(score, fill = kind)) +
+  geom_density(alpha = 0.5)
+
+fixed_data &lt;- disparate_impact_remover(
+  data = custom_data,
+  protected = custom_data$kind,
+  features_to_transform = "score",
+  lambda = 0.8
+)
+
+ggplot(fixed_data, aes(score, fill = kind)) +
+  geom_density(alpha = 0.5)
+
+# lambda 1 gives identical distribution, lambda 0 (almost) original distributions
+
+fixed_data_unchanged &lt;- disparate_impact_remover(
+  data = custom_data,
+  protected = custom_data$kind,
+  features_to_transform = "score",
+  lambda = 0
+)
+
+ggplot(fixed_data_unchanged, aes(score, fill = kind)) +
+  geom_density(alpha = 0.5)
+
+
+fixed_data_fully_changed &lt;- disparate_impact_remover(
+  data = custom_data,
+  protected = custom_data$kind,
+  features_to_transform = "score",
+  lambda = 1
+)
+
+ggplot(fixed_data_fully_changed, aes(score, fill = kind)) +
+  geom_density(alpha = 0.5) +
+  facet_wrap(kind ~ ., nrow = 2)
+</code></pre>
+
+
+</div>

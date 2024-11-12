@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim.fossils.environment</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate fossils under an environment-dependent model of preservation (Holland, 1995)</h2>
+
+<h3>Description</h3>
+
+<p>This function uses a three parameter Gaussian model to simulate non-uniform fossil recovery along a specified phylogeny.
+Preservation varies with respect to water depth, which is a useful for proxy for changes in the depositional environment.
+The per interval probability of sampling is </p>
+<p style="text-align: center;"><code class="reqn">P(collection) = PA e ^ (-(d - PD)^2 / 2*DT^2 ) </code>
+</p>
+
+<p>where <em>PA</em> is species peak abundance, <em>PD</em> is preferred depth, <em>DT</em> is depth tolerance and <em>d</em> is current water depth.
+<em>PD</em> is the depth at which the species is most likely to be found and is equivalent to the mean of the distribution.
+<em>PA</em> is the probability of sampling an occurrence at this depth.
+<em>DT</em> is the potential of a species to be found at a range of depths and is equivalent to the standard deviation.
+Although here fossil recovery is described with respect to water depth, the model could be applied in the context of any environmental gradient. <br><br>
+The model uses a probability of collecting a fossil within a given interval, rather than a rate.
+</p>
+<p>To simulate discrete fossil sampling events and times within each interval we need to convert the probability into a rate
+(<code>use.rates = TRUE</code>). This is done using the formula </p>
+<p style="text-align: center;"><code class="reqn">rate = -ln(1 - P(collection)/t) </code>
+</p>
+<p> where <em>t</em> is the interval length.
+One caveat of this approach is that the model cannot use a probability of 1, as it would correspond to rate = infinity.
+In this instance we use an approximation for probabilities = 1 (e.g. <code>pr.1.approx = 0.999</code>). <br><br></p>
+<p>Non-uniform interval ages can be specified as a vector (<code>interval.ages</code>) or a uniform set of interval ages can be specified using
+maximum interval age (<code>max.age</code>) and the number of intervals (<code>strata</code>), where interval length <code class="reqn">= max.age/strata</code>. <br><br>
+A vector of values can be specified for the model parameters <em>PA</em>, <em>PD</em> and <em>DT</em> to allow for variation across lineages.
+If a vector is provided, each entry will apply to each unique species in the order in which they appear in the taxonomy object (if taxonomy is provided),
+or to each unique edge in the order in which they appear in the tree object.
+If the tree object has a root edge (<code>root.edge</code>), the first entry in the vector will apply to this edge. <br><br>
+Fossils can be simulated for a phylo (<code>tree</code>) or taxonomy (<code>taxonomy</code>) object.
+If both are specified, the function uses taxonomy.
+If no taxonomic information is provided, the function assumes all speciation is symmetric (i.e. bifurcating, <code>beta = 1</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim.fossils.environment(
+  tree = NULL,
+  taxonomy = NULL,
+  interval.ages = NULL,
+  max.age = NULL,
+  strata = NULL,
+  proxy.data = NULL,
+  PD = 0.5,
+  DT = 0.5,
+  PA = 0.5,
+  root.edge = TRUE,
+  use.rates = FALSE,
+  pr.1.approx = 0.999,
+  use.exact.times = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>Phylo object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxonomy</code></td>
+<td>
+<p>Taxonomy object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval.ages</code></td>
+<td>
+<p>Vector of stratigraphic interval ages, starting with the minimum age of the youngest interval and ending with the maximum age of the oldest interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.age</code></td>
+<td>
+<p>Maximum age of the oldest stratigraphic interval or age at the base of the basin.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>Number of stratigraphic intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proxy.data</code></td>
+<td>
+<p>Vector of relative water depth or other proxy data. The first number corresponds to the youngest interval. The length of the vector should be 1 less than the length of interval.ages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PD</code></td>
+<td>
+<p>Preferred depth parameter value or a vector of values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DT</code></td>
+<td>
+<p>Depth tolerance parameter value or a vector of values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PA</code></td>
+<td>
+<p>Peak abundance parameter value or a vector of values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root.edge</code></td>
+<td>
+<p>If TRUE include the root edge. Default = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.rates</code></td>
+<td>
+<p>If TRUE convert per interval sampling probability into a per interval Poisson rate. Default = FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pr.1.approx</code></td>
+<td>
+<p>Value used to approximate sampling probabilities = 1 when use.rates = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.exact.times</code></td>
+<td>
+<p>If TRUE use exact sampling times. If FALSE <code>hmin</code> and <code>hmax</code> will equal the start and end times of the corresponding interval. Default = TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class fossils.
+</p>
+
+
+<h3>References</h3>
+
+<p>Holland, S.M. 1995. The stratigraphic distribution of fossils. Paleobiology 21: 92-109.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sim.fossils.poisson</code>, <code>sim.fossils.intervals</code>, <code>sim.trait.values</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># simulate tree
+t = ape::rtree(6)
+
+# assign a max age based on tree height
+max.age = tree.max(t)
+
+# generate water depth profile
+strata = 7
+wd = sim.gradient(strata)
+
+# simulate fossils using tree &amp; max.age and strata
+f = sim.fossils.environment(t, max.age = max.age, strata = strata,
+proxy.data = wd, PD = 0.5, DT = 1, PA = 1)
+plot(f, t, show.proxy = TRUE, proxy.data = wd, strata = strata, show.strata = TRUE)
+
+# simulate fossils using taxonomy &amp; interval.ages
+s = sim.taxonomy(t, 0.1, 0.1, 1)
+times = seq(0, max.age, length.out = strata + 1)
+f = sim.fossils.environment(taxonomy = s, interval.ages = times,
+     proxy.data = wd, PD = 0.5, DT = 1, PA = 1)
+plot(f, t, strata = strata, binned = TRUE)
+
+# simulate fossils with variable preservation across lineages
+dist = function() {runif(1)}
+PD = sim.trait.values(1, taxonomy = s, model = "independent", dist = dist,
+                     change.pr = 0.1)
+f = sim.fossils.environment(taxonomy = s, interval.ages = times,
+     proxy.data = wd, PD = PD, DT = 1, PA = 1)
+plot(f, t, strata = strata, binned = TRUE)
+
+</code></pre>
+
+
+</div>

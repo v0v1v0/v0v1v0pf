@@ -1,0 +1,379 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>smooth.basisPar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Smooth Data Using a Directly Specified Roughness Penalty
+</h2>
+
+<h3>Description</h3>
+
+<p>Smooth (argvals, y) data with roughness penalty defined by the
+remaining arguments.  This function acts as a wrapper for those who want 
+to bypass the step of setting up a functional parameter object before invoking 
+function <code>smooth.basis</code>.  This function simply does this setup for the 
+user.   See the help file for functions <code>smooth.basis</code> and <code>fdPar</code> 
+for further details, and more complete descriptions of the arguments.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">smooth.basisPar(argvals, y, fdobj=NULL, Lfdobj=NULL,
+      lambda=0, estimate=TRUE, penmat=NULL,
+      wtvec=NULL, fdnames=NULL, covariates=NULL, 
+                         method="chol", dfscale=1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+
+<p>a set of argument values corresponding to the observations in array
+<code>y</code>.  In most applications these values will be common to all curves
+and all variables, and therefore be defined as a vector or as a matrix
+with a single column.  But it is possible that these argument values
+will vary from one curve to another, and in this case <code>argvals</code> will
+be input as a matrix with rows corresponding to observation points and
+columns corresponding to curves.  Argument values can even vary from one
+variable to another, in which case they are input as an array with
+dimensions corresponding to observation points, curves and variables,
+respectively.  Note, however, that the number of observation points per
+curve and per variable may NOT vary.  If it does, then curves and variables
+must be smoothed individually rather than by a single call to this function.
+The default value for <code>argvals</code> are the integers 1 to <code>n</code>, where
+<code>n</code> is the size of the first dimension in argument <code>y</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>an set of values of curves at discrete sampling points or
+argument values. If the set is supplied as a matrix object, the rows must
+correspond to argument values and columns to replications, and it will be
+assumed that there is only one variable per observation.  If
+<code>y</code> is a three-dimensional array, the first dimension
+corresponds to argument values, the second to replications, and the
+third to variables within replications.  If <code>y</code> is a vector,
+only one replicate and variable are assumed.  If the data
+come from a single replication but multiple vectors, such as data
+on coordinates for a single space curve, then be sure to coerce
+the data into an array object by using the <code>as.array</code> function
+with one as the central dimension length.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdobj</code></td>
+<td>
+
+<p>One of the following:
+</p>
+
+<dl>
+<dt>fd</dt>
+<dd>
+<p>a functional data object (class <code>fd</code>)
+</p>
+</dd>
+<dt>basisfd</dt>
+<dd>
+<p>a functional basis object (class <code>basisfd</code>), which is
+converted to a functional data object with the identity matrix
+as the coefficient matrix.
+</p>
+</dd>
+<dt>fdPar</dt>
+<dd>
+<p>a functional parameter object (class <code>fdPar</code>)
+</p>
+</dd>
+<dt>integer</dt>
+<dd>
+<p>a positive integer giving the order of a B-spline basis, which is
+further converted to a functional data object with the identity
+matrix as the coefficient matrix.
+</p>
+</dd>
+<dt>matrix or array</dt>
+<dd>
+<p>replaced by fd(fdobj)</p>
+</dd>
+<dt>NULL</dt>
+<dd>
+<p>Defaults to fdobj = create.bspline.basis(argvals).
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj</code></td>
+<td>
+
+<p>either a nonnegative integer or a linear differential operator
+object.
+</p>
+<p>If <code>NULL</code>, Lfdobj depends on fdobj[['basis']][['type']]:
+</p>
+
+<dl>
+<dt>bspline</dt>
+<dd>
+<p>Lfdobj &lt;- int2Lfd(max(0, norder-2)), where norder =
+norder(fdobj).
+</p>
+</dd>
+<dt>fourier</dt>
+<dd>
+<p>Lfdobj = a harmonic acceleration operator:
+</p>
+<p><code>Lfdobj &lt;- vec2Lfd(c(0,(2*pi/diff(rng))^2,0), rng)</code>
+</p>
+<p>where rng = fdobj[['basis']][['rangeval']].
+</p>
+</dd>
+<dt>anything else</dt>
+<dd>
+<p>Lfdobj &lt;- int2Lfd(0)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>a nonnegative real number specifying the amount of smoothing
+to be applied to the estimated functional parameter.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+
+<p>a logical value:  if <code>TRUE</code>, the functional parameter is
+estimated, otherwise, it is held fixed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penmat</code></td>
+<td>
+
+<p>a roughness penalty matrix.  Including this can eliminate the need
+to compute this matrix over and over again in some types of
+calculations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wtvec</code></td>
+<td>
+
+<p>typically a vector of length <code>n</code> that is the length of <code>argvals</code>
+containing weights for the values to be smoothed, However, it may also
+be a symmetric matrix of order <code>n</code>.  If <code>wtvec</code> is a vector,
+all values must be positive, and if it is a symmetric matrix, this must
+be positive definite.  Defaults to all weights equal to 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdnames</code></td>
+<td>
+
+<p>a list of length 3 containing character vectors of names for the
+following:
+</p>
+
+<dl>
+<dt>args</dt>
+<dd>
+<p>name for each observation or point in time at which data are
+collected for each 'rep', unit or subject.
+</p>
+</dd>
+<dt>reps</dt>
+<dd>
+<p>name for each 'rep', unit or subject.
+</p>
+</dd>
+<dt>fun</dt>
+<dd>
+<p>name for each 'fun' or (response) variable measured repeatedly
+(per 'args') for each 'rep'.
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+
+<p>the observed values in <code>y</code> are assumed to be primarily determined
+the the height of the curve being estimates, but from time to time
+certain values can also be influenced by other known variables.  For
+example, multi-year sets of climate variables may be also determined by
+the presence of absence of an El Nino event, or a volcanic eruption.
+One or more of these covariates can be supplied as an <code>n</code> by
+<code>p</code> matrix, where <code>p</code> is the number of such covariates.  When
+such covariates are available, the smoothing is called "semi-parametric."
+Matrices or arrays of regression coefficients are then estimated that
+define the impacts of each of these covariates for each cueve and each
+variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>by default the function uses the usual textbook equations for computing
+the coefficients of the basis function expansions.  But, as in regression
+analysis, a price is paid in terms of rounding error for such
+computations since they involved cross-products of  basis function
+values.  Optionally, if <code>method</code> is set equal to the string "qr",
+the computation uses an algorithm based on the qr-decomposition which
+is more accurate, but will require substantially more computing time
+when <code>n</code> is large, meaning more than 500 or so.  The default
+is "chol", referring the Choleski decomposition of a symmetric positive
+definite matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfscale</code></td>
+<td>
+
+<p>the generalized cross-validation or "gcv" criterion that is often used
+to determine the size of the smoothing parameter involves the
+subtraction of an measue of degrees of freedom from <code>n</code>.  Chong
+Gu has argued that multiplying this degrees of freedom measure by
+a constant slightly greater than 1, such as 1.2, can produce better
+decisions about the level of smoothing to be used.  The default value
+is, however, 1.0.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>1.  if(is.null(fdobj))fdobj &lt;- create.bspline.basis(argvals).  Else
+if(is.integer(fdobj)) fdobj &lt;- create.bspline.basis(argvals, norder =
+fdobj)
+</p>
+<p>2.  fdPar
+</p>
+<p>3.  smooth.basis
+</p>
+
+
+<h3>Value</h3>
+
+<p>The output of a call to <code>smooth.basis</code>, which is an object of
+class <code>fdSmooth</code>, being a list of length 8 with the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fd</code></td>
+<td>
+
+<p>a functional data object that smooths the data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+
+<p>a degrees of freedom measure of the smooth
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gcv</code></td>
+<td>
+
+<p>the value of the generalized cross-validation or GCV criterion.  If
+there are multiple curves, this is a vector of values, one per
+curve.  If the smooth is multivariate, the result is a matrix of gcv
+values, with columns corresponding to variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SSE</code></td>
+<td>
+
+<p>the error sums of squares.  SSE is a vector or a matrix of the same
+size as 'gcv'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penmat</code></td>
+<td>
+
+<p>the penalty matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y2cMap</code></td>
+<td>
+
+<p>the matrix mapping the data to the coefficients.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals, y</code></td>
+<td>
+<p>input arguments</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ramsay, James O., and Silverman, Bernard W. (2006), <em>Functional
+Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), <em>Applied
+Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>df2lambda</code>,
+<code>fdPar</code>,
+<code>lambda2df</code>,
+<code>lambda2gcv</code>,
+<code>plot.fd</code>,
+<code>project.basis</code>,
+<code>smooth.basis</code>,
+<code>smooth.fd</code>,
+<code>smooth.monotone</code>,
+<code>smooth.pos</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	#  see smooth.basis
+</code></pre>
+
+
+</div>

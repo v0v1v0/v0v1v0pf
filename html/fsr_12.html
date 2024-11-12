@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsi_add_cs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add the consequent to an FSI model</h2>
+
+<h3>Description</h3>
+
+<p><code>fsi_add_cs()</code> adds the consequent to a fuzzy spatial inference (FSI) model. It consists of a set of membership functions labeled with linguistic values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsi_add_cs(fsi, lvar, lvals, mfs, bounds)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fsi</code></td>
+<td>
+<p>The FSI model instantiated with the <code>fsi_create()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lvar</code></td>
+<td>
+<p>A character value that represents a linguistic variable of the consequent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lvals</code></td>
+<td>
+<p>A character vector that contains linguistic values of the linguistic variable of the consequent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfs</code></td>
+<td>
+<p>A vector of membership functions (see examples below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>A numeric vector that represents the lower and upper bounds of the consequent domain.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>fsi_add_cs()</code> function adds the consequent to an FSI model.
+Each linguistic value defined in <code>lvals</code> has a corresponding membership function defined in <code>mfs</code>.
+Thus, these two parameters must have the same length.
+For instance, the first value of <code>lvals</code> defines the linguistic value of the first membership function in <code>mfs</code>.
+In <code>bounds</code>, the lower and upper values correspond to the first and second parameter, respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An FSI model populated with a consequent.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://dl.acm.org/doi/10.1145/3474717.3484255">Carniel, A. C.; Galdino, F.; Philippsen, J. S.; Schneider, M. Handling Fuzzy Spatial Data in R Using the fsr Package. In Proceedings of the 29th International Conference on Advances in Geographic Information Systems (AM SIGSPATIAL 2021), pp. 526-535, 2021.</a>
+</p>
+<p>Underlying concepts and formal definitions of FSI models are introduced in:
+</p>
+
+<ul><li> <p><a href="https://ieeexplore.ieee.org/document/8015707">Carniel, A. C.; Schneider, M. Fuzzy inference on fuzzy spatial objects (FIFUS) for spatial decision support systems. In Proceedings of the 2017 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2017), pp. 1-6, 2017.</a>
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Defining two different types of membership functions
+trap_mf &lt;- function(a, b, c, d) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), 1, (d - x)/(d - c), na.rm = TRUE), 0)
+  }
+}
+
+trim_mf &lt;- function(a, b, c) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), (c - x)/(c - b), na.rm = TRUE), 0)
+  }
+}
+
+# Creating the FSI model
+fsi &lt;- fsi_create("To visit or not to visit, that is the question", 
+                   default_conseq = trim_mf(10, 30, 60))
+
+# Creating the vector with the linguistic values of the linguistic variable "visiting experience"
+lvals_visiting_exp &lt;- c("awful", "average", "great")
+
+# Defining the membership function for each linguistic value
+awful_mf &lt;- trim_mf(0, 0, 20)
+average_mf &lt;- trim_mf(10, 30, 60)
+great_mf &lt;- trap_mf(40, 80, 100, 100)
+
+# Adding the consequent to the FSI model
+fsi &lt;- fsi_add_cs(fsi, "visiting experience", lvals_visiting_exp,
+                  c(awful_mf, average_mf, great_mf), c(0, 100))
+</code></pre>
+
+
+</div>

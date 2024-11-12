@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>specFfm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Specifies the elements of a fundamental factor model</h2>
+
+<h3>Description</h3>
+
+<p>Factor models have a few parameters that describe how the 
+fitting is done.  This function summarizes them and returns a spec object for
+cross-sectional regressions.  It also preps the data. An object of class 
+<code>"ffmSpec"</code> is returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">specFfm(
+  data,
+  asset.var,
+  ret.var,
+  date.var,
+  exposure.vars,
+  weight.var = NULL,
+  addIntercept = FALSE,
+  rob.stats = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the balanced panel data containing the variables
+<code>asset.var</code>, <code>ret.var</code>, <code>exposure.vars</code>, <code>date.var</code> and
+optionally, <code>weight.var</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asset.var</code></td>
+<td>
+<p>character; name of the variable  for asset names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ret.var</code></td>
+<td>
+<p>character; name of the variable for asset returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.var</code></td>
+<td>
+<p>character; name of the variable containing the dates
+coercible to class <code>Date</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exposure.vars</code></td>
+<td>
+<p>vector; names of the variables containing the
+fundamental factor exposures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight.var</code></td>
+<td>
+<p>character; name of the variable containing the weights
+used when standardizing style factor exposures. Default is <code>NULL</code>. See
+Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addIntercept</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, intercept is added in
+the exposure matrix. Default is <code>FALSE</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rob.stats</code></td>
+<td>
+<p>logical; If <code>TRUE</code>, robust estimates of covariance,
+correlation, location and univariate scale are computed as appropriate (see
+Details). Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>an object of class ffmSpec holding the details of the analysis
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(PCRA)
+
+dateRange &lt;- c("2006-01-31","2010-12-31")
+stockItems &lt;-  c("Date", "TickerLast",  "Return","Sector")
+factorItems &lt;- c("BP","Beta60M","PM12M1M")
+facDatIT &lt;- selectCRSPandSPGMI("monthly",
+                               dateRange = dateRange, 
+                               stockItems = stockItems, 
+                               factorItems = factorItems, 
+                               outputType = "data.table")
+asset.var="TickerLast" 
+ret.var="Return" 
+date.var = "Date"
+exposure.vars= c("BP","Beta60M","PM12M1M")
+spec1 &lt;- specFfm(data = facDatIT,asset.var = asset.var, ret.var = ret.var, 
+                 date.var = date.var, exposure.vars = exposure.vars,weight.var = NULL,
+                 addIntercept = TRUE, rob.stats = FALSE)
+spec1$exposure.vars
+
+#lag the exposures
+spec1 &lt;- lagExposures(spec1)
+# standardize the exposures Cross-Sectionally
+spec1 &lt;- standardizeExposures(spec1, Std.Type = "CrossSection") 
+# fit the model
+mdlFit &lt;- fitFfmDT(spec1) 
+class(mdlFit)
+class(mdlFit$reg.listDT)
+
+</code></pre>
+
+
+</div>

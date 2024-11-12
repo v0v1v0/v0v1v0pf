@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bigen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate Correlated Binary Data</h2>
+
+<h3>Description</h3>
+
+<p>Function for generating binary data with population thresholds.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bigen(data, n, thresholds = NULL, Smooth = FALSE, seed = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Either a matrix of binary (0/1) indicators or a correlation
+matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The desired sample size of the simulated data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresholds</code></td>
+<td>
+<p>If data is a correlation matrix, thresholds must be a
+vector of threshold cut points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Smooth</code></td>
+<td>
+<p>(logical) Smooth = TRUE will smooth the tetrachoric correltion
+matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Default = FALSE. Optional seed for random number generator.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Simulated binary data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>Input or calculated
+(tetrachoric) correlation matrix</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Niels G Waller
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Example: generating binary data to match
+## an existing binary data matrix
+##
+## Generate correlated scores using factor 
+## analysis model
+## X &lt;- Z *L' + U*D 
+## Z is a vector of factor scores
+## L is a factor loading matrix
+## U is a matrix of unique factor scores
+## D is a scaling matrix for U
+
+N &lt;- 5000
+
+# Generate data from a single factor model
+# factor patter matrix
+L &lt;- matrix( rep(.707, 5), nrow = 5, ncol = 1)
+
+# common factor scores
+Z &lt;- as.matrix(rnorm(N))
+
+# unique factor scores
+U &lt;- matrix(rnorm(N *5), nrow = N, ncol = 5)
+D &lt;- diag(as.vector(sqrt(1 - L^2)))
+
+# observed scores
+X &lt;- Z %*% t(L) + U %*% D
+
+cat("\nCorrelation of continuous scores\n")
+print(round(cor(X),3))
+
+# desired difficulties (i.e., means) of 
+# the dichotomized scores
+difficulties &lt;- c(.2, .3, .4, .5, .6)
+
+# cut the observed scores at these thresholds
+# to approximate the above difficulties
+thresholds &lt;- qnorm(difficulties)
+
+Binary &lt;- matrix(0, N, ncol(X))
+for(i in 1:ncol(X)){
+  Binary[X[,i] &lt;= thresholds[i],i] &lt;- 1
+}   
+
+cat("\nCorrelation of Binary scores\n")
+print(round(cor(Binary), 3))
+
+## Now use 'bigen' to generate binary data matrix with 
+## same correlations as in Binary
+
+z &lt;- bigen(data = Binary, n = N)
+
+cat("\n\nnames in returned object\n")
+print(names(z))
+
+cat("\nCorrelation of Simulated binary scores\n")
+print(round(cor(z$data), 3))
+
+
+cat("Observed thresholds of simulated data:\n")
+cat(apply(z$data, 2, mean))
+</code></pre>
+
+
+</div>

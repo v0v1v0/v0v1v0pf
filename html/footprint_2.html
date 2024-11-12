@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>latlong_footprint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate flight emissions based on longitude and latitude pairs</h2>
+
+<h3>Description</h3>
+
+<p>A function that calculates emissions per flight based on longitude and latitude, flight classes, and emissions metrics. Emissions are returned in kilograms of the chosen metric.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">latlong_footprint(
+  departure_lat,
+  departure_long,
+  arrival_lat,
+  arrival_long,
+  flightClass = "Unknown",
+  output = "co2e",
+  year = 2019
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>departure_lat</code></td>
+<td>
+<p>a numeric vector of one or more latitudes for departure location</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>departure_long</code></td>
+<td>
+<p>a numeric vector of one or more longitudes for outbound location</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arrival_lat</code></td>
+<td>
+<p>a numeric vector of one or more latitudes for arrival location</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arrival_long</code></td>
+<td>
+<p>a numeric vector of one or more longitudes for arrival location</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flightClass</code></td>
+<td>
+<p>a character vector naming one or more flight class categories. Must be of the following "Unknown" "Economy", "Economy+", "Business" or "First". If no argument is included, "Unknown" is the default and represents the average passenger.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>character emissions metric of the output. For metrics that include radiative forcing, one of
+</p>
+
+<ul>
+<li>
+<p> "co2e" (carbon dioxide equivalent with radiative forcing) - default
+</p>
+</li>
+<li>
+<p> "co2" (carbon dioxide with radiative forcing)
+</p>
+</li>
+<li>
+<p> "ch4" (methane with radiative forcing)
+</p>
+</li>
+<li>
+<p> "n2o" (nitrous oxide with radiative forcing)
+</p>
+</li>
+<li>
+<p> Metrics without radiative forcing: "co2e_norf", "co2_norf", "ch4_norf", or "n2o_norf".
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>A numeric or string representing a year between 2019-2024, inclusive. Default is 2019.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Distances between latitude and longitude pairs are based on the Haversine great-circle distance formula, which assumes a spherical earth. The carbon footprint estimates are derived from the Department for Environment, Food &amp; Rural Affairs (UK) Greenhouse Gas Conversion Factors for Business Travel (air). These factors vary by year, which can be acounted for by the <code>year</code> argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a numeric value expressed in kilograms of chosen metric
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Calculations based on individual flights
+latlong_footprint(34.052235, -118.243683, 35.179554, 129.075638)
+latlong_footprint(34.052235, -118.243683, 35.179554, 129.075638, "First")
+latlong_footprint(34.052235, -118.243683, 35.179554, 129.075638, "First", "ch4")
+latlong_footprint(34.052235, -118.243683, 35.179554, 129.075638, output = "ch4")
+
+# Calculations based on a data frame of flight
+library(dplyr)
+library(tibble)
+
+travel_data &lt;- tribble(~name, ~departure_lat, ~departure_long, ~arrival_lat, ~arrival_long,
+     # Los Angeles -&gt; Busan
+     "Mike", 34.052235, -118.243683, 35.179554, 129.075638,
+     # New York -&gt; London
+     "Will", 40.712776, -74.005974, 51.52, -0.10)
+
+travel_data |&gt;
+  rowwise() |&gt;
+  mutate(emissions = latlong_footprint(departure_lat,
+                                       departure_long,
+                                       arrival_lat,
+                                       arrival_long,
+                                       output="co2e"))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getSymbols.FI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>getSymbols method for loading data from split files</h2>
+
+<h3>Description</h3>
+
+<p>This function should probably get folded back into getSymbols.rda in 
+quantmod.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getSymbols.FI(Symbols, from = getOption("getSymbols.FI.from", "2010-01-01"),
+  to = getOption("getSymbols.FI.to", Sys.Date()), ...,
+  dir = getOption("getSymbols.FI.dir", ""),
+  return.class = getOption("getSymbols.FI.return.class", "xts"),
+  extension = getOption("getSymbols.FI.extension", "rda"),
+  split_method = getOption("getSymbols.FI.split_method", c("days", "common")),
+  use_identifier = getOption("getSymbols.FI.use_identifier", NA),
+  date_format = getOption("getSymbols.FI.date_format"),
+  verbose = getOption("getSymbols.FI.verbose", TRUE),
+  days_to_omit = getOption("getSymbols.FI.days_to_omit", c("Saturday",
+  "Sunday")), indexTZ = getOption("getSymbols.FI.indexTZ", NA))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Symbols</code></td>
+<td>
+<p>a character vector specifying the names of each symbol to be 
+loaded</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+<p>Retrieve data no earlier than this date. Default '2010-01-01'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+<p>Retrieve data through this date. Default Sys.Date().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>any other passthru parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>if not specified in getSymbolLookup, directory string to use.
+default ""</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.class</code></td>
+<td>
+<p>only "xts" is currently supported</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extension</code></td>
+<td>
+<p>file extension, default "rda"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_method</code></td>
+<td>
+<p>string specifying the method used to split the files, 
+currently ‘days’ or ‘common’, see 
+<code>setSymbolLookup.FI</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_identifier</code></td>
+<td>
+<p>optional. identifier used to construct the 
+<code>primary_id</code> of the instrument. If you use this, you must have 
+previously defined the <code>instrument</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_format</code></td>
+<td>
+<p>format as per the <code>strptime</code>, see Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>TRUE/FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days_to_omit</code></td>
+<td>
+<p>character vector of names of weekdays that should not be 
+loaded.  Default is <code>c("Saturday", "Sunday")</code>.  Use <code>NULL</code> to 
+attempt to load data for all days of the week.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indexTZ</code></td>
+<td>
+<p>valid TZ string. (e.g. “America/Chicago” or 
+“America/New_York”) See <code>indexTZ</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Meant to be called internally by <code>getSymbols</code> .
+</p>
+<p>The symbol lookup table will most likely be loaded by 
+<code>setSymbolLookup.FI</code>
+</p>
+<p>If date_format is NULL (the Default), we will assume an ISO date as changed 
+by <code>make.names</code>, for example, 2010-12-01 would be assumed to be a 
+file containing 2010.12.01
+</p>
+<p>If <code>indexTZ</code> is provided, the data will be converted to that timezone
+</p>
+<p>If auto.assign is FALSE, <code>Symbols</code> should be of length 1.  Otherwise, 
+<code>getSymbols</code> will give you an error that says 
+“must use auto.assign=TRUE for multiple Symbols requests”
+However, if you were to call <code>getSymbols.FI</code> directly (which is 
+<em>NOT</em> recommended) with <code>auto.assign=FALSE</code> and more than one 
+Symbol, a list would be returned.
+</p>
+<p>Argument matching for this function is as follows.  If the user provides a 
+value for an argument, that value will be used.  If the user did not provide
+a value for an argument, but there is a value for that argument for the 
+given <code>Symbol</code> in the Symbol Lookup Table (see 
+<code>setSymbolLookup.FI</code>), that value will be used.  Otherwise, 
+the formal defaults will be used.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>saveSymbols.days</code>
+<code>instrument</code>
+<code>setSymbolLookup.FI</code>
+<code>loadInstruments</code>
+<code>getSymbols</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+getSymbols("SPY", src='yahoo')
+dir.create("tmpdata")
+saveSymbols.common("SPY", base_dir="tmpdata")
+rm("SPY")
+getSymbols("SPY", src='FI', dir="tmpdata", split_method='common')
+unlink("tmpdata/SPY", recursive=TRUE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

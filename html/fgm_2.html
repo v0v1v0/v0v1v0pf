@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pfpca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partially Separable Karhunen-Loeve Expansion</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the Karhunen-Loeve expansion for a partially separable multivariate Gaussian process.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pfpca(y, t = seq(0, 1, length.out = dim(y[[1]])[2]))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>list of length p containing densely observed multivariate (p-dimensional) functional data . <code>y[[j]]</code> is an nxm matrix of functional data for n subjects observed on a grid of length m</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>(optional) grid on which functional data is observed, defaults to seq(0, 1, m) where <code>m = dim(data[[1]])[2]</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements the functional graphical model in Zapata, Oh, and Petersen (2019).
+This code uses functions from the testing version of fdapace available at: <a href="https://github.com/functionaldata/tPACE">https://github.com/functionaldata/tPACE</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with three variables:
+</p>
+
+<dl>
+<dt><code>phi</code></dt>
+<dd>
+<p>Lxm matrix where each row denotes the value of a basis function evaluated at a grid of length m</p>
+</dd>
+<dt><code>theta</code></dt>
+<dd>
+<p>list of length L of functional principal component scores. <code>theta[[l]]</code> is an nxp matrix of vector scores corresponding to the basis function <code>phi[l,]</code></p>
+</dd>
+<dt><code>FVE</code></dt>
+<dd>
+<p>fraction of functional variance explained (FVE) by the first L components</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Javier Zapata, Sang-Yun Oh and Alexander Petersen
+</p>
+
+
+<h3>References</h3>
+
+<p>Zapata J., Oh S. and Petersen A. (2019) - Partial Separability and Functional Graphical Models for Multivariate Gaussian Processes. Available at <a href="https://arxiv.org/abs/1910.03134">https://arxiv.org/abs/1910.03134</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Variables
+# Omega - list of precision matrices, one per eigenfunction
+# Sigma - list of covariance matrices, one per eigenfunction
+# theta - list of functional  principal component scores
+# phi - list of eigenfunctions densely observed on a time grid
+# y - list containing densely observed multivariate (p-dimensional) functional data 
+
+library(mvtnorm)
+library(fda)
+
+## Generate data y
+ source(system.file("exec", "getOmegaSigma.R", package = "fgm"))
+ theta = lapply(1:nbasis, function(b) t(rmvnorm(n = 100, sigma = Sigma[[b]])))
+ theta.reshaped = lapply( 1:p, function(j){
+     t(sapply(1:nbasis, function(i) theta[[i]][j,]))
+ })
+ phi.basis=create.fourier.basis(rangeval=c(0,1), nbasis=21, period=1)
+ t = seq(0, 1, length.out = time.grid.length)
+ chosen.basis = c(2, 3, 6, 7, 10, 11, 16, 17, 20, 21)
+ phi = t(predict(phi.basis, t))[chosen.basis,]
+ y = lapply(theta.reshaped, function(th) t(th)%*%phi)
+ 
+## Solve  
+ pfpca(y)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,374 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FRBmultiregS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>S-Estimates for Multivariate Regression with Bootstrap Inference</h2>
+
+<h3>Description</h3>
+
+<p>Computes S-estimates for multivariate regression together with standard errors, confidence intervals
+and p-values based on the Fast and Robust Bootstrap.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+FRBmultiregS(formula, data=NULL, ...)
+
+## Default S3 method:
+FRBmultiregS(X, Y, int = TRUE, R = 999, bdp = 0.5, conf = 0.95, 
+                control=Scontrol(...), na.action=na.omit, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p> an object of class <code>formula</code>; a symbolic description of the model to be fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p> data frame from which variables specified in formula are to be taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p> a matrix or data frame containing the explanatory variables. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p> a matrix or data frame containing the response variables. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int</code></td>
+<td>
+<p> logical: if <code>TRUE</code> an intercept term is added to the model (unless it is already present in <code>X</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p> number of bootstrap samples. Default is <code>R=999</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bdp</code></td>
+<td>
+<p> required breakdown point for the S-estimates. Should have <code class="reqn">0 &lt; </code> <code>bdp</code> <code class="reqn">\le 0.5</code>, the default is 0.5 </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p> level of the bootstrap confidence intervals. Default is <code>conf=0.95</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list with control parameters for tuning the computing algorithm, see <code>Scontrol</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p> a function which indicates what should happen when the data contain NAs. Defaults to <code>na.omit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>allows for specifying control parameters directly instead of via <code>control</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Multivariate S-estimates were introduced by Davies (1987) and can be highly robust while enjoying a reasonable Gaussian efficiency.
+Their use in the multivariate regression setting was discussed in Van Aelst and Willems (2005).
+The loss function used here is Tukey's biweight. It is tuned in order to achieve the required breakdown point <code>bdp</code> 
+(any value between 0 and 0.5). 
+</p>
+<p>The computation is carried out by a call to <code>Sest_multireg</code>(), which performs the fast-S algorithm 
+(Salibian-Barrera and Yohai 2006), see <code>Scontrol</code> for its tuning parameters. 
+The result of this call is also returned as the value <code>est</code>.
+
+
+
+</p>
+<p>The Fast and Robust Bootstrap (Salibian-Barrera and Zamar 2002) is used to calculate so-called
+basic bootstrap confidence intervals and bias corrected and accelerated (BCa)
+confidence intervals (Davison and Hinkley 1997, p.194 and p.204 respectively). 
+Apart from the intervals with the requested confidence level, the function also returns p-values for each coefficient
+corresponding to the hypothesis that the actual coefficient is zero. The p-values are computed as 
+1 minus the smallest level for which the confidence intervals would include zero. Both BCa and basic bootstrap p-values in this sense are given.
+The bootstrap calculation is carried out by a call to <code>Sboot_multireg</code>(), the result 
+of which is returned as the value <code>bootest</code>. Bootstrap standard errors are returned as well.
+</p>
+<p>Note: Bootstrap samples which contain too few distinct observations with positive weights are discarded 
+(a warning is given if this happens). The number of samples actually used is returned via <code>ROK</code>. 
+</p>
+
+
+
+<p>In the <code>formula</code>-interface, a multivariate response is produced via <code>cbind</code>. For example <code>cbind(x4,x5) ~ x1+x2+x3</code>.
+All arguments from the default method can also be passed to the <code>formula</code> method except for <code>int</code> (passing <code>int</code> explicitely
+will produce an error; the inclusion of an intercept term is determined by <code>formula</code>).
+</p>
+<p>The returned object inherits from class <code>mlm</code> such that the standard <code>coef</code>, <code>residuals</code>, <code>fitted</code> and <code>predict</code> functions can be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FRBmultireg</code> which extends class <code>mlm</code> and contains at least the following components:
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p> MM-estimates of the regression coefficients</p>
+</td>
+</tr></table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p> the residuals, that is response minus fitted values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p> the fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma </code></td>
+<td>
+<p> S-estimate of the error covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p> MM-estimate of the size of the multivariate errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> implicit weights corresponding to the S-estimates (i.e. final weights in the RWLS procedure at the end of the fast-S algorithm)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outFlag</code></td>
+<td>
+<p>outlier flags: 1 if the robust distance of the residual exceeds the .975 quantile of (the square root of)
+the chi-square distribution with degrees of freedom equal to the dimension of the responses; 0 otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SE </code></td>
+<td>
+<p> bootstrap standard errors corresponding to the regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov</code></td>
+<td>
+<p> bootstrap covariance matrix corresponding to the regression coefficients (in vectorized form)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI.bca.lower</code></td>
+<td>
+<p> a matrix containing the lower bounds of the bias corrected and accelerated confidence intervals for the regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI.bca.upper</code></td>
+<td>
+<p> a matrix containing the upper bounds of the bias corrected and accelerated confidence intervals for the regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI.basic.lower</code></td>
+<td>
+<p> a matrix containing the lower bounds of basic bootstrap intervals for the regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI.basic.upper</code></td>
+<td>
+<p> a matrix containing the upper bounds of basic bootstrap intervals for the regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.bca</code></td>
+<td>
+<p> a matrix containing the p-values based on the BCa confidence intervals for the regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.basic</code></td>
+<td>
+<p> a matrix containing the p-values based on the basic bootstrap intervals for the regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est </code></td>
+<td>
+<p>S-estimates as returned by the call to <code>Sest_multireg</code>()</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootest</code></td>
+<td>
+<p>bootstrap results for the S-estimates as returned by the call to <code>Sboot_multireg</code>()</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p> a copy of the <code>conf</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p> a list with following components: <code>est</code> = character string indicating that S-estimates were used, and
+<code>bdp</code> = a copy of the <code>bdp</code> argument </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p> a copy of the <code>control</code> argument </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X, Y</code></td>
+<td>
+<p>either copies of the respective arguments or the corresponding matrices produced from <code>formula</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROK </code></td>
+<td>
+<p>number of bootstrap samples actually used (i.e. not discarded due to too few distinct observations 
+with positive weight)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Gert Willems, Stefan Van Aelst and Ella Roelant </p>
+
+
+<h3>References</h3>
+
+ 
+<ul>
+<li>
+<p> P.L. Davies (1987) Asymptotic behavior of S-estimates of multivariate location parameters and dispersion matrices. 
+<em>The Annals of Statistics</em>, <b>15</b>, 1269-1292.
+</p>
+</li>
+<li>
+<p> A.C. Davison and D.V. Hinkley (1997) <em>Bootstrap Methods and their Application</em>. 
+Cambridge Series in Statistical and Probabilistic Mathematics. Cambridge: Cambridge University Press.
+</p>
+</li>
+<li>
+<p> M. Salibian-Barrera, S. Van Aelst and G. Willems (2008) Fast and robust bootstrap. 
+<em>Statistical Methods and Applications</em>, <b>17</b>, 41-71. 
+</p>
+</li>
+<li>
+<p> M. Salibian-Barrera and V. Yohai (2006) A fast algorithm for S-regression estimates. 
+<em>Journal of Computational and Graphical Statistics</em>, <b>15</b>, 414-427. 
+</p>
+</li>
+<li>
+<p> M. Salibian-Barrera, R.H. Zamar (2002) Bootstrapping robust estimates of regression. 
+<em>The Annals of Statistics</em>, <b>30</b>, 556-582.
+</p>
+</li>
+<li>
+<p>  S. Van Aelst and G. Willems (2005) Multivariate regression S-estimators for robust estimation and inference. 
+<em>Statistica Sinica</em>, <b>15</b>, 981-1001.
+</p>
+</li>
+<li>
+<p> S. Van Aelst and G. Willems (2013), Fast and robust bootstrap for multivariate inference: The R package FRB. 
+<em>Journal of Statistical Software</em>, <b>53</b>(3), 1–32.
+<a href="https://doi.org/10.18637/jss.v053.i03">doi:10.18637/jss.v053.i03</a>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+ <p><code>summary.FRBmultireg</code>, <code>plot.FRBmultireg</code>, <code>Sboot_multireg</code>, 
+<code>Sest_multireg</code>,  <code>FRBmultiregMM</code>,  <code>FRBmultiregGS</code>, <code>Scontrol</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(schooldata)
+school.x &lt;- data.matrix(schooldata[,1:5])
+school.y &lt;- data.matrix(schooldata[,6:8])
+
+##  computes 25% breakdown point S-estimate and 99% confidence intervals 
+##  based on 999 bootstrap samples:
+Sres &lt;- FRBmultiregS(school.x, school.y, R=999, bdp = 0.25, conf = 0.99)
+
+##  or, equivalently using the formula interface
+
+    Sres &lt;- FRBmultiregS(cbind(reading,mathematics,selfesteem)~., data=schooldata, 
+            R=999, bdp = 0.25, conf = 0.99)
+
+          
+##  the print method displays the coefficient estimates 
+Sres
+
+##  the summary function additionally displays the bootstrap standard errors and p-values
+##  ("BCA" method by default)
+summary(Sres)
+
+summary(Sres, confmethod="basic")
+                                                              
+##  ask explicitely for the coefficient matrix:
+Sres$coefficients
+
+## or equivalently,
+coef(Sres)
+
+##  For the error covariance matrix:
+Sres$Sigma
+                                                              
+##  plot some bootstrap histograms for the coefficient estimates 
+##  (with "BCA" intervals by default) 
+plot(Sres, expl=c("education", "occupation"), resp=c("selfesteem","reading"))
+
+##  plot bootstrap histograms for all coefficient estimates
+plot(Sres)
+
+##  probably the plot-function has made a selection of coefficients to plot here, 
+##  since 'all' was too many to  fit on one page, see help(plot.FRBmultireg); 
+##  this is platform-dependent
+</code></pre>
+
+
+</div>

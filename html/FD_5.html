@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fdisp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Dispersion</h2>
+
+<h3>Description</h3>
+
+<p><code>fdisp</code> measures the functional dispersion (FDis) of a set of communities, as described by Laliberté and Legendre (2010).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fdisp(d, a, tol = 1e-07)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>a species-by- species distance matrix computed from functional traits, such as that returned by <code>dist</code> or <code>gowdis</code>. <code>NAs</code> are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>matrix containing the abundances of the species in <code>d</code> (or presence-absence, i.e. 0 or 1). Rows are sites and species are columns. Can be missing, in which case <code>fdisp</code> assumes that there is only one community with equal abundances of all species. <code>NAs</code> will be replaced by 0.
+The number of species (columns) in <code>a</code> must match the number of species in <code>d</code>. In addition, the species labels in <code>a</code> and <code>d</code> must be identical and in the same order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>tolerance threshold to test whether the distance matrix is Euclidean : an eigenvalue is considered positive if it is larger than -tol*<code class="reqn">{\lambda}_1</code>, where <code class="reqn">{\lambda}_1</code> is the largest eigenvalue.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fdisp</code> computes, for a set of communities, the average distance of individual objects (species) in PCoA space from any distance or dissimilarity measure, as described by Anderson (2006). The average distance to the centroid is a measure of multivariate dispersion and as been suggested as an index of beta diversity (Anderson et al. 2006). However, in <code>fdisp</code> both the centroid and the average distance to this centroid can be weighted by individual objects. In other words, <code>fdisp</code> returns the weighted average distance to the weighted centroid. This was suggested so that multivariate dispersion could be used as a multidimensional functional diversity (FD) index that can be weighted by species abundances. This FD index has been called functional dispersion (FDis) and is described by Laliberté and Legendre (2010).
+</p>
+<p>In sum, FDis can account for relative abundances by shifting the position of the centroid towards the most abundant species, and then computing a weighted average distance to this new centroid, using again the relative abundances as weights (Laliberté and Legendre 2010). FDis has no upper limit and requires at least two species to be computed. For communities composed of only one species, <code>dbFD</code> returns a FDis value of 0. FDis is by construction unaffected by species richness, it can be computed from any distance or dissimilarity measure (Anderson et al. 2006), it can handle any number and type of traits (including more traits than species), and it is not strongly influenced by outliers.
+</p>
+<p>FDis is conceptually similar to Rao's quadratic entropy Q (Botta-Dukát 2005), and simulations (via <code>simul.dbFD</code>) have shown high positive correlations between the two indices (Laliberté and Legendre 2010). Still, one potential advantage of FDis over Rao's Q is that in the unweighted case (i.e. with presence-absence data), it opens possibilities for formal statistical tests for differences in FD between two or more communities through a distance-based test for homogeneity of multivariate dispersions (Anderson 2006); see <code>betadisper</code> for more details.
+</p>
+<p>Corrections for PCoA axes corresponding to negative eigenvalues are applied following Anderson (2006); see also <code>betadisper</code> for more details on these corrections.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>FDis</code></td>
+<td>
+<p>vector listing the FDis of each community</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eig</code></td>
+<td>
+<p>vector listing the eigenvalues of the PCoA</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vectors</code></td>
+<td>
+<p>matrix containing the PCoA axes</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p><code>fdisp</code> is implemented in <code>dbFD</code> and is used to compute the functional dispersion (FDis) index.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Etienne Laliberté <a href="mailto:etiennelaliberte@gmail.com">etiennelaliberte@gmail.com</a> <a href="https://www.elaliberte.info/">https://www.elaliberte.info/</a></p>
+
+
+<h3>References</h3>
+
+<p>Anderson, M. J. (2006) Distance-based tests for homogeneity of multivariate dispersions. <em>Biometrics</em> <b>62</b>:245-253.
+</p>
+<p>Anderson, M. J., K. E. Ellingsen and B. H. McArdle (2006) Multivariate dispersion as a measure of beta diversity. <em>Ecology Letters</em> <b>9</b>:683-693.
+</p>
+<p>Botta-Dukát, Z. (2005) Rao's quadratic entropy as a measure of functional diversity based on multiple traits. <em>Journal of Vegetation Science</em> <b>16</b>:533-540.
+</p>
+<p>Laliberté, E. and P. Legendre (2010) A distance-based framework for measuring functional diversity from multiple traits. <em>Ecology</em> <b>91</b>299:305.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dbFD</code> for computing multidimensional FD indices and <code>betadisper</code> from which <code>fdisp</code> borrows some code.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># dummy dataset
+dummy.dist &lt;- gowdis(dummy$trait)
+ex1 &lt;- fdisp(dummy.dist, dummy$abun)
+ex1
+
+# example with real data from New Zealand short-tussock grasslands
+ex2 &lt;- fdisp(gowdis(tussock$trait), tussock$abun)
+ex2
+</code></pre>
+
+
+</div>

@@ -1,0 +1,313 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>screen_flow_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate annual summary and missing data statistics for screening data</h2>
+
+<h3>Description</h3>
+
+<p>Calculates means, medians, maximums, minimums, standard deviations of annual flows and data availability and missing 
+data statistics, and symbol counts (if column exists) for each year and month of each year. Calculates the statistics from all 
+daily discharge values from all years, unless specified. Returns a tibble with statistics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">screen_flow_data(
+  data,
+  dates = Date,
+  values = Value,
+  groups = STATION_NUMBER,
+  symbols = "Symbol",
+  station_number,
+  roll_days = 1,
+  roll_align = "right",
+  water_year_start = 1,
+  start_year,
+  end_year,
+  months = 1:12,
+  transpose = FALSE,
+  include_symbols = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame of daily data that contains columns of dates, flow values, and (optional) groups (e.g. station numbers).
+Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains dates formatted YYYY-MM-DD. Only required if dates column name is not 
+'Date' (default). Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains numeric flow values, in units of cubic metres per second.
+Only required if values column name is not 'Value' (default). Leave blank if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains unique identifiers for different data sets, if applicable. Only required 
+if groups column name is not 'STATION_NUMBER'. Function will automatically group by a column named 'STATION_NUMBER' if 
+present. Remove the 'STATION_NUMBER' column beforehand to remove this grouping. Leave blank if using <code>station_number</code> 
+argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symbols</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains symbols. Only required if symbols column name is not 
+'Symbol' (default). Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>station_number</code></td>
+<td>
+<p>Character string vector of seven digit Water Survey of Canada station numbers (e.g. <code>"08NM116"</code>) of
+which to extract daily streamflow data from a HYDAT database. Requires <code>tidyhydat</code> package and a HYDAT database.
+Leave blank if using <code>data</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_days</code></td>
+<td>
+<p>Numeric value of the number of days to apply a rolling mean. Default <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_align</code></td>
+<td>
+<p>Character string identifying the direction of the rolling mean from the specified date, either by the first 
+(<code>'left'</code>), last (<code>'right'</code>), or middle (<code>'center'</code>) day of the rolling n-day group of observations. 
+Default <code>'right'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>water_year_start</code></td>
+<td>
+<p>Numeric value indicating the month (<code>1</code> through <code>12</code>) of the start of water year for
+analysis. Default <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_year</code></td>
+<td>
+<p>Numeric value of the first year to consider for analysis. Leave blank or set well before start date (i.e.
+<code>1800</code>) to use from the first year of the source data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_year</code></td>
+<td>
+<p>Numeric value of the last year to consider for analysis. Leave blank or set well after end date (i.e.
+<code>2100</code>) to use up to the last year of the source data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>months</code></td>
+<td>
+<p>Numeric vector of months to include in analysis. For example, <code>3</code> for March, <code>6:8</code> for Jun-Aug or 
+<code>c(10:12,1)</code> for first four months (Oct-Jan) when <code>water_year_start = 10</code> (Oct). Default summarizes all 
+months (<code>1:12</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transpose</code></td>
+<td>
+<p>Logical value indicating whether to transpose rows and columns of results. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_symbols</code></td>
+<td>
+<p>Logical. Include columns of counts of symbol categories from the symbols column.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A tibble data frame with the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Year</code></td>
+<td>
+<p>calendar or water year selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_days</code></td>
+<td>
+<p>number of days per year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_Q</code></td>
+<td>
+<p>number of days per year with flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_missing_Q</code></td>
+<td>
+<p>number of days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>No_Symbol</code></td>
+<td>
+<p>number of days with no symbol category, if include_symbol=TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_Symbol</code></td>
+<td>
+<p>number of days with a specific symbol category (x) from symbols column, if include_symbol=TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Maximum</code></td>
+<td>
+<p>annual maximum of all daily flows for a given year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mean</code></td>
+<td>
+<p>annual mean of all daily flows for a given year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Median</code></td>
+<td>
+<p>annual median of all daily flows for a given year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>StandardDeviation</code></td>
+<td>
+<p>annual 1 standard deviation of all daily flows for a given year</p>
+</td>
+</tr>
+</table>
+<p>and the following monthly missing columns (order will depend on water_year_month):
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Jan_missing_Q</code></td>
+<td>
+<p>number of Jan days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Feb_missing_Q</code></td>
+<td>
+<p>number of Feb days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mar_missing_Q</code></td>
+<td>
+<p>number of Mar days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Apr_missing_Q</code></td>
+<td>
+<p>number of Apr days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>May_missing_Q</code></td>
+<td>
+<p>number of May days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Jun_missing_Q</code></td>
+<td>
+<p>number of Jun days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Jul_missing_Q</code></td>
+<td>
+<p>number of Jul days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Aug_missing_Q</code></td>
+<td>
+<p>number of Aug days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sep_missing_Q</code></td>
+<td>
+<p>number of Sep days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Oct_missing_Q</code></td>
+<td>
+<p>number of Oct days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Nov_missing_Q</code></td>
+<td>
+<p>number of Nov days per year with no flow data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dec_missing_Q</code></td>
+<td>
+<p>number of Dec days per year with no flow data</p>
+</td>
+</tr>
+</table>
+<p>Transposing data creates a column of "Statistics" and subsequent columns for each year selected.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Run if HYDAT database has been downloaded (using tidyhydat::download_hydat())
+if (file.exists(tidyhydat::hy_downloaded_db())) {
+
+# Calculate screening statistics using data frame and data argument with defaults
+flow_data &lt;- tidyhydat::hy_daily_flows(station_number = "08NM116")
+screen_flow_data(data = flow_data)
+
+# Calculate screening statistics using station_number argument with defaults
+screen_flow_data(station_number = "08NM116")
+                  
+# Calculate screening statistics for water years starting in October
+screen_flow_data(station_number = "08NM116",
+                 water_year_start = 9)
+                  
+# Calculate screening statistics for 7-day flows for July-September months only
+screen_flow_data(station_number = "08NM116",
+                 roll_days = 7,
+                 months = 7:9)
+                 
+}
+</code></pre>
+
+
+</div>

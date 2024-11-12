@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>attrdl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Attributable risk from distributed lag nonlinear models</h2>
+
+<h3>Description</h3>
+
+<p>This is a general function that computes attributable risk (attributable numbers or fractions)
+from distributed lag nonlinear models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">attrdl(x, basis, cases, model = NULL, coef = NULL, vcov = NULL,
+  type = "af", dir = "back", tot = TRUE, cen, range = NULL,
+  sim = FALSE, nsim = 5000, sub = 1:length(cases))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An exposure vector OR (only for <code>dir="back"</code>) a matrix of lagged exposures, for which
+the attributable risk needs to be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis</code></td>
+<td>
+<p>The object of class "crossbasis" used for fitting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cases</code></td>
+<td>
+<p>The cases vector OR (only for <code>dir="forw"</code>) the matrix of future cases corresponding to <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The fitted model. You need to provide either this, or arguments <code>coef</code> and <code>vcov</code>.
+<em>The model MUST have a log link function.</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>Coefficients for <code>basis</code> IF <code>model</code> is not provided</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>Variance-covariance matrix for <code>basis</code> IF <code>model</code> is not provided</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Either "an" or "af" for attributable number or attributable fraction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>Either "back" or "forw" for backward or forward perspectives of attributable risk</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tot</code></td>
+<td>
+<p>If <code>TRUE</code>, the total attributable risk is computed (number or fraction, depending on argument <code>type</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cen</code></td>
+<td>
+<p>The reference value used as the counterfactual scenario (the comparator)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range</code></td>
+<td>
+<p>The range of exposure (for which the attributable risk, compared to <code>cen</code>, is
+calculated). If <code>NULL</code>, the whole range is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim</code></td>
+<td>
+<p>Set to <code>TRUE</code> if Monte Carlo simulation samples should be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Number of simulation samples desired (only for <code>nsim=TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub</code></td>
+<td>
+<p>Subset of <code>cases</code> for which to calculate the attributable risk (as an integer index
+vector). Defaults to <code>1:length(cases)</code>. Argument <code>cases</code> should be a vector (not a matrix).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Original function and documentation written by Antonio Gasparrini and available
+<a href="https://github.com/gasparrini/2014_gasparrini_BMCmrm_Rcodedata">here</a>.
+Slightly amended by Theodore Lytras for use with FluMoDL.
+</p>
+<p>Documentation below copied from the
+<a href="https://github.com/gasparrini/2014_gasparrini_BMCmrm_Rcodedata/blob/master/attrdl.pdf">original source</a>.
+</p>
+<p>This function computes the attributable fraction or number for a specific exposure
+scenario and associated cases, given an estimated exposure-lag-response association defined
+by a DLNM. Either forward or backward versions of attributable risk measures are available
+in this setting. The method is described by Gasparrini and Leone (2014), see references below.
+The function works in combination with other functions in the package dlnm, which is assumed
+to be available.
+</p>
+<p>The exposure and cases are provided by the arguments x and cases, respectively. The original
+cross-basis and fitted model containg it used for estimation are provided by the arguments
+basis and model, respectively. Alternatively, the user can provide estimated coefficients and
+(co)variance matrix with coef and vcov.
+</p>
+<p>The function works both with time series and non-time series data. In a time series setting,
+both x and cases represent a complete series of ordered observations. More generally, the user
+can apply this function for any kind of data: in this case x must be a matrix of lagged
+exposures when dir="back", and cases must be a matrix of future cases dir="forw". The function
+can compute the total attributable risk (if tot=TRUE, the default) or the contribution for each
+observation. The argument cen defines the value used as counterfactual scenario.
+</p>
+<p>If sim=TRUE, the function computes samples of the attributable risk measures by simulating from
+the assumed normal distribution of the estimated coefficients (only implemented for total
+estimates). These samples can be used to defined empirical confidence intervals.
+</p>
+
+
+<h3>Value</h3>
+
+<p>By default, a numeric scalar representing the total attributable fraction or number.
+If sim=TRUE, a vector of the simulated samples with length nsim. If tot=FALSE, a vector with
+contributions for all the observations (see Note below). These quantities are defined versus
+a counterfactual scenario defined through the argument cen.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The function handles missing values in both the x and cases objects, excluding incomplete
+observations (also due to lagging) accordingly. However, the total attributable number is
+rescaled to match the fraction using as denominator the total observed number in cases. This
+approach uses the all the available information even in the presence of missing values in x.
+All of this under the assumption that the missing mechanism is unrelated with both exposure and
+cases values.
+</p>
+<p>The functions can be also used with estimates from DLNMs reduced to the overall cumulative
+exposure-response through the function crossreduce in the package dlnm. In this case, the
+modified coefficients and (co)variance matrix of the reduced cross-basis in basis must be
+passed using the arguments coef and vcov. This option can be useful when the original estimates
+from the full cross-basis are not available any more, for example following a meta-analysis.
+Given the lag-specific estimates are not available in this case, only the forward version of
+attributable risk (dir="forw") can be computed. See Gasparrini and Leone (2014) for further info.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Original author: Antonio Gasparrini &lt;<a href="mailto:antonio.gasparrini@lshtm.ac.uk">antonio.gasparrini@lshtm.ac.uk</a>&gt;
+</p>
+
+
+<h3>References</h3>
+
+ <ul><li>
+<p> Gasparrini A, Leone M. Attributable risk from distributed lag models.
+<a href="https://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-55">BMC Med Res Methodol</a> 2014;14:55.</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# load the package
+library(FluMoDL)  # package dlnm is automatically loaded
+
+# define the cross-basis and fit the model
+cb &lt;- crossbasis(chicagoNMMAPS$temp, lag=30, argvar=list(fun="bs",
+   knots=c(-10,3,18)), arglag=list(knots=c(1,3,10)))
+library(splines)
+model &lt;- glm(death ~ cb + ns(time, 7*14) + dow,
+   family=quasipoisson(), chicagoNMMAPS)
+
+# global backward attributable risk of temperature (number and fraction)
+attrdl(chicagoNMMAPS$temp,cb,chicagoNMMAPS$death,model,type="an",cen=21)
+attrdl(chicagoNMMAPS$temp,cb,chicagoNMMAPS$death,model,cen=21)
+
+# global forward attributable fraction
+attrdl(chicagoNMMAPS$temp,cb,chicagoNMMAPS$death,model,dir="forw",cen=21)
+
+# empirical confidence intervals
+afsim &lt;- attrdl(chicagoNMMAPS$temp,cb,chicagoNMMAPS$death,model,cen=21,
+   sim=TRUE,nsim=1000)
+quantile(afsim,c(2.5,97.5)/100)
+
+# attributable fraction component due to heat and cold
+attrdl(chicagoNMMAPS$temp,cb,chicagoNMMAPS$death,model,cen=21,range=c(21,100))
+attrdl(chicagoNMMAPS$temp,cb,chicagoNMMAPS$death,model,cen=21,range=c(-100,21))
+
+# daily attributable deaths in the second month
+attrdl(chicagoNMMAPS$temp,cb,chicagoNMMAPS$death,model,type="an",
+   tot=FALSE,cen=21)[31:60]
+
+
+
+</code></pre>
+
+
+</div>

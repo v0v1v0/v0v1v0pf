@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bhistx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Base-learners for Functional Covariates</h2>
+
+<h3>Description</h3>
+
+<p>Base-learners that fit historical functional effects that can be used with the 
+tensor product, as, e.g., <code>hbistx(...) %X% bolsc(...)</code>, to form interaction 
+effects (Ruegamer et al., 2018).  
+For expert use only! May show unexpected behavior  
+compared to other base-learners for functional data!
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bhistx(
+  x,
+  limits = "s&lt;=t",
+  standard = c("no", "time", "length"),
+  intFun = integrationWeightsLeft,
+  inS = c("smooth", "linear", "constant"),
+  inTime = c("smooth", "linear", "constant"),
+  knots = 10,
+  boundary.knots = NULL,
+  degree = 3,
+  differences = 1,
+  df = 4,
+  lambda = NULL,
+  penalty = c("ps", "pss"),
+  check.ident = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of type <code>hmatrix</code> containing time, index and functional covariate; 
+note that <code>timeLab</code> in the <code>hmatrix</code>-object must be equal to 
+the name of the time-variable in <code>timeformula</code> in the <code>FDboost</code>-call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limits</code></td>
+<td>
+<p>defaults to <code>"s&lt;=t"</code> for an historical effect with s&lt;=t;
+either one of <code>"s&lt;t"</code> or <code>"s&lt;=t"</code> for [l(t), u(t)] = [T1, t]; 
+otherwise specify limits as a function for integration limits [l(t), u(t)]: 
+function that takes <code class="reqn">s</code> as the first and <code>t</code> as the second argument and returns 
+<code>TRUE</code> for combinations of values (s,t) if <code class="reqn">s</code> falls into the integration range for 
+the given <code class="reqn">t</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standard</code></td>
+<td>
+<p>the historical effect can be standardized with a factor. 
+"no" means no standardization, "time" standardizes with the current value of time and 
+"lenght" standardizes with the lenght of the integral</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intFun</code></td>
+<td>
+<p>specify the function that is used to compute integration weights in <code>s</code> 
+over the functional covariate <code class="reqn">x(s)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inS</code></td>
+<td>
+<p>historical effect can be smooth, linear or constant in s, 
+which is the index of the functional covariates x(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inTime</code></td>
+<td>
+<p>historical effect can be smooth, linear or constant in time, 
+which is the index of the functional response y(time).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p>either the number of knots or a vector of the positions 
+of the interior knots (for more details see <code>bbs)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundary.knots</code></td>
+<td>
+<p>boundary points at which to anchor the B-spline basis 
+(default the range of the data). A vector (of length 2) 
+for the lower and the upper boundary knot can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>degree of the regression spline.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>differences</code></td>
+<td>
+<p>a non-negative integer, typically 1, 2 or 3. Defaults to 1.
+If <code>differences</code> = <em>k</em>, <em>k</em>-th-order differences are used as 
+a penalty (<em>0</em>-th order differences specify a ridge penalty).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>trace of the hat matrix for the base-learner defining the 
+base-learner complexity. Low values of <code>df</code> correspond to a 
+large amount of smoothing and thus to "weaker" base-learners.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>smoothing parameter of the penalty, computed from <code>df</code> when <code>df</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>by default, <code>penalty="ps"</code>, the difference penalty for P-splines is used, 
+for <code>penalty="pss"</code> the penalty matrix is transformed to have full rank, 
+so called shrinkage approach by Marra and Wood (2011)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.ident</code></td>
+<td>
+<p>use checks for identifiability of the effect, based on Scheipl and Greven (2016); 
+see Brockhaus et al. (2017) for identifiability checks that take into account the integration limits</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>bhistx</code> implements a base-learner for functional covariates with 
+flexible integration limits <code>l(t)</code>, <code>r(t)</code> and the possibility to
+standardize the effect by <code>1/t</code> or the length of the integration interval. 
+The effect is <code>stand * int_{l(t)}^{r_{t}} x(s)beta(t,s) ds</code>. 
+The base-learner defaults to a historical effect of the form 
+<code class="reqn">\int_{T1}^{t} x_i(s)beta(t,s) ds</code>, 
+where <code class="reqn">T1</code> is the minimal index of <code class="reqn">t</code> of the response <code class="reqn">Y(t)</code>. 
+<code>bhistx</code> can only be used if <code class="reqn">Y(t)</code> and <code class="reqn">x(s)</code> are observd over
+the same domain <code class="reqn">s,t \in [T1, T2]</code>. 
+The base-learner <code>bhistx</code> can be used to set up complex interaction effects 
+like factor-specific historical  effects as discussed in Ruegamer et al. (2018). 
+</p>
+<p>Note that the data has to be supplied as a <code>hmatrix</code> object for 
+model fit and predictions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Equally to the base-learners of package mboost: 
+</p>
+<p>An object of class <code>blg</code> (base-learner generator) with a 
+<code>dpp</code> function (dpp, data pre-processing). 
+</p>
+<p>The call of <code>dpp</code> returns an object of class 
+<code>bl</code> (base-learner) with a <code>fit</code> function. The call to 
+<code>fit</code> finally returns an object of class <code>bm</code> (base-model).
+</p>
+
+
+<h3>References</h3>
+
+<p>Brockhaus, S., Melcher, M., Leisch, F. and Greven, S. (2017): 
+Boosting flexible functional regression models with a high number of functional historical effects,  
+Statistics and Computing, 27(4), 913-926. 
+</p>
+<p>Marra, G. and Wood, S.N. (2011): Practical variable selection for generalized additive models. 
+Computational Statistics &amp; Data Analysis, 55, 2372-2387.
+</p>
+<p>Ruegamer D., Brockhaus, S., Gentsch K., Scherer, K., Greven, S. (2018). 
+Boosting factor-specific functional historical models for the detection of synchronization in bioelectrical signals. 
+Journal of the Royal Statistical Society: Series C (Applied Statistics), 67, 621-642.
+</p>
+<p>Scheipl, F., Staicu, A.-M. and Greven, S. (2015): 
+Functional Additive Mixed Models, Journal of Computational and Graphical Statistics, 24(2), 477-501.
+<a href="https://arxiv.org/abs/1207.5947">https://arxiv.org/abs/1207.5947</a> 
+</p>
+<p>Scheipl, F. and Greven, S. (2016): Identifiability in penalized function-on-function regression models. 
+Electronic Journal of Statistics, 10(1), 495-526.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FDboost</code> for the model fit and <code>bhist</code> 
+for simple hisotorical effects.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if(require(refund)){
+## simulate some data from a historical model
+## the interaction effect is in this case not necessary
+n &lt;- 100
+nygrid &lt;- 35
+data1 &lt;- pffrSim(scenario = c("int", "ff"), limits = function(s,t){ s &lt;= t }, 
+                n = n, nygrid = nygrid)
+data1$X1 &lt;- scale(data1$X1, scale = FALSE) ## center functional covariate                  
+dataList &lt;- as.list(data1)
+dataList$tvals &lt;- attr(data1, "yindex")
+
+## create the hmatrix-object
+X1h &lt;- with(dataList, hmatrix(time = rep(tvals, each = n), id = rep(1:n, nygrid), 
+                             x = X1, argvals = attr(data1, "xindex"), 
+                             timeLab = "tvals", idLab = "wideIndex", 
+                             xLab = "myX", argvalsLab = "svals"))
+dataList$X1h &lt;- I(X1h)   
+dataList$svals &lt;- attr(data1, "xindex")
+## add a factor variable 
+dataList$zlong &lt;- factor(gl(n = 2, k = n/2, length = n*nygrid), levels = 1:2)  
+dataList$z &lt;- factor(gl(n = 2, k = n/2, length = n), levels = 1:2)
+
+## do the model fit with main effect of bhistx() and interaction of bhistx() and bolsc()
+mod &lt;- FDboost(Y ~ 1 + bhistx(x = X1h, df = 5, knots = 5) + 
+               bhistx(x = X1h, df = 5, knots = 5) %X% bolsc(zlong), 
+              timeformula = ~ bbs(tvals, knots = 10), data = dataList)
+              
+## alternative parameterization: interaction of bhistx() and bols()
+mod &lt;- FDboost(Y ~ 1 + bhistx(x = X1h, df = 5, knots = 5) %X% bols(zlong), 
+              timeformula = ~ bbs(tvals, knots = 10), data = dataList)
+
+
+  # find the optimal mstop over 5-fold bootstrap (small example to reduce run time)
+  cv &lt;- cvrisk(mod, folds = cv(model.weights(mod), B = 5))
+  mstop(cv)
+  mod[mstop(cv)]
+  
+  appl1 &lt;- applyFolds(mod, folds = cv(rep(1, length(unique(mod$id))), type = "bootstrap", B = 5))
+
+ # plot(mod)
+
+}
+
+</code></pre>
+
+
+</div>

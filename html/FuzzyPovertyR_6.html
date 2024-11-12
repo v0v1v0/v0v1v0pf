@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fs_construct</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuzzy supplementary poverty estimation (Step 7)</h2>
+
+<h3>Description</h3>
+
+<p>Step 7. Constructs the fuzzy supplementary poverty measure based on Steps1-6.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fs_construct(steps4_5, weight, alpha, breakdown = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>steps4_5</code></td>
+<td>
+<p>The results from <code>fs_equate</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>A numeric vector of sampling weights of length nrow(step1). if NULL weights will set equal to n (n = sample size)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The value of the exponent in the FM equation. If NULL it is calculated so that it equates the expectation of the membership function to HCR.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breakdown</code></td>
+<td>
+<p>A Dimension of sub-domains to calculate estimates for (using the same alpha). If numeric will be coerced to a Dimension.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class FuzzySupplementary containing the fuzzy membership function for each unit, the point estimate (i.e. the expected value of the function), and the alpha parameter.
+</p>
+
+
+<h3>References</h3>
+
+<p>Betti, G., Gagliardi, F., Lemmi, A., &amp; Verma, V. (2015). Comparative measures of multidimensional deprivation in the European Union. Empirical Economics, 49(3), 1071-1100.
+</p>
+<p>Betti, G., Gagliardi, F., &amp; Verma, V. (2018). Simplified Jackknife variance estimates for fuzzy measures of multidimensional poverty. International Statistical Review, 86(1), 68-86.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#This example is based on the dataset eusilc included in the package
+#The FS index is compute without and with breakdown and using an HCR = 0.12
+#The step 2-5 are the following (step 1 is the eusilc dataset)
+#For more on each step see the ad hoc function included in the package
+
+#Step 2
+
+step2 = fs_transform(eusilc[,4:23], weight = eusilc$DB090, ID = eusilc$ID)
+
+#Step 3 is the definition of the dimension.
+#For more about the step see Betti et al. (2018)
+
+dimensions = c(1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5)
+
+#Step 4-5 finding weights
+
+steps4_5 = fs_weight(dimensions, step2 = step2, rho = NULL)
+
+#Step 6 computation of alpha parameter
+
+alpha &lt;- fs_equate(steps4_5 = steps4_5,
+                   weight = eusilc$DB090, HCR = 0.12,
+                   interval = c(1,10))
+
+#Step 7 the FS index without breakdown
+
+fs_results = fs_construct(steps4_5 = steps4_5,
+             weight = eusilc$DB090, alpha = alpha, breakdown = NULL)
+
+#Step 7 the FS index with breakdown
+
+fs_results = fs_construct(steps4_5 = steps4_5,
+             weight = eusilc$DB090, alpha = alpha, breakdown = eusilc$db040)
+</code></pre>
+
+
+</div>

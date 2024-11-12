@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PCvM.statistic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>PCvM statistic for the Functional Linear Model with scalar response</h2>
+
+<h3>Description</h3>
+
+<p>Projected Cramer-von Mises statistic (PCvM) for the Functional Linear Model with scalar response (FLM): 
+<code class="reqn">Y=\big&lt;X,\beta\big&gt;+\varepsilon</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Adot(X, inpr)
+
+PCvM.statistic(X, residuals, p, Adot.vec)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Functional covariate for the FLM. 
+The object must be either in the class <code>fdata</code> or in the class <code>fd</code>.
+It is used to compute the matrix of inner products.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inpr</code></td>
+<td>
+<p>Matrix of inner products of <code>X</code>. Computed if not given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Residuals of the estimated FLM.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Number of elements of the functional basis where the functional covariate is represented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Adot.vec</code></td>
+<td>
+<p>Output from the <code>Adot</code> function (see Details). Computed if not given.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In order to optimize the computation of the statistic, the critical parts
+of these two functions are coded in FORTRAN. The hardest part corresponds to the 
+function <code>Adot</code>, which involves the computation of a symmetric matrix of dimension 
+<code class="reqn">n\times n</code> where each entry is a sum of <code class="reqn">n</code> elements.
+As this matrix is symmetric, the order of the method can be reduced from <code class="reqn">O(n^3)</code>
+to <code class="reqn">O\big(\frac{n^3-n^2}{2}\big)</code>. The memory requirement can also be reduced
+to <code class="reqn">O\big(\frac{n^2-n+2}{2}\big)</code>. The value of <code>Adot</code> is a vector of 
+length <code class="reqn">\frac{n^2-n+2}{2}</code> where the first element is the common diagonal 
+element and the rest are the lower triangle entries of the matrix, sorted by rows (see Examples).
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>PCvM.statistic</code>, the value of the statistic. For <code>Adot</code>,
+a suitable output to be used in the argument <code>Adot.vec</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>No NA's are allowed in the functional covariate.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eduardo Garcia-Portugues. Please, report bugs and suggestions
+to <a href="mailto:eduardo.garcia.portugues@uc3m.es">eduardo.garcia.portugues@uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Escanciano, J. C. (2006). A consistent diagnostic test for regression models using projections. 
+Econometric  Theory, 22, 1030-1051. <a href="https://doi.org/10.1017/S0266466606060506">doi:10.1017/S0266466606060506</a>
+</p>
+<p>Garcia-Portugues, E., Gonzalez-Manteiga, W. and Febrero-Bande, M. (2014). A goodness–of–fit
+test for the functional linear model with scalar response. Journal of Computational and 
+Graphical Statistics, 23(3), 761-778. <a href="https://doi.org/10.1080/10618600.2013.812519">doi:10.1080/10618600.2013.812519</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flm.test</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Functional process
+X=rproc2fdata(n=10,t=seq(0,1,l=101))
+# Adot
+Adot.vec=Adot(X)
+
+# Obtain the entire matrix Adot
+Ad=diag(rep(Adot.vec[1],dim(X$data)[1]))
+Ad[upper.tri(Ad,diag=FALSE)]=Adot.vec[-1]
+Ad=t(Ad)
+Ad=Ad+t(Ad)-diag(diag(Ad))
+Ad
+# Statistic
+PCvM.statistic(X,residuals=rnorm(10),p=5)
+</code></pre>
+
+
+</div>

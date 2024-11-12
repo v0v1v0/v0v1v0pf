@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsglmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting Projection Based Laplace Approximation for Spatial Generalized Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p><code>fsglmm</code> is used to fit reduced-dimensional spatial generalized linear mixed models for continuous spatial domain.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsglmm(
+  formula,
+  kappa,
+  inits,
+  data,
+  coords,
+  family,
+  ntrial = 1,
+  offset = NA,
+  method.optim,
+  method.integrate,
+  rank = NULL,
+  control = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class "formula."</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>the smoothness parameter for the matern process (either 0.5, 1.5, 2.5 or 10).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inits</code></td>
+<td>
+<p>starting values for the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coords</code></td>
+<td>
+<p>a matrix of dimension <code class="reqn">N</code> x 2 representing the longitude and latitude of each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>a character string of the error distribution and link function to be used in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntrial</code></td>
+<td>
+<p>a numeric vector for a binomial model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>this is used to specify an a priori a known component to be included in the linear predictor during fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.optim</code></td>
+<td>
+<p>the method to be used for outer optimization. "CG" for Conjugate Gradient Method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.integrate</code></td>
+<td>
+<p>the method to be used for inner optimization. "NR" for Newton Raphson Method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>an integer of 'rank' to be used for projections. Default is 5 percent of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of control parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list containing the following components:
+</p>
+<p><code>summary</code> a summary of the fitted model
+</p>
+<p><code>vcov</code> a symmetric matrix giving an estimate of the Hessian at the solution found.
+</p>
+<p><code>mle2</code> an object of class "mle2"
+</p>
+<p><code>family</code> the family used.
+</p>
+<p><code>kappa</code> the matern smoothness parameter used.
+</p>
+<p><code>Delta</code> a matrix containing the estimated random effects of the reduced dimensional model.
+</p>
+<p><code>U</code> a matrix whose columns contain the estimated eigenvectors of the reduced dimensional model.
+</p>
+<p><code>D</code> a matrix whose diagonal components contain the estimated eigenvalues of the reduced dimensional model.
+</p>
+<p><code>coords</code> the matrix of coordinates used.
+</p>
+
+
+<h3>References</h3>
+
+<p>Jaewoo Park and Sangwan Lee - "A Projection-based Laplace Approximation for Spatial Latent Variable Models"
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(requireNamespace("mgcv")){
+sigma2 = 1
+phi = 0.2
+beta.true = c(1,1)
+n = 400
+n.pred = 100
+coords.all &lt;- matrix(runif((n+n.pred)*2),ncol=2,nrow=n+n.pred)
+X.all &lt;- matrix(runif((n+n.pred)*2),ncol=2,nrow=(n+n.pred))
+dist.all &lt;- fields::rdist(coords.all,coords.all)
+V.all &lt;- sigma2*(1+sqrt(5)/phi*dist.all+5/(3*phi^2)*dist.all^2)*exp(-sqrt(5)/phi*dist.all)
+set.seed(1)
+r.e.all &lt;- mgcv::rmvn(1,rep(0,nrow(coords.all)),V.all)
+pi.all &lt;- X.all%*%beta.true + r.e.all
+p.all &lt;- exp(pi.all)/(1+exp(pi.all))
+Y.all &lt;- sapply(p.all, function(x) sample(0:1, 1, prob = c(1-x, x)))
+Y &lt;- as.matrix(Y.all[1:n],nrow = n)
+X &lt;- X.all[1:n,]
+coords &lt;- coords.all[1:n,]
+data &lt;- data.frame(cbind(Y,X))
+colnames(data) = c("Y","X1","X2")
+mod.glm &lt;- glm(Y~-1+X1+X2,family="binomial",data=data)
+mod.glm.esp &lt;- predict(mod.glm,data, type="response")
+mod.glm.s2 &lt;- var(Y - mod.glm.esp)
+mod.glm.phi &lt;- 0.1*max(dist(coords))
+startinit &lt;- c(mod.glm$coef,log(mod.glm.s2),log(mod.glm.phi))
+names(startinit) &lt;- c("X1","X2","logsigma2","logphi")
+result.bin &lt;- fsglmm(Y~-1+X1+X2, kappa=2.5, inits = startinit,
+ data = data,coords = coords, family = "binomial", ntrial = 1,
+ offset = NA,method.optim = "CG", method.integrate = "NR",rank = 50)
+}
+
+</code></pre>
+
+
+</div>

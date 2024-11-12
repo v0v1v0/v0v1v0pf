@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frair_boot_methods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>frair methods</h2>
+
+<h3>Description</h3>
+
+<p>Documentation for methods for class frboot</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'frboot'
+print(x, ...)
+## S3 method for class 'frboot'
+confint(object, parm='all', level=0.95, ..., citypes='all')
+## S3 method for class 'frboot'
+plot(x, xlab=x$xvar, ylab=x$yvar, ...)
+## S3 method for class 'frboot'
+lines(x, all_lines=FALSE, tozero=FALSE, bootcol=1, bootalpha=1/sqrt(x$n_boot), ...)
+## S3 method for class 'frboot'
+drawpoly(x, ..., probs=c(0.025, 0.975), tozero=FALSE)
+
+## S3 method for class 'frconf'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, object </code></td>
+<td>
+<p>Output from a call to <code>frair_boot</code> (or <code>confint.frboot</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm </code></td>
+<td>
+<p>A character vector. Which parameter to get CIs for? See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level </code></td>
+<td>
+<p>A numeric. The confidence limit for CIs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>citypes </code></td>
+<td>
+<p>A character vector. What kind of CI? See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all_lines </code></td>
+<td>
+<p>A logical. Should the bootstrapped results be plotted? See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tozero </code></td>
+<td>
+<p>A logical. Should the line be drawn to the origin? See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab </code></td>
+<td>
+<p>Label for the x-axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab </code></td>
+<td>
+<p>Label for the y-axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootcol </code></td>
+<td>
+<p>A valid colour for the bootstrapped lines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootalpha </code></td>
+<td>
+<p>A numeric (0-1). A transparency for the (inevitably overlapping) lines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs </code></td>
+<td>
+<p>Lower and upper tails for confidence interval polygons. See <code>quantile</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>... </code></td>
+<td>
+<p>Other items passed to underlying functions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This documents standard methods for FRAIR objects of class <code>frboot</code>. However, because standard naming conventions have been used, some undocumented utility functions might also work (e.g. <code>coefficients</code>)
+</p>
+<p>The code underlying <code>confint.frboot</code> is quite complex and relies heavily on the excellent work done by Brian Ripley in <code>boot.ci</code>. Some of the complexity of <code>boot.ci</code> is hidden, but, like all FRAIR objects you can access the original method by passing the output directly (e.g. <code>boot.ci(object$fit)</code>). 
+</p>
+<p>Like <code>print.bootci</code> the <code>print()</code> method for objects produced by <code>print.frboot</code> will report potentially unstable intervals. However, these are calculated and returned by <code>confint.frboot</code>, not when <code>print()</code> is called (see Value, below). When calling <code>confint.frboot</code> you can request (a combination of) different intervals. The default <code>'all'</code> is equivalent to <code>c('norm', 'basic', 'stud', 'perc', 'bca')</code> which are the Normal approximation, Basic, Studentised, Percentile and BCa intervals, respectively. Each has strengths and weaknesses which the user should be aware of.  
+</p>
+<p><code>lines</code> and <code>drawpoly</code> only add lines or polygons to an existing plot, so an active graphics device needs to be present. By default <code>all</code> is FALSE. The simple reason for this is because the code is a little slow (on some devices), so currently it is an 'opt-in' option.
+</p>
+<p><code>drawpoly</code> draws empirical confidence intervals. The intervals are constructed by evaluating every set of bootstrapped coefficients at:
+</p>
+<p><code>seq(from=min(x$x), to=max(x$x), length.out = 50)</code>.  
+</p>
+<p>and then calculating the empirical confidence limits at each value of <em>x</em> by:
+</p>
+<p><code>apply(val, 2, quantile, na.rm=T, probs=probs)</code>
+</p>
+<p>Note that this is a rough approximation of a bootstrapped confidence interval and does not account for some of the intricacies (e.g. bootstrap bias) described in boot.ci.
+</p>
+<p>Note also, that if <code>tozero</code> is TRUE, then both <code>lines</code> and <code>drawpoly</code> attempt to draw to zero by evaluating every set of bootstrapped coefficients at:
+</p>
+<p><code>seq(from=0, to=max(x$x), length.out = 50)</code> 
+</p>
+<p>If the coefficients provided by a fit to the orginal data produce a value that is undefined at zero, then these functions will plot lines to a small, non-zero number (1e-04) instead (with a warning). However, this does not guarantee that all of the values produced by the bootstrapped coefficients will produce sensible values. Clearly the intention here is to provide a nice-looking representation of the fitted curve and it is up to the user to determine <em>why</em> their desired curve is undefined at zero.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>confint.frboot</code> returns a nested list with m items at the top level and n items at the second level, where m is the number of coefficients and n is the number of types of confidence intervals. Each named object at the second level is a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lower </code></td>
+<td>
+<p>The upper limit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper </code></td>
+<td>
+<p>The lower limit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootciout </code></td>
+<td>
+<p>The output from <code>boot.ci</code> (if successful; NA otherwise).</p>
+</td>
+</tr>
+</table>
+<p>and optionally:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>errors </code></td>
+<td>
+<p>The error(s) encountered by <code>boot.ci</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warnings </code></td>
+<td>
+<p>The warning(s) encountered by <code>boot.ci</code>, plus a warning if extreme values were used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>notes </code></td>
+<td>
+<p>A comment on potential instability of intervals, if justified.</p>
+</td>
+</tr>
+</table>
+<p>These last two items combine 'true' warnings and the tests for interval stability described in <code>print.bootci</code>.
+</p>
+<p>All confidence intervals are calculated on the original scale. If you want to calculate intervals on a transformed scale, call <code>boot.ci</code> directly using the <code>boot.ci(object$fit)</code> syntax.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_boot</code>, <code>lines</code>, <code>polygon</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># This example is not run to save CRAN build server time...
+## Not run: 
+data(gammarus)
+
+# Holling's is the wrong fit for these data based on the experimental design
+# But it runs more quickly, so is a useful demonstration
+outhol &lt;- frair_fit(eaten~density, data=gammarus, response='hollingsII', 
+        start=list(a = 1, h = 0.08), fixed=list(T=40/24))
+outholb &lt;- frair_boot(outhol)
+
+confint(outholb)
+
+# Illustrate bootlines
+plot(outholb, xlim=c(0,30), type='n', main='All bootstrapped lines')
+lines(outholb, all_lines=TRUE)
+points(outholb, pch=20, col=rgb(0,0,0,0.2))
+
+# Illustrate bootpolys
+plot(outholb, xlim=c(0,30), type='n', main='Empirical 95 percent CI')
+drawpoly(outholb, col=rgb(0,0.5,0))
+points(outholb, pch=20, col=rgb(0,0,0,0.2))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

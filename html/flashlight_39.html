@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>light_breakdown</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variable Contribution Breakdown for Single Observation</h2>
+
+<h3>Description</h3>
+
+<p>Calculates sequential additive variable contributions (approximate SHAP) to
+the prediction of a single observation, see Gosiewska and Biecek (see reference)
+and the details below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">light_breakdown(x, ...)
+
+## Default S3 method:
+light_breakdown(x, ...)
+
+## S3 method for class 'flashlight'
+light_breakdown(
+  x,
+  new_obs,
+  data = x$data,
+  by = x$by,
+  v = NULL,
+  visit_strategy = c("importance", "permutation", "v"),
+  n_max = Inf,
+  n_perm = 20,
+  seed = NULL,
+  use_linkinv = FALSE,
+  description = TRUE,
+  digits = 2,
+  ...
+)
+
+## S3 method for class 'multiflashlight'
+light_breakdown(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "flashlight" or "multiflashlight".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>prettyNum()</code> to format numbers
+in description text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_obs</code></td>
+<td>
+<p>One single new observation to calculate variable attribution for.
+Needs to be a <code>data.frame</code> of same structure as <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>An optional vector of column names used to filter <code>data</code>
+for rows with equal values in "by" variables as <code>new_obs</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Vector of variable names to assess contribution for.
+Defaults to all except those specified by "y", "w" and "by".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>visit_strategy</code></td>
+<td>
+<p>In what sequence should variables be visited?
+By "importance", by <code>n_perm</code> "permutation" or as "v" (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>Maximum number of rows in <code>data</code> to consider in the reference data.
+Set to lower value if <code>data</code> is large.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_perm</code></td>
+<td>
+<p>Number of permutations of random visit sequences.
+Only used if <code>visit_strategy = "permutation"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer random seed used to shuffle rows if <code>n_max</code>
+is smaller than the number of rows in <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_linkinv</code></td>
+<td>
+<p>Should retransformation function be applied? Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>Should descriptions be added? Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>Passed to <code>prettyNum()</code> to format numbers in description text.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The breakdown algorithm works as follows: First, the visit order
+<code class="reqn">(x_1, ..., x_m)</code> of the variables <code>v</code> is specified.
+Then, in the query <code>data</code>, the column <code class="reqn">x_1</code> is set to the value of <code class="reqn">x_1</code>
+of the single observation <code>new_obs</code> to be explained.
+The change in the (weighted) average prediction on <code>data</code> measures the
+contribution of <code class="reqn">x_1</code> on the prediction of <code>new_obs</code>.
+This procedure is iterated over all <code class="reqn">x_i</code> until eventually, all rows
+in <code>data</code> are identical to <code>new_obs</code>.
+</p>
+<p>A complication with this approach is that the visit order is relevant,
+at least for non-additive models. Ideally, the algorithm could be repeated
+for all possible permutations of <code>v</code> and its results averaged per variable.
+This is basically what SHAP values do, see the reference below for an explanation.
+Unfortunately, there is no efficient way to do this in a model agnostic way.
+</p>
+<p>We offer two visit strategies to approximate SHAP:
+</p>
+
+<ol>
+<li>
+<p> "importance": Using the short-cut described in the reference below:
+The variables are sorted by the size of their contribution in the same way as the
+breakdown algorithm but without iteration, i.e., starting from the original query
+data for each variable <code class="reqn">x_i</code>.
+</p>
+</li>
+<li>
+<p> "permutation": Averages contributions from a small number of random permutations
+of <code>v</code>.
+</p>
+</li>
+</ol>
+<p>Note that the minimum required elements in the (multi-)flashlight are a
+"predict_function", "model", and "data". The latter can also directly be passed to
+<code>light_breakdown()</code>. Note that by default, no retransformation function is applied.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "light_breakdown" with the following elements:
+</p>
+
+<ul>
+<li> <p><code>data</code> A tibble with results. Can be used to build fully customized
+visualizations. Column names can be controlled by <code>options(flashlight.column_name)</code>.
+</p>
+</li>
+<li> <p><code>by</code> Same as input <code>by</code>.
+</p>
+</li>
+</ul>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>light_breakdown(default)</code>: Default method not implemented yet.
+</p>
+</li>
+<li> <p><code>light_breakdown(flashlight)</code>: Variable attribution to single observation
+for a flashlight.
+</p>
+</li>
+<li> <p><code>light_breakdown(multiflashlight)</code>: Variable attribution to single observation
+for a multiflashlight.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>A. Gosiewska and P. Biecek (2019). IBREAKDOWN: Uncertainty of model explanations
+for non-additive predictive models. ArXiv.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.light_breakdown()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">fit &lt;- lm(Sepal.Length ~ . + Petal.Length:Species, data = iris)
+fl &lt;- flashlight(model = fit, label = "lm", data = iris, y = "Sepal.Length")
+light_breakdown(fl, new_obs = iris[1, ])
+</code></pre>
+
+
+</div>

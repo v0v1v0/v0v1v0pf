@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tangentPCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Tangent space principal component analysis 
+</h2>
+
+<h3>Description</h3>
+
+<p>The function performs a standard PCA of K covariances after projecting them
+on the tangent space at their Wasserstein barycenter. Rationale and
+details are given in Masarotto, Panaretos &amp; Zemel (2019, 2022)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tangentPCA(sigma, max.iter=30)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+
+<p>An MxMxK array containing the K covariances. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+
+<p>Maximum number of gradient descent iterations used to compute the
+Wasserstein barycenter of the covariances in sigma.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A standard <code>prcomp</code> object with added a MxMxK array
+containing the eigenvectors projected back to the covariances space.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Valentina Masarotto
+</p>
+
+
+<h3>References</h3>
+
+<p>Masarotto, V., Panaretos, V.M. &amp; Zemel, Y. (2022) "Transportation-Based Functional ANOVA and PCA for Covariance Operators", <em>arXiv</em>,  <a href="https://arxiv.org/abs/2212.04797">https://arxiv.org/abs/2212.04797</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gaussBary</code>, <code>prcomp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Example taken from https://arxiv.org/abs/2212.04797  . 
+data(phoneme)
+# resampling the log-periodograms
+# 12 sample covariances for each phoneme
+# each estimated on 50 curves 
+set.seed(12345)
+nsubsamples &lt;- 12
+n &lt;- 50
+gg &lt;- unique(Phoneme)
+nphonemes &lt;- length(gg)
+K &lt;- n*nsubsamples*nphonemes
+M &lt;- NCOL(logPeriodogram)
+Sigma &lt;- array(dim=c(M, M, nphonemes*nsubsamples))
+r &lt;- 0
+for (l in gg) {
+  for (i in 1:nsubsamples) {
+      r &lt;- r+1
+      Sigma[,,r] &lt;- cov(logPeriodogram[sample(which(Phoneme==l),n), ])
+  }
+}
+pca &lt;- tangentPCA(Sigma, max.iter=3)
+summary(pca)
+plot(pca)
+# See https://arxiv.org/abs/2212.04797 for the interpretation
+# of the figure
+pairs(pca$x[,1:5], col=rep(1:nphonemes, rep(nsubsamples, nphonemes)))
+
+</code></pre>
+
+
+</div>

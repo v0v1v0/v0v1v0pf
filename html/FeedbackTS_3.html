@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>feedback.stats</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Computation of feedback and change-in-feedback statistics
+</h2>
+
+<h3>Description</h3>
+
+<p>Computation of temporal averages of after-before differences around key days calculated from a time series and computation of the difference in the temporal averages around a turning point in time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">feedback.stats(object, operator, turning.year = NULL,
+    trend.correction = list( apply = FALSE , object2 = NULL ))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>either a KDD object or a KDD.yearly.average object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>operator</code></td>
+<td>
+
+<p>a character string specifying the transformation of the raw values, must be one of <code>"dmv"</code>, <code>"dmpiv"</code> or <code>"dmgiv"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>turning.year</code></td>
+<td>
+
+<p>an optional numeric vector of years used to specify turning points in the data series.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend.correction</code></td>
+<td>
+
+<p>an optional list of two items: the <code>apply</code> item, which is a logical
+indicating whether the trend correction should be applied or not
+(default to <code>FALSE</code>); the <code>object2</code> item, which is a
+KDD object typically built like <code>object</code> except that the
+keyday threshold is fixed at zero (see example section below).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes the following temporal averages of after-before differences around key days calculated from a time series:
+</p>
+<p style="text-align: center;"><code class="reqn">\bar D(I)=\frac{1}{n(I)}\sum_{i\in I} D_i</code>
+</p>
+
+<p>where <code class="reqn">I</code> is a set of key days, <code class="reqn">n(I)</code> is the number of key days in <code class="reqn">I</code>, and <code class="reqn">D_i</code> is an after-before difference computed for each key day <code class="reqn">i</code> (see below and in after.minus.before function). 
+</p>
+<p>If <code>operator = "dmv"</code> (difference of mean values), the raw values <code class="reqn">y_{i-K},\ldots,y_{i+K}</code> of the time series are used to compute the difference: 
+</p>
+<p style="text-align: center;"><code class="reqn">
+		D_i=\left(\frac{1}{K}\sum_{k=1}^K y_{i+k}\right) - \left(\frac{1}{K}\sum_{k=1}^K  y_{i-k}\right)=\frac{1}{K}\sum_{k=1}^K (y_{i+k}-y_{i-k}),
+	</code>
+</p>
+
+<p>where <code class="reqn">i</code> is the date of the key day, <code class="reqn">K</code> is the number of days considered around the key day (specified when <code>data</code> is provided).
+</p>
+<p>If <code>operator = "dmpiv"</code> (difference of means of positive indicator values), the raw values <code class="reqn">y_{i-K},\ldots,y_{i+K}</code> are used to compute the difference: 
+</p>
+<p style="text-align: center;"><code class="reqn">
+		D_i=\left(\frac{1}{K}\sum_{k=1}^K 1(y_{i+k}&gt;0)\right) - \left(\frac{1}{K}\sum_{k=1}^K  1(y_{i-k}&gt;0)\right)=\frac{1}{K}\sum_{k=1}^K \{1(y_{i+k}&gt;0)-1(y_{i-k}&gt;0)\},
+	</code>
+</p>
+
+<p>where <code class="reqn">1(\cdot)</code> is the indicator function.
+</p>
+<p>If <code>operator = "dmgiv"</code> (difference of means of greater indicator values), the raw values <code class="reqn">y_{i-K},\ldots,y_{i+K}</code> are used to compute the difference: 
+</p>
+<p style="text-align: center;"><code class="reqn">
+		D_i=\left(\frac{1}{K}\sum_{k=1}^K
+	1(y_{i+k}&gt;y_{i-k})\right) - \left(\frac{1}{K}\sum_{k=1}^K
+	1(y_{i-k}&gt;y_{i+k})\right).
+      </code>
+</p>
+
+<p>If <code>turning.year = NULL</code>, the function computes <code class="reqn">\bar D(I)</code>
+where <code class="reqn">I</code> is the set of all key days in the whole time series.
+</p>
+<p>If <code>turning.year</code> is a numeric vector, for each value <code class="reqn">t</code> in
+<code>turning.year</code> the function computes <code class="reqn">\bar D(I)</code> with <code class="reqn">I</code>
+equal to the set of key days in the whole time series, in the time
+series before <code class="reqn">t</code> and in the time series after <code class="reqn">t</code>. The function
+also computes, for each value <code class="reqn">t</code>, the difference between the
+temporal averages of after-before differences after <code class="reqn">t</code> and before
+<code class="reqn">t</code>.
+</p>
+<p>If <code>trend.correction$apply = TRUE</code>, a trend correction is applied
+to take into account, for example, seasonal effect in the time series
+(see Morris et al., 2016). 
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>turning.year = NULL</code>, a numeric equal to the temporal average of after-before differences around key days calculated from the whole time series.
+</p>
+<p>If <code>turning.year</code> is a numeric vector, a numeric vector providing: 
+</p>
+
+<dl>
+<dt>–</dt>
+<dd>
+<p>the temporal average of after-before differences around key days calculated from the whole time series;</p>
+</dd>
+<dt>–</dt>
+<dd>
+<p>for each value <code class="reqn">t</code> in <code>turning.year</code>,
+</p>
+
+<dl>
+<dt>–</dt>
+<dd>
+<p>the temporal average <code class="reqn">\bar D_{&lt;t}</code> of after-before differences around key days calculated from the time series right-truncated at time <code class="reqn">t</code>;</p>
+</dd>
+<dt>–</dt>
+<dd>
+<p>the temporal average <code class="reqn">\bar D_{\ge t}</code>  of after-before differences around key days calculated from the time series left-truncated at time <code class="reqn">t</code>;</p>
+</dd>
+<dt>–</dt>
+<dd>
+<p>the difference <code class="reqn">\bar D_{\ge t}-\bar D_{&lt;t}</code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Samuel Soubeyrand <a href="mailto:Samuel.Soubeyrand@avignon.inra.fr">Samuel.Soubeyrand@avignon.inra.fr</a>, Cindy E. Morris, E. Keith Bigg.
+</p>
+
+
+<h3>References</h3>
+
+<p>Morris, C.E., Soubeyrand, S.; Bigg, E.K., Creamean, J.M., Sands,
+D.C. (2016). Rainfall feedback maps: a tool to depict
+the geography of precipitation's sensitivity to
+aerosols. INRA Research Report.
+</p>
+<p>Soubeyrand, S., Morris, C. E. and Bigg, E. K. (2014). Analysis of fragmented time directionality in time series to elucidate feedbacks in climate data. Environmental Modelling and Software 61: 78-86.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>KDD, KDD.yearly.average, kdd.from.raw.data, after.minus.before, rain.site.6008, rain.feedback.stats
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### load data for site 6008 (Callagiddy station)
+data(rain.site.6008)
+
+#### build KDD objects from raw data (site 6008: Callagiddy station)
+## using a threshold value equal to 25
+KDD=kdd.from.raw.data(raw.data=rain.site.6008, keyday.threshold=25, nb.days=20,
+   col.series=5, col.date=c(2,3,4), na.rm=TRUE, filter=NULL)
+	
+#### main feedback statistic
+feedback.stats(KDD, "dmv")
+
+#### main and auxiliary feedback statistics
+feedback.stats(KDD, "dmv", turning.year=c(1960,1980))
+
+#### apply a trend correction
+## define the KDD object used for trend correction (it is defined as
+## KDD above except that the threshold value is equal to 0)
+KDD2=kdd.from.raw.data(raw.data=rain.site.6008, keyday.threshold=0, nb.days=20,
+   col.series=5, col.date=c(2,3,4), na.rm=TRUE, filter=NULL)
+## compute the statistic
+feedback.stats(KDD, "dmv", trend.correction=list(apply=TRUE, object2=KDD2))
+</code></pre>
+
+
+</div>

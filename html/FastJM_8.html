@@ -1,0 +1,441 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>jmcs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Joint modeling of longitudinal continuous data and competing risks</h2>
+
+<h3>Description</h3>
+
+<p>Joint modeling of longitudinal continuous data and competing risks
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">jmcs(
+  ydata,
+  cdata,
+  long.formula,
+  random = NULL,
+  surv.formula,
+  REML = TRUE,
+  quadpoint = NULL,
+  maxiter = 10000,
+  print.para = FALSE,
+  survinitial = TRUE,
+  tol = 1e-04,
+  method = "pseudo-adaptive",
+  opt = "nlminb"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ydata</code></td>
+<td>
+<p>a longitudinal data frame in long format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cdata</code></td>
+<td>
+<p>a survival data frame with competing risks or single failure.
+Each subject has one data entry.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long.formula</code></td>
+<td>
+<p>a formula object with the response variable and fixed effects covariates
+to be included in the longitudinal sub-model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>a one-sided formula object describing the random effects part of the longitudinal sub-model.
+For example, fitting a random intercept model takes the form <code> ~ 1|ID</code>.
+Alternatively. Fitting a random intercept and slope model takes the form <code>~ x1 + ... + xn|ID</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surv.formula</code></td>
+<td>
+<p>a formula object with the survival time, event indicator, and the covariates
+to be included in the survival sub-model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>REML</code></td>
+<td>
+<p>a logic object that indicates the use of REML estimator. Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quadpoint</code></td>
+<td>
+<p>the number of pseudo-adaptive Gauss-Hermite quadrature points.
+to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>the maximum number of iterations of the EM algorithm that the function will perform. Default is 10000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.para</code></td>
+<td>
+<p>Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survinitial</code></td>
+<td>
+<p>Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Tolerance parameter. Default is 0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method for proceeding numerical integration in the E-step. Default is pseudo-adaptive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt</code></td>
+<td>
+<p>Optimization method to fit a linear mixed effects model, either <code>nlminb</code> (default) or <code>optim</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object of class <code>jmcs</code> with elements
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>the vector of fixed effects for the linear mixed effects model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma1</code></td>
+<td>
+<p>the vector of fixed effects for type 1 failure for the survival model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma2</code></td>
+<td>
+<p>the vector of fixed effects for type 2 failure for the survival model. 
+Valid only if <code>CompetingRisk = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu1</code></td>
+<td>
+<p>the vector of association parameter(s) for type 1 failure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu2</code></td>
+<td>
+<p>the vector of association parameter(s) for type 2 failure. Valid only if <code>CompetingRisk = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H01</code></td>
+<td>
+<p>the matrix that collects baseline hazards evaluated at each uncensored event time for type 1 failure. 
+The first column denotes uncensored event times, the second column the number of events, and the third columns 
+the hazards obtained by Breslow estimator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H02</code></td>
+<td>
+<p>the matrix that collects baseline hazards evaluated at each uncensored event time for type 2 failure. 
+The data structure is the same as <code>H01</code>. Valid only if <code>CompetingRisk = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sig</code></td>
+<td>
+<p>the variance-covariance matrix of the random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>the variance of the measurement error for the linear mixed effects model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>the total number of iterations until convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>convergence identifier: 1 corresponds to successful convergence, 
+whereas 0 to a problem (i.e., when 0, usually more iterations are required).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>the variance-covariance matrix of all the fixed effects for both models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sebeta</code></td>
+<td>
+<p>the standard error of <code>beta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>segamma1</code></td>
+<td>
+<p>the standard error of <code>gamma1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>segamma2</code></td>
+<td>
+<p>the standard error of <code>gamma2</code>. 
+Valid only if <code>CompetingRisk = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>senu1</code></td>
+<td>
+<p>the standard error of <code>nu1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>senu2</code></td>
+<td>
+<p>the standard error of <code>nu2</code>. Valid only if <code>CompetingRisk = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seSig</code></td>
+<td>
+<p>the vector of standard errors of covariance of random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sesigma</code></td>
+<td>
+<p>the standard error of variance of measurement error for the linear mixed effects model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglike</code></td>
+<td>
+<p>the log-likelihood value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted</code></td>
+<td>
+<p>a list with the fitted values:
+</p>
+
+<dl>
+<dt>resid</dt>
+<dd>
+<p>the vector of estimated residuals for the linear mixed effects model.</p>
+</dd> 
+<dt>fitted</dt>
+<dd>
+<p>the vector of fitted values for the linear mixed effects model.</p>
+</dd>
+<dt>fittedmar</dt>
+<dd>
+<p>the vector of marginal fitted values for the linear mixed effects model.</p>
+</dd>
+<dt>residmar</dt>
+<dd>
+<p>the vector of estimated marginal residuals for the linear mixed effects model.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fittedSurv</code></td>
+<td>
+<p>the estimated survival rate evaluated at each uncensored event time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUNB</code></td>
+<td>
+<p>the estimated random effects for each subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CompetingRisk</code></td>
+<td>
+<p>logical value; TRUE if a competing event are accounted for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quadpoint</code></td>
+<td>
+<p>the number of Gauss Hermite quadrature points used for numerical integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ydata</code></td>
+<td>
+<p>the input longitudinal dataset for fitting a joint model.
+It has been re-ordered in accordance with descending observation times in <code>cdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cdata</code></td>
+<td>
+<p>the input survival dataset for fitting a joint model.
+It has been re-ordered in accordance with descending observation times.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PropEventType</code></td>
+<td>
+<p>a frequency table of number of events.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LongitudinalSubmodel</code></td>
+<td>
+<p>the component of the <code>long.formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SurvivalSubmodel</code></td>
+<td>
+<p>the component of the <code>surv.formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>the component of the <code>random</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Quad.method</code></td>
+<td>
+<p>the quadrature rule used for integration. 
+If pseudo-adaptive quadrature rule is used, then return <code>pseudo-adaptive</code>. 
+Otherwise return <code>standard</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>the grouping vector for the longitudinal outcome.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Shanpeng Li <a href="mailto:lishanpeng0913@ucla.edu">lishanpeng0913@ucla.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ranef, fixef, fitted.jmcs, 
+residuals.jmcs, survfitjmcs, plot.jmcs,
+vcov.jmcs</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+require(FastJM)
+require(survival)
+# Load a simulated longitudinal dataset
+data(ydata)
+# Load a simulated survival dataset with two competing events
+data(cdata)
+
+# Fit a joint model
+fit &lt;- jmcs(ydata = ydata, cdata = cdata, 
+            long.formula = response ~ time + gender + x1 + race, 
+            surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
+            random =  ~ time| ID)
+fit
+# Extract the parameter estimates of longitudinal sub-model fixed effects
+fixef(fit, process = "Longitudinal")
+# Extract the parameter estimates of survival sub-model fixed effects
+fixef(fit, process = "Event")
+# Obtain the random effects estimates for first 6 subjects 
+head(ranef(fit))
+# Obtain the variance-covariance matrix of all parameter estimates 
+vcov(fit)
+# Obtain the result summaries of the joint model fit
+summary(fit, process = "Longitudinal")
+summary(fit, process = "Event")
+# Prediction of cumulative incidence for competing risks data
+# Predict the conditional probabilities for two patients who are alive (censored)
+ND &lt;- ydata[ydata$ID %in% c(419, 218), ]
+ID &lt;- unique(ND$ID)
+NDc &lt;- cdata[cdata$ID  %in% ID, ]
+survfit &lt;- survfitjmcs(fit, 
+                       ynewdata = ND, 
+                       cnewdata = NDc, 
+                       u = seq(3, 4.8, by = 0.2), 
+                       method = "GH",
+                       obs.time = "time")
+survfit
+PE &lt;- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+             obs.time = "time", method = "GH", 
+             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+             survinitial = TRUE)
+Brier &lt;- summary(PE, error = "Brier")
+Brier
+
+MAEQ &lt;- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+                 obs.time = "time", method = "GH", 
+                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+                 survinitial = TRUE)
+APE &lt;- summary(MAEQ, digits = 3)
+APE
+
+## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
+AUC &lt;- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               quadpoint = NULL, maxiter = 1000, n.cv = 3)
+summary(AUC, digits = 3)
+
+
+
+</code></pre>
+
+
+</div>

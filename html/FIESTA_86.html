@@ -1,0 +1,389 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spGetXY</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spatial wrapper - Extracts XY coordinates within a given boundary.</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper to get FIA plots within the boundary population (area of interest) -
+Intersect with state boundary - Get FIA plots for intersected states,
+including tree, and spatial - Clip spatial coordinates and other tables to
+boundary (spClipPoint)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spGetXY(
+  bnd,
+  bnd_dsn = NULL,
+  bnd.filter = NULL,
+  states = NULL,
+  RS = NULL,
+  xy_datsource,
+  xy_dsn = NULL,
+  xy = "PLOT",
+  xy_opts = xy_options(),
+  datsource = NULL,
+  data_dsn = NULL,
+  dbTabs = dbTables(),
+  eval = "FIA",
+  eval_opts = NULL,
+  pjoinid = "CN",
+  invtype = "ANNUAL",
+  intensity1 = FALSE,
+  pvars2keep = NULL,
+  bndvars2keep = NULL,
+  clipxy = TRUE,
+  showsteps = FALSE,
+  returnxy = TRUE,
+  savedata = FALSE,
+  exportsp = FALSE,
+  savedata_opts = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bnd</code></td>
+<td>
+<p>sf R object, Area of Interest (AOI) boundary. Can be a spatial sf
+object, full pathname to a shapefile, or name of a layer within a database.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bnd_dsn</code></td>
+<td>
+<p>String. Data source name (dsn; e.g., SQLite database or shapefile
+pathname) of bnd. The dsn varies by driver. See gdal OGR vector formats
+(https://www.gdal.org/ogr_formats.html). Optional if bnd is an R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bnd.filter</code></td>
+<td>
+<p>String. Filter to subset bnd spatial layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+<p>String. The name of state(s) for tables (e.g., "Vermont",
+"Utah").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RS</code></td>
+<td>
+<p>String. Name of FIA research station to restrict states to
+('RMRS','SRS','NCRS','NERS','PNWRS'). If NULL, all research stations are
+included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy_datsource</code></td>
+<td>
+<p>Source of XY data ('datamart', 'sqlite', 'obj', 'csv').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy_dsn</code></td>
+<td>
+<p>If datsource='sqlite', the file name (data source name) of
+the sqlite database (*.db) where XY data reside.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>sf R object or String. If xy_dsn = 'datamart', name of xy table 
+in FIA DataMart. If xy_dsn = 'sqlite', name of xy layer in database. If 
+datsource = 'csv', full pathname of xy CSV file(s). If datsource = 'obj', 
+name of xy R object. If datsource = 'shp', full pathname of shapefile.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy_opts</code></td>
+<td>
+<p>List of xy data options for xy (e.g., xy_opts = list(xvar='LON', 
+yvar='LAT'). See xy_options() for more options and defaults.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datsource</code></td>
+<td>
+<p>String. Source of FIA data for defining FIA evaluations or 
+appending variables ('datamart', 'sqlite', 'obj', 'csv'). If datsource = NULL, 
+datsource = xy_datsource. If datsource = 'datamart', data are downloaded
+extracted from FIA DataMart (http://apps.fs.usda.gov/fia/datamart/datamart.html). 
+If datsource='sqlite', specify database name(s) in data_dsn and table name(s) 
+in dbTabs() argument. If datsource = ('obj','csv'), specify *.csv file name in 
+dbTabs argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_dsn</code></td>
+<td>
+<p>String. Name of database with plot_layer and/or ppsa_layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbTabs</code></td>
+<td>
+<p>String or R Object. If data_dsn = 'datamart', name of table(s) 
+in FIA DataMart. If data_dsn = 'sqlite', name of layer(s) in database. If 
+datsource = 'csv', name of CSV file(s). If datsource = 'obj', name of R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval</code></td>
+<td>
+<p>String. Type of evaluation time frame for data extraction 
+('FIA', 'custom'). See eval_opts for more further options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_opts</code></td>
+<td>
+<p>List of evaluation options for 'FIA' or 'custom'
+evaluations to determine the set of data returned. See help(eval_options)
+for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pjoinid</code></td>
+<td>
+<p>String. Variable in plt to join to XY data. Not necessary to
+be unique. If using most current XY coordinates, use identifier for a plot
+(e.g., PLOT_ID).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invtype</code></td>
+<td>
+<p>String. Type of FIA inventory to extract ('PERIODIC',
+'ANNUAL').  Only one inventory type (PERIODIC/ANNUAL) at a time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intensity1</code></td>
+<td>
+<p>Logical. If TRUE, includes only XY coordinates where 
+INTENSITY = 1 (FIA base grid).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvars2keep</code></td>
+<td>
+<p>String vector. One or more variables in plot table to 
+append to output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bndvars2keep</code></td>
+<td>
+<p>String vector. One or more variables in bnd to 
+append to output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clipxy</code></td>
+<td>
+<p>Logical. If TRUE, clips xy data to bnd.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showsteps</code></td>
+<td>
+<p>Logical. If TRUE, display data in device window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnxy</code></td>
+<td>
+<p>Logical. If TRUE, returns XY coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves data to outfolder. Note:
+includes XY data if returnxy = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exportsp</code></td>
+<td>
+<p>Logical. If savedata = TRUE and returnxy = TRUE, 
+if TRUE, exports XY data as spatial data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>datsource</b>
+</p>
+<p>Plots are extracted from 3 different data sources:<br> 1) CSV - data have
+previously been extracted from the FIA database and stored as CSV files.<br>
+2) datamart - data are extracted from FIA's publically-available
+datamart.<br> 3) sqlite - data have previously been extracted from the FIA
+database and stored within a SQLite database.<br></p>
+<p><b>Selection parameters</b>
+</p>
+<p>FIA plots are selected based on the following parameters:<br></p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> evalid - the FIA evaluation identifier</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> evalCur - the most
+current FIA evaluation in database</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> evalEndyr - the FIA evaluation
+ending in evalEndyr</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> evalType - the FIA evaluation type ('ALL',
+'AREAVOL', 'GRM', 'P2VEG', 'DWM', 'INV', 'REGEN', 'CRWN')</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> measCur -
+the most current measurement of each plot in database</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> measEndyr -
+the most current measuremtn of each plot in database in or prior to
+measEndyr</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> Endyr.filter - a filter for bnd that specifies the
+boundary where measEndyr should be applied</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spxy</code></td>
+<td>
+<p> sf. If returnxy=TRUE, spatial xy point data. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltids</code></td>
+<td>
+<p> data frame. A table of pltids that are within bnd. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spxy</code></td>
+<td>
+<p> sf data frame. If returnxy, a simple feature with pltids within bnd. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bndx</code></td>
+<td>
+<p> sf object. Input bnd. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy.uniqueid</code></td>
+<td>
+<p> String. Unique identifier of plots in xy. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+<p> String. Vector of states that intersect bnd. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>countyfips</code></td>
+<td>
+<p> String. Vector of countyfips values that intersect bnd. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stbnd.att</code></td>
+<td>
+<p> String. Name of state attribute used to select plots. </p>
+</td>
+</tr>
+</table>
+<p>If savedata=TRUE and returnxy=TRUE, the plt data frame, including XY 
+coordinates is saved to outfolder (xyplt).<br> 
+If savedata=TRUE and returnxy=FALSE, the plt data frame, without XY 
+coordinates is saved to outfolder (pltids).<br>
+If savedata=TRUE and returnxy=TRUE and exportsp=TRUE, the spxy sf object is 
+exported as shapefile to outfolder.<br></p>
+
+
+<h3>Note</h3>
+
+<p>If savebnd=TRUE:<br> If out_fmt=c('csv','shp'), the st_write (sf) function
+is called. The ArcGIS driver truncates variable names to 10 characters or
+less. Variable names are changed before export using an internal function
+(trunc10shp). If Spatial object has more than 1 record, it will be returned
+but not exported.
+</p>
+<p>If datsource="datmart", (default), data are imported from FIA DataMart.  The
+plot coordinates have been altered for privacy (See
+https://www.fia.fs.fed.us/tools-data/spatial/Policy/index.php for details).
+The zip files are extracted on-the-fly from the online website. Web server
+connections will affect download speeds.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Set up data from FIESTA
+WYbhfn &lt;- system.file("extdata",
+                      "sp_data/WYbighorn_adminbnd.shp",
+                      package = "FIESTA")
+# Use spGetXY
+WYbhxy &lt;- spGetXY(bnd = WYbhfn,
+                  xy_datsource = "datamart",
+                  eval = "custom",
+                  eval_opts = list(Cur = TRUE),
+                  returnxy = TRUE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

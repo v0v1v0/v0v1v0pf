@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tkl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimize TKL parameters to find a solution with target RMSEA and CFI values</h2>
+
+<h3>Description</h3>
+
+<p>Find the optimal W matrix such that the RMSEA and CFI values are as close as
+possible to the user-specified target values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tkl(mod, target_rmsea = NULL, target_cfi = NULL, tkl_ctrl = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+<p>A <code>simFA</code> model object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_rmsea</code></td>
+<td>
+<p>(scalar) Target RMSEA value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_cfi</code></td>
+<td>
+<p>(scalar) Target CFI value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tkl_ctrl</code></td>
+<td>
+<p>(list) A control list containing the following TKL-specific
+arguments:
+</p>
+
+<ul>
+<li>
+<p> weights (vector) Vector of length two indicating how much weight to give
+RMSEA and CFI, e.g., <code>c(1,1)</code> (default) gives equal weight
+to both indices; <code>c(1,0)</code> ignores the CFI value.
+</p>
+</li>
+<li>
+<p> v_start (scalar) Starting value to use for <code class="reqn">\nu</code>, the proportion
+of uniqueness variance reallocated to the minor common factors. Note that
+only <code>v</code> as a proportion of the unique (not total) variance is supported
+in this function.
+</p>
+</li>
+<li>
+<p> eps_start (scalar) Starting value to use for <code class="reqn">\epsilon</code>, which
+controls how common variance is distributed among the minor common factors.
+</p>
+</li>
+<li>
+<p> v_start (vector) A vector of length two specifying the lowest and highest acceptable values of <code class="reqn">\nu</code>.
+</p>
+</li>
+<li>
+<p> eps_start (vector) A vector of length two specifying the lowest and highest acceptable values of <code class="reqn">\epsilon</code>.
+</p>
+</li>
+<li>
+<p> NMinorFac (scalar) Number of minor common factors.
+</p>
+</li>
+<li>
+<p> WmaxLoading (scalar) Threshold value for <code>NWmaxLoading</code>.
+</p>
+</li>
+<li>
+<p> NWmaxLoading (scalar) Maximum number of absolute loadings <code class="reqn">\ge</code>
+<code>WmaxLoading</code> in any column of <code class="reqn">W</code>.
+</p>
+</li>
+<li>
+<p> penalty (scalar) Penalty applied to objective function if the
+<code>NmaxLoading</code> condition isn't satisfied.
+</p>
+</li>
+<li>
+<p> optim_type (character)  Which optimization function to use,
+<code>optim</code> or <code>ga</code>?
+<code>optim</code> is faster, but might not converge in some cases.
+If <code>optim</code> doesn't converge, ga will be used
+as a fallback option.
+</p>
+</li>
+<li>
+<p> max_tries (numeric) How many times to restart optimization with new start
+parameter values if optimization doesn't converge?
+</p>
+</li>
+<li>
+<p> factr (numeric) controls the convergence of the "L-BFGS-B" method.
+Convergence occurs when the reduction in the objective is within this
+factor of the machine tolerance. Default is 1e7, that is a tolerance of
+about 1e-8. (when using <code>optim</code>).
+</p>
+</li>
+<li>
+<p> maxit (number) Maximum number of iterations to use (when using
+<code>optim</code>).
+</p>
+</li>
+<li>
+<p> ncores (boolean/scalar) Controls whether ga optimization is done in
+parallel. If <code>TRUE</code>, uses the maximum available number of processor cores.
+If <code>FALSE</code>, does not use parallel processing. If an integer is provided,
+that's how many processor cores will be used (if available).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function attempts to find optimal values of the TKL parameters
+<code class="reqn">\nu</code> and <code class="reqn">\epsilon</code> such that the resulting correlation
+matrix with model error (<code class="reqn">\Sigma</code>) has population RMSEA and/or CFI
+values that are close to the user-specified values. It is important to note
+that solutions are not guaranteed to produce RMSEA and CFI values that are
+reasonably close to the target values; in fact, some combinations of RMSEA
+and CFI will be difficult or impossible to obtain for certain models (see
+Lai &amp; Green, 2016). It can be particularly difficult to find good solutions
+when additional restrictions are placed on the minor factor loadings (i.e.,
+using the <code>WmaxLoading</code> and <code>NWmaxLoading</code> arguments).
+</p>
+<p>Optimization is fastest when the <code>optim_type = optim</code> optimization method
+is chosen. This indicates that optimization should be done using the
+<code>L-BFGS-B</code> algorithm implemented in the <code>optim</code>
+function. However, this method can sometimes fail to find a solution.
+In that case, I recommend setting <code>optim_type = ga</code>, which indicates that a
+genetic algorithm (implemented in <code>ga</code>) will be used.
+This method takes longer than <code>optim</code> but is more likely to
+find a solution.
+</p>
+
+
+<h3>References</h3>
+
+<p>Tucker, L. R., Koopman, R. F., &amp; Linn, R. L. (1969). Evaluation
+of factor analytic research procedures by means of simulated correlation
+matrices. <em>Psychometrika</em>, <em>34</em>(4), 421–459.
+</p>
+
+
+</div>

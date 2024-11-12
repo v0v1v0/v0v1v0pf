@@ -1,0 +1,223 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rdpg_snapshot_bs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate binary edge networks with B-spline latent processes</h2>
+
+<h3>Description</h3>
+
+<p><code>rdpg_snapshot_bs</code> simulates a realization of a functional network
+with Bernoulli edges, according to an inner product latent process model.
+The latent processes are generated from a <code class="reqn">B</code>-spline basis with equally
+spaced knots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rdpg_snapshot_bs(n,d,m,self_loops=TRUE,
+                 spline_design,process_options)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>A positive integer, the number of nodes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A positive integer, the number of latent space dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>A positive integer, the number of snapshots.
+If this argument is not specified, it
+is determined from the snapshot index vector <code>spline_design$x_vec</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>self_loops</code></td>
+<td>
+<p>A Boolean, if <code>FALSE</code>, all diagonal adjacency matrix
+entries are set to zero. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_design</code></td>
+<td>
+<p>A list, describing the <code class="reqn">B</code>-spline design:
+</p>
+
+<dl>
+<dt>q</dt>
+<dd>
+<p>A positive integer, the dimension of the <code class="reqn">B</code>-spline basis.
+Must be at least <code>4</code> and at most <code>m</code>.</p>
+</dd>
+<dt>x_vec</dt>
+<dd>
+<p>A vector, the snapshot evaluation indices for the data.
+Defaults to an equally spaced sequence of length
+<code>m</code> from <code>0</code> to <code>1</code>.</p>
+</dd>
+<dt>x_max</dt>
+<dd>
+<p>A scalar, the maximum of the index space.
+Defaults to <code>max(spline_design$x_vec)</code>.</p>
+</dd>
+<dt>x_min</dt>
+<dd>
+<p>A scalar, the minimum of the index space.
+Defaults to <code>min(spline_design$x_vec)</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>process_options</code></td>
+<td>
+<p>A list, containing additional optional arguments:
+</p>
+
+<dl>
+<dt>alpha_coord</dt>
+<dd>
+<p>A positive scalar, or a vector of length <code class="reqn">d</code>.
+If it is a vector, it corresponds to the Dirichlet parameter of the
+basis coordinates.
+If is is a scalar, the basis coordinates have Dirichlet parameter
+<code>rep(alpha_coord,d)</code>. Defaults to <code>0.1</code>.</p>
+</dd>
+<dt>density</dt>
+<dd>
+<p>A scalar between <code>0</code> and <code>1</code>, which controls the
+approximate overall edge density of the resulting multiplex matrix.
+Defaults to <code>1/d</code>. If specified larger than <code>1/d</code>, this
+argument is reset to <code>1/d</code> and a warning is given.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The spline design of the functional network data (snapshot indices,
+basis dimension) is generated using the information provided in
+<code>spline_design</code>, producing a <code class="reqn">q</code>-dimensional cubic
+<code class="reqn">B</code>-spline basis with equally spaced knots.
+</p>
+<p>The (<code class="reqn">q \times d</code>) latent process basis coordinates <code class="reqn">W_i</code>
+for each node are generated as <code class="reqn">q</code> iid Dirichlet
+random variables with <code class="reqn">d</code>-dimensional parameter
+<code>process_options$alpha_coord</code> or
+<code>rep(process_options$alpha_coord,d)</code> depending on the dimension
+of <code>process_options$alpha_coord</code>.
+Roughly, smaller values of <code>process_options$alpha_coord</code> will
+tend to generate latent positions closer to the corners of the simplex.
+</p>
+<p><code class="reqn">W_i</code> is then rescaled so the overall network density is approximately
+<code>process_options$density</code>, and the Euclidean norm of <code class="reqn">z_i(x)</code>
+never exceeds <code>1</code>.
+If the density requested is too high, it will revert to the maximum density
+under this model (<code class="reqn">1/d</code>).
+Then each latent process is given by
+</p>
+<p style="text-align: center;"><code class="reqn">z_{i}(x) = W_i^{T}B(x).</code>
+</p>
+
+<p>The <code class="reqn">n \times n</code> symmetric adjacency matrix for
+snapshot <code class="reqn">k=1,...,m</code> has independent Bernoulli entries
+with mean
+</p>
+<p style="text-align: center;"><code class="reqn">E([A_k]_{ij}) = z_i(x_k)^{T}z_j(x_k)</code>
+</p>
+
+<p>for <code class="reqn">i \leq j</code> (or <code class="reqn">i &lt; j</code> with no self loops).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list is returned with the realizations of the basis coordinates,
+spline design, and the multiplex network snapshots:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>An array of dimension <code class="reqn">n \times n \times m</code>, the realized
+functional network data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>An array of dimension <code class="reqn">n \times q \times d</code>,
+the realized basis coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_design</code></td>
+<td>
+<p>A list, describing the <code class="reqn">B</code>-spline design:
+</p>
+
+<dl>
+<dt>type</dt>
+<dd>
+<p>The string <code>'bs'</code>.</p>
+</dd>
+<dt>q</dt>
+<dd>
+<p>A positive integer, the dimension of the <code class="reqn">B</code>-spline basis.</p>
+</dd>
+<dt>x_vec</dt>
+<dd>
+<p>A vector, the snapshot evaluation indices for the data.</p>
+</dd>
+<dt>x_max</dt>
+<dd>
+<p>A scalar, the maximum of the index space.</p>
+</dd>
+<dt>x_min</dt>
+<dd>
+<p>A scalar, the minimum of the index space.</p>
+</dd>
+<dt>spline_matrix</dt>
+<dd>
+<p>An <code class="reqn">m \times q</code> matrix, the B-spline basis
+evaluated at the snapshot indices.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Bernoulli edge data with B-spline latent processes, Dirichlet coordinates
+# NOTE: for B-splines, x_max and x_min do not need to coincide with the
+# max and min snapshot times.
+
+data &lt;- rdpg_snapshot_bs(n=100,d=10,
+                         self_loops=FALSE,
+                         spline_design=list(q=8,
+                                            x_vec=seq(-1,1,length.out=50),
+                                            x_min=-1.1,x_max=1.1),
+                         process_options=list(alpha_coord=.2,
+                         density=1/10))
+
+</code></pre>
+
+
+</div>

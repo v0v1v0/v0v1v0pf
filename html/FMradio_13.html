@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regcor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Regularized correlation matrix estimation
+</h2>
+
+<h3>Description</h3>
+
+<p><code>regcor</code> is a function that determines the optimal penalty value and, subsequently, the optimal Ledoit-Wolf type regularized correlation matrix using K-fold cross validation of the negative log-likelihood.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regcor(X, fold = 5, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>A (possibly centered and scaled and possibly subsetted) data <code>matrix</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+
+<p>A <code>numeric</code> integer or <code>integer</code> indicating the number of folds to use in cross-validation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if function should run silently.<br>
+Runs silently when <code>verbose = FALSE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function estimates a Ledoit-Wolf-type (Ledoit &amp; Wolf, 2004) regularized correlation matrix.
+The optimal penalty-value is determined internally by <em>K</em>-fold cross-validation of the of the negative log-likelihood function.
+The procedure is efficient as it makes use of the Brent root-finding procedure (Brent, 1971).
+The value at which the <em>K</em>-fold cross-validated negative log-likelihood score is minimized is deemed optimal. 
+The function employs the Brent algorithm as implemented in the <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/optim.html">optim</a> function.
+It outputs the optimal value for the penalty parameter and the regularized correlation matrix under this optimal penalty value.
+See Peeters <em>et al.</em> (2019) for further details.
+</p>
+<p>The optimal penalty-value can be used to assess the conditioning of the estimated regularized correlation matrix using, for example, a condition number plot (Peeters, van de Wiel, van Wieringen, 2016). 
+The regularized correlation matrix under the optimal penalty can serve as the input to functions that assess factorability (<code>SA</code>), evaluate optimal choices of the latent common factor dimensionality (e.g., <code>dimGB</code>), and perform maximum likelihood factor analysis (<code>mlFA</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>list</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$optPen</code></td>
+<td>
+<p>A <code>numeric</code> scalar representing the optimal value for the penalty parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$optCor</code></td>
+<td>
+<p>A <code>matrix</code> representing the regularized correlation matrix under the optimal penalty-value.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Note that, for argument <code>X</code>, the observations are expected to be in the rows and the features are expected to be in the columns.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carel F.W. Peeters &lt;cf.peeters@vumc.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Brent, R.P. (1971). An Algorithm with Guaranteed Convergence for Finding a Zero of a Function. Computer Journal 14: 422–425.
+</p>
+<p>Ledoit, O, &amp; Wolf, M. (2004). A well-conditioned estimator for large-dimensional covariance matrices. Journal of Multivariate Analysis, 88:365–411.
+</p>
+<p>Peeters, C.F.W. <em>et al.</em> (2019). Stable prediction with radiomics data.
+<a href="https://arxiv.org/abs/1903.11696">arXiv:1903.11696 [stat.ML]</a>.
+</p>
+<p>Peeters, C.F.W., van de Wiel, M.A., &amp; van Wieringen, W.N. (2016). The spectral condition number plot for regularization parameter determination, arXiv:1608.04123v1 [stat.CO].
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>RF</code>, <code>subSet</code>, <code>SA</code>, <code>dimGB</code>, <code>mlFA</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate some (high-dimensional) data
+## Get correlation matrix
+p = 25
+n = 10
+set.seed(333)
+X = matrix(rnorm(n*p), nrow = n, ncol = p)
+colnames(X)[1:25] = letters[1:25]
+R &lt;- cor(X)
+
+## Redundancy visualization, at threshold value .9
+radioHeat(R, diag = FALSE, threshold = TRUE, threshvalue = .9)
+
+## Redundancy-filtering of correlation matrix
+Rfilter &lt;- RF(R, t = .9)
+dim(Rfilter)
+
+## Subsetting data
+DataSubset &lt;- subSet(X, Rfilter)
+dim(DataSubset)
+
+## Obtain regularized correlation matrix
+RegR &lt;- regcor(DataSubset, fold = 5, verbose = TRUE)
+RegR$optPen  ## optimal penalty-value
+</code></pre>
+
+
+</div>

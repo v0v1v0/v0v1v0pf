@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RIT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Random Intersection Trees</h2>
+
+<h3>Description</h3>
+
+<p>Function to perform random intersection trees. When two binary data matrices <code>z</code> (class 1) and <code>z0</code> (class 0) are supplied, it searches for interactions. More precisely, since the data matrices are binary, each row of each matrix can be represented by the set of column indices with non-zero entries. The function searches for sets (interactions) that are more prevalent in class 1 than class 0, and then sets that are more prevalent in class 0 than class 1. When given a single binary matrix <code>z</code> with the argument <code>z0</code> omitted, the function simply finds sets with high prevalence. Prevalences of interactions returned are estimated using min-wise hashing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RIT(z, z0, branch = 5, depth = 10L, n_trees = 100L,
+    theta0 = 0.5, theta1 = theta0, min_inter_sz = 2L,
+    L = 100L, n_cores = 1L, output_list = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>data matrix where each row corresponds to an observation and columns correspond to variables. Can be in sparse matrix format (inherit from class "sparseMatrix" in the <span class="pkg">Matrix</span> package).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z0</code></td>
+<td>
+<p>optional second data matrix with the same number of columns as <code>z</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>branch</code></td>
+<td>
+<p>average number of branches to use when creating each tree.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depth</code></td>
+<td>
+<p>maximum depth of trees.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_trees</code></td>
+<td>
+<p>number of trees to be constructed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta0</code></td>
+<td>
+<p>when searching for sets of variables that are more prevalent in class 1 than class 0, the maximum threshold for prevalence in class 0.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta1</code></td>
+<td>
+<p>as above but with class 1 and class 0 interchanged.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_inter_sz</code></td>
+<td>
+<p>minimum size of the interactions to be returned
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>number of rows of the min-wise hash matrix used to estimate prevalences. A larger value will result in more accurate estimates, but computation time will increase linearly with <code>L</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_cores</code></td>
+<td>
+<p>number of cores for parallel processing. Only used when openMP is installed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output_list</code></td>
+<td>
+<p>if <code>FALSE</code> returns each interaction set as a string with variable indices separated by spaces. If <code>TRUE</code> returns each interaction set as an integer vector.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are two tasks which can be performed with this function depending on whether or not <code>z0</code> is supplied (note <code>z</code> must always be supplied).
+</p>
+<p>1. If <code>z0</code> is omitted, the function finds prevalent sets in <code>z</code> and <code>theta0</code> and <code>theta1</code> are ignored.
+</p>
+<p>2. If <code>z0</code> is supplied, it searches for sets that are prevalent in <code>z</code> but have prevalence at most <code>theta0</code> in <code>z0</code>. Next sets that are prevalent in <code>z0</code> but have prevalence in <code>z</code> at most <code>theta1</code> are found.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>output_list</code> is <code>FALSE</code> (the default), the output is either a data frame (if <code>z0</code> is omitted) or list of two data frames (if <code>z0</code> is supplied). The data frames have first column a character vector of interaction sets with the variables in the sets separated by spaces, and second column the estimated prevalences. When <code>z0</code> is supplied, the interactions in the first component of the list named <code>Class1</code> are those which are prevalent in <code>z</code> and their prevalences in <code>z</code> are reported. The second component named named <code>Class0</code> contains those interactions prevalent in <code>z0</code> and their prevalences in <code>z0</code>.
+</p>
+<p>When <code>output_list</code> is <code>TRUE</code>, each interaction is reported as an integer vector and so the collection of interactions is a list of such vectors.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Hyun Jik Kim, Rajen D. Shah
+</p>
+
+
+<h3>References</h3>
+
+<p>Shah, R. D. and Meinshausen, N. (2014) Random Intersection Trees. <em>Journal of Machine Learning Research</em>, <b>15</b>, 629–654.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate two binary matrices
+z &lt;- matrix(rbinom(250*500, 1, 0.3), 250, 500)
+z0 &lt;- matrix(rbinom(250*500, 1, 0.3), 250, 500)
+
+## Make the first and second cols of z identical
+## so the set 1, 2 has prevalence roughly 0.3 compared
+## to roughly 0.09 for any other pair of columns
+z[, 1] &lt;- z[, 2]
+
+## Similarly for z0
+z0[, 3] &lt;- z0[, 4]
+
+## Market basket analysis
+out1 &lt;- RIT(z)
+out1[1:5, ]
+
+## Finding interactions
+out2 &lt;- RIT(z, z0)
+out2$Class1[1:5, ]
+out2$Class0[1:5, ]
+
+## Can also perform the above using sparse matrices
+if (require(Matrix)) {
+  S &lt;- Matrix(z, sparse=TRUE)
+  S0 &lt;- Matrix(z0, sparse=TRUE)
+  out3 &lt;- RIT(S, S0)
+}
+</code></pre>
+
+
+</div>

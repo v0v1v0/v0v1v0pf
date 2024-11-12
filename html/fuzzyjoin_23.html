@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>genome_join</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Join two tables based on overlapping genomic intervals: both a</h2>
+
+<h3>Description</h3>
+
+<p>This is an extension of <code>interval_join</code> specific to genomic intervals.
+Genomic intervals include both a chromosome ID and an interval: items are only
+considered matching if the chromosome ID matches and the interval overlaps.
+Note that there must be three arguments to by, and that they must be in the order
+c("chromosome", "start", "end").
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">genome_join(x, y, by = NULL, mode = "inner", ...)
+
+genome_inner_join(x, y, by = NULL, ...)
+
+genome_left_join(x, y, by = NULL, ...)
+
+genome_right_join(x, y, by = NULL, ...)
+
+genome_full_join(x, y, by = NULL, ...)
+
+genome_semi_join(x, y, by = NULL, ...)
+
+genome_anti_join(x, y, by = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A tbl</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A tbl</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>Names of columns to join on, in order c("chromosome", "start", "end").
+A match will be counted only if the chromosomes are equal and the start/end pairs
+overlap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>One of "inner", "left", "right", "full" "semi", or "anti"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra arguments passed on to <code>findOverlaps</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All the extra arguments to <code>interval_join</code>, which are
+passed on to <code>findOverlaps</code>, work for <code>genome_join</code>
+as well. These include <code>maxgap</code> and <code>minoverlap</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+
+x1 &lt;- tibble(id1 = 1:4,
+             chromosome = c("chr1", "chr1", "chr2", "chr2"),
+             start = c(100, 200, 300, 400),
+             end = c(150, 250, 350, 450))
+
+x2 &lt;- tibble(id2 = 1:4,
+             chromosome = c("chr1", "chr2", "chr2", "chr1"),
+             start = c(140, 210, 400, 300),
+             end = c(160, 240, 415, 320))
+
+if (requireNamespace("IRanges", quietly = TRUE)) {
+  # note that the the third and fourth items don't join (even though
+  # 300-350 and 300-320 overlap) since the chromosomes are different:
+  genome_inner_join(x1, x2, by = c("chromosome", "start", "end"))
+
+  # other functions:
+  genome_full_join(x1, x2, by = c("chromosome", "start", "end"))
+  genome_left_join(x1, x2, by = c("chromosome", "start", "end"))
+  genome_right_join(x1, x2, by = c("chromosome", "start", "end"))
+  genome_semi_join(x1, x2, by = c("chromosome", "start", "end"))
+  genome_anti_join(x1, x2, by = c("chromosome", "start", "end"))
+}
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_build_bundle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Build a FHIR bundle</h2>
+
+<h3>Description</h3>
+
+<p>This function takes a table as produced by <code>fhir_crack()</code> with <code>format="wide"</code> and builds a fhir_bundle_xml object from it. It is primarily used
+to create transaction/batch bundles to POST back to a FHIR server. The column names of the table must represent the XPath expression of the
+respective element with indices for repeating items. A table like this is produced when FHIR resources have been cracked with <code>fhir_crack()</code> without
+assigning explicit column names in the fhir_design/fhir_table_description and the format has been set to <code>"wide"</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_build_bundle(
+  table,
+  brackets,
+  resource_type,
+  bundle_type = "transaction",
+  verbose = 1
+)
+
+## S4 method for signature 'data.frame'
+fhir_build_bundle(
+  table,
+  brackets,
+  resource_type,
+  bundle_type = "transaction",
+  verbose = 1
+)
+
+## S4 method for signature 'list'
+fhir_build_bundle(table, brackets, bundle_type = "transaction", verbose = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>table</code></td>
+<td>
+<p>A wide table as produced by <code>fhir_crack()</code>, possibly modified (see details) or a named list
+of wide tables, if different resource types have to be included in the same bundle. In this case the names of
+the list elements must correspond to the resource type represented in the table!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brackets</code></td>
+<td>
+<p>A character vector of length one. The brackets used for cracking.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resource_type</code></td>
+<td>
+<p>A character vector of length one or fhir_resource_type object
+indicating which resource type is represented in the table, if a single table is provided. This argument is
+ignored when <code>table</code> is a named list of tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bundle_type</code></td>
+<td>
+<p>A character vector of length one defining the bundle type. Will usually be
+either <code>"transaction"</code> (the default) or <code>"batch"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>An integer vector of length one. If 0, nothing is printed, if &gt; 0 progress message is printed. Defaults to 1.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The typical use case would look like this:
+</p>
+
+<ol>
+<li>
+<p> Download resources from a server with <code>fhir_search()</code>
+</p>
+</li>
+<li>
+<p> Crack to wide format them with <code>fhir_crack()</code>
+</p>
+</li>
+<li>
+<p> Do something to values (e.g. some kind of anonymization)
+</p>
+</li>
+<li>
+<p> Translate the data back into FHIR resources with <code>fhir_build_bundle()</code>
+</p>
+</li>
+<li>
+<p> Post the resources to a server
+</p>
+</li>
+</ol>
+<p>A FHIR bundle that can be POSTed to a server is usually of type <code>transaction</code> or <code>batch</code>. Each entry of these bundles consists of the resource itself
+as well as an instruction for the server of what to to with the resource. A very simple example looks like this:
+</p>
+<div class="sourceCode"><pre>&lt;Bundle&gt;
+   &lt;type value="transaction"/&gt;
+  &lt;entry&gt;
+     &lt;resource&gt;
+        &lt;Patient&gt;
+           &lt;id value="id1"/&gt;
+	       &lt;address&gt;
+	          &lt;city value="Amsterdam"/&gt;
+	          &lt;country value="Netherlands"/&gt;
+	       &lt;/address&gt;
+	       &lt;name&gt;
+	          &lt;given value="Marie"/&gt;
+	       &lt;/name&gt;
+        &lt;/Patient&gt;
+    &lt;/resource&gt;
+    &lt;request&gt;
+	   &lt;method value="POST"/&gt;
+	   &lt;url value="Patient"/&gt;
+    &lt;/request&gt;
+ &lt;/entry&gt;
+ &lt;entry&gt;
+     &lt;resource&gt;
+        &lt;Patient&gt;
+           &lt;id value="id2"/&gt;
+	       &lt;address&gt;
+	          &lt;city value="Paris"/&gt;
+	          &lt;country value="France"/&gt;
+	       &lt;/address&gt;
+	       &lt;name&gt;
+	          &lt;given value="Anne"/&gt;
+	       &lt;/name&gt;
+        &lt;/Patient&gt;
+    &lt;/resource&gt;
+    &lt;request&gt;
+	   &lt;method value="POST"/&gt;
+	   &lt;url value="Patient"/&gt;
+    &lt;/request&gt;
+ &lt;/entry&gt;
+&lt;/Bundle&gt;
+</pre></div>
+<p>In this example the bundle contains two Patient resources that are sent to server with a POST. For more information the structure of transaction/batch bundles,
+please see the FHIR documentation at https://www.hl7.org/fhir/http.html and https://www.hl7.org/fhir/bundle.html.
+</p>
+<p>In the table, each row corresponds to one resource that is created. To add the information for the <code>request</code> element of the bundle,
+this table has to be augmented with two columns named <code>request.method</code> and <code>request.url</code>, which contain the respective HTTP verb and URL for the resource.
+If these columns are not added to the table, <code>fhir_build_bundle()</code> still builds bundles from it, but those bundles will not be POSTable to a server. See examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A fhir_bundle_xml object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fhir_crack()</code>,<code>fhir_cast()</code>, <code>fhir_build_resource()</code>, <code>fhir_post()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#unserialize example
+bundles &lt;- fhir_unserialize(bundles = example_bundles1)
+
+#crack fhir resources
+table_desc_pat &lt;- fhir_table_description(
+    resource = "Patient",
+    brackets = c("[", "]"),
+    sep      = " ",
+    format   = "wide"
+)
+
+df &lt;- fhir_crack(bundles = bundles, design = table_desc_pat)
+
+#add request info to table
+request &lt;- data.frame(
+    request.method = c("POST", "PUT"),
+    request.url    = c("Patient", "Patient/id3")
+)
+
+request_df &lt;- cbind(df, request)
+
+#build bundle
+bundle &lt;- fhir_build_bundle(table          = request_df,
+                            brackets       = table_desc_pat@brackets,
+                            resource_type  = "Patient",
+                            bundle_type    = "transaction")
+
+#print to console
+cat(toString(bundle))
+</code></pre>
+
+
+</div>

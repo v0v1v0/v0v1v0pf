@@ -1,0 +1,95 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_cast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cast table with multiple entries
+This function divides multiple entries in a compact indexed table as produced by <code>fhir_crack()</code> into separate columns.</h2>
+
+<h3>Description</h3>
+
+<p>This function turns a table from compact format into wide format. Every column containing multiple entries will be turned into multiple columns.
+The number of columns created from a single column in the original table is determined by the maximum number of
+multiple entries occurring in this column. Rows with less than the maximally occurring number of entries will
+be filled with NA values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_cast(indexed_df, brackets, sep, verbose = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>indexed_df</code></td>
+<td>
+<p>A compact data.frame/data.table with indexed multiple entries. Column names should reflect the XPath expression of the respective element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brackets</code></td>
+<td>
+<p>A character vector of length two, defining the brackets used for the indices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>A character vector of length one defining the separator that was used when pasting together multiple entries in <code>fhir_crack()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>An integer vector of length one. If 0, nothing is printed, if 1, only general progress is printed, if &gt; 1,
+progress for each variable is printed. Defaults to 1.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For <code>fhir_cast()</code> to work properly, column names of the input data must reflect the Xpath to the corresponding resource element
+with <code>.</code> as a separator, e.g. <code>code.coding.system</code>. These names are produced automatically by <code>fhir_crack()</code>
+when the names are not explicitly set in the <code>cols</code> element of the <code>fhir_table_description()</code>/<code>fhir_design()</code>.
+</p>
+<p>In the names of the newly created columns the indices will be added in front of the column names, similar to the result of <code>fhir_crack()</code> with
+<code>format="wide"</code>. See examples and the corresponding package vignette for a more detailed description.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fhir_crack()</code>, <code>fhir_melt()</code>, <code>fhir_build_bundle()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#unserialize example
+bundles &lt;- fhir_unserialize(bundles = example_bundles1)
+
+#crack fhir resources
+table_desc &lt;- fhir_table_description(
+    resource = "Patient",
+    brackets = c('[', ']'),
+    sep      = " ",
+    keep_attr=TRUE
+)
+df &lt;- fhir_crack(bundles = bundles, design = table_desc)
+
+#original df
+df
+
+#cast
+fhir_cast(df, brackets=c('[', ']'), sep = ' ', verbose = 0)
+
+</code></pre>
+
+
+</div>

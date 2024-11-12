@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ff_newdata</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate newdata for simulations</h2>
+
+<h3>Description</h3>
+
+<p>Generate newdata while respecting the variable types and factor levels in the
+primary data frame used to run model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ff_newdata(
+  .data,
+  dependent = NULL,
+  explanatory = NULL,
+  rowwise = TRUE,
+  newdata
+)
+
+finalfit_newdata(
+  .data,
+  dependent = NULL,
+  explanatory = NULL,
+  rowwise = TRUE,
+  newdata
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>Dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent</code></td>
+<td>
+<p>Optional character vector of length 1:  name of depdendent
+variable. Not usually specified in bootstrapping model predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explanatory</code></td>
+<td>
+<p>Character vector of any length: name(s) of explanatory
+variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rowwise</code></td>
+<td>
+<p>Logical. Format <code>newdata</code> is provided in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>A list of rows or columns coresponding exactly to the order of
+explanatory variables. Useful errors generated if requirements not fulfilled</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Generate model predictions against a specified set of explanatory levels with
+bootstrapped confidence intervals. Add a comparison by difference or ratio of
+the first row of <code>newdata</code> with all subsequent rows.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of multivariable <code>glm</code> fitted model
+outputs. Output is of class <code>glmlist</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>boot_predict</code> <code>boot_compare</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># See boot_predict.
+library(finalfit)
+library(dplyr)
+
+# Predict probability of death across combinations of factor levels
+explanatory = c("age.factor", "extent.factor", "perfor.factor")
+dependent = 'mort_5yr'
+
+# Generate combination of explanatory variable levels rowwise
+colon_s %&gt;%
+  finalfit_newdata(explanatory = explanatory, newdata = list(
+    c("&lt;40 years",  "Submucosa", "No"),
+    c("&lt;40 years", "Submucosa", "Yes"),
+    c("&lt;40 years", "Adjacent structures", "No"),
+    c("&lt;40 years", "Adjacent structures", "Yes")
+   )) -&gt; newdata
+
+# Generate combination of explanatory variable levels colwise.
+explanatory = c("nodes", "extent.factor", "perfor.factor")
+colon_s %&gt;%
+  finalfit_newdata(explanatory = explanatory, rowwise = FALSE, newdata = list(
+  rep(seq(0, 30), 4),
+  c(rep("Muscle", 62), rep("Adjacent structures", 62)),
+  c(rep("No", 31), rep("Yes", 31), rep("No", 31), rep("Yes", 31))
+)) -&gt; newdata
+
+</code></pre>
+
+
+</div>

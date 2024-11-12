@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aggregate_index</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Expand a dataset to include temporal aggregates</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aggregate_index(.data, .window, ..., .offset = "end", .bin_size = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>A tsibble.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.window</code></td>
+<td>
+<p>Temporal aggregations to include. The default (NULL) will
+automatically identify appropriate temporal aggregations. This can be
+specified in several ways (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>&lt;<code>data-masking</code>&gt; Name-value pairs of
+summary functions. The name will be the name of the variable in the result.
+</p>
+<p>The value can be:
+</p>
+
+<ul>
+<li>
+<p> A vector of length 1, e.g. <code>min(x)</code>, <code>n()</code>, or <code>sum(is.na(y))</code>.
+</p>
+</li>
+<li>
+<p> A data frame, to add multiple columns from a single expression.
+</p>
+</li>
+</ul>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Returning values with size 0 or &gt;1 was
+deprecated as of 1.1.0. Please use <code>reframe()</code> for this instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.offset</code></td>
+<td>
+<p>Offset the temporal aggregation windows to align with the start
+or end of the data. If FALSE, no offset will be applied (giving common
+breakpoints for temporal bins.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.bin_size</code></td>
+<td>
+<p>Temporary. Define the number of observations in each temporal bucket</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This feature is very experimental. It currently allows for temporal
+aggregation of daily data as a proof of concept.
+</p>
+<p>The aggregation <code>.window</code> can be specified in several ways:
+</p>
+
+<ul>
+<li>
+<p> A character string, containing one of "day", "week", "month", "quarter" or
+"year". This can optionally be preceded by a (positive or negative) integer
+and a space, or followed by "s".
+</p>
+</li>
+<li>
+<p> A number, taken to be in days.
+</p>
+</li>
+<li>
+<p> A <code>difftime</code> object.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tsibble)
+pedestrian %&gt;%
+  # Currently only supports daily data
+  index_by(Date) %&gt;% 
+  dplyr::summarise(Count = sum(Count)) %&gt;% 
+  # Compute weekly aggregates
+  fabletools:::aggregate_index("1 week", Count = sum(Count))
+</code></pre>
+
+
+</div>

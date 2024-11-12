@@ -1,0 +1,280 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>setFixest_fml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sets/gets formula macros</h2>
+
+<h3>Description</h3>
+
+<p>You can set formula macros globally with <code>setFixest_fml</code>. These macros can then be used in <code>fixest</code> estimations or when using the function <code>xpd</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">setFixest_fml(..., reset = FALSE)
+
+getFixest_fml()
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Definition of the macro variables. Each argument name corresponds to the name of the
+macro variable. It is required that each macro variable name starts with two dots
+(e.g. <code>..ctrl</code>). The value of each argument must be a one-sided formula or a character vector,
+it is the definition of the macro variable. Example of a valid call:
+<code>setFixest_fml(..ctrl = ~ var1 + var2)</code>. In the function <code>xpd</code>, the default macro variables are
+taken from <code>getFixest_fml</code>, any variable in <code>...</code> will replace these values. You can enclose
+values in <code>.[]</code>, if so they will be evaluated from the current environment.
+For example <code>..ctrl = ~ x.[1:2] + .[z]</code> will lead to <code>~x1 + x2 + var</code> if <code>z</code> is equal to <code>"var"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reset</code></td>
+<td>
+<p>A logical scalar, defaults to <code>FALSE</code>. If <code>TRUE</code>,
+all macro variables are first reset (i.e. deleted).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In <code>xpd</code>, the default macro variables are taken from <code>getFixest_fml</code>.
+Any value in the <code>...</code> argument of <code>xpd</code> will replace these default values.
+</p>
+<p>The definitions of the macro variables will replace in verbatim the macro variables.
+Therefore, you can include multipart formulas if you wish but then beware of the order the
+macros variable in the formula. For example, using the airquality data, say you want to set as
+controls the variable <code>Temp</code> and <code>Day</code> fixed-effects, you can do
+<code>setFixest_fml(..ctrl = ~Temp | Day)</code>, but then
+<code>feols(Ozone ~ Wind + ..ctrl, airquality)</code> will be quite different from
+<code>feols(Ozone ~ ..ctrl + Wind, airquality)</code>, so beware!
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>getFixest_fml()</code> returns a list of character strings, the names
+corresponding to the macro variable names, the character strings corresponding
+to their definition.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>xpd</code> to make use of formula macros.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Small examples with airquality data
+data(airquality)
+# we set two macro variables
+setFixest_fml(..ctrl = ~ Temp + Day,
+              ..ctrl_long = ~ poly(Temp, 2) + poly(Day, 2))
+
+# Using the macro in lm with xpd:
+lm(xpd(Ozone ~ Wind + ..ctrl), airquality)
+lm(xpd(Ozone ~ Wind + ..ctrl_long), airquality)
+
+# You can use the macros without xpd() in fixest estimations
+a = feols(Ozone ~ Wind + ..ctrl, airquality)
+b = feols(Ozone ~ Wind + ..ctrl_long, airquality)
+etable(a, b, keep = "Int|Win")
+
+
+# Using .[]
+
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
+i = 2:3
+z = "species"
+lm(xpd(y ~ x.[2:3] + .[z]), base)
+
+# No xpd() needed in feols
+feols(y ~ x.[2:3] + .[z], base)
+
+#
+# Auto completion with '..' suffix
+#
+
+# You can trigger variables autocompletion with the '..' suffix
+# You need to provide the argument data
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
+xpd(y ~ x.., data = base)
+
+# In fixest estimations, this is automatically taken care of
+feols(y ~ x.., data = base)
+
+
+#
+# You can use xpd for stepwise estimations
+#
+
+# Note that for stepwise estimations in fixest, you can use
+# the stepwise functions: sw, sw0, csw, csw0
+# -&gt; see help in feols or in the dedicated vignette
+
+# we want to look at the effect of x1 on y
+# controlling for different variables
+
+base = iris
+names(base) = c("y", "x1", "x2", "x3", "species")
+
+# We first create a matrix with all possible combinations of variables
+my_args = lapply(names(base)[-(1:2)], function(x) c("", x))
+(all_combs = as.matrix(do.call("expand.grid", my_args)))
+
+res_all = list()
+for(i in 1:nrow(all_combs)){
+  res_all[[i]] = feols(xpd(y ~ x1 + ..v, ..v = all_combs[i, ]), base)
+}
+
+etable(res_all)
+coefplot(res_all, group = list(Species = "^^species"))
+
+#
+# You can use macros to grep variables in your data set
+#
+
+# Example 1: setting a macro variable globally
+
+data(longley)
+setFixest_fml(..many_vars = grep("GNP|ployed", names(longley), value = TRUE))
+feols(Armed.Forces ~ Population + ..many_vars, longley)
+
+# Example 2: using ..("regex") or regex("regex") to grep the variables "live"
+
+feols(Armed.Forces ~ Population + ..("GNP|ployed"), longley)
+
+# Example 3: same as Ex.2 but without using a fixest estimation
+
+# Here we need to use xpd():
+lm(xpd(Armed.Forces ~ Population + regex("GNP|ployed"), data = longley), longley)
+
+# Stepwise estimation with regex: use a comma after the parenthesis
+feols(Armed.Forces ~ Population + sw(regex(,"GNP|ployed")), longley)
+
+# Multiple LHS
+etable(feols(..("GNP|ployed") ~ Population, longley))
+
+
+#
+# lhs and rhs arguments
+#
+
+# to create a one sided formula from a character vector
+vars = letters[1:5]
+xpd(rhs = vars)
+
+# Alternatively, to replace the RHS
+xpd(y ~ 1, rhs = vars)
+
+# To create a two sided formula
+xpd(lhs = "y", rhs = vars)
+
+#
+# argument 'add'
+#
+
+xpd(~x1, add = ~ x2 + x3)
+
+# also works with character vectors
+xpd(~x1, add = c("x2", "x3"))
+
+# only adds to the RHS
+xpd(y ~ x, add = ~bon + jour)
+
+#
+# Dot square bracket operator
+#
+
+# The basic use is to add variables in the formula
+x = c("x1", "x2")
+xpd(y ~ .[x])
+
+# Alternatively, one-sided formulas can be used and their content will be inserted verbatim
+x = ~x1 + x2
+xpd(y ~ .[x])
+
+# You can create multiple variables at once
+xpd(y ~ x.[1:5] + z.[2:3])
+
+# You can summon variables from the environment to complete variables names
+var = "a"
+xpd(y ~ x.[var])
+
+# ... the variables can be multiple
+vars = LETTERS[1:3]
+xpd(y ~ x.[vars])
+
+# You can have "complex" variable names but they must be nested in character form
+xpd(y ~ .["x.[vars]_sq"])
+
+# DSB can be used within regular expressions
+re = c("GNP", "Pop")
+xpd(Unemployed ~ regex(".[re]"), data = longley)
+
+# =&gt; equivalent to regex("GNP|Pop")
+
+# Use .[,var] (NOTE THE COMMA!) to expand with commas
+# !! can break the formula if missused
+vars = c("wage", "unemp")
+xpd(c(y.[,1:3]) ~ csw(.[,vars]))
+
+
+# Example of use of .[] within a loop
+res_all = list()
+for(p in 1:3){
+  res_all[[p]] = feols(Ozone ~ Wind + poly(Temp, .[p]), airquality)
+}
+
+etable(res_all)
+
+# The former can be compactly estimated with:
+res_compact = feols(Ozone ~ Wind + sw(.[, "poly(Temp, .[1:3])"]), airquality)
+
+etable(res_compact)
+
+# How does it work?
+# 1)  .[, stuff] evaluates stuff and, if a vector, aggregates it with commas
+#     Comma aggregation is done thanks to the comma placed after the square bracket
+#     If .[stuff], then aggregation is with sums.
+# 2) stuff is evaluated, and if it is a character string, it is evaluated with
+# the function dsb which expands values in .[]
+#
+# Wrapping up:
+# 2) evaluation of dsb("poly(Temp, .[1:3])") leads to the vector:
+#    c("poly(Temp, 1)", "poly(Temp, 2)", "poly(Temp, 3)")
+# 1) .[, c("poly(Temp, 1)", "poly(Temp, 2)", "poly(Temp, 3)")] leads to
+#    poly(Temp, 1), poly(Temp, 2), poly(Temp, 3)
+#
+# Hence sw(.[, "poly(Temp, .[1:3])"]) becomes:
+#       sw(poly(Temp, 1), poly(Temp, 2), poly(Temp, 3))
+
+
+#
+# In non-fixest functions: guessing the data allows to use regex
+#
+
+# When used in non-fixest functions, the algorithm tries to "guess" the data
+# so that ..("regex") can be directly evaluated without passing the argument 'data'
+data(longley)
+lm(xpd(Armed.Forces ~ Population + ..("GNP|ployed")), longley)
+
+# same for the auto completion with '..'
+lm(xpd(Armed.Forces ~ Population + GN..), longley)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,341 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>funky_heatmap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a funky heatmaps for benchmarks</h2>
+
+<h3>Description</h3>
+
+<p>Allows generating heatmap-like visualisations for benchmark data
+frames. Funky heatmaps can be fine-tuned by providing annotations of the
+columns and rows, which allows assigning multiple palettes or geometries
+or grouping rows and columns together in categories.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">funky_heatmap(
+  data,
+  column_info = NULL,
+  row_info = NULL,
+  column_groups = NULL,
+  row_groups = NULL,
+  palettes = NULL,
+  legends = NULL,
+  position_args = position_arguments(),
+  scale_column = TRUE,
+  add_abc = TRUE,
+  col_annot_offset,
+  col_annot_angle,
+  expand
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame with items by row and features in the columns.
+Must contain one column named <code>"id"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column_info</code></td>
+<td>
+<p>A data frame describing which columns in <code>data</code> to
+plot. This data frame should contain the following columns:
+</p>
+
+<ul>
+<li> <p><code>id</code> (<code>character</code>, required): A column name in <code>data</code> to plot. Determines the
+size of the resulting geoms, and also the color unless <code>color</code> is
+specified.
+</p>
+</li>
+<li> <p><code>id_color</code> (<code>character</code>): A column name in <code>data</code> to use for the color
+of the resulting geoms. If <code>NA</code>, the <code>id</code> column will be used.
+</p>
+</li>
+<li> <p><code>id_size</code> (<code>character</code>): A column name in <code>data</code> to use for the size
+of the resulting geoms. If <code>NA</code>, the <code>id</code> column will be used.
+</p>
+</li>
+<li> <p><code>name</code> (<code>character</code>): A label for the column. If <code>NA</code> or <code>""</code>,
+no label will be plotted. If this column is missing, <code>id</code> will
+be used to generate the <code>name</code> column.
+</p>
+</li>
+<li> <p><code>geom</code> (<code>character</code>): The geom of the column. Must be one of:
+<code>"funkyrect"</code>, <code>"circle"</code>, <code>"rect"</code>, <code>"bar"</code>, <code>"pie"</code>, <code>"text"</code> or <code>"image"</code>.
+For <code>"text"</code>, the corresponding column in <code>data</code> must be a <code>character</code>.
+For <code>"pie"</code>, the column must be a list of named numeric vectors.
+For all other geoms, the column must be a <code>numeric</code>.
+</p>
+</li>
+<li> <p><code>group</code> (<code>character</code>): The grouping id of each column, must match with
+<code>column_groups$group</code>. If this column is missing or all values are <code>NA</code>,
+columns are assumed not to be grouped.
+</p>
+</li>
+<li> <p><code>palette</code> (<code>character</code>): Which palette to colour the geom by.
+Each value should have a matching value in <code>palettes$palette</code>.
+</p>
+</li>
+<li> <p><code>width</code>: Custom width for this column (default: 1).
+</p>
+</li>
+<li> <p><code>overlay</code>: Whether to overlay this column over the previous column.
+If so, the width of that column will be inherited.
+</p>
+</li>
+<li> <p><code>legend</code>: Whether or not to add a legend for this column.
+</p>
+</li>
+<li> <p><code>hjust</code>: Horizontal alignment of the bar, must be between [0,1]
+(only for <code>geom = "bar"</code>).
+</p>
+</li>
+<li> <p><code>vjust</code>: Vertical alignment of the label, must be between [0,1]
+(only for <code>geom = "text"</code>).
+</p>
+</li>
+<li> <p><code>size</code>: Size of the label, must be a numeric value
+(only for <code>geom = "text"</code>).
+</p>
+</li>
+<li> <p><code>label</code>: Which column to use as a label (only for <code>geom = "text"</code>).
+</p>
+</li>
+<li> <p><code>directory</code>: Which directory to use to find the images (only for <code>geom = "image"</code>).
+</p>
+</li>
+<li> <p><code>extension</code>: The extension of the images (only for <code>geom = "image"</code>).
+</p>
+</li>
+<li> <p><code>draw_outline</code>: Whether or not to draw bounding guides (only for <code>geom == "bar"</code>).
+Default: <code>TRUE</code>.
+</p>
+</li>
+<li> <p><code>options</code> (<code>list</code> or <code>json</code>): Any of the options above. Any values in this
+column will be spread across the other columns. This is useful for
+not having to provide a data frame with 1000s of columns.
+This column can be a json string.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row_info</code></td>
+<td>
+<p>A data frame describing the rows of <code>data</code>.
+This data should contain two columns:
+</p>
+
+<ul>
+<li> <p><code>id</code> (<code>character</code>): Corresponds to the column <code>data$id</code>.
+</p>
+</li>
+<li> <p><code>group</code> (<code>character</code>): The group of the row.
+If all are <code>NA</code>, the rows will not be split up into groups.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column_groups</code></td>
+<td>
+<p>A data frame describing of how to group the columns
+in <code>column_info</code>. Can consist of the following columns:
+</p>
+
+<ul>
+<li> <p><code>group</code> (<code>character</code>): The corresponding group in <code>column_info$group</code>.
+</p>
+</li>
+<li> <p><code>palette</code> (<code>character</code>, optional): The palette used to colour the
+column group backgrounds.
+</p>
+</li>
+<li> <p><code>level1</code> (<code>character</code>): The label at the highest level.
+</p>
+</li>
+<li> <p><code>level2</code> (<code>character</code>, optional): The label at the middle level.
+</p>
+</li>
+<li> <p><code>level3</code> (<code>character</code>, optional): The label at the lowest level
+(not recommended).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row_groups</code></td>
+<td>
+<p>A data frame describing of how to group the rows
+in <code>row_info</code>. Can consist of the following columns:
+</p>
+
+<ul>
+<li> <p><code>group</code> (<code>character</code>): The corresponding group in <code>row_info$group</code>.
+</p>
+</li>
+<li> <p><code>level1</code> (<code>character</code>): The label at the highest level.
+</p>
+</li>
+<li> <p><code>level2</code> (<code>character</code>, optional): The label at the middle level.
+</p>
+</li>
+<li> <p><code>level3</code> (<code>character</code>, optional): The label at the lowest level
+(not recommended).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>palettes</code></td>
+<td>
+<p>A named list of palettes. Each entry in <code>column_info$palette</code>
+should have an entry in this object. If an entry is missing, the type
+of the column will be inferred (categorical or numerical) and one of the
+default palettes will be applied. Alternatively, the name of one of the
+standard palette names can be used:
+</p>
+
+<ul>
+<li> <p><code>numerical</code>: <code>"Greys"</code>, <code>"Blues"</code>, <code>"Reds"</code>, <code>"YlOrBr"</code>, <code>"Greens"</code>
+</p>
+</li>
+<li> <p><code>categorical</code>: <code>"Set3"</code>, <code>"Set1"</code>, <code>"Set2"</code>, <code>"Dark2"</code>
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legends</code></td>
+<td>
+<p>A list of legends to add to the plot. Each entry in
+<code>column_info$legend</code> should have a corresponding entry in this object.
+Each entry should be a list with the following names:
+</p>
+
+<ul>
+<li> <p><code>palette</code> (<code>character</code>): The palette to use for the legend. Must be
+a value in <code>palettes</code>.
+</p>
+</li>
+<li> <p><code>geom</code> (<code>character</code>): The geom of the legend. Must be one of:
+<code>"funkyrect"</code>, <code>"circle"</code>, <code>"rect"</code>, <code>"bar"</code>, <code>"pie"</code>, <code>"text"</code>, <code>"image"</code>.
+</p>
+</li>
+<li> <p><code>title</code> (<code>character</code>, optional): The title of the legend. Defaults
+to the palette name.
+</p>
+</li>
+<li> <p><code>enabled</code> (<code>logical</code>, optional): Whether or not to add the legend.
+Defaults to <code>TRUE</code>.
+</p>
+</li>
+<li> <p><code>labels</code> (<code>character</code>, optional): The labels to use for the legend.
+The defaults depend on the selected geom.
+</p>
+</li>
+<li> <p><code>size</code> (<code>numeric</code>, optional): The size of the listed geoms.
+The defaults depend on the selected geom.
+</p>
+</li>
+<li> <p><code>color</code> (<code>character</code>, optional): The color of the listed geoms.
+The defaults depend on the selected geom.
+</p>
+</li>
+<li> <p><code>values</code> (optional): Used as values for the text and image geoms.
+</p>
+</li>
+<li> <p><code>label_width</code> (<code>numeric</code>, optional): The width of the labels
+(only when geom is <code>text</code> or <code>pie</code>). Defaults to <code>1</code>
+for text and <code>2</code> for images.
+</p>
+</li>
+<li> <p><code>value_width</code> (<code>numeric</code>, optional): The width of the values
+(only for <code>geom = "text"</code>). Defaults to <code>2</code>.
+</p>
+</li>
+<li> <p><code>label_hjust</code> (<code>numeric</code>, optional): The horizontal alignment of the
+labels (only when geom is <code>circle</code>, <code>rect</code> or <code>funkyrect</code>).
+Defaults to <code>0.5</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>position_args</code></td>
+<td>
+<p>Sets parameters that affect positioning within a
+plot, such as row and column dimensions, annotation details, and the
+expansion directions of the plot. See <code>position_arguments()</code> for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale_column</code></td>
+<td>
+<p>Whether or not to apply min-max scaling to each
+numerical column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_abc</code></td>
+<td>
+<p>Whether or not to add subfigure labels to the different
+columns groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_annot_offset</code></td>
+<td>
+<p>DEPRECATED: use <code>position_args = position_arguments(col_annot_offset = ...)</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_annot_angle</code></td>
+<td>
+<p>DEPRECATED: use <code>position_args = position_arguments(col_annot_angle = ...)</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand</code></td>
+<td>
+<p>DEPRECATED: use <code style="white-space: pre;">⁠position_args = position_arguments(expand_* = ...)⁠</code> instead.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A ggplot. <code>.$width</code> and <code>.$height</code> are suggested dimensions for
+storing the plot with <code>ggsave()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble, warn.conflicts = FALSE)
+
+data("mtcars")
+
+data &lt;- rownames_to_column(mtcars, "id")
+
+funky_heatmap(data)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>metric.kl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kullback–Leibler distance</h2>
+
+<h3>Description</h3>
+
+<p>Measures the proximity between two groups of densities (of class
+<code>fdata</code>) by computing the Kullback–Leibler distance.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">metric.kl(fdata1, fdata2 = NULL, symm = TRUE, base = exp(1), eps = 1e-10, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdata1</code></td>
+<td>
+<p>Functional data 1 (<code>fdata</code> class) with the densities. The
+dimension of <code>fdata1</code> object is (<code>n1</code> x <code>m</code>), where <code>n1</code>
+is the number of densities and <code>m</code> is the number of coordinates of the
+points where the density is observed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdata2</code></td>
+<td>
+<p>Functional data 2 (<code>fdata</code> class) with the densities. The
+dimension of <code>fdata2</code> object is (<code>n2</code> x <code>m</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symm</code></td>
+<td>
+<p>If <code>TRUE</code> the symmetric K–L distance is computed, see
+details section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>The logarithm base used to compute the distance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Tolerance value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Kullback–Leibler distance between <code class="reqn">f(t)</code> and <code class="reqn">g(t)</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">metric.kl(f(t),g(t))= \int_{a}^{b} {f(t) log\left(\frac{f(t)}{g(t)}\right)dt}</code>
+</p>
+<p> where <code class="reqn">t</code> are the <code>m</code> coordinates of the points
+where the density is observed (the <code>argvals</code> of the <code>fdata</code> object).
+</p>
+<p>The Kullback–Leibler distance is asymmetric, 
+</p>
+<p style="text-align: center;"><code class="reqn">metric.kl(f(t),g(t))\neq metric.kl(g(t),f(t))</code>
+</p>
+
+<p>A symmetry version of K–L distance (by default) can be obtained by
+</p>
+<p style="text-align: center;"><code class="reqn">0.5\left(metric.kl(f(t),g(t))+metric.kl(g(t),f(t))\right)</code>
+</p>
+
+<p>If <code class="reqn">\left(f_i(t)=0\ \&amp; \ g_j(t)=0\right) \Longrightarrow
+metric.kl(f(t),g(t))=0</code>.
+</p>
+<p>If <code class="reqn">\left|f_i(t)-g_i(t) \right|\leq \epsilon \Longrightarrow
+f_i(t)=f_i(t)+\epsilon</code>,
+where <code class="reqn">\epsilon</code> is the tolerance value (by default <code>eps=1e-10</code>).
+</p>
+<p>The coordinates of the points where the density is observed (discretization
+points <code class="reqn">t</code>) can be equally spaced (by default) or not.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Kullback, S., Leibler, R.A. (1951). <em>On information and
+sufficiency.</em> Annals of Mathematical Statistics, 22: 79-86
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>metric.lp</code> and <code>fdata</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:    
+n&lt;-201                                                                                       
+tt01&lt;-seq(0,1,len=n)                                                                         
+rtt01&lt;-c(0,1)  
+x1&lt;-dbeta(tt01,20,5)                                                                           
+x2&lt;-dbeta(tt01,21,5)                                                                           
+y1&lt;-dbeta(tt01,5,20)                                                                           
+y2&lt;-dbeta(tt01,5,21)                                                                           
+xy&lt;-fdata(rbind(x1,x2,y1,y2),tt01,rtt01)
+plot(xy)
+round(metric.kl(xy,xy,eps=1e-5),6)  
+round(metric.kl(xy,eps=1e-5),6)
+round(metric.kl(xy,eps=1e-6),6)
+round(metric.kl(xy,xy,symm=FALSE,eps=1e-5),6)  
+round(metric.kl(xy,symm=FALSE,eps=1e-5),6)
+
+plot(c(fdata(y1[1:101]),fdata(y2[1:101])))                       
+metric.kl(fdata(x1))  
+metric.kl(fdata(x1),fdata(x2),eps=1e-5,symm=F)       
+metric.kl(fdata(x1),fdata(x2),eps=1e-6,symm=F)       
+metric.kl(fdata(y1[1:101]),fdata(y2[1:101]),eps=1e-13,symm=F)  
+metric.kl(fdata(y1[1:101]),fdata(y2[1:101]),eps=1e-14,symm=F)  
+
+## End(Not run)   
+
+</code></pre>
+
+
+</div>

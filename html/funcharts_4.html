@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AMFEWMA_PhaseII</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive Multivariate Functional EWMA control chart - Phase II</h2>
+
+<h3>Description</h3>
+
+<p>This function performs Phase II of the
+Adaptive Multivariate Functional EWMA (AMFEWMA) control chart proposed
+by Capezza et al. (2024)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AMFEWMA_PhaseII(mfdobj_2, mod_1, n_seq_2 = 1, l_seq_2 = 2000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mfdobj_2</code></td>
+<td>
+<p>An object of class <code>mfd</code> containing the Phase II multivariate
+functional data set, to be monitored with the AMFEWMA control chart.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod_1</code></td>
+<td>
+<p>The output of the Phase I achieved through the
+<code>AMFEWMA_PhaseI</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_seq_2</code></td>
+<td>
+<p>If it is 1, the Phase II monitoring statistic is calculated on
+the data sequence.
+If it is an integer number larger than 1, a number <code>n_seq_2</code> of
+bootstrap sequences are sampled with replacement from <code>mfdobj_2</code>
+to allow uncertainty quantification on the estimation of the run length.
+Default value is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l_seq_2</code></td>
+<td>
+<p>If <code>n_seq_2</code> is larger than 1, this parameter sets the
+length of each bootstrap sequence to be generated.
+Default value is 2000 (which is ignored if the default value</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following elements.
+</p>
+
+<ul>
+<li> <p><code>ARL_2</code>: the average run length estimated over the
+bootstrap sequences. If <code>n_seq_2</code> is 1, it is simply the run length
+observed over the Phase II sequence, i.e., the number of observations
+up to the first alarm,
+</p>
+</li>
+<li> <p><code>RL</code>: the run length
+observed over the Phase II sequence, i.e., the number of observations
+up to the first alarm,
+</p>
+</li>
+<li> <p><code>V2</code>: a list with length <code>n_seq_2</code>, containing the
+AMFEWMA monitoring statistic in Equation (8) of Capezza
+et al. (2024), calculated in each bootstrap sequence, until the first alarm.
+</p>
+</li>
+<li> <p><code>cc</code>: a data frame with the information needed to plot the
+AMFEWMA control chart in Phase II, with the following columns.
+<code>id</code> contains the id of each multivariate functional observation,
+<code>amfewma_monitoring_statistic</code> contains the AMFEWMA monitoring
+statistic values calculated on the Phase II sequence,
+<code>amfewma_monitoring_statistic_lim</code> is the upper control limit.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Capezza, C., Capizzi, G., Centofanti, F., Lepore, A., Palumbo, B. (2024)
+An Adaptive Multivariate Functional EWMA Control Chart.
+Accepted for publication in <em>Journal of Quality Technology</em>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: set.seed(0)
+library(funcharts)
+dat_I &lt;- simulate_mfd(nobs = 1000,
+                      correlation_type_x = c("Bessel", "Bessel", "Bessel"),
+                      sd_x = c(0.3, 0.3, 0.3))
+dat_tun &lt;- simulate_mfd(nobs = 1000,
+                        correlation_type_x = c("Bessel", "Bessel", "Bessel"),
+                        sd_x = c(0.3, 0.3, 0.3))
+dat_II &lt;- simulate_mfd(nobs = 200,
+                       correlation_type_x = c("Bessel", "Bessel", "Bessel"),
+                       shift_type_x = c("C", "C", "C"),
+                       d_x = c(2, 2, 2),
+                       sd_x = c(0.3, 0.3, 0.3))
+mfdobj_I &lt;- get_mfd_list(dat_I$X_list)
+mfdobj_tun &lt;- get_mfd_list(dat_tun$X_list)
+mfdobj_II &lt;- get_mfd_list(dat_II$X_list)
+
+p &lt;- plot_mfd(mfdobj_I[1:100])
+lines_mfd(p, mfdobj_II, col = "red")
+
+mod &lt;- AMFEWMA_PhaseI(mfdobj = mfdobj_I, mfdobj_tuning = mfdobj_tun)
+print(mod$lambda)
+print(mod$k)
+cc &lt;- AMFEWMA_PhaseII(mfdobj_2 = rbind_mfd(mfdobj_I[1:100], mfdobj_II),
+                      mod_1 = mod)
+plot_control_charts(cc$cc, nobsI = 100)
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

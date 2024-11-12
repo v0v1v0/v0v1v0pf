@@ -1,0 +1,357 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gpp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Model GPP from CO2 closed chamber flux data
+</h2>
+
+<h3>Description</h3>
+
+<p>Model GPP from <code class="reqn">CO_2</code> closed chamber flux data under consideration of ecosystem respiration. Four different methods are available: Providing one global Reco model, providing several Reco models, providing estimated Reco fluxes via function <code>gpp</code> or extracting Reco fluxes from real measurements via <code>gpp2</code>. Timestamps are used to assign Reco data to the respective NEE data. In the latter case they have to be provided alongside the Reco fluxes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gpp(NEE, PAR, ts.NEE, PAR.Temp, Reco.m, ts.Reco = NULL, 
+method = "Michaelis-Menten", units = "30mins", allow.offset = FALSE, 
+virtual = FALSE, start.par = max(PAR), ...)
+
+gpp2(NEE, PAR, ts.NEE, oot, oot.id = c("D", "T"), 
+method = "Michaelis-Menten", allow.offset = FALSE, 
+virtual = FALSE, start.par = max(PAR), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>NEE</code></td>
+<td>
+
+<p>Numeric vector with <code class="reqn">CO_2</code> fluxes from measurements of <code class="reqn">CO_2</code> net ecosystem exchange (NEE).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PAR</code></td>
+<td>
+
+<p>Numeric vector of mean irradiation during <code class="reqn">CO_2</code> flux measurements. Can be supplied as photosynthetically active radiation (PAR) or photosynthetic photon flux density (PPFD).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ts.NEE</code></td>
+<td>
+
+<p>POSIXlt vector holding the timestamp of the <code>NEE</code> values. NEE and Reco values are linked to each other based on their timestamps specified in <code>ts.NEE</code> and <code>ts.Reco</code> or elsewhere (depending on method). The two timestamps don't have to match exactly. In that case, the function links NEE and Reco values based on the time interval given in <code>units</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PAR.Temp</code></td>
+<td>
+
+<p>Either numeric vector of mean recorded temperature readings during <code class="reqn">CO_2</code> flux measurements or data.frame with several temperature records (if Reco.m is provided as an object resulting from running <code>reco.bulk</code>). In case of the latter, appropriate temperatures are extracted based on the <code>which.Temp</code> parameter that is stored to the model structure that is returned by <code>reco.bulk</code>. Therefore names have to correspond with the particular temperature variable names used in <code class="reqn">R_{eco}</code> modeling (e.g., air, soil in -2cm/-5cm/-10cm depth). See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reco.m</code></td>
+<td>
+
+<p>Model structure obtained from running <code>reco.bulk</code> or <code>reco</code> or vector with estimated Reco values. The latter has to contain (at least) the values that are valid at the times of the NEE measurements. Typically the data will result from estimating hourly or half-hourly <code class="reqn">R_{eco}</code> values using <code>budget.reco</code> on objects of class <code>"breco"</code> derived from running <code>reco.bulk</code>. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ts.Reco</code></td>
+<td>
+
+<p>POSIXlt vector holding the timestamp of the <code class="reqn">R_{eco}</code> values. Has to be specified if <code class="reqn">R_{eco}</code> values instead of an <code class="reqn">R_{eco}</code> model are given in <code>Reco.m</code>. The function assumes that this is the case if <code>ts.Reco != NULL</code>. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>The function knows several equations to model the relationship between gpp and irradiation. At the moment <code>"Michaelis-Menten"</code>, <code>"Falge"</code>, <code>"Smith"</code>, and <code>"Misterlich"</code> are implemented which are all discussed in Falge et al. 2001. Partial matching is applied. Defaults to <code>"Michaelis-Menten"</code>. See details for equations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units</code></td>
+<td>
+
+<p>Character string specifying how <code>ts.NEE</code> shall be rounded. If <code>Reco.m</code> holds values instead of an <code class="reqn">R_{eco}</code> model structure the NEE and <code class="reqn">R_{eco}</code> values are matched based on their timestamp after <code>ts.NEE</code> has been rounded according to <code>units</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.offset</code></td>
+<td>
+
+<p>Logical. Shall GPP values other than 0 be allowed at zero irradiation? See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>virtual</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>, virtual NEE data are generated that show a typical saturation curve with saturation at mean <code>NEE</code>. Can be used in bulk gpp modeling to allow falling back to a mean model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.par</code></td>
+<td>
+
+<p>Numeric between 0 and <code>max(PAR)</code>. All data points with <code>PAR &lt;= start.par</code> are used to obtain a start value for alpha via linear regression. Defaults to <code>max(PAR)</code>. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Any arguments passed to <code>nls</code> which is used internally to do the model fitting.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oot</code></td>
+<td>
+
+<p>Vector of length = <code>length(NEE)</code> specifying which of the measured fluxes derive from opaque (<code class="reqn">R_{eco}</code>) and which derive from transparent (NEE) chamber measurements. <code>gpp2</code> uses this to extract corresponding <code class="reqn">R_{eco}</code> values for calculating GPP from NEE before fitting the models (Approach 1, see details.)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oot.id</code></td>
+<td>
+
+<p>Vector of length 2 that specifies which of the flux values derive from opaque (first value, i.e. <code class="reqn">R_{eco}</code> measurements) and which derive from transparent (second value, i.e. NEE measurements) chamber measurements when <code>data</code> contains both. May be character, factor, or numeric. See details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function models the relationship between <code class="reqn">CO_2</code> uptake by plants (gross primary production, GPP) and irradiation using one out of 4 methods (Falge et al. 2001). Per default the Michaelis-Menten kinetic (e.g., Schmitt et al. 2010) is used. The following models can be fitted to the data:
+</p>
+<p><code class="reqn">GPP = \frac{GPmax * alpha * PAR}{alpha * PAR + GPmax}</code> (Michaelis-Menten)
+</p>
+<p><code class="reqn">GPP = \frac{alpha * PAR}{1 - \frac{PAR}{2000} + \frac{alpha*PAR}{GPmax}}</code> (Falge)
+</p>
+<p><code class="reqn">GPP = \frac{GPmax * alpha * PAR}{\sqrt{GPmax^2 + (alpha*par)^2}}</code> (Smith)
+</p>
+<p><code class="reqn">GPP = GPmax * (1 - e^{\frac{alpha * PAR}{GPmax})}</code> (Misterlich)
+</p>
+<p>with <code>PAR</code> the incoming light (irradiation). Note, that irradiation can be given in <code>PAR</code> or in PPFD although the equation states <code>PAR</code>. <code>GPmax</code> and <code>alpha</code> are the parameters that are fitted. <code>GPmax</code> refers to the maximum gross primary production at saturating or optimum light whereas alpha refers to the ecosystem quantum yield and gives the starting slope of the model.
+</p>
+<p>Transparent closed chamber measurements in the field typically capture net ecosystem exchange (<code>NEE</code>), which is the sum of the two opposing processes ecosystem respiration (<code class="reqn">R_{eco}</code>) and GPP. Therefore, it is necessary to subtract modeled <code class="reqn">R_{eco}</code> from the measured <code>NEE</code> to obtain GPP that can be used for the modelling against irradiance.
+</p>
+<p>Real <code class="reqn">R_{eco}</code> at the time of the <code>NEE</code> measurement is typically unkown because dark and light measurements cannot be taken at the same spot at the same time. Therefore, <code class="reqn">R_{eco}</code> has to be modelled based on dark chamber or nighttime measurements (see <code>reco</code>). For modelling GPP from <code>NEE</code> chamber measurements, <code>gpp</code> just needs measured <code>NEE</code>, the associated irradiance (<code>PAR</code>) and temperature (<code>PAR.Temp</code>) values and the <code class="reqn">R_{eco}</code> model(s) (<code>Reco.m</code>). The <code class="reqn">R_{eco}</code> model(s) can derive from a longer period of time than the <code>NEE</code> data, which is often better to get more reliable models. In contrast, <code>gpp2</code> extracts <code class="reqn">R_{eco}</code> fluxes from actual measurements.
+</p>
+<p>Approaches to assigning <code class="reqn">R_{eco}</code> values: 
+</p>
+<p><b>Approach 1:</b> Extract corresponding <code class="reqn">R_{eco}</code> fluxes from the provided data that are assigned to corresponding NEE values via their timestamp: For this approach <code>NEE</code> has to contain both NEE and <code class="reqn">R_{eco}</code> fluxes. <code>oot</code> has to be specified as a vector that indicates whether the respective fluxes were measured as <code>NEE</code> (transparent chamber) or <code>Reco</code> (opaque chamber or low PAR). In addition <code>oot.id</code> may have to be changed accordingly. <code>gpp2</code> is used for fitting the models.
+</p>
+<p><b>Approach 2:</b> If <code>Reco.m</code> is specified as a vector containing modelled <code class="reqn">R_{eco}</code> values these are used to calculate GPP = NEE + Reco. The correct <code class="reqn">R_{eco}</code> values are assigned to the appropriate <code>NEE</code> values by rounding the timestamp of the latter (given in <code>ts.NEE</code>) according to the time lapse of the <code class="reqn">R_{eco}</code> values and then merging both on the respective timestamps. Therefore <code>ts.Reco</code> has to be specified while <code>PAR.Temp</code> is ignored.
+</p>
+<p><b>Approach 3:</b> If just one <code class="reqn">R_{eco}</code> model is provided as an object of class <code>"reco"</code> resulting from running <code>reco</code> this is used to predict <code class="reqn">R_{eco}</code> at the times of the <code>NEE</code> measurements with the temperatures provided in <code>PAR.Temp</code> as <code>new.data</code>. <code>PAR.Temp</code> has to be specified as a vector of length = length(NEE). <code>ts.Reco</code> must not be specified.
+</p>
+<p><b>Approach 4:</b> If several <code class="reqn">R_{eco}</code> models are provided as an object of class <code>"breco"</code> resulting from running <code>reco.bulk</code> these are used to predict <code class="reqn">R_{eco}</code> at the times of the <code>NEE</code> measurements with the temperatures provided in <code>PAR.Temp</code> as <code>new.data</code>. <code>PAR.Temp</code> has to be provided as a data.frame with all temperature variables that were used when obtaining the <code class="reqn">R_{eco}</code> models via <code>reco.bulk</code> with <code>ncol(PAR.Temp)</code> = <code>length(NEE)</code>. The appropriate temperatures are assigned using the parameter <code>which.Temp</code> that is reported with each model in an object of class <code>"breco"</code>. <code>ts.Reco</code> must not be specified.
+</p>
+<p>The Michaelis Menten fit to the <code>GPP</code>/<code>PAR</code> relationship presumes that plants (at least C3 plants) do not take up <code class="reqn">CO_2</code> when there is no irradiance. However, sometimes the <code class="reqn">R_{eco}</code> model gives quite unrealistic <code class="reqn">R_{eco}</code> estimates for the times of NEE measurements leading to an alleged considerable uptake of <code class="reqn">CO_2</code> under no or very low light conditions. This in turn leads to unrealistic and not well fitted GPP models. Therefore, it is possible to correct the model by not allowing an offset: <code>allow.offset = FALSE</code> (default). The offset is determined automatically by constructing a linear model using the data points until <code>PAR</code> = <code>start.par</code> and predicting GPP at <code>PAR</code> = 0. The offset is then subtracted from all GPP values and is later automatically added when doing the diagnostic plots.
+</p>
+<p>The start parameters for the non-linear fit (via <code>nls</code>) are derived from the data itself. For alpha (initial slope of the model) the slope of the linear model of GPP against <code>PAR</code> constructed from  the data points until <code>PAR</code> = <code>start.par</code> is used. For <code>GPmax</code> the mean of the five highest GPP values is taken.
+</p>
+<p>It is advisable to test various configurations regarding the <code class="reqn">R_{eco}</code> model and testing the effect of allowing the offset. ATTENTION: The offset is not added back to the predicted GPP data but it is returned as part of the output (see value section). Therefore, if the model parameters and model formula are used to predict GPP fluxes, the offset has to be added manually.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>gpp</code> (for <code>ts.Reco</code> != <code>NULL</code>) or of class <code>gpp2</code> (for <code>ts.Reco</code> = <code>NULL</code>). It is a list with the following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mg </code></td>
+<td>
+<p> The gpp model. A <code>nls</code> model structure. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mr </code></td>
+<td>
+<p> The Reco model used. A <code>nls</code> model structure. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p> Either a three entry list (with <code>ts.Reco != NULL</code>) or a 4 entry list (with <code>ts.Reco = NULL</code>) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+ <p><code>data.frame</code> (see below for more). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset </code></td>
+<td>
+<p> Numeric value giving the offset. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p> List with the start values for the <code>gpp</code> modelling. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PAR.Temp </code></td>
+<td>
+<p> Numeric vector with the <code>PAR.Temp</code> values specified in the function call. Only reported if <code>ts.Reco = NULL</code>. </p>
+</td>
+</tr>
+</table>
+<p>The <code>data.frame</code> in <code>dat</code> contains the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>NEE </code></td>
+<td>
+ <p><code>NEE</code> values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GPP </code></td>
+<td>
+<p> Corresponding <code>GPP</code> values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reco </code></td>
+<td>
+<p> Corresponding <code class="reqn">R_{eco}</code> values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PAR </code></td>
+<td>
+<p> Corresponding <code>PAR</code> values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timestamp </code></td>
+<td>
+<p> Corresponding timestamps. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mins </code></td>
+<td>
+<p> Temporal distance to next reco value. Always 0 but reported for consistency with <code>gpp2</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reco </code></td>
+<td>
+<p> Numeric vector of corresponding <code class="reqn">R_{eco}</code> values estimated with the <code class="reqn">R_{eco}</code> model (<code>Reco.m</code>). </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gerald Jurasinski, <a href="mailto:gerald.jurasinski@uni-rostock.de">gerald.jurasinski@uni-rostock.de</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Falge E, Baldocchi D, Olson R, Anthoni R, et al. 2001. Gap filling strategies for defensible annual sums of net ecosystem exchange. Agricultural and Forest Meteorology, 107:43-69.
+</p>
+<p>Schmitt M, Bahn M, Wohlfahrt G, Tappeiner U, Cernusca A. 2010. Land use affects the net ecosystem CO2 exchange and its components in mountain grasslands. Biogeosciences, 7:2297-2309.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>reco</code>, <code>fluxx</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load data
+data(tt.flux)
+
+## make timestamp
+tt.flux$timestamp &lt;- strptime(paste(tt.flux$date, tt.flux$time), 
+format="%Y-%m-%d %H:%M:%S")
+
+## model reco with Arrhenius type model
+# extract data and omit estimated fluxes with both the nrmse 
+# and the r2 flag set to 0
+ttf &lt;- tt.flux[!(tt.flux$CO2.r2.f + tt.flux$CO2.nrmse.f) == 0, ]
+
+# extract table with flux data for reco modeling
+ttf4reco &lt;- subset(ttf, kind &gt; 4)
+
+# omit CO2 fluxes below zero
+ttf4reco &lt;- ttf4reco[ttf4reco$CO2.flux &gt;= 0,]
+
+# plot reco data
+plot(CO2.flux ~ t.air, data=ttf4reco)
+
+# check for the best temperature for reco modelling
+temps &lt;- c("t.air", "t.soil2", "t.soil5", "t.soil10")
+sapply(temps, function(x) lapply(reco(ttf4reco$CO2.flux, 
+ttf4reco[,x], method="arr"), AIC))
+
+# take the temperature in soil 2 cm
+reco.m &lt;- reco(ttf4reco$CO2.flux, ttf4reco$t.soil2, method="arr")
+
+# inspect
+reco.m
+
+## model gpp
+# extract table with flux data for gpp modeling
+ttf4gpp &lt;- subset(ttf, kind &lt; 4)
+
+# do a single gpp model for a measurement day using data of spot 2
+tmp &lt;- ttf4gpp[(ttf4gpp$date=="2011-05-11") &amp; (ttf4gpp$spot==2),]
+gpp.m1 &lt;- gpp(tmp$CO2.flux, tmp$PAR, tmp$timestamp, tmp$t.soil2, 
+reco.m[[1]])
+# check diagnostic plot
+plot(gpp.m1)
+
+# same for spot 3
+tmp &lt;- ttf4gpp[(ttf4gpp$date=="2011-05-11") &amp; (ttf4gpp$spot==3),]
+gpp.m2 &lt;- gpp(tmp$CO2.flux, tmp$PAR, tmp$timestamp, tmp$t.soil2, 
+reco.m[[1]])
+# check diagnostic plot
+plot(gpp.m2)
+
+# same with all three spots
+tmp &lt;- ttf4gpp[(ttf4gpp$date=="2011-05-11"),]
+gpp.m3 &lt;- gpp(tmp$CO2.flux, tmp$PAR, tmp$timestamp, tmp$t.soil2, 
+reco.m[[1]])
+# check diagnostic plot
+plot(gpp.m3)
+
+</code></pre>
+
+
+</div>

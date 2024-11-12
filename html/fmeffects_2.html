@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ame</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes AMEs for every feature (or a subset of features) of a model.</h2>
+
+<h3>Description</h3>
+
+<p>This is a wrapper function for <code>AverageMarginalEffects$new(...)$compute()</code>.
+It computes Average Marginal Effects (AME) based on Forward Marginal Effects (FME) for a model. The AME is a simple mean FME and computed w.r.t. a feature variable and a model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ame(model, data, features = NULL, ep.method = "none")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The (trained) model, with the ability to predict on new data. This must be a <code>train.formula</code> (<code>tidymodels</code>), <code>Learner</code> (<code>mlr3</code>), <code>train</code> (<code>caret</code>), <code>lm</code> or <code>glm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The data used for computing AMEs, must be data.frame or data.table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>features</code></td>
+<td>
+<p>If not NULL, a named list of the names of the feature variables for which AMEs should be computed, together with the desired step sizes.
+For numeric features, the step size must be a single number.
+For categorial features, the step size must be a character vector of category names that is a subset of the levels of the factor variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ep.method</code></td>
+<td>
+<p>String specifying the method used for extrapolation detection. One of <code>"none"</code> or <code>"envelope"</code>. Defaults to <code>"none"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>AverageMarginalEffects</code> object, with a field <code>results</code> containing a list of summary statistics, including
+</p>
+
+<ul>
+<li> <p><code>Feature</code>: The name of the feature.
+</p>
+</li>
+<li> <p><code>step.size</code>: The step.size w.r.t. the specified feature.
+</p>
+</li>
+<li> <p><code>AME</code>: The Average Marginal Effect for a step of length step.size w.r.t. the specified feature.
+</p>
+</li>
+<li> <p><code>SD</code>: The standard deviation of FMEs for the specified feature and step.size.
+</p>
+</li>
+<li> <p><code>0.25</code>: The 0.25-quantile of FMEs for the specified feature and step.size.
+</p>
+</li>
+<li> <p><code>0.75</code>: The 0.75-quantile of FMEs for the specified feature and step.size.
+</p>
+</li>
+<li> <p><code>n</code>: The number of observations included for the computation of the AME. This can vary for the following reasons:
+For categorical features, FMEs are only computed for observations where the original category is not the step.size category.
+For numerical features, FMEs are only computed for observations that are not extrapolation points (if ep.method is set to <code>"envelope"</code>).
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Scholbeck, C.A., Casalicchio, G., Molnar, C. et al. Marginal effects for non-linear prediction functions. Data Min Knowl Disc (2024). https://doi.org/10.1007/s10618-023-00993-x
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Train a model:
+
+library(mlr3verse)
+library(ranger)
+data(bikes, package = "fmeffects")
+set.seed(123)
+task = as_task_regr(x = bikes, id = "bikes", target = "count")
+forest = lrn("regr.ranger")$train(task)
+
+# Compute AMEs for all features:
+## Not run: 
+overview = ame(model = forest, data = bikes)
+summary(overview)
+
+# Compute AMEs for a subset of features with non-default step.sizes:
+overview = ame(model = forest,
+               data = bikes,
+               features = list(humidity = 0.1, weather = c("clear", "rain")))
+summary(overview)
+
+# Extract results:
+overview$results
+
+## End(Not run)
+</code></pre>
+
+
+</div>

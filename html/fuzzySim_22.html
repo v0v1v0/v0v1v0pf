@@ -1,0 +1,346 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multGLM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+GLMs with variable selection for multiple species
+</h2>
+
+<h3>Description</h3>
+
+<p>This function performs selection of variables and calculates generalized linear models for a set of presence/absence records in a data frame, with a range of options for data partition, variable selection, and output form.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multGLM(data, sp.cols, var.cols, id.col = NULL, block.cols = NULL,
+family = "binomial", test.sample = 0, FDR = FALSE, correction = "fdr",
+FDR.first = TRUE, corSelect = FALSE, coeff = TRUE,
+cor.thresh = ifelse(isTRUE(coeff), 0.8, 0.05), cor.method = "pearson",
+step = TRUE, trace = 0, start = "null.model", direction = "both",
+select = "AIC", trim = TRUE, Y.prediction = FALSE, P.prediction = TRUE,
+Favourability = TRUE, group.preds = TRUE, TSA = FALSE, coord.cols = NULL,
+degree = 3, verbosity = 2, test.in = "Rao", test.out = "LRT", p.in = 0.05,
+p.out = 0.1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame in wide format (see <code>splist2presabs</code>) containing, in separate columns, your species' binary (0/1) occurrence data and the predictor variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sp.cols</code></td>
+<td>
+<p>names or index numbers of the columns containing the species data to be modelled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.cols</code></td>
+<td>
+<p>names or index numbers of the columns containing the predictor variables to be used for modelling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id.col</code></td>
+<td>
+<p>(optional) name or index number of column containing the row identifiers (if defined, it will be included in the output 'predictions' data frame).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block.cols</code></td>
+<td>
+<p>[UNDER IMPLEMENTATION] names or index numbers of the columns containing predictor variables to force into the model, even when a selection method is applied to the remaining variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>argument to be passed to the <code>glm</code> function; currently, only 'binomial' is implemented here.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.sample</code></td>
+<td>
+<p>a subset of data to set aside for subsequent model testing. Can be a value between 0 and 1 for a proportion of the data to choose randomly (e.g. 0.2 for 20%); or an  integer number for a particular number of cases to choose randomly among the records in 'data'; or a vector of integers for the index numbers of the particular rows to set aside; or "Huberty" for his rule of thumb based on the number of variables (Huberty 1994, Fielding &amp; Bell 1997).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FDR</code></td>
+<td>
+<p>logical value indicating whether to do a preliminary exclusion of variables based on the false discovery rate (see <code>FDR</code>). The default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>argument to pass to the <code>FDR</code> function if FDR=TRUE. The default is "fdr", but see <code>p.adjust</code> for other options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FDR.first</code></td>
+<td>
+<p>logical value indicating whether FDR exclusion (if FDR=TRUE) should be applied at the beginning. The default is TRUE. If set to FALSE (and if FDR=TRUE), FDR exclusion will be applied after 'corSelect' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corSelect</code></td>
+<td>
+<p>logical value indicating whether to select among highly correlated variables using <code>corSelect</code>. The default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>logical value to pass to <code>corSelect</code> (if corSelect=TRUE) indicating whether two variables should be considered highly correlated based on the magnitude of their coefficient (rather than p-value) of correlation. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor.thresh</code></td>
+<td>
+<p>numerical value indicating the correlation threshold to pass to <code>corSelect</code> (if corSelect=TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor.method</code></td>
+<td>
+<p>character value to pass to <code>corSelect</code> (if corSelect=TRUE) specifying the correlation coefficient to use. Can be "pearson" (the default), "kendall" or "spearman".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>logical, whether to perform a stepwise selection of variables, using either the <code>step</code> function (if select = "AIC" or "BIC") or the <code>stepwise</code> function (if select = "p.value").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>if positive, information is printed during the stepwise selection (if step=TRUE). Larger values may give more detailed information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>character string specifying whether to start with the 'null.model' (so that variable selection starts forward) or with the 'full.model' (so selection starts backward). Used only if step=TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>direction</code></td>
+<td>
+<p>if step=TRUE, argument to be passed to <code>step</code> or to <code>stepwise</code> specifying the direction of variable selection. Can be 'forward', 'backward', or 'both' (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>character string specifying the criterion for stepwise selection of variables if step=TRUE. Options are the default "AIC" (Akaike's Information Criterion; Akaike, 1973); BIC (Bayesian Information Criterion, also known as Schwarz criterion, SBC or SBIC; Schwarz, 1978); or "p.value" (Murtaugh, 2014). The first two options imply using <code>step</code> as the variable selection function, while the last option calls the <code>stepwise</code> function. If you set <code>select="p.value"</code>, we recommend also setting <code>trim=FALSE</code> to avoid mixing different significance criteria.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>logical value indicating whether to trim off non-significant variables from the models using <code>modelTrim</code>. This argument is TRUE by default (for back-compatibility), and it can be used whether or not step=TRUE – e.g. Crawley (2005, p. 208) and Crawley (2007, p. 442 and 601) recommend that <code>step</code> (with AIC selection) be followed by significance-based backward elimination).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y.prediction</code></td>
+<td>
+<p>logical value indicating whether to include output predictions in the scale of the predictor variables (type = "link" in <code>predict.glm</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P.prediction</code></td>
+<td>
+<p>logical, whether to include output predictions in the scale of the response variable, i.e. probability (type = "response" in <code>predict.glm</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Favourability</code></td>
+<td>
+<p>logical, whether to apply the <code>Fav</code>ourability function to remove the effect of prevalence on predicted probability (Real et al. 2006) and include its results in the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.preds</code></td>
+<td>
+<p>logical, whether to group together predictions of similar type ('Y', 'P' or 'F') in the output 'predictions' table (e.g. if FALSE: sp1_Y, sp1_P, sp1_F, sp2_Y, sp2_P, sp2_F; if TRUE: sp1_Y, , sp2_Y, sp1_P, sp2_P, sp1_F, sp2_F).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TSA</code></td>
+<td>
+<p>logical, whether to add a trend surface analysis (calculated individually for each species) as a spatial variable in each model (with type="Y" – see <code>multTSA</code> for more details). The default is FALSE. If TRUE, this spatial trend will be treated as any other variable, i.e. also considered by arguments 'FDR', 'corSelect', etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coord.cols</code></td>
+<td>
+<p>argument to pass to <code>multTSA</code> (if TSA=TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>argument to pass to <code>multTSA</code> (if TSA=TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbosity</code></td>
+<td>
+<p>numeric value indicating the amount of messages to display, from less to more verbose; currently meaningful values are 0, 1, and 2 (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.in</code></td>
+<td>
+<p>argument to pass to <code>stepwise</code> if select="p.value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.out</code></td>
+<td>
+<p>argument to pass to <code>stepwise</code> if select="p.value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.in</code></td>
+<td>
+<p>argument to pass to <code>stepwise</code> if select="p.value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.out</code></td>
+<td>
+<p>argument to pass to <code>stepwise</code> if select="p.value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>(for back-compatibility) additional arguments to be passed to <code>modelTrim</code> (if trim=TRUE).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function automatically calculates binomial GLMs for one or more species (or other binary variables) in a data frame. The function can optionally perform stepwise variable selection using either <code>stepwise</code> or <code>step</code> (and it does so by default) instead of forcing all variables into the models, starting from either the null model (the default, so selection starts forward) or from the full model (so selection starts backward), and using AIC, BIC or statistical significance as a variable selection criterion. Instead or subsequently, it can also perform stepwise removal of non-significant variables from the models using the <code>modelTrim</code> function.
+</p>
+<p>There is also an optional preliminary selection among highly correlated variables, and/or preliminary selection of variables with a significant bivariate relationship with the response, based on the false discovery rate (<code>FDR</code>). Note, however, that some variables can be significant in a multivariate model even if they would not have been selected by FDR.
+</p>
+<p><code>Fav</code>ourability can also be calculated by default, removing the effect of training prevalence from occurrence probability and thus allowing direct comparisons between different models (Real et al. 2006; Acevedo &amp; Real 2012).
+</p>
+<p>By default, all data are used in model training, but you can define an optional 'test.sample' to be reserved for model testing afterwards. You may also want to do a previous check for multicollinearity among variables, e.g. the variance inflation factor (VIF), using <code>multicol</code>.
+</p>
+<p>The 'multGLM' function will create a list of the resulting models (each with the name of the corresponding species column) and a data frame with their predictions ('Y', 'P' and/or 'F', all of which are optional). If you plan on representing these predictions in a GIS format based on .dbf tables (e.g. ESRI Shapefile), remember that .dbf only allows up to 10 characters in column names; 'multGLM' predictions will add 2 characters (_Y, _P and/or _F) to each of your species column names, so better use species names/codes with up to 8 characters in the data set that you are modelling. You can create (sub)species name abbreviations with the <code>spCodes</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>predictions</code></td>
+<td>
+<p>a data frame with the model predictions (if either of Y.prediction, P.prediction or Favourability are TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>a list of the resulting model objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variables</code></td>
+<td>
+<p>a list of character vectors naming the variables finally included in each model according to the specified selection criteria.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>With step=TRUE (the default), an error may occur if there are missing values in some of the variables that are selected (see "Warning" in <code>step</code>). If this happens, you can use something like data=na.omit(data[ , c(sp.col, var.cols)]).
+</p>
+<p>Thanks are due to Prof. Jose Carlos Guerrero at the University of the Republic (Uruguay), who funded the implementation of the options <code>select="p.value"</code> and <code>FDR.first=FALSE</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A. Marcia Barbosa
+</p>
+
+
+<h3>References</h3>
+
+<p>Acevedo P. &amp; Real R. (2012) Favourability: concept, distinctive characteristics and potential usefulness. Naturwissenschaften, 99:515-522
+</p>
+<p>Akaike, H. (1973) Information theory and an extension of the maximum likelihood principle. In: Petrov B.N. &amp; Csaki F., 2nd International Symposium on Information Theory, Tsahkadsor, Armenia, USSR, September 2-8, 1971, Budapest: Akademiai Kiado, p. 267-281.
+</p>
+<p>Crawley, M.J. (2005) Statistics: An introdution using R. John Wiley &amp; Sons, Ltd.
+</p>
+<p>Crawley, M.J. (2007) The R Book. John Wiley &amp; Sons, Ltd.
+</p>
+<p>Fielding A.H. &amp; Bell J.F. (1997) A review of methods for the assessment of prediction errors in conservation presence/absence models. Environmental Conservation 24: 38-49
+</p>
+<p>Huberty C.J. (1994) Applied Discriminant Analysis. Wiley, New York, 466 pp.
+Schaafsma W. &amp; van Vark G.N. (1979) Classification and discrimination problems with applications. Part IIa. Statistica Neerlandica 33: 91-126
+</p>
+<p>Murtaugh P.A. (2014) In defense of P values. Ecology, 95:611-617
+</p>
+<p>Real R., Barbosa A.M. &amp; Vargas J.M. (2006) Obtaining environmental favourability functions from logistic regression. Environmental and Ecological Statistics 13: 237-245.
+</p>
+<p>Schwarz, G.E. (1978) Estimating the dimension of a model. Annals of Statistics, 6 (2): 461-464.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glm</code>, <code>step</code>, <code>stepwise</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(rotif.env)
+
+names(rotif.env)
+
+
+# make models for 2 of the species in rotif.env:
+
+mods &lt;- multGLM(rotif.env, sp.cols = 46:47, var.cols = 5:17, id.col = 1,
+step = TRUE, FDR = TRUE, trim = TRUE)
+
+names(mods)
+head(mods$predictions)
+names(mods$models)
+mods$models[[1]]
+mods$models[["Ttetra"]]
+
+
+# include each species' spatial trend in the models:
+
+mods &lt;- multGLM(rotif.env, sp.cols = 46:47, var.cols = 5:17, id.col = 1,
+step = TRUE, FDR = TRUE, trim = TRUE, TSA = TRUE, coord.cols = c(11, 10))
+
+mods$models[[1]]
+mods$models[["Ttetra"]]
+
+mods$variables
+# you can then use these selected variables elsewhere
+</code></pre>
+
+
+</div>

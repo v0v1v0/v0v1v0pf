@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>monoreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Monotone Regression: Isotonic Regression and Antitonic Regression</h2>
+
+<h3>Description</h3>
+
+<p><code>monoreg</code> performs monotone regression (either isotonic
+or antitonic) with weights. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">monoreg(x, y=NULL, w=rep(1, length(x)), type=c("isotonic", "antitonic"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p>coordinate vectors of the regression
+points.  Alternatively a single “plotting” structure can be
+specified: see <code>xy.coords</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>data weights (default values: 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>fit a monotonely increasing ("isotonic") or 
+monotonely decreasing ("antitonic") function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>monoreg</code> is similar to <code>isoreg</code>, with the addition
+that <code>monoreg</code> accepts weights.
+</p>
+<p>If several identical <code>x</code> values are given as input, the 
+corresponding <code>y</code> values and the
+weights <code>w</code> are automatically merged, and a warning is issued.
+</p>
+<p>The <code>plot.monoreg</code> function optionally plots the cumulative
+sum diagram with the greatest convex minorant (isotonic regression)
+or the least concave majorant (antitonic regression), see the
+examples below. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following entries:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the sorted and unique x values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the corresponding y values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>the corresponding weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yf</code></td>
+<td>
+<p>the fitted y values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>the type of monotone regression ("isotonic" or "antitonic"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the function call</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Korbinian Strimmer (<a href="https://strimmerlab.github.io">https://strimmerlab.github.io</a>).
+</p>
+<p>Part of this function is C code that has been ported from
+R code originally written by Kaspar Rufibach. 
+</p>
+
+
+<h3>References</h3>
+
+<p>Robertson, T., F. T. Wright, and R. L. Dykstra. 1988.  Order restricted
+statistical inference. John Wiley and Sons.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>isoreg</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load "fdrtool" library
+library("fdrtool")
+
+
+# an example with weights
+
+# Example 1.1.1. (dental study) from Robertson, Wright and Dykstra (1988)
+age = c(14, 14, 8, 8, 8, 10, 10, 10, 12, 12, 12)
+size = c(23.5, 25, 21, 23.5, 23, 24, 21, 25, 21.5, 22, 19)
+
+mr = monoreg(age, size)
+
+# sorted x values
+mr$x # 8 10 12 14
+# weights and merged y values
+mr$w  # 3 3 3 2
+mr$y #  22.50000 23.33333 20.83333 24.25000
+# fitted y values
+mr$yf # 22.22222 22.22222 22.22222 24.25000
+fitted(mr)
+residuals(mr)
+
+plot(mr, ylim=c(18, 26))  # this shows the averaged data points
+points(age, size, pch=2)  # add original data points
+
+
+###
+
+y = c(1,0,1,0,0,1,0,1,1,0,1,0)
+x = 1:length(y)
+mr = monoreg(y)
+
+# plot with greatest convex minorant
+plot(mr, plot.type="row.wise")  
+
+# this is the same
+mr = monoreg(x,y)
+plot(mr)
+
+# antitonic regression and least concave majorant
+mr = monoreg(-y, type="a")
+plot(mr, plot.type="row.wise")  
+
+# the fit yf is independent of the location of x and y
+plot(monoreg(x + runif(1, -1000, 1000), 
+             y +runif(1, -1000, 1000)) )
+
+###
+
+y = c(0,0,2/4,1/5,2/4,1/2,4/5,5/8,7/11,10/11)
+x = c(5,9,13,18,22,24,29,109,120,131)
+
+mr = monoreg(x,y)
+plot(mr, plot.type="row.wise")
+
+# the fit (yf) only depends on the ordering of x
+monoreg(1:length(y), y)$yf 
+monoreg(x, y)$yf 
+
+
+</code></pre>
+
+
+</div>

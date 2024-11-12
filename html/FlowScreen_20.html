@@ -1,0 +1,313 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>metrics.all</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Streamflow metrics</h2>
+
+<h3>Description</h3>
+
+<p>Calculates 30 different flow metrics, 10 each for high flows, low flows, and baseflow.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">metrics.all(TS, Qmax = 0.95, Dur = 5, Qdr = 0.2, WinSize = 30,
+  Season = c(4:9), NAthresh = 0.5, language = "English")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>TS</code></td>
+<td>
+<p>output from <code>create.ts</code> containing a data.frame of flow
+time series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qmax</code></td>
+<td>
+<p>Numeric value for peaks over threshold quantile.
+Default is 0.95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dur</code></td>
+<td>
+<p>Numeric value for minimum number of days between flood peaks.
+Default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qdr</code></td>
+<td>
+<p>Numeric value for drought quantile.  Default is 0.2, i.e. the 80th percentile
+of the flow duration curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WinSize</code></td>
+<td>
+<p>Numeric value for moving window size (in days) for the moving
+window quantile drought threshold. See <code>mqt</code>. Default is 30.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Season</code></td>
+<td>
+<p>Numeric vector of months during which droughts start. Default 
+is c(4:9) for non-frost season droughts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NAthresh</code></td>
+<td>
+<p>Numeric value indicating the threshold for missing data points
+in any one year.  Default is 0.5, indicating that years with more than 50 percent missing data
+will be omitted from the metric calculations. This value should always be set to 
+greater than 0.1, as years with fewer observations than approximately 1 month will
+cause errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>language</code></td>
+<td>
+<p>Character string indicating the language to be used for naming
+the different plot metrics. These names are used in <code>screen.summary</code>
+to label individual plots. Options are "English" or "French".  Default is "English".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function calculates streamflow metrics and calculates the 
+prewhitened trend using <code>zyp.trend.vector</code> and looks
+for changpoints in mean and variance using <code>cpt.meanvar</code>
+This function is intended for use as a data quality screening tool aimed 
+at identifying streamflow records with anthropogenic impacts and should not be used
+to complete a temporal trend analysis, as the calculated metrics may not be 
+appropriate for all catchments. See the functions linked in the following section
+for details on how each metric is calculated.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list with the following elements:
+</p>
+<p>metricTS: a list containing a vector of each metric calculated. Each
+vector has a times attribute providing either the year for metrics with 
+one observation per year or a date for metrics that may have more than one 
+observation per year (e.g., Peaks Over Threshold).  This 
+list has the following elements:
+</p>
+
+<ul>
+<li>
+<p> Annual Maximum Series - calculated with <code>pk.max</code>
+</p>
+</li>
+<li>
+<p> Day of Annual Maximum - calculated with <code>pk.max.doy</code>
+</p>
+</li>
+<li>
+<p> Peaks Over Threshold (Qmax) - calculated with <code>pks</code>
+</p>
+</li>
+<li>
+<p> Inter-Event Duration - calculated with <code>pks.dur</code>
+</p>
+</li>
+<li>
+<p> Q80 - calculated with <code>Qn</code>
+</p>
+</li>
+<li>
+<p> Q90 - calculated with <code>Qn</code>
+</p>
+</li>
+<li>
+<p> Day of Year 25 percent Annual Volume - calculated with <code>pk.cov</code>
+</p>
+</li>
+<li>
+<p> Center of Volume - calculated with <code>pk.cov</code>
+</p>
+</li>
+<li>
+<p> Day of Year 75 percent Annual Volume - calculated with <code>pk.cov</code>
+</p>
+</li>
+<li>
+<p> Duration between 25 percent and 75 percent Annual Volume - calculated with <code>cov</code>
+</p>
+</li>
+<li>
+<p> Q10 - calculated with <code>Qn</code>
+</p>
+</li>
+<li>
+<p> Q25 - calculated with <code>Qn</code>
+</p>
+</li>
+<li>
+<p> Drought Start - calculated with <code>dr.seas</code>
+</p>
+</li>
+<li>
+<p> Drought Center - calculated with <code>dr.seas</code>
+</p>
+</li>
+<li>
+<p> Drought End - calculated with <code>dr.seas</code>
+</p>
+</li>
+<li>
+<p> Drought Duration - calculated with <code>dr.seas</code>
+</p>
+</li>
+<li>
+<p> Drought Severity - calculated with <code>dr.seas</code>
+</p>
+</li>
+<li>
+<p> Annual Minimum Flow - calculated with <code>MAMn</code>
+</p>
+</li>
+<li>
+<p> Mean Annual Minimum 7-day Flow - calculated with <code>MAMn</code>
+</p>
+</li>
+<li>
+<p> Mean Annual Minimum 10-day Flow - calculated with <code>MAMn</code>
+</p>
+</li>
+<li>
+<p> Mean Daily Discharge - calculated with <code>bf.stats</code>
+</p>
+</li>
+<li>
+<p> Annual Baseflow Volume - calculated with <code>bf.stats</code>
+</p>
+</li>
+<li>
+<p> Annual Mean Baseflow - calculated with <code>bf.stats</code>
+</p>
+</li>
+<li>
+<p> Annual Maximum Baseflow - calculated with <code>bf.stats</code>
+</p>
+</li>
+<li>
+<p> Annual Minimum Baseflow - calculated with <code>bf.stats</code>
+</p>
+</li>
+<li>
+<p> Mean Annual Baseflow Index - calculated with <code>bf.stats</code>
+</p>
+</li>
+<li>
+<p> Day of Year 25  percent Baseflow Volume - calculated with <code>pk.bf.stats</code>
+</p>
+</li>
+<li>
+<p> Center of Volume Baseflow - calculated with <code>pk.bf.stats</code>
+</p>
+</li>
+<li>
+<p> Day of Year 75  percent Baseflow Volume - calculated with <code>pk.bf.stats</code>
+</p>
+</li>
+<li>
+<p> Duration between 25  percent and 75  percent Baseflow Volume - calculated with <code>pk.bf.stats</code>
+</p>
+</li>
+</ul>
+<p>tcpRes: this list contains the results of the trend and changepoint analysis
+for each of the metrics in the metricTS list described above. Each list 
+element is a list containing the following elements:
+</p>
+
+<ul>
+<li>
+<p> MetricID - integer used to identify the metric
+</p>
+</li>
+<li>
+<p> MetricName - Name of the metric.
+</p>
+</li>
+<li>
+<p> Slope - numeric vector containing the intercept and slope of the 
+prewhitened linear trend calculated using the Yue Pilon method. See
+<code>zyp.trend.vector</code>
+</p>
+</li>
+<li>
+<p> ci1 - upper bound of the trend's 95 percent confidence interval
+</p>
+</li>
+<li>
+<p> ci2 - lower bound of the trend's 95 percent conficence interval
+</p>
+</li>
+<li>
+<p> pval - Kendall's P-value computed for the detrended time series
+</p>
+</li>
+<li>
+<p> cpts - Most probable location of a changepoint, if one is detected. 
+</p>
+</li>
+<li>
+<p> means - Mean before and after the changepoint
+</p>
+</li>
+<li>
+<p> NumObs - The number of data points for the metric
+</p>
+</li>
+</ul>
+<p>inData: A data.frame of the original input daily streamflow time series.
+</p>
+<p>OmitYrs: A data.frame containing the years and the number of observations for
+any years omitted from the analysis due to insufficient data.  If no years were
+omitted, NA is returned.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jennifer Dierauer
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See the documentation for individual functions linked in the 
+output description for a details on methods.
+</p>
+<p>See <code>screen.metric</code> to create individual plots for each metric.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load subset of daily streamflow time series for the Caniapiscau River
+data(cania.sub.ts)
+
+## Not run: 
+# calculate low flow, high flow, and baseflow metrics
+res &lt;- metrics.all(cania.sub.ts)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

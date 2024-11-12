@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.fregre.fr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict method for functional response model</h2>
+
+<h3>Description</h3>
+
+<p>Computes predictions for regression between functional explanatory variables
+and functional response.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fregre.fr'
+predict(object, new.fdataobj = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p><code>fregre.fr</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new.fdataobj</code></td>
+<td>
+<p>New functional explanatory data of <code>fdata</code> class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Return the predicted functional data.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also as: <code>fregre.basis.fr</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:  
+# CV prediction for CandianWeather data
+rtt&lt;-c(0, 365)
+basiss  &lt;- create.bspline.basis(rtt,7)
+basist  &lt;- create.bspline.basis(rtt,9)
+nam&lt;-dimnames(CanadianWeather$dailyAv)[[2]]
+
+# fdata class (raw data)
+tt&lt;-1:365
+tempfdata&lt;-fdata(t(CanadianWeather$dailyAv[,,1]),tt,rtt)
+log10precfdata&lt;-fdata(t(CanadianWeather$dailyAv[,,3]),tt,rtt)
+rng&lt;-range(log10precfdata) 
+for (ind in 1:35){
+ res1&lt;-  fregre.basis.fr(tempfdata[-ind], log10precfdata[-ind],
+ basis.s=basiss,basis.t=basist)
+ pred1&lt;-predict(res1,tempfdata[ind])
+ plot( log10precfdata[ind],col=1,ylim=rng,main=nam[ind])
+ lines(pred1,lty=2,col=2)
+ Sys.sleep(1)
+}
+
+# fd class  (smooth data)
+basis.alpha  &lt;- create.constant.basis(rtt)
+basisx  &lt;- create.bspline.basis(rtt,65)
+
+dayfd&lt;-Data2fd(day.5,CanadianWeather$dailyAv,basisx)
+tempfd&lt;-dayfd[,1]
+log10precfd&lt;-dayfd[,3]
+for (ind in 1:35){
+ res2 &lt;-  fregre.basis.fr(tempfd[-ind], log10precfd[-ind],
+ basis.s=basiss,basis.t=basist)
+ pred2&lt;-predict(res2,tempfd[ind])
+ plot(log10precfd[ind],col=1,ylim=range(log10precfd$coef),main=nam[ind]) 
+ lines(pred2,lty=2,col=2)
+ Sys.sleep(.5)
+}
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

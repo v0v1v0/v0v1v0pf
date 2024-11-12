@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>diameter_class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Divide data into diameter classes, and get number of observations</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to divide data into diameter classes,
+get the number of observations, number of observations per ha,
+and check number of species individuals, volume and G in each diameter class.
+It's also possible to spread the diameter classes as columns.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">diameter_class(
+  df,
+  dbh,
+  plot = NA,
+  plot_area,
+  ci = 5,
+  dbhmin = 5,
+  species = NA,
+  volume = NA,
+  NI_label = "NI",
+  cc_to_column = FALSE,
+  G_to_cc = FALSE,
+  cctc_ha = TRUE,
+  keep_unused_classes = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbh</code></td>
+<td>
+<p>Quoted name of the diameter at breast height variable, in cm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>Optional parameter.Quoted name of the plot variable. used to differentiate the plots trees, and calculate the number of sampled plots. Default <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_area</code></td>
+<td>
+<p>Optional parameter. Quoted name of the plot area variable, or a numeric vector with the plot area value. The plot area value must be in square meters. Default <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>Numeric value for the class interval used to classify the data. Default: <code>5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbhmin</code></td>
+<td>
+<p>Numeric value for minimum diameter value to be considered in the classifications. dbh values smaller than this will be dismissed from the classification. Default: <code>5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>species</code></td>
+<td>
+<p>Optional parameter. Quoted name of the scientific names variable, or any variable used to differentiate the different species found in data. If supplied, will be used to classify the species in the diameter data. Default <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>volume</code></td>
+<td>
+<p>Optional parameter. Quoted name of the volume variable. If supplied, will be used classify the volume variable in the different diameter classes. Also, if <code>cc_to_column</code> is <code>TRUE</code>, the center of class columns will be filled with volume values, instead of number of individuals. Default <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NI_label</code></td>
+<td>
+<p>Label used for Species not identified. This parameter works along with species. The level supplied here will not be considered in the classification. Default <code>"NI"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cc_to_column</code></td>
+<td>
+<p>If <code>TRUE</code>, will spread the center class column as multiple columns, one for each class. The value that fills these columns, by default is the number of individuals found in each class, but this can be changed by using other arguments. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G_to_cc</code></td>
+<td>
+<p>If <code>TRUE</code>, and <code>cc_to_column</code> is also <code>TRUE</code>, will fill the center of class columns with basal area values, instead of number of individuals. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cctc_ha</code></td>
+<td>
+<p>If <code>TRUE</code>, will calculate values per hectare for number of individuals per class, basal area per class and volume per class (if supplied). These values will also be used to fill the center of class columns, if cc_to_column is <code>TRUE</code>. Default <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_unused_classes</code></td>
+<td>
+<p>Some diameter classes may end up empty, depending on the maximum value of diameter and the class interval used. If this is <code>TRUE</code>, those classes will not be removed from the final data frame. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame containing the supplied data divided into diameter classes.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sollano Rabelo Braga <a href="mailto:sollanorb@gmail.com">sollanorb@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(forestmangr)
+data("exfm20")
+head(exfm20)
+
+# n
+# Number of individuals per ha per diameter class
+diameter_class(df = exfm20, dbh = "dbh", ci = 10, dbhmin = 10, volume = "vol")
+
+# Number of individuals per ha per diameter class per species
+diameter_class(exfm20,"dbh", "transect", 10000, 10, 10, "scientific.name") %&gt;% 
+head(10)
+
+# Number of individuals per ha per diameter class, with each diameter class as a column
+diameter_class(exfm20,"dbh", "transect", 10000, 10, 10, "scientific.name", cc_to_column=TRUE) %&gt;% 
+head(10)
+
+# G
+# Basal area per ha per diameter class, with each diameter class as a column
+diameter_class(exfm20,"dbh", "transect",10000,10,10,"scientific.name",
+cc_to_column=TRUE,G_to_cc=FALSE) %&gt;% 
+head(10)
+
+
+# Volume
+# Volume per ha per diameter class
+diameter_class(exfm20,"dbh", "transect", 10000, 10, 10, "scientific.name",volume = "vol") %&gt;% 
+head(10)
+
+# Volume per ha per diameter class, with each diameter class as a column
+diameter_class(exfm20,"dbh","transect",10000,10,10,"scientific.name","vol",cc_to_column=TRUE) %&gt;% 
+head(10)
+
+</code></pre>
+
+
+</div>

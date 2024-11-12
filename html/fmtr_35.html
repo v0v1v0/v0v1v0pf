@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>formats</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get or set formats for a data frame</h2>
+
+<h3>Description</h3>
+
+<p>The <code>formats</code> function extracts all assigned formats from a 
+data frame, and returns them in a named list. The function also
+assigns formats from a named list.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">formats(x)
+
+formats(x) &lt;- value
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A data frame or tibble</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>A named list of formats</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If formats are assigned to the "format" attributes of the data frame
+columns, the <code>formats</code> function will extract those formats.  The 
+function will return the formats in a named list, where the names
+correspond to the name of the column that the format was assigned to.
+If a column does not have a format attribute assigned, that column
+will not be included in the list. 
+</p>
+<p>When used on the receiving side of an assignment, the function will assign
+formats to a data frame.  The formats should be in a named list, where
+each name corresponds to the data frame column to assign the format to. 
+</p>
+<p>The <code>formats</code> function can also accept a format catalog as input.
+This feature allows you to save formats in metadata, load them into a
+format catalog, and quickly assign them to a data frame or tibble.  See
+the <code>fcat</code> function for additional information.
+</p>
+<p>Finally, if you wish to clear out format attributes, assign a NULL
+value to the <code>formats</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named list of formats.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fdata</code> to display formatted data, 
+<code>value</code> to create user-defined formats,  
+<code>fapply</code> to apply formats to a vector, and 
+<code>fcat</code> to create a format catalog. Also see
+FormattingStrings for documentation on formatting strings.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Take subset of data
+df1 &lt;- mtcars[1:5, c("mpg", "cyl") ]
+
+# Print current state
+print(df1)
+#                    mpg cyl
+# Mazda RX4         21.0   6
+# Mazda RX4 Wag     21.0   6
+# Datsun 710        22.8   4
+# Hornet 4 Drive    21.4   6
+# Hornet Sportabout 18.7   8
+
+# Assign formats
+attr(df1$mpg, "format") &lt;- value(condition(x &gt;= 20, "High"),
+                                 condition(x &lt; 20, "Low"))
+attr(df1$cyl, "format") &lt;- function(x) format(x, nsmall = 1)
+
+# Display formatted data
+fdata(df1)
+#                    mpg cyl
+# Mazda RX4         High 6.0
+# Mazda RX4 Wag     High 6.0
+# Datsun 710        High 4.0
+# Hornet 4 Drive    High 6.0
+# Hornet Sportabout  Low 8.0
+
+# Extract format list
+lst &lt;- formats(df1)
+
+# Alter format list and reassign
+lst$mpg &lt;- value(condition(x &gt;= 22, "High"),
+                 condition(x &lt; 22, "Low"))
+lst$cyl &lt;- function(x) format(x, nsmall = 2)
+formats(df1) &lt;-  lst
+
+# Display formatted data
+fdata(df1)
+#                    mpg  cyl
+# Mazda RX4          Low 6.00
+# Mazda RX4 Wag      Low 6.00
+# Datsun 710        High 4.00
+# Hornet 4 Drive     Low 6.00
+# Hornet Sportabout  Low 8.00
+
+# Clear formats
+formats(df1) &lt;- NULL
+
+# Confirm formats are cleared 
+formats(df1)
+# list()
+</code></pre>
+
+
+</div>

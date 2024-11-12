@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>to_flowmat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a flowmat using a list a commands.</h2>
+
+<h3>Description</h3>
+
+<p>Create a flowmat (data.frame) using a <strong>named</strong> list a commands.
+</p>
+<p>as.flowmat(): reads a file and checks for required columns. If x is data.frame checks for required columns.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">to_flowmat(x, ...)
+
+## S3 method for class 'list'
+to_flowmat(x, samplename, ...)
+
+## S3 method for class 'data.frame'
+to_flowmat(x, ...)
+
+## S3 method for class 'flow'
+to_flowmat(x, ...)
+
+as.flowmat(x, grp_col, jobname_col, cmd_col, ...)
+
+is.flowmat(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a named list, where name corresponds to the jobname and value is a vector of commands to run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samplename</code></td>
+<td>
+<p>character of length 1 or that of nrow(x) ['samplename']</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grp_col</code></td>
+<td>
+<p>column used for grouping, default samplename.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jobname_col</code></td>
+<td>
+<p>column specifying jobname, default jobname</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cmd_col</code></td>
+<td>
+<p>column specifying commands to run, default cmd</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Use this link for a few examples:
+# http://flow-r.github.io/flowr/tutorial.html#define_modules
+
+# create a flow mat, starting with a list of commands.
+cmd_sleep = c("sleep 1", "sleep 2")
+cmd_echo = c("echo 'hello'", "echo 'hello'")
+
+# create a named list
+lst = list("sleep" = cmd_sleep, "echo" = cmd_echo)
+flowmat = to_flowmat(lst, samplename = "samp")
+
+
+
+# read in a tsv; check and confirm format
+ex = file.path(system.file(package = "flowr"), "pipelines")
+
+flowmat = as.flowmat(file.path(ex, "sleep_pipe.tsv"))
+
+# if your column names are different than defaults, explicitly specify them.
+flowmat = as.flowmat(file.path(ex, "sleep_pipe.tsv"), jobname_col = "jobname")
+
+# check if a object is a flowmat
+is.flowmat(flowmat)
+
+
+
+# create a flowdef, from this flowmat
+flowdef = to_flowdef(flowmat)
+
+# create a flow object using flowmat and flowdef
+fobj = to_flow(flowmat, flowdef)
+
+# extract a flowmat from a flow (here the samplename also contains the name of the flow)
+flowmat2 = to_flowmat(fobj)
+
+
+
+## submit the flow to the cluster (execute=TRUE) or do a dry-run (execute=FALSE)
+## Not run: 
+fobj2 = submit_flow(fobj, execute=FALSE)
+fobj3 = submit_flow(fobj, execute=TRUE)
+
+## Get the status or kill all the jobs
+status(fobj3)
+kill(fobj3)
+
+## End(Not run)
+
+
+
+</code></pre>
+
+
+</div>

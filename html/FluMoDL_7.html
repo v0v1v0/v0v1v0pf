@@ -1,0 +1,255 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitFluMoDL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a FluMoDL object</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a FluMoDL object. This is a distributed lag nonlinear model (DLNM), of
+quasipoisson family and with log link, which estimates the association between mortality
+(as outcome) and daily mean temperatures and type-specific influenza incidence proxies
+(as exposures), adjusted for covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitFluMoDL(deaths, temp, dates, proxyH1, proxyH3, proxyB, yearweek,
+  proxyRSV = NULL, smooth = TRUE, periodic = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>deaths</code></td>
+<td>
+<p>A vector of <em>daily</em> deaths, of equal length to argument <code>`dates`</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>temp</code></td>
+<td>
+<p>A vector of <em>daily</em> mean temperatures, of equal length to argument <code>`dates`</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>A vector of dates (of class <code>Date</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proxyH1</code></td>
+<td>
+<p>A vector of <em>weekly</em> influenza A(H1N1)pdm09 incidence proxies, of equal
+length to argument <code>`yearweek`</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proxyH3</code></td>
+<td>
+<p>A vector of <em>weekly</em> influenza A(H3N2) incidence proxies, of equal
+length to argument <code>`yearweek`</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proxyB</code></td>
+<td>
+<p>A vector of <em>weekly</em> influenza B incidence proxies, of equal
+length to argument <code>`yearweek`</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yearweek</code></td>
+<td>
+<p>An integer vector of weeks, in <em>yyyyww</em> format</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proxyRSV</code></td>
+<td>
+<p>An <em>optional</em> vector of <em>weekly</em> RSV incidence proxies, of equal
+length to argument <code>`yearweek`</code>. (This is an experimental feature, and this argument
+might be removed in the future.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth</code></td>
+<td>
+<p><code>TRUE</code> (the default) if smoothing is to be applied to the influenza
+incidence proxies when converting them to a daily series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>periodic</code></td>
+<td>
+<p>Should a periodic B-spline term be included in the model? 
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Objects of class 'FluMoDL' contain the model, the associated data, estimates of the predicted
+associations and other information.
+These objects can be further used as input for function <code>attrMort</code>, to calculate
+influenza-attributable and temperature-attributable mortalities for any period in the data
+(and any temperature range). Methods <code>print()</code>, <code>coef()</code> and <code>vcov()</code> have
+been defined for objects of class 'FluMoDL' (see below),
+and also <code>summary()</code>.
+</p>
+<p>FluMoDL uses a DLNM with the <em>daily</em> number of deaths as the outcome. Covariates
+include the following:
+</p>
+
+<ul>
+<li>
+<p> A <code>cross-basis matrix</code> for temperature. The exposure-response
+relationship is modelled with a quadratic B-spline with internal knots placed at the
+10th, 75th and 90th percentile of the temperatures distribution. The lag-response
+relationship is modelled with a natural cubic spline with three internal knots
+equidistant in the log scale.
+</p>
+</li>
+<li>
+<p> Three <code>cross-basis matrices</code> for influenza incidence proxies for
+each type/subtype: A(H1N1)pdm09, A(H3N2) and B. These normally are equal to a
+sentinel Influenza-Like Illness (ILI) rate, times the laboratory swab samples Percentage
+Positive (
+implying an approximately constant case fatality ratio for each influenza type. The
+lag-response relationship is specified as above (for temperature).
+</p>
+</li>
+<li>
+<p> A periodic B-spline term to model seasonality, with three equidistant internal
+knots according to day of the year. Can optionally be suppressed by setting argument
+<code>periodic</code> to <code>FALSE</code>.
+</p>
+</li>
+<li>
+<p> A linear trend, and a factor variable for day of the week.
+</p>
+</li>
+<li> <p><em>Optionally</em>, a <code>cross-basis matrix</code> for an RSV
+incidence proxy, with specification identical to those for influenza. If given,
+it will be included in the model and output, and it will be possible to calculate
+mortality attributable to RSV with <code>attrMort</code>. This is an experimental feature;
+it might be removed in the future.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An object of class 'FluMoDL'. This is a list containing the following elements:
+</p>
+
+<dl>
+<dt>$data</dt>
+<dd>
+<p>A <code>data.frame</code> with the data used to fit the model. Rows correspond to
+days in argument <code>dates</code>. The columns are named: <code>yearweek</code>, <code>dates</code>,
+<code>deaths</code>, <code>temp</code>, (for temperature), <code>proxyH1</code>, <code>proxyH3</code>, <code>proxyB</code>,
+<code>t</code> (linear trend, with values <code>1:nrow(m$data)</code>), <code>doy</code> (day of year,
+use to calculate the periodic B-spline term to model seasonality) and <code>dow</code> (day of
+the week). Also column <code>proxyRSV</code> if the relevant argument is provided.</p>
+</dd>
+<dt>$model</dt>
+<dd>
+<p>The fitted model; an object of class <code>glm</code> and of 'quasipoisson' family
+with log link.</p>
+</dd>
+<dt>$basis</dt>
+<dd>
+<p>A list with names 'temp', 'proxyH1', 'proxyH3' and 'proxyB' (and proxyRSV,
+if provided in the function arguments), containing the
+cross-basis matrices that are used as exposures in the model. See <code>crossbasis</code>.</p>
+</dd>
+<dt>$MMP</dt>
+<dd>
+<p>The Minimum Mortality Point, i.e. the temperature where mortality is lowest.</p>
+</dd>
+<dt>$pred</dt>
+<dd>
+<p>A list with names 'temp', 'proxyH1', 'proxyH3' and 'proxyB' (and 'proxyRSV'
+if provided in the function arguments), containing
+predictions (in the form of <code>crosspred</code> objects) for each exposure.
+These can be plotted in both the exposure-response and lag-response dimensions, see
+<code>crosspred</code>, <code>plot.crosspred</code> and the examples below.</p>
+</dd>
+<dt>$blup</dt>
+<dd>
+<p>This element is NULL when creating the object, but can receive a
+<code>summary.FluMoDL</code> object that contains Best Linear Unbiased Predictor
+(BLUP) coefficients, to be used when estimating attributable mortality. Can be
+retrieved or set with the <code>blup.FluMoDL</code> method</p>
+</dd>
+</dl>
+<p>Objects of class 'FluMoDL' have methods <code>print()</code>, <code>coef()</code> and <code>vcov()</code>.
+<code>coef()</code> returns a list of numeric vectors, with names 'proxyH1', 'proxyH3'
+and 'proxyB' (and 'proxyRSV' if provided in the function arguments), containing the model
+coefficients for these cross-basis terms. Similarly <code>vcov()</code> returns a list
+of variance-covariance matrices for the same terms.
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Lytras T, Pantavou K, Mouratidou E, Tsiodras S. Mortality attributable to seasonal influenza
+in Greece, 2013 to 2017: variation by type/subtype and age, and a possible harvesting effect.
+<a href="https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2019.24.14.1800118">Euro Surveill.</a>
+2019;24(14):pii=1800118 (<a href="https://www.ncbi.nlm.nih.gov/pubmed/30968823">PubMed</a>)
+</p>
+</li>
+<li>
+<p> Gasparrini A, Armstrong B, Kenward MG. Distributed lag non-linear models.
+<a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/sim.3940">Stat Med</a> 2010;29(21):2224–34.
+</p>
+</li>
+<li>
+<p> Gasparrini A, et al. Mortality risk attributable to high and low ambient temperature:
+a multicountry observational study.
+<a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(14)62114-0/fulltext">Lancet</a>
+2015 Jul 25;386(9991):369–75.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(greece) # Use example surveillance data from Greece
+m &lt;- with(greece, fitFluMoDL(deaths = daily$deaths,
+    temp = daily$temp, dates = daily$date,
+    proxyH1 = weekly$ILI * weekly$ppH1,
+    proxyH3 = weekly$ILI * weekly$ppH3,
+    proxyB = weekly$ILI * weekly$ppB,
+    yearweek = weekly$yearweek))
+m
+
+# Plot the association between A(H1N1)pdm09 activity and mortality
+#   and the overall temperature-mortality association:
+plot(m$pred$proxyH1, "overall")
+plot(m$pred$temp, "overall")
+
+# Add the Minimum Mortality Point to the plot:
+abline(v=m$MMP)
+
+# Check the lag-response dimension for the A(H1N1)pdm09 - mortality
+#   association, for all proxy values, and for an indicative value of 30.
+plot(m$pred$proxyH1) # Produces a 3D plot, see ?plot.crosspred
+plot(m$pred$proxyH1, var=30)
+
+# Have a look at the data associated with this FluMoDL:
+str(m$data)
+tail(m$data)
+
+</code></pre>
+
+
+</div>

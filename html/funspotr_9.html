@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spot_funs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spot Functions</h2>
+
+<h3>Description</h3>
+
+<p>Given <code>file_path</code> extract all functions and their associated packages from
+specified file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spot_funs(file_path, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file_path</code></td>
+<td>
+<p>character vector of path to file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>This allows you to pass additional arguments through to
+<code>spot_funs_custom()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>spot_funs()</code> uses <code>spot_funs_custom()</code> to run – it is a less verbose
+version and does not require passing in the packages separately. See README
+and <code>?spot_funs_custom</code> for details on how the function works and arguments
+that can be passed through (via <code>...</code>).
+</p>
+<p>If code syntax is malformed and cannot be properly parsed, function will error.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Given default arguments and no missing packages, a dataframe with the
+following columns is returned:
+</p>
+<p><code>funs</code>: specifying functions in file.
+<code>pkgs</code>: the package a function came from. If <code>funs</code> is a custom function or
+if it came from a package not installed on your machine, <code>pkgs</code> will return
+"(unknown)".
+</p>
+<p>Note that any unused loaded packages / <code>pkgs</code> are dropped from output.
+Any functions without an available package are returned with the value
+"(unknown)".
+</p>
+<p>See README for further documentation.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>spot_funs_custom()</code>, <code>spot_funs_files()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funspotr)
+
+file_lines &lt;- "
+library(dplyr)
+require(tidyr)
+library(madeUpPkg)
+
+as_tibble(mpg) %&gt;%
+  group_by(class) %&gt;%
+  nest() %&gt;%
+  mutate(stats = purrr::map(data,
+                            ~lm(cty ~ hwy, data = .x)))
+
+made_up_fun()
+"
+
+file_output &lt;- tempfile(fileext = ".R")
+writeLines(file_lines, file_output)
+
+spot_funs(file_output)
+</code></pre>
+
+
+</div>

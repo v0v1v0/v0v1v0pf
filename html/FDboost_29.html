@@ -1,0 +1,642 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FDboost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model-based Gradient Boosting for Functional Response</h2>
+
+<h3>Description</h3>
+
+<p>Gradient boosting for optimizing arbitrary loss functions, where component-wise models 
+are utilized as base-learners in the case of functional responses. 
+Scalar responses are treated as the special case where each functional response has 
+only one observation. 
+This function is a wrapper for <code>mboost</code>'s <code>mboost</code> and its 
+siblings to fit models of the general form 
+</p>
+<p style="text-align: center;"><code class="reqn">\xi(Y_i(t) | X_i = x_i) = \sum_{j} h_j(x_i, t), i = 1, ..., N,</code>
+</p>
+ 
+<p>with a functional (but not necessarily continuous) response <code class="reqn">Y(t)</code>, 
+transformation function <code class="reqn">\xi</code>, e.g., the expectation, the median or some quantile, 
+and partial effects <code class="reqn">h_j(x_i, t)</code> depending on covariates <code class="reqn">x_i</code>  
+and the current index of the response <code class="reqn">t</code>. The index of the response can 
+be for example time.  
+Possible effects are, e.g., a smooth intercept <code class="reqn">\beta_0(t)</code>, 
+a linear functional effect <code class="reqn">\int x_i(s)\beta(s,t)ds</code>, 
+potentially with integration limits depending on <code class="reqn">t</code>, 
+smooth and linear effects of scalar covariates <code class="reqn">f(z_i,t)</code> or <code class="reqn">z_i \beta(t)</code>. 
+A hands-on tutorial for the package can be found at &lt;doi:10.18637/jss.v094.i10&gt;.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FDboost(
+  formula,
+  timeformula,
+  id = NULL,
+  numInt = "equal",
+  data,
+  weights = NULL,
+  offset = NULL,
+  offset_control = o_control(),
+  check0 = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the model to be fit. 
+Per default no intercept is added, only a smooth offset, see argument <code>offset</code>. 
+To add a smooth intercept, use 1, e.g., <code>y ~ 1</code> for a pure intercept model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeformula</code></td>
+<td>
+<p>one-sided formula for the specification of the effect over the index of the response. 
+For functional response <code class="reqn">Y_i(t)</code> typically use <code>~ bbs(t)</code> to obtain smooth 
+effects over <code class="reqn">t</code>. 
+In the limiting case of <code class="reqn">Y_i</code> being a scalar response, 
+use <code>~ bols(1)</code>, which sets up a base-learner for the scalar 1. 
+Or use <code>timeformula = NULL</code>, then the scalar response is treated as scalar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>defaults to NULL which means that all response trajectories are observed
+on a common grid allowing to represent the response as a matrix. 
+If the response is given in long format for observation-specific grids, <code>id</code> 
+contains the information which observations belong to the same trajectory and must 
+be supplied as a formula, <code>~ nameid</code>, where the variable <code>nameid</code> should 
+contain integers 1, 2, 3, ..., N.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numInt</code></td>
+<td>
+<p>integration scheme for the integration of the loss function.
+One of <code>c("equal", "Riemann")</code> meaning equal weights of 1 or 
+trapezoidal Riemann weights.
+Alternatively a vector of length <code>ncol(response)</code> containing  
+positive weights can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame or list containing the variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>only for internal use to specify resampling weights;
+per default all weights are equal to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>a numeric vector to be used as offset over the index of the response (optional).
+If no offset is specified, per default <code>offset = NULL</code> which means that a 
+smooth time-specific offset is computed and used before the model fit to center the data. 
+If you do not want to use a time-specific offset, set <code>offset = "scalar"</code> to get an overall scalar offset, 
+like in <code>mboost</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset_control</code></td>
+<td>
+<p>parameters for the estimation of the offset, 
+defaults to <code>o_control()</code>, see <code>o_control</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check0</code></td>
+<td>
+<p>logical, for response in matrix form, i.e. response that is observed on a common grid, 
+check the fitted effects for the sum-to-zero constraint 
+<code class="reqn">h_j(x_i)(t) = 0</code> for all <code class="reqn">t</code> and give a warning if it is not fulfilled. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>mboost</code>, 
+including, <code>family</code> and <code>control</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In matrix representation of functional response and covariates each row 
+represents one functional observation, e.g., <code>Y[i,t_g]</code> corresponds to <code class="reqn">Y_i(t_g)</code>, 
+giving a &lt;number of curves&gt; by &lt;number of evaluations&gt; matrix. 
+For the model fit, the matrix of the functional
+response evaluations <code class="reqn">Y_i(t_g)</code> are stacked internally into one long vector. 
+</p>
+<p>If it is possible to represent the model as a generalized linear array model 
+(Currie et al., 2006), the array structure is used for an efficient implementation, 
+see <code>mboost</code>. This is only possible if the design 
+matrix can be written as the Kronecker product of two marginal design 
+matrices yielding a functional linear array model (FLAM), 
+see Brockhaus et al. (2015) for details. 
+The Kronecker product of two marginal bases is implemented in R-package mboost 
+in the function <code>%O%</code>, see <code>%O%</code>. 
+</p>
+<p>When <code>%O%</code> is called with a specification of <code>df</code> in both base-learners, 
+e.g., <code>bbs(x1, df = df1) %O% bbs(t, df = df2)</code>, the global <code>df</code> for the 
+Kroneckered base-learner is computed as <code>df = df1 * df2</code>. 
+And thus the penalty has only one smoothness parameter lambda resulting in an isotropic penalty. 
+A Kronecker product with anisotropic penalty is <code>%A%</code>, allowing for different 
+amount of smoothness in the two directions, see <code>%A%</code>. 
+If the formula contains base-learners connected by <code>%O%</code>, <code>%A%</code> or <code>%A0%</code>, 
+those effects are not expanded with <code>timeformula</code>, allowing for model specifications 
+with different effects in time-direction.   
+</p>
+<p>If the response is observed on curve-specific grids it must be supplied  
+as a vector in long format and the argument <code>id</code> has  
+to be specified (as formula!) to define which observations belong to which curve.  
+In this case the base-learners are built as row tensor-products of marginal base-learners, 
+see Scheipl et al. (2015) and Brockhaus et al. (2017), for details on how to set up the effects. 
+The row tensor product of two marginal bases is implemented in R-package mboost 
+in the function <code>%X%</code>, see <code>%X%</code>. 
+</p>
+<p>A scalar response can be seen as special case of a functional response with only
+one time-point, and thus it can be represented as FLAM with basis 1 in 
+time-direction, use <code>timeformula = ~bols(1)</code>. In this case, a penalty in the 
+time-direction is used, see Brockhaus et al. (2015) for details.  
+Alternatively, the scalar response is fitted as scalar response, like in the function
+<code>mboost</code> in package mboost. 
+The advantage of using <code>FDboost</code> in that case 
+is that methods for the functional base-learners are available, e.g., <code>plot</code>. 
+</p>
+<p>The desired regression type is specified by the <code>family</code>-argument, 
+see the help-page of <code>mboost</code>. For example a mean regression model is obtained by  
+<code>family = Gaussian()</code> which is the default or median regression 
+by <code>family = QuantReg()</code>; 
+see <code>Family</code> for a list of implemented families. 
+</p>
+<p>With <code>FDboost</code> the following covariate effects can be estimated by specifying 
+the following effects in the <code>formula</code>
+(similar to function <code>pffr</code> 
+in R-package refund. 
+The <code>timeformula</code> is used to expand the effects in <code>t</code>-direction. 
+</p>
+
+<ul>
+<li>
+<p> Linear functional effect of scalar (numeric or factor) covariate <code class="reqn">z</code> that varies 
+smoothly over <code class="reqn">t</code>, i.e. <code class="reqn">z_i \beta(t)</code>, specified as
+<code>bolsc(z)</code>, see <code>bolsc</code>, 
+or for a group effect with mean zero use <code>brandomc(z)</code>.  
+</p>
+</li>
+<li>
+<p> Nonlinear effects  of a scalar covariate that vary smoothly over <code class="reqn">t</code>, 
+i.e. <code class="reqn">f(z_i, t)</code>, specified as <code>bbsc(z)</code>, 
+see <code>bbsc</code>. 
+</p>
+</li>
+<li>
+<p> (Nonlinear) effects of scalar covariates that are constant 
+over <code class="reqn">t</code>, e.g., <code class="reqn">f(z_i)</code>, specified as <code>c(bbs(z))</code>, 
+or <code class="reqn">\beta z_i</code>, specified as <code>c(bols(z))</code>.
+</p>
+</li>
+<li>
+<p> Interaction terms between two scalar covariates, e.g., <code class="reqn">z_i1 zi2 \beta(t)</code>, 
+are specified as <code>bols(z1) %Xc% bols(z2)</code> and  
+an interaction <code class="reqn">z_i1 f(zi2, t)</code> as <code>bols(z1) %Xc% bbs(z2)</code>, as 
+<code>%Xc%</code> applies the sum-to-zero constraint to the desgin matrix of the tensor product 
+built by <code>%Xc%</code>, see <code>%Xc%</code>.
+</p>
+</li>
+<li>
+<p> Function-on-function regression terms of functional covariates <code>x</code>, 
+e.g., <code class="reqn">\int x_i(s)\beta(s,t)ds</code>, specified as <code>bsignal(x, s = s)</code>, 
+using P-splines, see <code>bsignal</code>. 
+Terms given by <code>bfpc</code> provide FPC-based effects of functional 
+covariates, see <code>bfpc</code>. 
+</p>
+</li>
+<li>
+<p> Function-on-function regression terms of functional covariates <code>x</code> 
+with integration limits <code class="reqn">[l(t), u(t)]</code> depending on <code class="reqn">t</code>,  
+e.g., <code class="reqn">\int_[l(t), u(t)] x_i(s)\beta(s,t)ds</code>, specified as 
+<code>bhist(x, s = s, time = t, limits)</code>. The <code>limits</code> argument defaults to
+<code>"s&lt;=t"</code> which yields a historical effect with limits <code class="reqn">[min(t),t]</code>, 
+see <code>bhist</code>.
+</p>
+</li>
+<li>
+<p> Concurrent effects of functional covariates <code>x</code>
+measured on the same grid as the response, i.e., <code class="reqn">x_i(s)\beta(t)</code>, 
+are specified as <code>bconcurrent(x, s = s, time = t)</code>, 
+see <code>bconcurrent</code>. 
+</p>
+</li>
+<li>
+<p> Interaction effects can be estimated as tensor product smooth, e.g., 
+<code class="reqn"> z \int x_i(s)\beta(s,t)ds</code> as <code>bsignal(x, s = s) %X% bolsc(z)</code>
+</p>
+</li>
+<li>
+<p> For interaction effects with historical functional effects, e.g., 
+<code class="reqn"> z_i \int_[l(t),u(t)] x_i(s)\beta(s,t)ds</code> the base-learner 
+<code>bhistx</code> should be used instead of <code>bhist</code>, 
+e.g., <code>bhistx(x, limits) %X% bolsc(z)</code>, see <code>bhistx</code>.
+</p>
+</li>
+<li>
+<p> Generally, the <code>c()</code>-notation can be used to get effects that are 
+constant over the index of the functional response. 
+</p>
+</li>
+<li>
+<p> If the <code>formula</code> in <code>FDboost</code> contains base-learners connected by 
+<code>%O%</code>, <code>%A%</code> or <code>%A0%</code>, those effects are not expanded with <code>timeformula</code>, 
+allowing for model specifications with different effects in time-direction.  
+</p>
+</li>
+</ul>
+<p>In order to obtain a fair selection of base-learners, the same degrees of freedom (df) 
+should be specified for all baselearners. If the number of df differs among the base-learners, 
+the selection is biased towards more flexible base-learners with higher df as they are more 
+likely to yield larger improvements of the fit. It is recommended to use 
+a rather small number of df for all base-learners. 
+It is not possible to specify df larger than the rank of the design matrix.
+For base-learners with rank-deficient penalty, it is not possible to specify df smaller than the 
+rank of the null space of the penalty (e.g., in <code>bbs</code> unpenalized part of P-splines). 
+The df of the base-learners in an FDboost-object can be checked using <code>extract(object, "df")</code>, 
+see <code>extract</code>.  
+</p>
+<p>The most important tuning parameter of component-wise gradient boosting 
+is the number of boosting iterations. It is recommended to use the number of 
+boosting iterations as only tuning parameter, 
+fixing the step-length at a small value (e.g., nu = 0.1). 
+Note that the default number of boosting iterations is 100 which is arbitrary and in most 
+cases not adequate (the optimal number of boosting iterations can considerably exceed 100). 
+The optimal stopping iteration can be determined by resampling methods like
+cross-validation or bootstrapping, see the function <code>cvrisk.FDboost</code> which searches 
+the optimal stopping iteration on a grid, which in many cases has to be extended.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FDboost</code> that inherits from <code>mboost</code>.
+Special <code>predict.FDboost</code>, <code>coef.FDboost</code> and 
+<code>plot.FDboost</code> methods are available. 
+The methods of <code>mboost</code> are available as well, 
+e.g., <code>extract</code>. 
+The <code>FDboost</code>-object is a named list containing: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>all elements of an <code>mboost</code>-object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yname</code></td>
+<td>
+<p>the name of the response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ydim</code></td>
+<td>
+<p>dimension of the response matrix, if the response is represented as such</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yind</code></td>
+<td>
+<p>the observation (time-)points of the response, i.e. the evaluation points, 
+with its name as attribute</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the data that was used for the model fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>the id variable of the response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictOffset</code></td>
+<td>
+<p>the function to predict the smooth offset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offsetFDboost</code></td>
+<td>
+<p>offset as specified in call to FDboost</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offsetMboost</code></td>
+<td>
+<p>offset as given to mboost</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the call to <code>FDboost</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>callEval</code></td>
+<td>
+<p>the evaluated function call to <code>FDboost</code> without data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numInt</code></td>
+<td>
+<p>value of argument <code>numInt</code> determining the numerical integration scheme</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeformula</code></td>
+<td>
+<p>the time-formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formulaFDboost</code></td>
+<td>
+<p>the formula with which <code>FDboost</code> was called</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formulaMboost</code></td>
+<td>
+<p>the formula with which <code>mboost</code> was called within <code>FDboost</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sarah Brockhaus, Torsten Hothorn
+</p>
+
+
+<h3>References</h3>
+
+<p>Brockhaus, S., Ruegamer, D. and Greven, S. (2017):
+Boosting Functional Regression Models with FDboost.
+&lt;doi:10.18637/jss.v094.i10&gt;
+</p>
+<p>Brockhaus, S., Scheipl, F., Hothorn, T. and Greven, S. (2015): 
+The functional linear array model. Statistical Modelling, 15(3), 279-300. 
+</p>
+<p>Brockhaus, S., Melcher, M., Leisch, F. and Greven, S. (2017): 
+Boosting flexible functional regression models with a high number of functional historical effects,  
+Statistics and Computing, 27(4), 913-926.   
+</p>
+<p>Currie, I.D., Durban, M. and Eilers P.H.C. (2006):  
+Generalized linear array models with applications to multidimensional smoothing. 
+Journal of the Royal Statistical Society, Series B-Statistical Methodology, 68(2), 259-280.
+</p>
+<p>Scheipl, F., Staicu, A.-M. and Greven, S. (2015):  
+Functional additive mixed models, Journal of Computational and Graphical Statistics, 24(2), 477-501.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Note that FDboost calls <code>mboost</code> directly.  
+See, e.g., <code>bsignal</code> and <code>bbsc</code> 
+for possible base-learners.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">######## Example for function-on-scalar-regression 
+data("viscosity", package = "FDboost") 
+## set time-interval that should be modeled
+interval &lt;- "101"
+
+## model time until "interval" and take log() of viscosity
+end &lt;- which(viscosity$timeAll == as.numeric(interval))
+viscosity$vis &lt;- log(viscosity$visAll[,1:end])
+viscosity$time &lt;- viscosity$timeAll[1:end]
+# with(viscosity, funplot(time, vis, pch = 16, cex = 0.2))
+
+## fit median regression model with 100 boosting iterations,
+## step-length 0.4 and smooth time-specific offset
+## the factors are coded such that the effects are zero for each timepoint t
+## no integration weights are used!
+mod1 &lt;- FDboost(vis ~ 1 + bolsc(T_C, df = 2) + bolsc(T_A, df = 2),
+               timeformula = ~ bbs(time, df = 4),
+               numInt = "equal", family = QuantReg(),
+               offset = NULL, offset_control = o_control(k_min = 9),
+               data = viscosity, control=boost_control(mstop = 100, nu = 0.4))
+
+
+  #### find optimal mstop over 5-fold bootstrap, small number of folds for example
+  #### do the resampling on the level of curves
+  
+  ## possibility 1: smooth offset and transformation matrices are refitted 
+  set.seed(123)
+  appl1 &lt;- applyFolds(mod1, folds = cv(rep(1, length(unique(mod1$id))), B = 5), 
+                      grid = 1:500)
+  ## plot(appl1)
+  mstop(appl1)
+  mod1[mstop(appl1)]
+  
+  ## possibility 2: smooth offset is refitted, 
+  ## computes oob-risk and the estimated coefficients on the folds
+  set.seed(123)
+  val1 &lt;- validateFDboost(mod1, folds = cv(rep(1, length(unique(mod1$id))), B = 5), 
+                        grid = 1:500)
+  ## plot(val1)
+  mstop(val1)
+  mod1[mstop(val1)]
+
+  ## possibility 3: very efficient 
+  ## using the function cvrisk; be careful to do the resampling on the level of curves
+  folds1 &lt;- cvLong(id = mod1$id, weights = model.weights(mod1), B = 5)
+  cvm1 &lt;- cvrisk(mod1, folds = folds1, grid = 1:500)
+  ## plot(cvm1)
+  mstop(cvm1)
+  
+## look at the model
+summary(mod1)
+coef(mod1)
+plot(mod1)
+plotPredicted(mod1, lwdPred = 2)
+
+
+######## Example for scalar-on-function-regression 
+data("fuelSubset", package = "FDboost")
+
+## center the functional covariates per observed wavelength
+fuelSubset$UVVIS &lt;- scale(fuelSubset$UVVIS, scale = FALSE)
+fuelSubset$NIR &lt;- scale(fuelSubset$NIR, scale = FALSE)
+
+## to make mboost:::df2lambda() happy (all design matrix entries &lt; 10)
+## reduce range of argvals to [0,1] to get smaller integration weights
+fuelSubset$uvvis.lambda &lt;- with(fuelSubset, (uvvis.lambda - min(uvvis.lambda)) / 
+                                          (max(uvvis.lambda) - min(uvvis.lambda) ))
+fuelSubset$nir.lambda &lt;- with(fuelSubset, (nir.lambda - min(nir.lambda)) / 
+                                          (max(nir.lambda) - min(nir.lambda) )) 
+
+## model fit with scalar response 
+## include no intercept as all base-learners are centered around 0
+mod2 &lt;- FDboost(heatan ~ bsignal(UVVIS, uvvis.lambda, knots = 40, df = 4, check.ident = FALSE) 
+               + bsignal(NIR, nir.lambda, knots = 40, df = 4, check.ident = FALSE), 
+               timeformula = NULL, data = fuelSubset, control = boost_control(mstop = 200)) 
+               
+## additionally include a non-linear effect of the scalar variable h2o 
+mod2s &lt;- FDboost(heatan ~ bsignal(UVVIS, uvvis.lambda, knots = 40, df = 4, check.ident = FALSE) 
+               + bsignal(NIR, nir.lambda, knots = 40, df = 4, check.ident = FALSE) 
+               + bbs(h2o, df = 4), 
+               timeformula = NULL, data = fuelSubset, control = boost_control(mstop = 200)) 
+               
+## alternative model fit as FLAM model with scalar response; as timeformula = ~ bols(1)  
+## adds a penalty over the index of the response, i.e., here a ridge penalty
+## thus, mod2f and mod2 have different penalties 
+mod2f &lt;- FDboost(heatan ~ bsignal(UVVIS, uvvis.lambda, knots = 40, df = 4, check.ident = FALSE) 
+               + bsignal(NIR, nir.lambda, knots = 40, df = 4, check.ident = FALSE), 
+               timeformula = ~ bols(1), data = fuelSubset, control = boost_control(mstop = 200))
+               
+   
+  ## bootstrap to find optimal mstop takes some time
+  set.seed(123)      
+  folds2 &lt;- cv(weights = model.weights(mod2), B = 10)     
+  cvm2 &lt;- cvrisk(mod2, folds = folds2, grid = 1:1000)
+  mstop(cvm2) ## mod2[327]
+  summary(mod2) 
+  ## plot(mod2)
+
+
+## Example for function-on-function-regression 
+if(require(fda)){
+
+  data("CanadianWeather", package = "fda")
+  CanadianWeather$l10precip &lt;- t(log(CanadianWeather$monthlyPrecip))
+  CanadianWeather$temp &lt;- t(CanadianWeather$monthlyTemp)
+  CanadianWeather$region &lt;- factor(CanadianWeather$region)
+  CanadianWeather$month.s &lt;- CanadianWeather$month.t &lt;- 1:12
+  
+  ## center the temperature curves per time-point
+  CanadianWeather$temp &lt;- scale(CanadianWeather$temp, scale = FALSE)
+  rownames(CanadianWeather$temp) &lt;- NULL ## delete row-names
+  
+  ## fit model with cyclic splines over the year
+  mod3 &lt;- FDboost(l10precip ~ bols(region, df = 2.5, contrasts.arg = "contr.dummy") 
+                   + bsignal(temp, month.s, knots = 11, cyclic = TRUE, 
+                             df = 2.5, boundary.knots = c(0.5,12.5), check.ident = FALSE), 
+                  timeformula = ~ bbs(month.t, knots = 11, cyclic = TRUE, 
+                                      df = 3, boundary.knots = c(0.5, 12.5)), 
+                  offset = "scalar", offset_control = o_control(k_min = 5), 
+                  control = boost_control(mstop = 60), 
+                  data = CanadianWeather) 
+ 
+                   
+   #### find the optimal mstop over 5-fold bootstrap 
+   ## using the function applyFolds 
+   set.seed(123)
+   folds3 &lt;- cv(rep(1, length(unique(mod3$id))), B = 5)
+   appl3 &lt;- applyFolds(mod3, folds = folds3, grid = 1:200)
+ 
+   ## use function cvrisk; be careful to do the resampling on the level of curves
+   set.seed(123)
+   folds3long &lt;- cvLong(id = mod3$id, weights = model.weights(mod3), B = 5)
+   cvm3 &lt;- cvrisk(mod3, folds = folds3long, grid = 1:200)
+   mstop(cvm3) ## mod3[64]
+   
+   summary(mod3)
+   ## plot(mod3, pers = TRUE)
+ 
+}
+
+######## Example for functional response observed on irregular grid
+######## Delete part of observations in viscosity data-set
+data("viscosity", package = "FDboost")
+## set time-interval that should be modeled
+interval &lt;- "101"
+
+## model time until "interval" and take log() of viscosity
+end &lt;- which(viscosity$timeAll == as.numeric(interval))
+viscosity$vis &lt;- log(viscosity$visAll[,1:end])
+viscosity$time &lt;- viscosity$timeAll[1:end]
+# with(viscosity, funplot(time, vis, pch = 16, cex = 0.2))
+
+## only keep one eighth of the observation points
+set.seed(123)
+selectObs &lt;- sort(sample(x = 1:(64*46), size = 64*46/4, replace = FALSE))
+dataIrregular &lt;- with(viscosity, list(vis = c(vis)[selectObs], 
+                                      T_A = T_A, T_C = T_C,  
+                                      time = rep(time, each = 64)[selectObs], 
+                                      id = rep(1:64, 46)[selectObs]))
+
+## fit median regression model with 50 boosting iterations,
+## step-length 0.4 and smooth time-specific offset
+## the factors are in effect coding -1, 1 for the levels
+## no integration weights are used!
+mod4 &lt;- FDboost(vis ~ 1 + bols(T_C, contrasts.arg = "contr.sum", intercept = FALSE)
+                + bols(T_A, contrasts.arg = "contr.sum", intercept=FALSE),
+                timeformula = ~ bbs(time, lambda = 100), id = ~id, 
+                numInt = "Riemann", family = QuantReg(),
+                offset = NULL, offset_control = o_control(k_min = 9),
+                data = dataIrregular, control = boost_control(mstop = 50, nu = 0.4))
+## summary(mod4)
+## plot(mod4)
+## plotPredicted(mod4, lwdPred = 2)
+
+
+  ## Find optimal mstop, small grid/low B for a fast example
+  set.seed(123)
+  folds4 &lt;- cv(rep(1, length(unique(mod4$id))), B = 3)
+  appl4 &lt;- applyFolds(mod4, folds = folds4, grid = 1:50)
+  ## val4 &lt;- validateFDboost(mod4, folds = folds4, grid = 1:50)
+
+  set.seed(123)
+  folds4long &lt;- cvLong(id = mod4$id, weights = model.weights(mod4), B = 3)
+  cvm4 &lt;- cvrisk(mod4, folds = folds4long, grid = 1:50)
+  mstop(cvm4)
+
+
+## Be careful if you want to predict newdata with irregular response,  
+## as the argument index is not considered in the prediction of newdata. 
+## Thus, all covariates have to be repeated according to the number of observations 
+## in each response trajectroy. 
+## Predict four response curves with full time-observations 
+## for the four combinations of T_A and T_C. 
+newd &lt;- list(T_A = factor(c(1,1,2,2), levels = 1:2, 
+                        labels = c("low", "high"))[rep(1:4, length(viscosity$time))], 
+             T_C = factor(c(1,2,1,2), levels = 1:2, 
+                        labels = c("low", "high"))[rep(1:4, length(viscosity$time))], 
+             time = rep(viscosity$time, 4))
+             
+pred &lt;- predict(mod4, newdata = newd)
+## funplot(x = rep(viscosity$time, 4), y = pred, id = rep(1:4, length(viscosity$time)))
+                  
+                
+</code></pre>
+
+
+</div>

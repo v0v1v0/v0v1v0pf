@@ -1,0 +1,250 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>path.fmrHP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Finite Mixture Effects Model with Heterogeneity Pursuit</h2>
+
+<h3>Description</h3>
+
+<p>Produce solution paths of regularized finite mixture effects model with 
+lasso or adaptive lasso penalty; compute the degrees of freeom, likelihood 
+and information criteria (AIC, BIC and GIC) of the estimators. 
+Model fitting is conducted by EM algorithm and Bregman coordinate descent.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">path.fmrHP(y, X, m, equal.var = FALSE, 
+           ic.type = "ALL", B = NULL, prob = NULL, rho = NULL, 
+           control = list(), modstr = list(), report = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a vector of response (<code class="reqn">n \times 1</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a matrix of covariate (<code class="reqn">n \times p</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>number of components</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equal.var</code></td>
+<td>
+<p>indicating whether variances of different components are equal</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic.type</code></td>
+<td>
+<p>the information criterion to be used; currently supporting "AIC", "BIC", and "GIC".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>initial values for the rescaled coefficients with first column being the 
+common effect, and the rest <code>m</code> columns being the heterogeneity for 
+corresponding components</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob</code></td>
+<td>
+<p>initial values for prior probabilitis for different components</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>initial values for rho vector (<code class="reqn">1 / \sigma</code>), the reciprocal of standard deviation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of parameters for controlling the fitting process</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modstr</code></td>
+<td>
+<p>a list of model parameters controlling the model fitting</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+<p>indicating whether printing the value of objective function during EM algorithm 
+for validation checking of initial value.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Model parameters can be specified through argument <code>modstr</code>. The
+available include
+</p>
+
+<ul>
+<li>
+<p>lambda: A vector of user-specified lambda values with default NULL.
+</p>
+</li>
+<li>
+<p>lambda.min.ratio: Smallest value for lambda, as a fraction of lambda.max, 
+the (data derived) entry value.
+</p>
+</li>
+<li>
+<p>nlambda: The number of lambda values.
+</p>
+</li>
+<li>
+<p>w: Weight matrix for penalty function. Default option is NULL, which means 
+lasso penailty is used for model fitting.
+</p>
+</li>
+<li>
+<p>intercept: Should intercept(s) be fitted (default=TRUE) or set to zero (FALSE).
+</p>
+</li>
+<li>
+<p>common.only: A vector of user-specified indicators of the variables 
+only with common effects.
+</p>
+</li>
+<li>
+<p>common.no.penalty: A vector of user-specified indicators of the variables
+with no penalty on the common effect.
+</p>
+</li>
+<li>
+<p>cluster.no.penalty: A vector of user-specified indicators of the variables
+with no penalty on the cluster-specific effects.
+</p>
+</li>
+<li>
+<p>select.ratio: A user-specified ratio indicating the ratio of variables to be selected.
+</p>
+</li>
+</ul>
+<p>The available elements for argument <code>control</code> include
+</p>
+
+<ul>
+<li>
+<p>epsilon: Convergence threshold for generalized EM algorithm.
+Defaults value is 1E-6.
+</p>
+</li>
+<li>
+<p>maxit: Maximum number of passes over the data for all lambda values.
+Default is 1000.
+</p>
+</li>
+<li>
+<p>inner.eps: Convergence threshold for Bregman coordinate descent algorithm.
+Defaults value is 1E-6.
+</p>
+</li>
+<li>
+<p>inner.maxit: Maximum number of iteration for Bregman coordinate descent algorithm.
+Defaults value is 200.
+</p>
+</li>
+<li>
+<p>n.ini: Number of initial values for EM algorithm. Default is 10. In EM algorithm, it is 
+preferable to start from several different initial values.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list consisting of
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>vector of lambda used in model fitting</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.used</code></td>
+<td>
+<p>vector of lambda in model fitting after truncation by select.ratio</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B.hat</code></td>
+<td>
+<p>estimated rescaled coefficient (<code class="reqn">p \times m + 1 \times nlambda</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi.hat</code></td>
+<td>
+<p>estimated prior probabilities (<code class="reqn">m \times nlambda</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho.hat</code></td>
+<td>
+<p>estimated rho values (<code class="reqn">m \times nlambda</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IC</code></td>
+<td>
+<p>values of information criteria</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Li, Y., Yu, C., Zhao, Y., Yao, W., Aseltine, R. H., &amp; Chen, K. (2021). 
+Pursuing Sources of Heterogeneity in Modeling Clustered Population.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fmerPack)
+## problem settings
+n &lt;- 100; m &lt;- 3; p &lt;- 5;
+sigma2 &lt;- c(0.1, 0.1, 0.4); rho &lt;- 1 / sqrt(sigma2)
+phi &lt;- rbind(c(1, 1, 1), c(1, 1, 1), c(1, 1, 1), c(-3, 3, 0), c(3, 0, -3))
+beta &lt;- t(t(phi) / rho)
+## generate response and covariates
+z &lt;- rmultinom(n, 1, prob= rep(1 / m, m))
+X &lt;- matrix(rnorm(n * p), nrow = n, ncol = p)
+y &lt;- MASS::mvrnorm(1, mu = rowSums(t(z) * X[, 1:(nrow(beta))] %*% beta), 
+                   Sigma = diag(colSums(z * sigma2)))
+## lasso
+fit1 &lt;- path.fmrHP(y, X, m = m, modstr = list(nlambda = 10), control = list(n.ini = 1))
+## adaptive lasso
+fit2 &lt;- path.fmrHP(y, X, m = m, 
+                   modstr = list(w = abs(select.tuning(fit1)$B + 1e-6)^2))
+
+</code></pre>
+
+
+</div>

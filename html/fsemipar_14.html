@@ -1,0 +1,274 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lm.pels.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Regularised fit of sparse linear regression
+</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a sparse linear model between a scalar response and a vector of scalar covariates. It employs a penalised least-squares regularisation procedure, with either (group)SCAD or (group)LASSO penalties. The method utilises an objective criterion (<code>criterion</code>) to select the optimal regularisation parameter (<code>lambda.opt</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lm.pels.fit(z, y, lambda.min = NULL, lambda.min.h = NULL, lambda.min.l = NULL,
+factor.pn = 1, nlambda = 100, lambda.seq = NULL, vn = ncol(z), nfolds = 10, 
+seed = 123, criterion = "GCV", penalty = "grSCAD", max.iter = 1000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+
+<p>Matrix containing the observations of the covariates collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>Vector containing the scalar response.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min</code></td>
+<td>
+
+<p>The smallest value for lambda (i. e., the lower endpoint  of the sequence in which <code>lambda.opt</code> is selected), as fraction of <code>lambda.max</code>.
+The defaults is <code>lambda.min.l</code> if the sample size is larger than <code>factor.pn</code> times the number of linear covariates and <code>lambda.min.h</code> otherwise.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.h</code></td>
+<td>
+
+<p>The lower endpoint of the sequence in which <code>lambda.opt</code> is selected if the sample size is smaller than <code>factor.pn</code> times the number of linear covariates. The default is 0.05. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.l</code></td>
+<td>
+
+<p>The lower endpoint of the sequence in which <code>lambda.opt</code> is selected if the sample size is larger than <code>factor.pn</code> times the number of linear covariates. The default is 0.0001.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.pn</code></td>
+<td>
+
+<p>Positive integer used to set <code>lambda.min</code>. The default value is 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+
+<p>Positive integer indicating the number of values in the sequence from which <code>lambda.opt</code> is selected. The default is 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.seq</code></td>
+<td>
+
+<p>Sequence of values in which <code>lambda.opt</code> is selected. If <code>lambda.seq=NULL</code>, then the programme builds the sequence automatically using <code>lambda.min</code> and <code>nlambda</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vn</code></td>
+<td>
+
+<p>Positive integer or vector of positive integers indicating the number of groups of consecutive variables to be penalised together. The default value is <code>vn=ncol(z)</code>, resulting in the individual penalization of each scalar covariate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+
+<p>Number of cross-validation folds (used when <code>criterion="k-fold-CV"</code>). Default is 10.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>You may set the seed for the random number generator to ensure reproducible results (applicable when <code>criterion="k-fold-CV"</code> is used). The default seed value is 123.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+
+<p>The criterion used to select the regularisation parameter <code>lambda.opt</code> (also <code>vn.opt</code> if needed). Options include <code>"GCV"</code>, <code>"BIC"</code>, <code>"AIC"</code>, or <code>"k-fold-CV"</code>. The default setting is <code>"GCV"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+
+<p>The penalty function applied in the penalised least-squares procedure. Currently, only "grLasso" and "grSCAD" are implemented. The default is "grSCAD".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+
+<p>Maximum number of iterations allowed across the entire path. The default value is 1000.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The sparse linear model (SLM) is given by the expression:
+</p>
+<p style="text-align: center;"><code class="reqn">
+Y_i=Z_{i1}\beta_{01}+\dots+Z_{ip_n}\beta_{0p_n}+\varepsilon_i\ \ \ i=1,\dots,n,
+</code>
+</p>
+
+<p>where <code class="reqn">Y_i</code> denotes a scalar response, <code class="reqn">Z_{i1},\dots,Z_{ip_n}</code> are real covariates. In this equation, <code class="reqn">\mathbf{\beta}_0=(\beta_{01},\dots,\beta_{0p_n})^{\top}</code> is a vector of unknown real parameters and <code class="reqn">\varepsilon_i</code> represents the random error.
+</p>
+<p>In this function, the SLM is fitted using a penalised least-squares (PeLS) approach by minimising 
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathcal{Q}\left(\mathbf{\beta}\right)=\frac{1}{2}\left(\mathbf{Y}-\mathbf{Z}\mathbf{\beta}\right)^{\top}\left(\mathbf{Y}-\mathbf{Z}\mathbf{\beta}\right)+n\sum_{j=1}^{p_n}\mathcal{P}_{\lambda_{j_n}}\left(|\beta_j|\right), \quad (1)
+</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{\beta}=(\beta_1,\ldots,\beta_{p_n})^{\top}, \ \mathcal{P}_{\lambda_{j_n}}\left(\cdot\right)</code> is a penalty function (specified in the argument <code>penalty</code>) and <code class="reqn">\lambda_{j_n} &gt; 0</code> is a tuning parameter.
+To reduce the number of tuning parameters, <code class="reqn">\lambda_j</code>, to be selected for each sample, we consider <code class="reqn">\lambda_j = \lambda \widehat{\sigma}_{\beta_{0,j,OLS}}</code>, where <code class="reqn">\beta_{0,j,OLS}</code> denotes the OLS estimate of <code class="reqn">\beta_{0,j}</code> and <code class="reqn">\widehat{\sigma}_{\beta_{0,j,OLS}}</code> is the estimated standard deviation. The parameter <code class="reqn">\lambda</code> is selected using the objetive criterion specified in the argument <code>criterion</code>.
+</p>
+<p>For further details on the estimation procedure of the SLM, see e.g. Fan and Li. (2001). The PeLS objective function  is minimised using the R function <code>grpreg</code> of the package <code>grpreg</code> (Breheny and Huang, 2015).
+</p>
+<p><b>Remark</b>:  It should be noted that if  we set <code>lambda.seq</code> to <code class="reqn">=0</code>, we obtain the non-penalised estimation of the model, i.e. the OLS estimation. Using <code>lambda.seq</code> with a vaule <code class="reqn">\not=0</code> is advisable when suspecting the presence of irrelevant variables.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>Estimated scalar response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Differences between <code>y</code> and the <code>fitted.values</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.est</code></td>
+<td>
+<p>Estimate of <code class="reqn">\beta_0</code> when the optimal penalisation parameter <code>lambda.opt</code> and <code>vn.opt</code> are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indexes.beta.nonnull</code></td>
+<td>
+<p>Indexes of the non-zero <code class="reqn">\hat{\beta_{j}}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.opt</code></td>
+<td>
+<p>Selected value of lambda.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IC</code></td>
+<td>
+<p>Value of the criterion function considered to select <code>lambda.opt</code> and <code>vn.opt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vn.opt</code></td>
+<td>
+<p>Selected value of <code>vn</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>German Aneiros Perez <a href="mailto:german.aneiros@udc.es">german.aneiros@udc.es</a> 
+</p>
+<p>Silvia Novo Diaz  <a href="mailto:snovo@est-econ.uc3m.es">snovo@est-econ.uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Breheny, P., and Huang, J. (2015) Group descent algorithms for nonconvex penalized linear and
+logistic regression models with grouped predictors. <em>Statistics and Computing</em>, <b>25</b>, 173–187, <a href="https://doi.org/10.1007/s11222-013-9424-2">doi:10.1007/s11222-013-9424-2</a>.
+</p>
+<p>Fan, J., and Li, R. (2001) Variable selection via nonconcave penalized
+likelihood and its oracle properties. <em>Journal of the American Statistical Association</em>, <b>96</b>, 1348–1360, <a href="https://doi.org/10.1198/016214501753382273">doi:10.1198/016214501753382273</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>PVS.fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("Tecator")
+y&lt;-Tecator$fat
+z1&lt;-Tecator$protein       
+z2&lt;-Tecator$moisture
+
+#Quadratic, cubic and interaction effects of the scalar covariates.
+z.com&lt;-cbind(z1,z2,z1^2,z2^2,z1^3,z2^3,z1*z2)
+train&lt;-1:160
+
+#LM fit 
+ptm=proc.time()
+fit&lt;-lm.pels.fit(z=z.com[train,], y=y[train],lambda.min.h=0.02,
+      lambda.min.l=0.01,factor.pn=2, max.iter=5000, criterion="BIC")
+proc.time()-ptm
+
+#Results
+fit
+names(fit)
+ 
+</code></pre>
+
+
+</div>

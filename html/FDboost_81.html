@@ -1,0 +1,321 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>validateFDboost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-Validation and Bootstrapping over Curves</h2>
+
+<h3>Description</h3>
+
+<p>DEPRECATED! 
+The function <code>validateFDboost()</code> is deprecated,  
+use <code>applyFolds</code> and <code>bootstrapCI</code> instead.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">validateFDboost(
+  object,
+  response = NULL,
+  folds = cv(rep(1, length(unique(object$id))), type = "bootstrap"),
+  grid = 1:mstop(object),
+  fun = NULL,
+  getCoefCV = TRUE,
+  riskopt = c("mean", "median"),
+  mrdDelete = 0,
+  refitSmoothOffset = TRUE,
+  showProgress = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>fitted FDboost-object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>optional, specify a response vector for the computation of the prediction errors.
+Defaults to <code>NULL</code> which means that the response of the fitted model is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>a weight matrix with number of rows equal to the number of observed trajectories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>the grid over which the optimal number of boosting iterations (mstop) is searched.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>if <code>fun</code> is <code>NULL</code>, the out-of-bag risk is returned. 
+<code>fun</code>, as a function of <code>object</code>, 
+may extract any other characteristic of the cross-validated models. These are returned as is.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getCoefCV</code></td>
+<td>
+<p>logical, defaults to <code>TRUE</code>. Should the coefficients and predictions
+be computed for all the models on the sampled data?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>riskopt</code></td>
+<td>
+<p>how is the optimal stopping iteration determined. Defaults to the mean, 
+but median is possible as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mrdDelete</code></td>
+<td>
+<p>Delete values that are <code>mrdDelete</code> percent smaller than the mean
+of the response. Defaults to 0 which means that only response values being 0 
+are not used in the calculation of the MRD (= mean relative deviation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refitSmoothOffset</code></td>
+<td>
+<p>logical, should the offset be refitted in each learning sample? 
+Defaults to <code>TRUE</code>. In <code>cvrisk</code> the offset of the original model fit in  
+<code>object</code> is used in all folds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showProgress</code></td>
+<td>
+<p>logical, defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>mclapply</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The number of boosting iterations is an important hyper-parameter of boosting  
+and can be chosen using the function <code>validateFDboost</code> as they compute
+honest, i.e., out-of-bag, estimates of the empirical risk for different numbers of boosting iterations. 
+</p>
+<p>The function <code>validateFDboost</code> is especially suited to models with functional response. 
+Using the option <code>refitSmoothOffset</code> the offset is refitted on each fold. 
+Note, that the function <code>validateFDboost</code> expects folds that give weights
+per curve without considering integration weights. The integration weights of 
+<code>object</code> are used to compute the empirical risk as integral. The argument <code>response</code> 
+can be useful in simulation studies where the true value of the response is known but for 
+the model fit the response is used with noise.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>validateFDboost</code> returns a <code>validateFDboost</code>-object, 
+which is a named list containing: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>the response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yind</code></td>
+<td>
+<p>the observation points of the response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>the id variable of the response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>folds that were used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>grid of possible numbers of boosting iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefCV</code></td>
+<td>
+<p>if <code>getCoefCV</code> is <code>TRUE</code> the estimated coefficient functions in the folds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predCV</code></td>
+<td>
+<p>if <code>getCoefCV</code> is <code>TRUE</code> the out-of-bag predicted values of the response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobpreds</code></td>
+<td>
+<p>if the type of folds is curves the out-of-bag predictions for each trajectory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobrisk</code></td>
+<td>
+<p>the out-of-bag risk</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobriskMean</code></td>
+<td>
+<p>the out-of-bag risk at the minimal mean risk</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobmse</code></td>
+<td>
+<p>the out-of-bag mean squared error (MSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobrelMSE</code></td>
+<td>
+<p>the out-of-bag relative mean squared error (relMSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobmrd</code></td>
+<td>
+<p>the out-of-bag mean relative deviation (MRD)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobrisk0</code></td>
+<td>
+<p>the out-of-bag risk without consideration of integration weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobmse0</code></td>
+<td>
+<p>the out-of-bag mean squared error (MSE) without consideration of integration weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobmrd0</code></td>
+<td>
+<p>the out-of-bag mean relative deviation (MRD) without consideration of integration weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>one of "FDboostLong" or "FDboost" depending on the class of the object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun_ret</code></td>
+<td>
+<p>list of what fun returns if fun was specified</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(require(fda)){
+ ## load the data
+ data("CanadianWeather", package = "fda")
+ 
+ ## use data on a daily basis 
+ canada &lt;- with(CanadianWeather, 
+                list(temp = t(dailyAv[ , , "Temperature.C"]),
+                     l10precip = t(dailyAv[ , , "log10precip"]),
+                     l10precip_mean = log(colMeans(dailyAv[ , , "Precipitation.mm"]), base = 10),
+                     lat = coordinates[ , "N.latitude"],
+                     lon = coordinates[ , "W.longitude"],
+                     region = factor(region),
+                     place = factor(place),
+                     day = 1:365,  ## corresponds to t: evaluation points of the fun. response 
+                     day_s = 1:365))  ## corresponds to s: evaluation points of the fun. covariate
+ 
+## center temperature curves per day 
+canada$tempRaw &lt;- canada$temp
+canada$temp &lt;- scale(canada$temp, scale = FALSE) 
+rownames(canada$temp) &lt;- NULL ## delete row-names 
+  
+## fit the model  
+mod &lt;- FDboost(l10precip ~ 1 + bolsc(region, df = 4) + 
+                 bsignal(temp, s = day_s, cyclic = TRUE, boundary.knots = c(0.5, 365.5)), 
+               timeformula = ~ bbs(day, cyclic = TRUE, boundary.knots = c(0.5, 365.5)), 
+               data = canada)
+mod &lt;- mod[75]
+
+  #### create folds for 3-fold bootstrap: one weight for each curve
+  set.seed(124)
+  folds_bs &lt;- cv(weights = rep(1, mod$ydim[1]), type = "bootstrap", B = 3)
+
+  ## compute out-of-bag risk on the 3 folds for 1 to 75 boosting iterations  
+  cvr &lt;- applyFolds(mod, folds = folds_bs, grid = 1:75)
+
+  ## compute out-of-bag risk and coefficient estimates on folds  
+  cvr2 &lt;- validateFDboost(mod, folds = folds_bs, grid = 1:75)
+
+  ## weights per observation point  
+  folds_bs_long &lt;- folds_bs[rep(1:nrow(folds_bs), times = mod$ydim[2]), ]
+  attr(folds_bs_long, "type") &lt;- "3-fold bootstrap"
+  ## compute out-of-bag risk on the 3 folds for 1 to 75 boosting iterations  
+  cvr3 &lt;- cvrisk(mod, folds = folds_bs_long, grid = 1:75)
+
+  ## plot the out-of-bag risk
+  oldpar &lt;- par(mfrow = c(1,3))
+  plot(cvr); legend("topright", lty=2, paste(mstop(cvr)))
+  plot(cvr2)
+  plot(cvr3); legend("topright", lty=2, paste(mstop(cvr3)))
+
+  ## plot the estimated coefficients per fold
+  ## more meaningful for higher number of folds, e.g., B = 100 
+  par(mfrow = c(2,2))
+  plotPredCoef(cvr2, terms = FALSE, which = 1)
+  plotPredCoef(cvr2, terms = FALSE, which = 3)
+  
+  ## compute out-of-bag risk and predictions for leaving-one-curve-out cross-validation
+  cvr_jackknife &lt;- validateFDboost(mod, folds = cvLong(unique(mod$id), 
+                                   type = "curves"), grid = 1:75)
+  plot(cvr_jackknife)
+  ## plot oob predictions per fold for 3rd effect 
+  plotPredCoef(cvr_jackknife, which = 3) 
+  ## plot coefficients per fold for 2nd effect
+  plotPredCoef(cvr_jackknife, which = 2, terms = FALSE)
+  
+  par(oldpar)
+
+}
+
+
+</code></pre>
+
+
+</div>

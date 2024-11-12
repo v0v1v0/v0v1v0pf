@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Gibbs_4PNO</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gibbs Implementation of 4PNO</h2>
+
+<h3>Description</h3>
+
+<p>Internal function to -2LL
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Gibbs_4PNO(Y, mu_xi, Sigma_xi_inv, mu_theta, Sigma_theta_inv, alpha_c,
+  beta_c, alpha_s, beta_s, burnin, cTF, sTF, gwg_reps,
+  chain_length = 10000L)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A N by J <code>matrix</code> of item responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_xi</code></td>
+<td>
+<p>A two dimensional <code>vector</code> of prior item parameter
+means.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma_xi_inv</code></td>
+<td>
+<p>A two dimensional identity <code>matrix</code> of prior item
+parameter VC matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_theta</code></td>
+<td>
+<p>The prior mean for theta.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma_theta_inv</code></td>
+<td>
+<p>The prior inverse variance for theta.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_c</code></td>
+<td>
+<p>The lower asymptote prior 'a' parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_c</code></td>
+<td>
+<p>The lower asymptote prior 'b' parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_s</code></td>
+<td>
+<p>The upper asymptote prior 'a' parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_s</code></td>
+<td>
+<p>The upper asymptote prior 'b' parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>The number of MCMC samples to discard.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cTF</code></td>
+<td>
+<p>A J dimensional <code>vector</code> indicating which
+lower asymptotes to estimate.
+0 = exclude lower asymptote and
+1 = include lower asymptote.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sTF</code></td>
+<td>
+<p>A J dimensional <code>vector</code> indicating which
+upper asymptotes to estimate.
+0 = exclude upper asymptote and
+1 = include upper asymptote.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gwg_reps</code></td>
+<td>
+<p>The number of Gibbs within Gibbs MCMC samples for
+marginal distribution of gamma. Values between
+5 to 10 are adequate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chain_length</code></td>
+<td>
+<p>The number of MCMC samples.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Samples from posterior.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Steven Andrew Culpepper
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate small 4PNO dataset to demonstrate function
+J = 5
+N = 100
+
+# Population item parameters
+as_t = rnorm(J,mean=2,sd=.5)
+bs_t = rnorm(J,mean=0,sd=.5)
+
+# Sampling gs and ss with truncation
+gs_t = rbeta(J,1,8)
+ps_g = pbeta(1-gs_t,1,8)
+ss_t = qbeta(runif(J)*ps_g,1,8)
+theta_t &lt;- rnorm(N)
+Y_t = Y_4pno_simulate(N,J,as=as_t,bs=bs_t,gs=gs_t,ss=ss_t,theta=theta_t)
+
+# Setting prior parameters
+mu_theta=0
+Sigma_theta_inv=1
+mu_xi = c(0,0)
+alpha_c=alpha_s=beta_c=beta_s=1
+Sigma_xi_inv = solve(2*matrix(c(1,0,0,1),2,2))
+burnin = 1000
+
+# Execute Gibbs sampler
+out_t = Gibbs_4PNO(Y_t,mu_xi,Sigma_xi_inv,mu_theta,
+                   Sigma_theta_inv,alpha_c,beta_c,alpha_s,
+                   beta_s,burnin,rep(1,J),rep(1,J),
+                   gwg_reps=5,chain_length=burnin*2)
+
+# Summarizing posterior distribution
+OUT = cbind(apply(out_t$AS[,-c(1:burnin)],1,mean),
+            apply(out_t$BS[,-c(1:burnin)],1,mean),
+            apply(out_t$GS[,-c(1:burnin)],1,mean),
+            apply(out_t$SS[,-c(1:burnin)],1,mean),
+            apply(out_t$AS[,-c(1:burnin)],1,sd),
+            apply(out_t$BS[,-c(1:burnin)],1,sd),
+            apply(out_t$GS[,-c(1:burnin)],1,sd),
+            apply(out_t$SS[,-c(1:burnin)],1,sd) )
+
+OUT = cbind(1:J,OUT)
+colnames(OUT) = c('Item', 'as', 'bs', 'gs', 'ss', 'as_sd', 'bs_sd',
+                  'gs_sd', 'ss_sd')
+print(OUT, digits = 3)
+</code></pre>
+
+
+</div>

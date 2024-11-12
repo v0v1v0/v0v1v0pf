@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>russet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of the russet risk for apple and pear fruits</h2>
+
+<h3>Description</h3>
+
+<p>This function assesses the risk of russet in fruit skins. The
+risk is defined by the number of hours with the relative humidity (RH)
+above a threshold during a given period. For reference, in 'Conference' 
+pear the risk is defined by the number of hours with RH&gt; 75% from 
+12 to 30 days after full bloom (Alegre, 2013). In 'Golden' apple, 
+the risk is defined by the number of hours with RH&gt; 55% from 
+30 to 34 days after full bloom (Barcelo-Vidal et al., 2013). 
+The function requires hourly temperatures and humidity, 
+if only daily data is available, the function hourly_RH can be 
+used to estimate them.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">russet(climdata, fendata, RH_crit, init_d, end_d)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>climdata</code></td>
+<td>
+<p>a dataframe with hourly temperature and RH
+data. Required columns are Date, Year, Month, Day, DOY (julian day),
+Hour and RH.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fendata</code></td>
+<td>
+<p>a dataframe with julian day of occurrence of the full
+bloom (F2) phenological stage.
+Must contain the columns Year and Fday in that order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RH_crit</code></td>
+<td>
+<p>the relative humidity threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_d</code></td>
+<td>
+<p>the initial date (as days after full bloom) of the sensitive period</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_d</code></td>
+<td>
+<p>the end date (as days after full bloom) of the sensitive period</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>data frame with the number of risk hours (Russet_hours)
+in the sensitive period for each year in the series.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carlos Miranda, <a href="mailto:carlos.miranda@unavarra.es">carlos.miranda@unavarra.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Alegre S. 2013. Tecnicas de cultivo. In. VII Foro INIA "adaptacion a 
+cambio climatico en la produccion fruticola de hueso y pepita". Madrid, 
+Spain, pp 1-18
+Barcelo-Vidal C, Bonany J, Martin-Fernandez JA and Carbo J. 2013. 
+Modelling of weather parameters to predict russet on 'Golden Delicious'
+apple. J. Hort. Sci. Biotech. 88: 624-630.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Select the appropiate columns from the example dataset
+# Dates_BT and rename column names to make the file compatible
+# with the function
+library(magrittr)
+library(dplyr)
+library(lubridate)
+Bloom &lt;- Dates_BT %&gt;%
+   select(Year, sbloom) %&gt;%
+   rename(Fday=sbloom) %&gt;%
+   filter(Year==2003)
+# Obtain estimated hourly RH from the example dataset Tudela_DW
+Weather &lt;- Tudela_DW %&gt;%
+        filter (Tudela_DW$Year==2003)
+RH_h &lt;- hourly_RH(Weather, 42.13132)
+# Estimate the number of russet-inducing days for a RH&gt;55\% 
+# between 30 to 34 days after full bloom for each season
+Russet_Risk &lt;-russet(RH_h,Bloom,55,30,34)
+
+</code></pre>
+
+
+</div>

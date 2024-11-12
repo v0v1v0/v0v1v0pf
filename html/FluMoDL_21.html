@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.FluMoDL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary method for FluMoDL objects</h2>
+
+<h3>Description</h3>
+
+<p>This function creates a summarized version of a 'FluMoDL' object. It contains
+the sets of coefficients and variance-covariance matrices for the incidence
+proxy terms (for influenza, and for RSV if provided), and the predictions for these terms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FluMoDL'
+summary(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class 'FluMoDL'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These summaries can be used to run a <code>multivariate meta-analysis</code> and calculate
+pooled effect estimates and BLUP (Best Unbiased Linear Predictor) estimates
+for influenza (and RSV if provided).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class 'summary.FluMoDL'. This is a list containing the following elements:
+</p>
+
+<dl>
+<dt>$type</dt>
+<dd>
+<p>A string describing the meaning of the coefficients. Defaults to
+"summary", meaning a first-stage model summary. Alternatively, "blup" means
+Best Unbiased Linear Predictor (BLUP) coefficients, and "pooled" refers to coefficients
+pooled in the course of a multivariate meta-analysis. See <code>metaFluMoDL</code>.</p>
+</dd>
+<dt>$description</dt>
+<dd>
+<p>A string with an additional description. For objects created
+with <code>summary.FluMoDL()</code> it is an empty string, but see <code>metaFluMoDL</code>.</p>
+</dd>
+<dt>$coef</dt>
+<dd>
+<p>A list of numeric vectors, with names 'proxyH1', 'proxyH3' and 'proxyB'
+(and 'proxyRSV' if provided in the function arguments), containing the model
+coefficients for these terms.</p>
+</dd>
+<dt>$vcov</dt>
+<dd>
+<p>A list of variance-covariance matrices, with names 'proxyH1', 'proxyH3'
+and 'proxyB' (and 'proxyRSV' if provided in the function arguments), for the respective
+model coefficients.</p>
+</dd>
+<dt>$pred</dt>
+<dd>
+<p>A list with names 'proxyH1', 'proxyH3' and 'proxyB' (and 'proxyRSV'
+if provided in the function arguments), containing
+predictions (in the form of <code>crosspred</code> objects) for each exposure.
+These can be plotted in both the exposure-response and lag-response dimensions, see
+<code>crosspred</code>, <code>plot.crosspred</code> and the example below.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(greece) # Use example surveillance data from Greece
+m &lt;- with(greece, fitFluMoDL(deaths = daily$deaths,
+    temp = daily$temp, dates = daily$date,
+    proxyH1 = weekly$ILI * weekly$ppH1,
+    proxyH3 = weekly$ILI * weekly$ppH3,
+    proxyB = weekly$ILI * weekly$ppB,
+    yearweek = weekly$yearweek))
+summ &lt;- summary(m)
+summ
+
+# Plot the association between A(H1N1)pdm09 activity and mortality:
+plot(summ$pred$proxyH1, "overall")
+
+</code></pre>
+
+
+</div>

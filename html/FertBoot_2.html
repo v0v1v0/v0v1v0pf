@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>boot.resid.linear.plateau</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear plateau model estimation by bootstrapping residuals</h2>
+
+<h3>Description</h3>
+
+<p><code>boot.resid.linear.plateau</code> is the core function to implement bootstrapping residuals on linear plateau models, which assumes
+y ~ a + b * (x - c) * (x &lt;= c). Note that this function may take minutes up to days. Parallel computing may be necessary.
+We suggest users start with a smaller <code>B</code> and moderate n.start to see if the bootstrap models can converge.
+In general, increasing n.start and plus_minus may help with ease of convergence. For rigorous statistical inference, B should be on the order of a thousand.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">boot.resid.linear.plateau(
+  mod,
+  data,
+  x.range = data.frame(x = seq(0, 280, by = 40)),
+  B = 100 - 1,
+  plus_minus = 100,
+  n.start = 1000,
+  print.progress = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+<p>a full model list, probably from <code>f.linear.plateau()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame with two columns (<code>x</code> and <code>y</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.range</code></td>
+<td>
+<p>vector of data.frame with one column for range of N rate of interested for prediction interval</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>bootstrap sample size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plus_minus</code></td>
+<td>
+<p>radius of random initial values (default: <code>100</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.start</code></td>
+<td>
+<p>total number of initial points considered (default: <code>1000</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.progress</code></td>
+<td>
+<p>logical flag whether printing progress</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>boot.resid.linear.plateau</code> returns a list of two elements:
+<code>result</code>: matrix with B rows and columns containing bootstrap sample for parameter (<code>a,b,c</code>), optimal N and yield (<code>max_x, max_y</code>), log-likelihood (<code>logLik</code>) and N values of interest;
+<code>x.range</code>: range of x considered for prediction interval (same as <code>x.range</code> in vector form)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+set.seed(1)
+x &lt;- rep(1:300, each=4)
+a &lt;- 8; b &lt;- 0.05; c &lt;- 100
+y &lt;- a + b * (x - c) * (x &lt;= c) +
+    rnorm(length(x), sd=1)
+d &lt;- cbind(x,y)
+
+# a converged example:
+ans &lt;- f.linear.plateau(d, start=list(a = 7, b = 0.1, c = 150),
+    plus_minus=10, n.start=10, msg=FALSE)
+
+
+ans.boot &lt;- boot.resid.linear.plateau(ans, d, x.range=seq(0,280,by=40),
+    B=9, plus_minus = 1e2, n.start=1000, print.progress=TRUE) # use larger B for inference
+
+
+
+
+
+</code></pre>
+
+
+</div>

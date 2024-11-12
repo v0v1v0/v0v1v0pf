@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>filter_florabr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Identify records outside natural ranges according to Flora e Funga do Brasil</h2>
+
+<h3>Description</h3>
+
+<p>This function removes or flags records outside of the species'
+natural ranges according to information provided by the Flora e Funga do
+Brasil database.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">filter_florabr(data, occ, species = "species", long = "x", lat = "y",
+                      by_state = TRUE, buffer_state = 20, by_biome = TRUE,
+                      buffer_biome = 20, by_endemism = TRUE,
+                      buffer_brazil = 20, state_vect = NULL,
+                      state_column = NULL, biome_vect = NULL,
+                      biome_column = NULL, br_vect = NULL,
+                      value = "flag&amp;clean", keep_columns = TRUE,
+                      verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>(data.frame) the data.frame imported with the
+<code>load_florabr</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>occ</code></td>
+<td>
+<p>(data.frame) a data.frame with the records of the species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>species</code></td>
+<td>
+<p>(character) column name in occ with species names.
+Default = "species"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long</code></td>
+<td>
+<p>(character) column name in occ with longitude data. Default = "x"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>(character) column name in occ with latitude data. Default = "y"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_state</code></td>
+<td>
+<p>(logical) filter records by state? Default = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffer_state</code></td>
+<td>
+<p>(numeric) buffer (in km) around the polygons of the
+states of occurrence of the specie. Default = 20.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_biome</code></td>
+<td>
+<p>(logical) filter records by biome? Default = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffer_biome</code></td>
+<td>
+<p>(numeric) buffer (in km) around the polygons of the
+biomes of occurrence of the specie. Default = 20.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_endemism</code></td>
+<td>
+<p>(logical) filter records by endemism? Default = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffer_brazil</code></td>
+<td>
+<p>(numeric) buffer (in km) around the polygons of the
+brazil. Default = 20.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state_vect</code></td>
+<td>
+<p>(SpatVector) a SpatVector of the Brazilian states. By
+default, it uses the SpatVector provided by geobr::read_state(). It can be
+another Spatvector, but the structure must be identical to
+geobr::read_state().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state_column</code></td>
+<td>
+<p>(character) name of the column in state_vect containing
+state abbreviations. Only use if biome_vect is not null.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biome_vect</code></td>
+<td>
+<p>(SpatVector) a SpatVector of the Brazilian biomes. By
+default, it uses the SpatVector provided by geobr::read_biomes(). It can be
+another SpatVector, but the structure must be identical to
+geobr::read_biomes() with biome names in English.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biome_column</code></td>
+<td>
+<p>(character) name of the column in biome_vect containing
+names of brazilian biomes (in English: "Amazon", "Atlantic_Forest",
+"Caatinga", "Cerrado", "Pampa" and "Pantanal". Only use if biome_vect is not
+null.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>br_vect</code></td>
+<td>
+<p>(SpatVector) a SpatVector of brazil. By default, it uses the
+SpatVector provided by geobr::read_state() after being aggregated/dissolved,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>(character) Defines output values. See Value section.
+Default = "flag&amp;clean".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_columns</code></td>
+<td>
+<p>(logical) if TRUE, keep all the original columns of the
+input occ. If False, keep only the columns species, long and lat.
+Default = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(logical) Whether to display species being filtered during
+function execution. Set to TRUE to enable display, or FALSE to run silently.
+Default = TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If by_state = TRUE and/or by_biome = TRUE, the function takes polygons
+representing the states and/or biomes with confirmed occurrences of the
+specie, draws a buffer around the polygons, and tests if the records of the
+species fall inside it.
+If by_endemism = TRUE, the function checks if the species is endemic to
+brazil. If it is endemic, the function tests if the records of the specie
+fall inside a polygon representing the boundaries of brazil (with a buffer).
+</p>
+
+
+<h3>Value</h3>
+
+<p>Depending on the 'value' argument. If value = "flag", it returns the
+same data.frame provided in data with additional columns indicating if the
+record falls inside the natural range of the specie (TRUE) or outside
+(FALSE).
+If value = "clean", it returns a data.frame with only the records that passes
+all the tests (TRUE for all the filters). If value = "flag&amp;clean" (Default),
+it returns a list with two data.frames: one with the flagged records and one
+with the cleaned records.
+</p>
+
+
+<h3>References</h3>
+
+<p>Flora e Funga do Brasil. Jardim Botânico do Rio de Janeiro. Available at:
+http://floradobrasil.jbrj.gov.br/
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("bf_data") #Load Flora e Funga do Brasil data
+data("occurrences") #Load occurrences
+pts &lt;- subset(occurrences, species == "Myrcia hatschbachii")
+fd &lt;- filter_florabr(data = bf_data, occ = pts,
+                    by_state = TRUE, buffer_state = 20,
+                    by_biome = TRUE, buffer_biome = 20,
+                    by_endemism = TRUE, buffer_brazil = 20,
+                    state_vect = NULL,
+                    biome_vect = NULL, br_vect = NULL,
+                    value = "flag&amp;clean", keep_columns = TRUE,
+                    verbose = FALSE)
+</code></pre>
+
+
+</div>

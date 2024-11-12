@@ -1,0 +1,762 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>.parse_evaluation_settings</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Internal function for parsing settings related to model evaluation</h2>
+
+<h3>Description</h3>
+
+<p>Internal function for parsing settings related to model evaluation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">.parse_evaluation_settings(
+  config = NULL,
+  data,
+  parallel,
+  outcome_type,
+  hpo_metric,
+  development_batch_id,
+  vimp_aggregation_method,
+  vimp_aggregation_rank_threshold,
+  prep_cluster_method,
+  prep_cluster_linkage_method,
+  prep_cluster_cut_method,
+  prep_cluster_similarity_threshold,
+  prep_cluster_similarity_metric,
+  evaluate_top_level_only = waiver(),
+  skip_evaluation_elements = waiver(),
+  ensemble_method = waiver(),
+  evaluation_metric = waiver(),
+  sample_limit = waiver(),
+  detail_level = waiver(),
+  estimation_type = waiver(),
+  aggregate_results = waiver(),
+  confidence_level = waiver(),
+  bootstrap_ci_method = waiver(),
+  feature_cluster_method = waiver(),
+  feature_cluster_cut_method = waiver(),
+  feature_linkage_method = waiver(),
+  feature_similarity_metric = waiver(),
+  feature_similarity_threshold = waiver(),
+  sample_cluster_method = waiver(),
+  sample_linkage_method = waiver(),
+  sample_similarity_metric = waiver(),
+  eval_aggregation_method = waiver(),
+  eval_aggregation_rank_threshold = waiver(),
+  eval_icc_type = waiver(),
+  stratification_method = waiver(),
+  stratification_threshold = waiver(),
+  time_max = waiver(),
+  evaluation_times = waiver(),
+  dynamic_model_loading = waiver(),
+  parallel_evaluation = waiver(),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>config</code></td>
+<td>
+<p>A list of settings, e.g. from an xml file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data set as loaded using the <code>.load_data</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical value that whether familiar uses parallelisation. If
+<code>FALSE</code> it will override <code>parallel_evaluation</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_type</code></td>
+<td>
+<p>Type of outcome found in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpo_metric</code></td>
+<td>
+<p>Metric defined for hyperparameter optimisation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>development_batch_id</code></td>
+<td>
+<p>Identifiers of batches used for model development.
+These identifiers are used to determine the cohorts used to determine a
+setting for <code>time_max</code>, if the <code>outcome_type</code> is <code>survival</code>, and both
+<code>time_max</code> and <code>evaluation_times</code> are not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vimp_aggregation_method</code></td>
+<td>
+<p>Method for variable importance aggregation that
+was used for feature selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vimp_aggregation_rank_threshold</code></td>
+<td>
+<p>Rank threshold for variable importance
+aggregation used during feature selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prep_cluster_method</code></td>
+<td>
+<p>Cluster method used during pre-processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prep_cluster_linkage_method</code></td>
+<td>
+<p>Cluster linkage method used during
+pre-processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prep_cluster_cut_method</code></td>
+<td>
+<p>Cluster cut method used during pre-processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prep_cluster_similarity_threshold</code></td>
+<td>
+<p>Cluster similarity threshold used
+during pre-processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prep_cluster_similarity_metric</code></td>
+<td>
+<p>Cluster similarity metric used during
+pre-processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evaluate_top_level_only</code></td>
+<td>
+<p>(<em>optional</em>) Flag that signals that only
+evaluation at the most global experiment level is required. Consider a
+cross-validation experiment with additional external validation. The global
+experiment level consists of data that are used for development, internal
+validation and external validation. The next lower experiment level are the
+individual cross-validation iterations.
+</p>
+<p>When the flag is <code>true</code>, evaluations take place on the global level only,
+and no results are generated for the next lower experiment levels. In our
+example, this means that results from individual cross-validation iterations
+are not computed and shown. When the flag is <code>false</code>, results are computed
+from both the global layer and the next lower level.
+</p>
+<p>Setting the flag to <code>true</code> saves computation time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip_evaluation_elements</code></td>
+<td>
+<p>(<em>optional</em>) Specifies which evaluation steps,
+if any, should be skipped as part of the evaluation process. Defaults to
+<code>none</code>, which means that all relevant evaluation steps are performed. It can
+have one or more of the following values:
+</p>
+
+<ul>
+<li> <p><code>none</code>, <code>false</code>: no steps are skipped.
+</p>
+</li>
+<li> <p><code>all</code>, <code>true</code>: all steps are skipped.
+</p>
+</li>
+<li> <p><code>auc_data</code>: data for assessing and plotting the area under the receiver
+operating characteristic curve are not computed.
+</p>
+</li>
+<li> <p><code>calibration_data</code>: data for assessing and plotting model calibration are
+not computed.
+</p>
+</li>
+<li> <p><code>calibration_info</code>: data required to assess calibration, such as baseline
+survival curves, are not collected. These data will still be present in the
+models.
+</p>
+</li>
+<li> <p><code>confusion_matrix</code>: data for assessing and plotting a confusion matrix are
+not collected.
+</p>
+</li>
+<li> <p><code>decision_curve_analyis</code>: data for performing a decision curve analysis
+are not computed.
+</p>
+</li>
+<li> <p><code>feature_expressions</code>: data for assessing and plotting sample clustering
+are not computed.
+</p>
+</li>
+<li> <p><code>feature_similarity</code>: data for assessing and plotting feature clusters are
+not computed.
+</p>
+</li>
+<li> <p><code>fs_vimp</code>: data for assessing and plotting feature selection-based
+variable importance are not collected.
+</p>
+</li>
+<li> <p><code>hyperparameters</code>: data for assessing model hyperparameters are not
+collected. These data will still be present in the models.
+</p>
+</li>
+<li> <p><code>ice_data</code>: data for individual conditional expectation and partial
+dependence plots are not created.
+</p>
+</li>
+<li> <p><code>model_performance</code>: data for assessing and visualising model performance
+are not created.
+</p>
+</li>
+<li> <p><code>model_vimp</code>: data for assessing and plotting model-based variable
+importance are not collected.
+</p>
+</li>
+<li> <p><code>permutation_vimp</code>: data for assessing and plotting model-agnostic
+permutation variable importance are not computed.
+</p>
+</li>
+<li> <p><code>prediction_data</code>: predictions for each sample are not made and exported.
+</p>
+</li>
+<li> <p><code>risk_stratification_data</code>: data for assessing and plotting Kaplan-Meier
+survival curves are not collected.
+</p>
+</li>
+<li> <p><code>risk_stratification_info</code>: data for assessing stratification into risk
+groups are not computed.
+</p>
+</li>
+<li> <p><code>univariate_analysis</code>: data for assessing and plotting univariate feature
+importance are not computed.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ensemble_method</code></td>
+<td>
+<p>(<em>optional</em>) Method for ensembling predictions from
+models for the same sample. Available methods are:
+</p>
+
+<ul>
+<li> <p><code>median</code> (default): Use the median of the predicted values as the ensemble
+value for a sample.
+</p>
+</li>
+<li> <p><code>mean</code>: Use the mean of the predicted values as the ensemble value for a
+sample.
+</p>
+</li>
+</ul>
+<p>This parameter is only used if <code>detail_level</code> is <code>ensemble</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evaluation_metric</code></td>
+<td>
+<p>(<em>optional</em>) One or more metrics for assessing model
+performance. See the vignette on performance metrics for the available
+metrics.
+</p>
+<p>Confidence intervals (or rather credibility intervals) are computed for each
+metric during evaluation. This is done using bootstraps, the number of which
+depends on the value of <code>confidence_level</code> (Davison and Hinkley, 1997).
+</p>
+<p>If unset, the metric in the <code>optimisation_metric</code> variable is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_limit</code></td>
+<td>
+<p>(<em>optional</em>) Set the upper limit of the number of samples
+that are used during evaluation steps. Cannot be less than 20.
+</p>
+<p>This setting can be specified per data element by providing a parameter
+value in a named list with data elements, e.g.
+<code>list("sample_similarity"=100, "permutation_vimp"=1000)</code>.
+</p>
+<p>This parameter can be set for the following data elements:
+<code>sample_similarity</code> and <code>ice_data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detail_level</code></td>
+<td>
+<p>(<em>optional</em>) Sets the level at which results are computed
+and aggregated.
+</p>
+
+<ul>
+<li> <p><code>ensemble</code>: Results are computed at the ensemble level, i.e. over all
+models in the ensemble. This means that, for example, bias-corrected
+estimates of model performance are assessed by creating (at least) 20
+bootstraps and computing the model performance of the ensemble model for
+each bootstrap.
+</p>
+</li>
+<li> <p><code>hybrid</code> (default): Results are computed at the level of models in an
+ensemble. This means that, for example, bias-corrected estimates of model
+performance are directly computed using the models in the ensemble. If there
+are at least 20 trained models in the ensemble, performance is computed for
+each model, in contrast to <code>ensemble</code> where performance is computed for the
+ensemble of models. If there are less than 20 trained models in the
+ensemble, bootstraps are created so that at least 20 point estimates can be
+made.
+</p>
+</li>
+<li> <p><code>model</code>: Results are computed at the model level. This means that, for
+example, bias-corrected estimates of model performance are assessed by
+creating (at least) 20 bootstraps and computing the performance of the model
+for each bootstrap.
+</p>
+</li>
+</ul>
+<p>Note that each level of detail has a different interpretation for bootstrap
+confidence intervals. For <code>ensemble</code> and <code>model</code> these are the confidence
+intervals for the ensemble and an individual model, respectively. That is,
+the confidence interval describes the range where an estimate produced by a
+respective ensemble or model trained on a repeat of the experiment may be
+found with the probability of the confidence level. For <code>hybrid</code>, it
+represents the range where any single model trained on a repeat of the
+experiment may be found with the probability of the confidence level. By
+definition, confidence intervals obtained using <code>hybrid</code> are at least as
+wide as those for <code>ensemble</code>. <code>hybrid</code> offers the correct interpretation if
+the goal of the analysis is to assess the result of a single, unspecified,
+model.
+</p>
+<p><code>hybrid</code> is generally computationally less expensive then <code>ensemble</code>, which
+in turn is somewhat less expensive than <code>model</code>.
+</p>
+<p>A non-default <code>detail_level</code> parameter can be specified for separate
+evaluation steps by providing a parameter value in a named list with data
+elements, e.g. <code>list("auc_data"="ensemble", "model_performance"="hybrid")</code>.
+This parameter can be set for the following data elements: <code>auc_data</code>,
+<code>decision_curve_analyis</code>, <code>model_performance</code>, <code>permutation_vimp</code>,
+<code>ice_data</code>, <code>prediction_data</code> and <code>confusion_matrix</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimation_type</code></td>
+<td>
+<p>(<em>optional</em>) Sets the type of estimation that should be
+possible. This has the following options:
+</p>
+
+<ul>
+<li> <p><code>point</code>: Point estimates.
+</p>
+</li>
+<li> <p><code>bias_correction</code> or <code>bc</code>: Bias-corrected estimates. A bias-corrected
+estimate is computed from (at least) 20 point estimates, and <code>familiar</code> may
+bootstrap the data to create them.
+</p>
+</li>
+<li> <p><code>bootstrap_confidence_interval</code> or <code>bci</code> (default): Bias-corrected
+estimates with bootstrap confidence intervals (Efron and Hastie, 2016). The
+number of point estimates required depends on the <code>confidence_level</code>
+parameter, and <code>familiar</code> may bootstrap the data to create them.
+</p>
+</li>
+</ul>
+<p>As with <code>detail_level</code>, a non-default <code>estimation_type</code> parameter can be
+specified for separate evaluation steps by providing a parameter value in a
+named list with data elements, e.g. <code>list("auc_data"="bci", "model_performance"="point")</code>. This parameter can be set for the following
+data elements: <code>auc_data</code>, <code>decision_curve_analyis</code>, <code>model_performance</code>,
+<code>permutation_vimp</code>, <code>ice_data</code>, and <code>prediction_data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregate_results</code></td>
+<td>
+<p>(<em>optional</em>) Flag that signifies whether results
+should be aggregated during evaluation. If <code>estimation_type</code> is
+<code>bias_correction</code> or <code>bc</code>, aggregation leads to a single bias-corrected
+estimate. If <code>estimation_type</code> is <code>bootstrap_confidence_interval</code> or <code>bci</code>,
+aggregation leads to a single bias-corrected estimate with lower and upper
+boundaries of the confidence interval. This has no effect if
+<code>estimation_type</code> is <code>point</code>.
+</p>
+<p>The default value is equal to <code>TRUE</code> except when assessing metrics to assess
+model performance, as the default violin plot requires underlying data.
+</p>
+<p>As with <code>detail_level</code> and <code>estimation_type</code>, a non-default
+<code>aggregate_results</code> parameter can be specified for separate evaluation steps
+by providing a parameter value in a named list with data elements, e.g.
+<code>list("auc_data"=TRUE, , "model_performance"=FALSE)</code>. This parameter exists
+for the same elements as <code>estimation_type</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confidence_level</code></td>
+<td>
+<p>(<em>optional</em>) Numeric value for the level at which
+confidence intervals are determined. In the case bootstraps are used to
+determine the confidence intervals bootstrap estimation, <code>familiar</code> uses the
+rule of thumb <code class="reqn">n = 20 / ci.level</code> to determine the number of required
+bootstraps.
+</p>
+<p>The default value is <code>0.95</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap_ci_method</code></td>
+<td>
+<p>(<em>optional</em>) Method used to determine bootstrap
+confidence intervals (Efron and Hastie, 2016). The following methods are
+implemented:
+</p>
+
+<ul>
+<li> <p><code>percentile</code> (default): Confidence intervals obtained using the percentile
+method.
+</p>
+</li>
+<li> <p><code>bc</code>: Bias-corrected confidence intervals.
+</p>
+</li>
+</ul>
+<p>Note that the standard method is not implemented because this method is
+often not suitable due to non-normal distributions. The bias-corrected and
+accelerated (BCa) method is not implemented yet.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_cluster_method</code></td>
+<td>
+<p>(<em>optional</em>) Method used to perform clustering
+of features. The same methods as for the <code>cluster_method</code> configuration
+parameter are available: <code>none</code>, <code>hclust</code>, <code>agnes</code>, <code>diana</code> and <code>pam</code>.
+</p>
+<p>The value for the <code>cluster_method</code> configuration parameter is used by
+default. When generating clusters for the purpose of determining mutual
+correlation and ordering feature expressions, <code>none</code> is ignored and <code>hclust</code>
+is used instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_cluster_cut_method</code></td>
+<td>
+<p>(<em>optional</em>) Method used to divide features
+into separate clusters. The available methods are the same as for the
+<code>cluster_cut_method</code> configuration parameter: <code>silhouette</code>, <code>fixed_cut</code> and
+<code>dynamic_cut</code>.
+</p>
+<p><code>silhouette</code> is available for all cluster methods, but <code>fixed_cut</code> only
+applies to methods that create hierarchical trees (<code>hclust</code>, <code>agnes</code> and
+<code>diana</code>). <code>dynamic_cut</code> requires the <code>dynamicTreeCut</code> package and can only
+be used with <code>agnes</code> and <code>hclust</code>.
+</p>
+<p>The value for the <code>cluster_cut_method</code> configuration parameter is used by
+default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_linkage_method</code></td>
+<td>
+<p>(<em>optional</em>) Method used for agglomerative
+clustering with <code>hclust</code> and <code>agnes</code>. Linkage determines how features are
+sequentially combined into clusters based on distance. The methods are
+shared with the <code>cluster_linkage_method</code> configuration parameter: <code>average</code>,
+<code>single</code>, <code>complete</code>, <code>weighted</code>, and <code>ward</code>.
+</p>
+<p>The value for the <code>cluster_linkage_method</code> configuration parameters is used
+by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_similarity_metric</code></td>
+<td>
+<p>(<em>optional</em>) Metric to determine pairwise
+similarity between features. Similarity is computed in the same manner as
+for clustering, and <code>feature_similarity_metric</code> therefore has the same
+options as <code>cluster_similarity_metric</code>: <code>mcfadden_r2</code>, <code>cox_snell_r2</code>,
+<code>nagelkerke_r2</code>, <code>mutual_information</code>, <code>spearman</code>, <code>kendall</code> and <code>pearson</code>.
+</p>
+<p>The value used for the <code>cluster_similarity_metric</code> configuration parameter
+is used by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_similarity_threshold</code></td>
+<td>
+<p>(<em>optional</em>) The threshold level for
+pair-wise similarity that is required to form feature clusters with the
+<code>fixed_cut</code> method. This threshold functions in the same manner as the one
+defined using the <code>cluster_similarity_threshold</code> parameter.
+</p>
+<p>By default, the value for the <code>cluster_similarity_threshold</code> configuration
+parameter is used.
+</p>
+<p>Unlike for <code>cluster_similarity_threshold</code>, more than one value can be
+supplied here.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_cluster_method</code></td>
+<td>
+<p>(<em>optional</em>) The method used to perform
+clustering based on distance between samples. These are the same methods as
+for the <code>cluster_method</code> configuration parameter: <code>hclust</code>, <code>agnes</code>, <code>diana</code>
+and <code>pam</code>.
+</p>
+<p>The value for the <code>cluster_method</code> configuration parameter is used by
+default. When generating clusters for the purpose of ordering samples in
+feature expressions, <code>none</code> is ignored and <code>hclust</code> is used instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_linkage_method</code></td>
+<td>
+<p>(<em>optional</em>) The method used for agglomerative
+clustering in <code>hclust</code> and <code>agnes</code>. These are the same methods as for the
+<code>cluster_linkage_method</code> configuration parameter: <code>average</code>, <code>single</code>,
+<code>complete</code>, <code>weighted</code>, and <code>ward</code>.
+</p>
+<p>The value for the <code>cluster_linkage_method</code> configuration parameters is used
+by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_similarity_metric</code></td>
+<td>
+<p>(<em>optional</em>) Metric to determine pairwise
+similarity between samples. Similarity is computed in the same manner as for
+clustering, but <code>sample_similarity_metric</code> has different options that are
+better suited to computing distance between samples instead of between
+features. The following metrics are available.
+</p>
+
+<ul>
+<li> <p><code>gower</code> (default): compute Gower's distance between samples. By default,
+Gower's distance is computed based on winsorised data to reduce the effect
+of outliers (see below).
+</p>
+</li>
+<li> <p><code>euclidean</code>: compute the Euclidean distance between samples.
+</p>
+</li>
+</ul>
+<p>The underlying feature data for numerical features is scaled to the
+<code class="reqn">[0,1]</code> range using the feature values across the samples. The
+normalisation parameters required can optionally be computed from feature
+data with the outer 5% (on both sides) of feature values trimmed or
+winsorised. To do so append <code style="white-space: pre;">⁠_trim⁠</code> (trimming) or <code style="white-space: pre;">⁠_winsor⁠</code> (winsorising) to
+the metric name. This reduces the effect of outliers somewhat.
+</p>
+<p>Regardless of metric, all categorical features are handled as for the
+Gower's distance: distance is 0 if the values in a pair of samples match,
+and 1 if they do not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_aggregation_method</code></td>
+<td>
+<p>(<em>optional</em>) Method for aggregating variable
+importances for the purpose of evaluation. Variable importances are
+determined during feature selection steps and after training the model. Both
+types are evaluated, but feature selection variable importance is only
+evaluated at run-time.
+</p>
+<p>See the documentation for the <code>vimp_aggregation_method</code> argument for
+information concerning the different methods available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_aggregation_rank_threshold</code></td>
+<td>
+<p>(<em>optional</em>) The threshold used to
+define the subset of highly important features during evaluation.
+</p>
+<p>See the documentation for the <code>vimp_aggregation_rank_threshold</code> argument for
+more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_icc_type</code></td>
+<td>
+<p>(<em>optional</em>) String indicating the type of intraclass
+correlation coefficient (<code>1</code>, <code>2</code> or <code>3</code>) that should be used to compute
+robustness for features in repeated measurements during the evaluation of
+univariate importance. These types correspond to the types in Shrout and
+Fleiss (1979). The default value is <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratification_method</code></td>
+<td>
+<p>(<em>optional</em>) Method for determining the
+stratification threshold for creating survival groups. The actual,
+model-dependent, threshold value is obtained from the development data, and
+can afterwards be used to perform stratification on validation data.
+</p>
+<p>The following stratification methods are available:
+</p>
+
+<ul>
+<li> <p><code>median</code> (default): The median predicted value in the development cohort
+is used to stratify the samples into two risk groups. For predicted outcome
+values that build a continuous spectrum, the two risk groups in the
+development cohort will be roughly equal in size.
+</p>
+</li>
+<li> <p><code>mean</code>: The mean predicted value in the development cohort is used to
+stratify the samples into two risk groups.
+</p>
+</li>
+<li> <p><code>mean_trim</code>: As <code>mean</code>, but based on the set of predicted values
+where the 5% lowest and 5% highest values are discarded. This reduces the
+effect of outliers.
+</p>
+</li>
+<li> <p><code>mean_winsor</code>: As <code>mean</code>, but based on the set of predicted values where
+the 5% lowest and 5% highest values are winsorised. This reduces the effect
+of outliers.
+</p>
+</li>
+<li> <p><code>fixed</code>: Samples are stratified based on the sample quantiles of the
+predicted values. These quantiles are defined using the
+<code>stratification_threshold</code> parameter.
+</p>
+</li>
+<li> <p><code>optimised</code>: Use maximally selected rank statistics to determine the
+optimal threshold (Lausen and Schumacher, 1992; Hothorn et al., 2003) to
+stratify samples into two optimally separated risk groups.
+</p>
+</li>
+</ul>
+<p>One or more stratification methods can be selected simultaneously.
+</p>
+<p>This parameter is only relevant for <code>survival</code> outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratification_threshold</code></td>
+<td>
+<p>(<em>optional</em>) Numeric value(s) signifying the
+sample quantiles for stratification using the <code>fixed</code> method. The number of
+risk groups will be the number of values +1.
+</p>
+<p>The default value is <code>c(1/3, 2/3)</code>, which will yield two thresholds that
+divide samples into three equally sized groups. If <code>fixed</code> is not among the
+selected stratification methods, this parameter is ignored.
+</p>
+<p>This parameter is only relevant for <code>survival</code> outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_max</code></td>
+<td>
+<p>(<em>optional</em>) Time point which is used as the benchmark for
+e.g. cumulative risks generated by random forest, or the cutoff for Uno's
+concordance index.
+</p>
+<p>If <code>time_max</code> is not provided, but <code>evaluation_times</code> is, the largest value
+of <code>evaluation_times</code> is used. If both are not provided, <code>time_max</code> is set
+to the 98th percentile of the distribution of survival times for samples
+with an event in the development data set.
+</p>
+<p>This parameter is only relevant for <code>survival</code> outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evaluation_times</code></td>
+<td>
+<p>(<em>optional</em>) One or more time points that are used for
+assessing calibration in survival problems. This is done as expected and
+observed survival probabilities depend on time.
+</p>
+<p>If unset, <code>evaluation_times</code> will be equal to <code>time_max</code>.
+</p>
+<p>This parameter is only relevant for <code>survival</code> outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dynamic_model_loading</code></td>
+<td>
+<p>(<em>optional</em>) Enables dynamic loading of models
+during the evaluation process, if <code>TRUE</code>. Defaults to <code>FALSE</code>. Dynamic
+loading of models may reduce the overall memory footprint, at the cost of
+increased disk or network IO. Models can only be dynamically loaded if they
+are found at an accessible disk or network location. Setting this parameter
+to <code>TRUE</code> may help if parallel processing causes out-of-memory issues during
+evaluation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel_evaluation</code></td>
+<td>
+<p>(<em>optional</em>) Enable parallel processing for
+hyperparameter optimisation. Defaults to <code>TRUE</code>. When set to <code>FALSE</code>, this
+will disable the use of parallel processing while performing optimisation,
+regardless of the settings of the <code>parallel</code> parameter. The parameter
+moreover specifies whether parallelisation takes place within the evaluation
+process steps (<code>inner</code>, default), or in an outer loop ( <code>outer</code>) over
+learners, data subsamples, etc.
+</p>
+<p><code>parallel_evaluation</code> is ignored if <code>parallel=FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Unused arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of parameters related to model evaluation.
+</p>
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> Davison, A. C. &amp; Hinkley, D. V. Bootstrap methods and their
+application. (Cambridge University Press, 1997).
+</p>
+</li>
+<li>
+<p> Efron, B. &amp; Hastie, T. Computer Age Statistical Inference. (Cambridge
+University Press, 2016).
+</p>
+</li>
+<li>
+<p> Lausen, B. &amp; Schumacher, M. Maximally Selected Rank Statistics.
+Biometrics 48, 73 (1992).
+</p>
+</li>
+<li>
+<p> Hothorn, T. &amp; Lausen, B. On the exact distribution of maximally selected
+rank statistics. Comput. Stat. Data Anal. 43, 121–137 (2003).
+</p>
+</li>
+</ol>
+</div>

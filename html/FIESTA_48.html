@@ -1,0 +1,642 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modSApop</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Small area module - Compile population data for SA module.</h2>
+
+<h3>Description</h3>
+
+<p>Compile population data for input to the modSA* modules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modSApop(
+  popType = "VOL",
+  popTabs = popTables(),
+  popTabIDs = popTableIDs(),
+  popFilter = popFilters(),
+  pltassgn = NULL,
+  pltassgnid = "PLT_CN",
+  dsn = NULL,
+  pjoinid = "CN",
+  areawt = "CONDPROP_UNADJ",
+  adjplot = TRUE,
+  dunitvar = NULL,
+  dunitarea = NULL,
+  areavar = "ACRES",
+  dunitzonal = NULL,
+  prednames = NULL,
+  predfac = NULL,
+  addxy = FALSE,
+  returndata = TRUE,
+  savedata = FALSE,
+  saveobj = FALSE,
+  objnm = "SApopdat",
+  unit_opts = NULL,
+  savedata_opts = NULL,
+  SAdoms = NULL,
+  smallbnd = NULL,
+  smallbnd.domain = NULL,
+  largebnd.unique = NULL,
+  SAdata = NULL,
+  pltdat = NULL,
+  auxdat = NULL,
+  gui = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>popType</code></td>
+<td>
+<p>String. Type of evaluation(s) to include in population data.
+Note: currently only c('CURR', 'VOL', 'LULC') are available. See details
+below for descriptions of each.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popTabs</code></td>
+<td>
+<p>List of population tables the user would like returned.
+See help(popTables) for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popTabIDs</code></td>
+<td>
+<p>List of unique IDs corresponding to the population tables
+that the user has requested. See help(popTableIDs) for a list of
+options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popFilter</code></td>
+<td>
+<p>List of population filters. See help(popFilters) for a 
+list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltassgn</code></td>
+<td>
+<p>DF/DT, comma-separated values (CSV) file(*.csv), or layer in
+dsn, Can also be a shapefile(*.shp) with one record per plot, a spatial
+layer in dsn, or a sf R object. Plot-level assignment of estimation unit
+and/or strata. Optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltassgnid</code></td>
+<td>
+<p>String. Unique identifier of plot in pltassgn.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dsn</code></td>
+<td>
+<p>String. Name of database where tree, cond, and pltassgn tables
+reside.  The dsn varies by driver. See gdal OGR vector formats
+(https://www.gdal.org/ogr_formats.html).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pjoinid</code></td>
+<td>
+<p>String. Join variable in plot to match pltassgnid. Does not
+need to be uniqueid. If using most current XY coordinates for plot
+assignments, use identifier for plot (e.g., PLOT_ID).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areawt</code></td>
+<td>
+<p>String. Name of variable for summarizing area weights (e.g.,
+CONDPROP_UNADJ).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjplot</code></td>
+<td>
+<p>Logical. If TRUE, adjusts for nonresponse at plot-level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dunitvar</code></td>
+<td>
+<p>String. Name of the domain unit variable in cond, plt, or
+pltassgn with domain unit assignment for each plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dunitarea</code></td>
+<td>
+<p>Numeric or DF. Total area by domain unit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areavar</code></td>
+<td>
+<p>String. Name of area variable in unitarea. Default="ACRES".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dunitzonal</code></td>
+<td>
+<p>DF/DT. Data frame with zonal auxiliary information by
+domain unit. For continuous data, means by domain unit; for categorical
+data, proportion of class by domain unit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prednames</code></td>
+<td>
+<p>String vector. Name(s) of predictor variables to use in
+model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predfac</code></td>
+<td>
+<p>String vector. Name(s) of factor predictor variables to use
+in model. Names will change in output depending on number of categories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addxy</code></td>
+<td>
+<p>Logical. If TRUE, adds X/Y attributes to pltassgn.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returndata</code></td>
+<td>
+<p>Logical. If TRUE, returns data objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves table(s) to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveobj</code></td>
+<td>
+<p>Logical. If TRUE, saves returned list object to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objnm</code></td>
+<td>
+<p>String. Name of *.rds object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit_opts</code></td>
+<td>
+<p>List. See help(unit_options()) for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SAdoms</code></td>
+<td>
+<p>sf object. SA domains with attributes for joining.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smallbnd</code></td>
+<td>
+<p>sf object. small bound.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smallbnd.domain</code></td>
+<td>
+<p>String. Name of attribute defining domain attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>largebnd.unique</code></td>
+<td>
+<p>String. Name of the large boundary unique identifer
+to define plots within a model extent. If NULL, all plots are used for model
+extent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SAdata</code></td>
+<td>
+<p>R List object. Output data list components from
+FIESTA::SAdata().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltdat</code></td>
+<td>
+<p>R List object. Output data list components from
+FIESTA::spGetPlots().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auxdat</code></td>
+<td>
+<p>R List object. Output data list components from
+FIESTA::spGetAuxiliary().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gui</code></td>
+<td>
+<p>Logical. If gui, user is prompted for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For extendibility.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If variables are NULL, then it will prompt user to input variables.
+</p>
+<p>Necessary variables:<br></p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>Data</b> </td>
+<td style="text-align: left;">
+<b>Variable</b> </td>
+<td style="text-align: left;"> <b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> tree </td>
+<td style="text-align: left;"> tuniqueid </td>
+<td style="text-align: left;"> Unique identifier for each plot, to link to 
+pltassgn (e.g. PLT_CN).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDID </td>
+<td style="text-align: left;"> Unique identifier of each condition on plot, to link to
+cond.  Set CONDID=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> TPA_UNADJ </td>
+<td style="text-align: left;"> Number of trees per acre each sample tree 
+represents (e.g. DESIGNCD=1: TPA_UNADJ=6.018046 for trees on subplot; 
+74.965282 for trees on microplot).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> cond </td>
+<td style="text-align: left;"> cuniqueid </td>
+<td style="text-align: left;"> Unique identifier for each plot, to link to 
+pltassgn (e.g. PLT_CN).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDID </td>
+<td style="text-align: left;"> Unique identifier of each condition on plot. Set 
+CONDID=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CONDPROP_UNADJ </td>
+<td style="text-align: left;"> Unadjusted proportion of condition on
+each plot.  Set CONDPROP_UNADJ=1, if only 1 condition per plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> COND_STATUS_CD </td>
+<td style="text-align: left;"> Status of each forested condition on plot (i.e.
+accessible forest, nonforest, water, etc.)</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> NF_COND_STATUS_CD </td>
+<td style="text-align: left;"> If ACI=TRUE. Status of each nonforest 
+condition on plot (i.e. accessible nonforest, nonsampled nonforest)</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SITECLCD </td>
+<td style="text-align: left;"> If landarea=TIMBERLAND. Measure of site productivity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> RESERVCD </td>
+<td style="text-align: left;"> If landarea=TIMBERLAND. Reserved status.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> SUBPROP_UNADJ </td>
+<td style="text-align: left;"> Unadjusted proportion of subplot conditions 
+on each plot. Set SUBPROP_UNADJ=1, if only 1 condition per subplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MICRPROP_UNADJ </td>
+<td style="text-align: left;"> If microplot tree attributes. Unadjusted 
+proportion of microplot conditions on each plot. Set MICRPROP_UNADJ=1, 
+if only 1 condition per microplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> MACRPROP_UNADJ </td>
+<td style="text-align: left;"> If macroplot tree attributes. Unadjusted 
+proportion of macroplot conditions on each plot. Set MACRPROP_UNADJ=1, 
+if only 1 condition per macroplot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> pltassgn </td>
+<td style="text-align: left;"> puniqueid </td>
+<td style="text-align: left;"> Unique identifier for each plot, to 
+link to cond (e.g. CN).</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> STATECD </td>
+<td style="text-align: left;"> Identifies state each plot is located in.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> INVYR </td>
+<td style="text-align: left;"> Identifies inventory year of each plot.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> PLOT_STATUS_CD </td>
+<td style="text-align: left;"> Status of each plot (i.e. sampled, nonsampled).  
+If not included, all plots are assumed as sampled.</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>For available reference tables: sort(unique(FIESTAutils::ref_codes$VARIABLE)) <br></p>
+
+
+<h3>Value</h3>
+
+<p>A list with population data for Small-Area estimates.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>SAdomsdf</code></td>
+<td>
+<p> Data frame. Attribute table from SAdoms spatial layer.
+Includes DOMAIN and AOI attributes. DOMAIN represents modeling domains.  AOI
+identifies the small area of interest. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condx</code></td>
+<td>
+<p> Data frame. Condition-level data with condition proportions, 
+domain and predictor assignments, and adjusted condition proportions, 
+if adjplot = TRUE. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pltcondx</code></td>
+<td>
+<p> Data frame. Plot/Condition data used for estimation. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cuniqueid</code></td>
+<td>
+<p> String. Unique identifier of plot in condx and pltcondx. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condid</code></td>
+<td>
+<p> String. Unique identifier of condition in condx and pltcondx. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treex</code></td>
+<td>
+<p> Data frame. If esttype='TREE', tree-level data, including
+adjustment factors, if adjplot = TRUE. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tuniqueid</code></td>
+<td>
+<p> String. If esttype='TREE', unique identifier of plot in 
+treex. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ACI.filter</code></td>
+<td>
+<p> String. If ACI=FALSE, ACI.filter="COND_STATUS_CD == 1" . </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dunitarea</code></td>
+<td>
+<p> Data frame. Area by model domain unit. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areavar</code></td>
+<td>
+<p> String. Name of area variable in dunitarea. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dunitvar</code></td>
+<td>
+<p> String. Name of variable defining model domain units in 
+dunitarea. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dunitlut</code></td>
+<td>
+<p> Data frame. Table of model domain units with zonal statistics 
+of predictor values, number of plots by domain unit. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prednames</code></td>
+<td>
+<p> String vector. Name of variables in dunitlut and condx 
+defining potential predictors for small area estimation. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotsampcnt</code></td>
+<td>
+<p> Data frame. Number of plots by PLOT_STATUS_CD. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condsampcnt</code></td>
+<td>
+<p> Data frame. Number of conditions by COND_STATUS_CD. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+<p> String. State names in dataset. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invyrs</code></td>
+<td>
+<p> String. Range of inventory years in dataset. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjtree</code></td>
+<td>
+<p> Logical. If TRUE, treex includes adjustment factors. </p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>ADJUSTMENT FACTOR:<br> The adjustment factor is necessary to account for
+nonsampled conditions.  For model-based estimation, we calculate adjustment
+factors by plot.
+</p>
+<p>It is calculated by dividing 1 / summed condition proportions by plot. An
+adjustment factor is determined for each tree based on the size of the plot
+it was measured on. This is identified using TPA_UNADJ as follows:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>PLOT SIZE</b> </td>
+<td style="text-align: right;"> <b>TPA_UNADJ</b> </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> SUBPLOT </td>
+<td style="text-align: right;"> 6.018046 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> MICROPLOT </td>
+<td style="text-align: right;"> 74.965282 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> 
+</td>
+<td style="text-align: left;"> MACROPLOT </td>
+<td style="text-align: right;"> 0.999188 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>If ACI=FALSE, only nonsampled forest conditions are accounted for in the
+adjustment factor. <br> 
+If ACI=TRUE, the nonsampled nonforest conditions are removed as well and 
+accounted for in adjustment factor.  This is if you are interested in 
+estimates for all lands or nonforest lands in the All-Condition-Inventory.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino, Paul L. Patterson
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# NOTE: FIA data objects used in these examples are stored in `FIESTA`, but
+# can be generated for populations of interest by the user with functions in
+# `FIESTA` such as `spGetPlots()`, `spGetAuxiliary()`, etc. For more
+# information, see `FIESTA`'s extensive vignettes.
+ 
+# Population data for counties in Wyoming
+modSApop(popTabs = list(tree = FIESTA::WYtree,
+                        cond = FIESTA::WYcond),
+         pltassgn = FIESTA::WYpltassgn,
+         pltassgnid = "CN",
+         dunitarea = FIESTA::WYunitarea,
+         dunitvar = "ESTN_UNIT",
+         dunitzonal = FIESTA::WYunitzonal,
+         prednames = c("dem", "tcc", "tpi", "tnt"),
+         predfac = "tnt")
+         
+# Adding seedling data as well
+modSApop(popTabs = list(tree = FIESTA::WYtree,
+                        cond = FIESTA::WYcond,
+                        seed = FIESTA::WYseed),
+         pltassgn = FIESTA::WYpltassgn,
+         pltassgnid = "CN",
+         dunitarea = FIESTA::WYunitarea,
+         dunitvar = "ESTN_UNIT",
+         dunitzonal = FIESTA::WYunitzonal,
+         prednames = c("dem", "tcc", "tpi", "tnt"),
+         predfac = "tnt")
+
+</code></pre>
+
+
+</div>

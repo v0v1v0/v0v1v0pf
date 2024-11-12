@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>emlinkRS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>emlinkRS</h2>
+
+<h3>Description</h3>
+
+<p>Calculates Felligi-Sunter weights and posterior zeta probabilities
+for matching patterns observed in a larger population that are
+not present in a sub-sample used to estimate the EM.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">emlinkRS(patterns.out, em.out, nobs.a, nobs.b)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>patterns.out</code></td>
+<td>
+<p>The output from 'tableCounts()' or 'emlinkMARmov()' (run on full dataset),
+containing all observed matching patterns in the full sample and the number of times that pattern
+is observed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>em.out</code></td>
+<td>
+<p>The output from 'emlinkMARmov()', an EM object estimated
+on a smaller random sample to apply to counts from a larger sample</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs.a</code></td>
+<td>
+<p>Total number of observations in dataset A</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs.b</code></td>
+<td>
+<p>Total number of observations in dataset B</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>emlinkMARmov</code> returns a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>zeta.j</code></td>
+<td>
+<p>The posterior match probabilities for each unique pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.m</code></td>
+<td>
+<p>The posterior probability of a pair matching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.u</code></td>
+<td>
+<p>The posterior probability of a pair not matching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.gamma.k.m</code></td>
+<td>
+<p>The posterior of the matching probability for a specific matching field.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.gamma.k.u</code></td>
+<td>
+<p>The posterior of the non-matching probability for a specific matching field.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.gamma.j.m</code></td>
+<td>
+<p>The posterior probability that a pair is in the matched set given a particular agreement pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.gamma.j.u</code></td>
+<td>
+<p>The posterior probability that a pair is in the unmatched set given a particular agreement pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patterns.w</code></td>
+<td>
+<p>Counts of the agreement patterns observed, along with the Felligi-Sunter Weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter.converge</code></td>
+<td>
+<p>The number of iterations it took the EM algorithm to converge.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs.a</code></td>
+<td>
+<p>The number of observations in dataset A.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs.b</code></td>
+<td>
+<p>The number of observations in dataset B.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ted Enamorado &lt;ted.enamorado@gmail.com&gt; and Ben Fifield &lt;benfifield@gmail.com&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## -------------
+## Run on subset
+## -------------
+dfA.s &lt;- dfA[sample(1:nrow(dfA), 50),]; dfB.s &lt;- dfB[sample(1:nrow(dfB), 50),]
+
+## Calculate gammas
+g1 &lt;- gammaCKpar(dfA.s$firstname, dfB.s$firstname)
+g2 &lt;- gammaCKpar(dfA.s$middlename, dfB.s$middlename)
+g3 &lt;- gammaCKpar(dfA.s$lastname, dfB.s$lastname)
+g4 &lt;- gammaKpar(dfA.s$birthyear, dfB.s$birthyear)
+
+## Run tableCounts
+tc &lt;- tableCounts(list(g1, g2, g3, g4), nobs.a = nrow(dfA.s), nobs.b = nrow(dfB.s))
+
+## Run EM
+em &lt;- emlinkMAR(tc, nobs.a = nrow(dfA.s), nobs.b = nrow(dfB.s))
+
+## ------------------
+## Apply to full data
+## ------------------
+
+## Calculate gammas
+g1 &lt;- gammaCKpar(dfA$firstname, dfB$firstname)
+g2 &lt;- gammaCKpar(dfA$middlename, dfB$middlename)
+g3 &lt;- gammaCKpar(dfA$lastname, dfB$lastname)
+g4 &lt;- gammaKpar(dfA$birthyear, dfB$birthyear)
+
+## Run tableCounts
+tc &lt;- tableCounts(list(g1, g2, g3, g4), nobs.a = nrow(dfA), nobs.b = nrow(dfB))
+
+em.full &lt;- emlinkRS(tc, em, nrow(dfA), nrow(dfB)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

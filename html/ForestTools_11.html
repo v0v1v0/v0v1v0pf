@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vwf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variable Window Filter</h2>
+
+<h3>Description</h3>
+
+<p>Implements the variable window filter algorithm (Popescu &amp; Wynne, 2004) for detecting treetops from a canopy height model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vwf(
+  CHM,
+  winFun,
+  minHeight = NULL,
+  warnings = TRUE,
+  minWinNeib = "queen",
+  IDfield = "treeID"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>CHM</code></td>
+<td>
+<p>SpatRaster. Canopy height model in SpatRaster format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>winFun</code></td>
+<td>
+<p>function. The function that determines the size of the window at any given location on the
+canopy. It should take the value of a given <code>CHM</code> pixel as its only argument, and return the desired *radius* of
+the circular search window when centered on that pixel. Size of the window is in map units.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minHeight</code></td>
+<td>
+<p>numeric. The minimum height value for a <code>CHM</code> pixel to be considered as a potential treetop. All <code>CHM</code> pixels beneath
+this value will be masked out.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warnings</code></td>
+<td>
+<p>logical. If set to FALSE, this function will not emit warnings related to inputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minWinNeib</code></td>
+<td>
+<p>character. Define whether the smallest possible search window (3x3) should use a <code>queen</code> or
+a <code>rook</code> neighborhood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IDfield</code></td>
+<td>
+<p>character. Name of field for unique tree identifier</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function uses the resolution of the raster to figure out how many cells the window needs to cover.
+This means that the raster value (representing height above ground) and the map unit (represented by the raster's resolution),
+need to be in the _same unit_. This can cause issues if the raster is in lat/lon, whereby its resolution is in decimal degrees.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Simple feature collection of POINT type. The point locations of detected treetops. The object contains two fields in its
+data table: <em>height</em> is the height of the tree, as extracted from the <code>CHM</code>, and <em>winRadius</em> is the radius
+of the search window when the treetop was detected. Note that <em>winRadius</em> does not necessarily correspond to the radius
+of the tree's crown.
+</p>
+
+
+<h3>References</h3>
+
+<p>Popescu, S. C., &amp; Wynne, R. H. (2004). Seeing the trees in the forest. <em>Photogrammetric Engineering &amp; Remote Sensing, 70</em>(5), 589-604.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mcws</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(terra)
+library(ForestTools)
+
+chm &lt;- rast(kootenayCHM)
+
+# Set function for determining variable window radius
+winFunction &lt;- function(x){x * 0.06 + 0.5}
+
+# Set minimum tree height (treetops below this height will not be detected)
+minHgt &lt;- 2
+
+# Detect treetops in demo canopy height model
+ttops &lt;- vwf(chm, winFunction, minHgt)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

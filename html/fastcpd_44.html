@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>uk_seatbelts</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>UK Seatbelts Data</h2>
+
+<h3>Description</h3>
+
+<p>Road Casualties in Great Britain 1969–84.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">uk_seatbelts
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p><code>uk_seatbelts</code> is a multiple time series, with columns
+</p>
+
+<dl>
+<dt>DriversKilled</dt>
+<dd>
+<p>car drivers killed.</p>
+</dd>
+<dt>front</dt>
+<dd>
+<p>front-seat passengers killed or seriously injured.</p>
+</dd>
+<dt>rear</dt>
+<dd>
+<p>rear-seat passengers killed or seriously injured.</p>
+</dd>
+<dt>kms</dt>
+<dd>
+<p>distance driven.</p>
+</dd>
+<dt>PetrolPrice</dt>
+<dd>
+<p>petrol price.</p>
+</dd>
+<dt>VanKilled</dt>
+<dd>
+<p>number of van (‘light goods vehicle’) drivers.</p>
+</dd>
+<dt>law</dt>
+<dd>
+<p>0/1: was the law in effect that month?</p>
+</dd>
+</dl>
+<h3>Source</h3>
+
+<p>R package <span class="pkg">datasets</span>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (
+  requireNamespace("ggplot2", quietly = TRUE) &amp;&amp;
+    requireNamespace("lubridate", quietly = TRUE) &amp;&amp;
+    requireNamespace("zoo", quietly = TRUE)
+) {
+  result_ar &lt;- fastcpd.ar(diff(uk_seatbelts[, "drivers"], 12), 1, beta = "BIC")
+  summary(result_ar)
+  plot(result_ar)
+
+  result_lm &lt;- suppressMessages(fastcpd.lm(
+    diff(uk_seatbelts[, c("drivers", "kms", "PetrolPrice", "law")], lag = 12)
+  ))
+  cp_dates &lt;- as.Date("1969-01-01", format = "%Y-%m-%d")
+  cp_dates &lt;- cp_dates + lubridate::period(month = 1 + result_lm@cp_set + 12)
+  cp_dates &lt;- zoo::as.yearmon(cp_dates)
+
+  dates &lt;- zoo::as.yearmon(time(uk_seatbelts))
+
+  uk_seatbelts_df &lt;- data.frame(
+    dates = dates,
+    drivers = c(uk_seatbelts[, "drivers"]),
+    color = as.factor((dates &lt; cp_dates[1]) + (dates &lt; cp_dates[2]))
+  )
+
+  ggplot2::ggplot() +
+    ggplot2::geom_line(
+      data = uk_seatbelts_df,
+      mapping = ggplot2::aes(x = dates, y = drivers, color = color)
+    ) +
+    ggplot2::geom_vline(
+      xintercept = cp_dates,
+      linetype = "dashed",
+      color = "red"
+    ) +
+    zoo::scale_x_yearmon() +
+    ggplot2::annotate(
+      "text",
+      x = cp_dates,
+      y = 1025,
+      label = as.character(cp_dates),
+      color = "blue"
+    ) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none")
+}
+</code></pre>
+
+
+</div>

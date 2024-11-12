@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bootstrapVarElimination_Res</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>NeRI-based backwards variable elimination with bootstrapping</h2>
+
+<h3>Description</h3>
+
+<p>This function removes model terms that do not improve the bootstrapped net residual improvement (NeRI) significantly.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	bootstrapVarElimination_Res(object,
+	                            pvalue = 0.05,
+	                            Outcome = "Class",
+	                            data,
+	                            startOffset = 0, 
+	                            type = c("LOGIT", "LM", "COX"),
+	                            testType = c("Binomial",
+	                                         "Wilcox",
+	                                         "tStudent",
+	                                         "Ftest"),
+	                            loops = 64,
+	                            setIntersect = 1,
+	                            print=TRUE,
+	                            plots=TRUE
+                                )
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+ 
+<p>An object of class <code>lm</code>, <code>glm</code>, or <code>coxph</code> containing the model to be analysed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+
+<p>The maximum <em>p</em>-value, associated to the NeRI, allowed for a term in the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The name of the column in <code>data</code> that stores the variable to be predicted by the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame where all variables are stored in different columns
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startOffset</code></td>
+<td>
+
+<p>Only terms whose position in the model is larger than the <code>startOffset</code> are candidates to be removed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Fit type: Logistic ("LOGIT"), linear ("LM"), or Cox proportional hazards ("COX")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testType</code></td>
+<td>
+
+<p>Type of non-parametric test to be evaluated by the <code>improvedResiduals</code> function: Binomial test ("Binomial"), Wilcoxon rank-sum test ("Wilcox"), Student's <em>t</em>-test ("tStudent"), or <em>F</em>-test ("Ftest")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loops</code></td>
+<td>
+
+<p>The number of bootstrap loops
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setIntersect</code></td>
+<td>
+
+<p>The intersect of the model (To force a zero intersect, set this value to 0)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>, information will be displayed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plots</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>,  plots are displayed
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each model term <code class="reqn">x_i</code>, the residuals are computed for the Full model and the reduced model( where the term <code class="reqn">x_i</code> removed).
+The term whose removal results in the smallest drop in bootstrapped test residuals improvement is selected. The hypothesis: the 
+term improves residuals is tested by checking the p-value of average improvement. If <code class="reqn">p(residuals better than reduced residuals)&gt;pvalue</code>, then the term is removed. 
+In other words, only model terms that significantly aid in improving residuals are kept.
+The procedure is repeated until no term fulfils the removal criterion.
+The p-values of improvement can be computed via a sign-test (Binomial) a paired Wilcoxon test, paired t-test or f-test. The first three tests compare the absolute values of
+the residuals, while the f-test test if the variance of the residuals is improved significantly.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>back.model</code></td>
+<td>
+
+<p>An object of the same class as <code>object</code> containing the reduced model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loops</code></td>
+<td>
+
+<p>The number of loops it took for the model to stabilize
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reclas.info</code></td>
+<td>
+
+<p>A list with the NeRI statistics of the reduced model, as given by the <code>getVar.Res</code> function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootCV</code></td>
+<td>
+
+<p>An object of class <code>bootstrapValidation_Res</code> containing the results of the bootstrap validation in the reduced model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>back.formula</code></td>
+<td>
+
+<p>An object of class <code>formula</code> with the formula used to fit the reduced model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lastRemoved</code></td>
+<td>
+
+<p>The name of the last term that was removed (-1 if all terms were removed)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>at.opt.model</code></td>
+<td>
+
+<p>The model with close to minimum bootstrapped RMSE 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beforeFSC.formula</code></td>
+<td>
+
+<p>The formula of the model before the FSC stage
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>at.RMSE.formula</code></td>
+<td>
+
+<p>the string formula of the model that had the minimum or close to minimum RMSE
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena and Antonio Martinez-Torteya</p>
+
+
+<h3>See Also</h3>
+
+<p><code>bootstrapVarElimination_Bin,
+				 backVarElimination_Res,
+				 bootstrapValidation_Res</code></p>
+
+
+</div>

@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Map multiple file arrays and save results</h2>
+
+<h3>Description</h3>
+
+<p>Advanced mapping function for multiple file arrays. <code>fmap</code>
+runs the mapping functions and stores the results in file arrays. 
+<code>fmap2</code> stores results in memory. This 
+feature is experimental. There are several constraints to the input. 
+Failure to meet these constraints may result in undefined results, or 
+even crashes. Please read Section 'Details' carefully before using 
+this function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmap(
+  x,
+  fun,
+  .y = NULL,
+  .buffer_count = NA_integer_,
+  .output_size = NA_integer_,
+  ...
+)
+
+fmap2(x, fun, .buffer_count = NA, .simplify = TRUE, ...)
+
+fmap_element_wise(x, fun, .y, ..., .input_size = NA)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a list of file arrays to map; each element of <code>x</code> must 
+share the same dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>function that takes one list</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.y</code></td>
+<td>
+<p>a file array object, used to save results</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.buffer_count</code></td>
+<td>
+<p>number of total buffers (chunks) to run</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.output_size</code></td>
+<td>
+<p><code>fun</code> output vector length</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passing to <code>fun</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.simplify</code></td>
+<td>
+<p>whether to apply <code>simplify2array</code> to 
+the result</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.input_size</code></td>
+<td>
+<p>number of elements to read from each array of <code>x</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Denote the first argument of <code>fun</code> as <code>input</code>, The length 
+of <code>input</code> equals the length of <code>x</code>. The size of each
+element of <code>input</code> is defined by <code>.input_size</code>, except for the
+last loop. For example, given dimension of each input array as 
+<code class="reqn">10x10x10x10</code>, if <code>.input_size=100</code>, then 
+<code>length(input[[1]])=100</code>. The total number of runs equals to
+<code>length(x[[1]])/100</code>. If <code>.input_size=300</code>, then 
+<code>length(input[[1]])</code> will be <code>300</code> except for the last run. 
+This is because <code class="reqn">10000</code> cannot be divided by <code>300</code>. 
+The element length of the last run will be <code>100</code>. 
+</p>
+<p>The returned variable length of <code>fun</code> will be checked by 
+<code>.output_size</code>. If the output length exceed <code>.output_size</code>, 
+an error will be raised.
+</p>
+<p>Please make sure that <code>length(.y)/length(x[[1]])</code> equals to 
+<code>.output_size/.input_size</code>.
+</p>
+<p>For <code>fmap_element_wise</code>, the <code>input[[1]]</code> and output length 
+must be the consistent.
+</p>
+
+
+<h3>Value</h3>
+
+<p>File array instance <code>.y</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+set.seed(1)
+x1 &lt;- filearray_create(tempfile(), dimension = c(100,20,3))
+x1[] &lt;- rnorm(6000)
+x2 &lt;- filearray_create(tempfile(), dimension = c(100,20,3))
+x2[] &lt;- rnorm(6000)
+
+# Add two arrays
+output &lt;- filearray_create(tempfile(), dimension = c(100,20,3))
+fmap(list(x1, x2), function(input){
+    input[[1]] + input[[2]]
+}, output)
+
+# check
+range(output[] - (x1[] + x2[]))
+
+output$delete()
+
+# Calculate the maximum of x1/x2 for every 100 elements
+# total 60 batches/loops (`.buffer_count`)
+output &lt;- filearray_create(tempfile(), dimension = c(20,3))
+fmap(list(x1, x2), function(input){
+    max(input[[1]] / input[[2]])
+}, .y = output, .buffer_count = 60)
+
+# check
+range(output[] - apply(x1[] / x2[], c(2,3), max))
+
+output$delete()
+
+# A large array example
+if(interactive()){
+    x &lt;- filearray_create(tempfile(), dimension = c(287, 100, 301, 4))
+    dimnames(x) &lt;- list(
+        Trial = 1:287,
+        Marker = 1:100,
+        Time = 1:301,
+        Location = 1:4
+    )
+
+    for(i in 1:4){
+        x[,,,i] &lt;- runif(8638700)
+    }
+    # Step 1:
+    # for each location, trial, and marker, calibrate (baseline)
+    # according to first 50 time-points
+
+    output &lt;- filearray_create(tempfile(), dimension = dim(x))
+
+    # baseline-percentage change
+    fmap(
+        list(x),
+        function(input){
+            # get locational data
+            location_data &lt;- input[[1]]
+            dim(location_data) &lt;- c(287, 100, 301)
+
+            # collapse over first 50 time points for
+            # each trial, and marker
+            baseline &lt;- apply(location_data[,,1:50], c(1,2), mean)
+
+            # calibrate
+            calibrated &lt;- sweep(location_data, c(1,2), baseline,
+                                FUN = function(data, bl){
+                                    (data / bl - 1) * 100
+                                })
+            return(calibrated)
+        },
+
+        .y = output,
+
+        # input dimension is 287 x 100 x 301 for each location
+        # hence 4 loops in total
+        .buffer_count = 4
+    )
+
+    # cleanup
+    x$delete()
+
+}
+
+# cleanup
+x1$delete()
+x2$delete()
+output$delete()
+</code></pre>
+
+
+</div>

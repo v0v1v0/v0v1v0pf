@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotScenarios</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates summary plots of the biases in the scenarios</h2>
+
+<h3>Description</h3>
+
+<p><code>plotScenarios</code> uses a simulation performed using the function <code>generateScenarios</code> as input and creates heatmaps that show
+the biases in the simulated attributes with respect to the specified target values of the attributes.
+The plots show the magnitude (absolute value) of the mean biases, and the standard deviation of biases across replicates. The heatmaps can be used
+to evaluate how well the simulated attributes match the specified targets.
+The biases are in units of percentage for attributes of variables like precipitation, and in units of degrees K for attributes of temperature.
+The function creates two heatmaps that show:
+</p>
+
+<ul>
+<li>
+<p>magnitude of the mean biases across all the replicates
+</p>
+</li>
+<li>
+<p>standard deviation of biases across all the replicates
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotScenarios(
+  sim,
+  simName = NULL,
+  writeToFile = FALSE,
+  fileName = "plotScenarios.pdf",
+  colMapRange = "default",
+  plotAbs = T
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sim</code></td>
+<td>
+<p>a list; contains a stochastic simulation or the summary of a stochastic simulation created using the function <code>generateScenarios</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simName</code></td>
+<td>
+<p>a string; defaults to <code>NULL</code>). User-specified name of the simulation that will used as the heading in the
+saved pdf file to identify the simulation later. If <code>simName</code> is <code>NULL</code>, a random name will be assigned for the simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>writeToFile</code></td>
+<td>
+<p>logical; defaults to <code>FALSE</code>. Specifies whether the plots should be saved to a pdf file.
+If set to true, the heatmaps will be saved to a pdf file that would also contain summary pages that show the attributes, models, and optimisation settings used to create <code>sim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fileName</code></td>
+<td>
+<p>a string; defaults to <code>"plotScenarios.pdf"</code>. Specifies the name of the pdf file to be written, if the file exists it will be overwritten.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colMapRange</code></td>
+<td>
+<p>a string; may be set to the character <code>"default"</code> or <code>"full"</code> or to a numeric vector of length 2.
+The argument specifies the range of data spanned in the colormap of the heatmap.
+If set to <code>"default"</code>, the colourmap limits of attributes that are in units of percentage is set to 0% to 10%,
+and the colourmap limits of the attributes of temperature is set to 0 degrees K to 1 degrees K.
+If set to <code>"full"</code>, the colourmap limits are set to the minimum and maximum values in the data.
+If a numeric vector is specified, the colourmap limits are set to the first (minimum) and second (maximum) values in the vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotAbs</code></td>
+<td>
+<p>logical value, defaults to TRUE; determines whether the absolute value of the data is plotted (TRUE), or the raw value (which can be positive/negative) is plotted (FALSE).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The argument <code>sim</code> may be a full stochastic simulation generated using the function <code>generateScenarrios</code> or the summary of the stochastic simulation
+generated using <code>getSimSummary</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns two R plots showing the biases in the targets of the scenarios generated using the function <code>generateScenarios</code>.
+The figures may be saved to a pdf file by setting the <code>writeToFile</code> argument to <code>TRUE</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>createExpSpace</code>, <code>generateScenarions</code>, <code>getSimSummary</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# the examples are nnot run since the run times are too long for CRAN
+# create an exposure space
+attPerturb &lt;- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
+attHold &lt;- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
+"P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+attPerturbType = "regGrid"
+attPerturbSamp = c(2, 1, 1)
+attPerturbMin = c(0.9, 1, 1)
+attPerturbMax = c(1.1, 1, 1)
+expSpace &lt;- createExpSpace(attPerturb = attPerturb,
+                           attPerturbSamp = attPerturbSamp,
+                           attPerturbMin = attPerturbMin,
+                           attPerturbMax = attPerturbMax,
+                           attPerturbType = attPerturbType,
+                           attHold = attHold,
+                           attTargetsFile = NULL)
+# load example data available in foreSIGHT
+data(tankDat)
+# perform stochastic simulation
+sim &lt;- generateScenarios(reference = tank_obs,
+                         expSpace = expSpace,
+                         simLengthNyrs = 30,
+                         numReplicates = 2)
+# plots heatmaps showing biases in simulated targets
+plotScenarios(sim)
+# to save the figures to a pdf file set writeToFile = TRUE
+# using an example stochastic simulation summary provided with the package
+data("egSimSummary")
+plotScenarios(egSimSummary)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

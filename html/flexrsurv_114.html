@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predictCLT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predictions for relational life table model</h2>
+
+<h3>Description</h3>
+
+<p>Predict the relational model for a life table correction model fitted by <code>flexrsuvclt</code> or for specified knots, degree and coefficients </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  predictCLT (...)
+
+  ## S3 method for class 'flexrsurvclt'
+predictCLT(object, newdata= NULL,
+   type = c("clt", "correction"),
+   se.fit=FALSE, na.action=na.pass, newcoef = NULL, ...)
+   
+   ## Default S3 method:
+predictCLT(knots, degree, newdata, newcoef, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>the results of a flexrsurvclt fit. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+
+<p>Optional new vector of logarithm of the cumulative distribution odds (LCDO) at which to do predictions.
+If absent predictions are for values of the LCDO used in the original fit (<code>logit_end</code> parameter in the call to <code>flexrsuvclt</code>)). 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newcoef</code></td>
+<td>
+
+<p>Optional new coefficients for which to do predictions.
+If absent predictions are for the coefficients of the fitted model in <code>object</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>the type of predicted value. 
+Choices are <code>"clt"</code> or <code>"correction"</code> to compute the corrected logarithm of the cumulative distribution odds. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+
+<p>if TRUE, pointwise standard errors are produced for the predictions
+(not yet implemented).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots, degree</code></td>
+<td>
+
+<p>knots and degree of the relational model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>function determining what should be done with missing values in
+<code>newdata</code>. The default is to predict <code>NA</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For future methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>predictCLT</code> with <code>knots</code> and <code>degree</code> arguments computes corrected values of  . 
+</p>
+
+
+<h3>Value</h3>
+
+<p>a vector or a list containing the predicted relational model (element <code>"fit"</code>) and their
+standard errors (element <code>"se.fit"</code>) if the se.fit option is TRUE. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict.flexrsurvclt</code>, <code>flexrsurv</code>, <code>flexrsurvclt</code>  </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+if (requireNamespace("relsurv", quietly = TRUE) &amp; requireNamespace("date", quietly = TRUE)) {
+
+	library(date)
+	# data from package relsurv
+	data(rdata, package="relsurv")
+	
+	class(rdata$year)&lt;-"integer"
+	
+	
+	# rate table from package relsurv
+	data(slopop, package="relsurv")
+	
+	# get the death rate at event (or end of followup) from slopop for rdata
+	rdata$iage &lt;- findInterval(rdata$age*365.24+rdata$time, attr(slopop, "cutpoints")[[1]])
+	rdata$iyear &lt;- findInterval(rdata$year+rdata$time, attr(slopop, "cutpoints")[[2]])
+	therate &lt;- rep(-1, dim(rdata)[1])
+	for( i in 1:dim(rdata)[1]){
+	  therate[i] &lt;- slopop[rdata$iage[i], rdata$iyear[i], rdata$sex[i]]
+	}
+	
+	rdata$slorate &lt;- therate
+	
+	# get the logit_start and logit_end
+	# logit start at age 18
+	
+	
+	tmpsurv &lt;- Surv(rep(0, length(rdata$time)), rdata$time, rdata$cens)
+	
+	
+	HH &lt;- getHazardFromTable(tmpsurv, startdate=rdata$year,
+	       startage=rdata$age*365.25 , matchdata=rdata, ratetable=slopop,
+	       age="age", year="year",
+	       rmap=list(sex=sex),
+	       agemin=18,
+	       ratename = "poprate", cumrateendname ="cumrateend", cumrateentername ="cumrateenter"
+	      ) 
+	
+	rdata$slorate &lt;- HH$poprate
+	rdata$logit_start &lt;- log(exp(HH$cumrateenter)-1)
+	rdata$logit_end &lt;- log(exp(HH$cumrateend)-1)
+	
+	rdata$Id &lt;- 1:dim(rdata)[1]
+	
+	# change sex coding
+	rdata$sex01 &lt;- rdata$sex -1
+	
+	# fit a relative survival model with a non linear effect of age
+	#   with correction of life table
+	#   full likelihood
+	fit1 &lt;- flexrsurvclt(Surv(time,cens)~sex01+NLL(age, Knots=60, Degree=3,
+	                                           Boundary.knots = c(24, 95)), 
+	                 rate=slorate, 
+					                     logit_start=logit_start,
+	                    logit_end=logit_end,
+				data=rdata,
+				Id=Id,
+	                 knots.Bh=1850,  # one interior knot at 5 years
+	                 degree.Bh=3,
+	                 Max_T=5400,
+	                 Spline = "b-spline",
+	             Spline.CLT=flexrsurv:::R2bBSplineBasis(knots=c(-2.5,0,2.5), degree=3),
+	                 initbyglm=TRUE,
+	                 initbands=seq(0, 5400, 100), 
+	                 int_meth= "BANDS",
+	                 bands=seq(0, 5400, 50)
+	                 )
+	
+	
+	
+	
+	corrected_logit_end &lt;- predictCLT(fit1)
+	
+	
+	
+	try_logit_end &lt;- predictCLT(knots=c(-2.5,0,2.5), degree=3, newcoef = c(0.5, 2), 
+		newdata = rdata$logit_end  )
+	
+	plot(rdata$logit_end, corrected_logit_end)
+	points(rdata$logit_end, try_logit_end, col = 2)
+	
+
+}
+
+</code></pre>
+
+
+</div>

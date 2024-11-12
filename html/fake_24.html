@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SimulatePrecision</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation of precision matrix</h2>
+
+<h3>Description</h3>
+
+<p>Simulates a sparse precision matrix from a binary adjacency matrix
+<code>theta</code> encoding conditional independence in a Gaussian Graphical Model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SimulatePrecision(
+  pk = NULL,
+  theta,
+  v_within = c(0.5, 1),
+  v_between = c(0, 0.1),
+  v_sign = c(-1, 1),
+  continuous = TRUE,
+  pd_strategy = "diagonally_dominant",
+  ev_xx = NULL,
+  scale = TRUE,
+  u_list = c(1e-10, 1),
+  tol = .Machine$double.eps^0.25
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pk</code></td>
+<td>
+<p>vector of the number of variables per group in the simulated
+dataset. The number of nodes in the simulated graph is <code>sum(pk)</code>. With
+multiple groups, the simulated (partial) correlation matrix has a block
+structure, where blocks arise from the integration of the <code>length(pk)</code>
+groups. This argument is only used if <code>theta</code> is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>binary and symmetric adjacency matrix encoding the conditional
+independence structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_within</code></td>
+<td>
+<p>vector defining the (range of) nonzero entries in the
+diagonal blocks of the precision matrix. These values must be between -1
+and 1 if <code>pd_strategy="min_eigenvalue"</code>. If <code>continuous=FALSE</code>,
+<code>v_within</code> is the set of possible precision values. If
+<code>continuous=TRUE</code>, <code>v_within</code> is the range of possible precision
+values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_between</code></td>
+<td>
+<p>vector defining the (range of) nonzero entries in the
+off-diagonal blocks of the precision matrix. This argument is the same as
+<code>v_within</code> but for off-diagonal blocks. It is only used if
+<code>length(pk)&gt;1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_sign</code></td>
+<td>
+<p>vector of possible signs for precision matrix entries. Possible
+inputs are: <code>-1</code> for positive partial correlations, <code>1</code> for
+negative partial correlations, or <code>c(-1, 1)</code> for both positive and
+negative partial correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>continuous</code></td>
+<td>
+<p>logical indicating whether to sample precision values from
+a uniform distribution between the minimum and maximum values in
+<code>v_within</code> (diagonal blocks) or <code>v_between</code> (off-diagonal blocks)
+(if <code>continuous=TRUE</code>) or from proposed values in <code>v_within</code>
+(diagonal blocks) or <code>v_between</code> (off-diagonal blocks) (if
+<code>continuous=FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_strategy</code></td>
+<td>
+<p>method to ensure that the generated precision matrix is
+positive definite (and hence can be a covariance matrix). If
+<code>pd_strategy="diagonally_dominant"</code>, the precision matrix is made
+diagonally dominant by setting the diagonal entries to the sum of absolute
+values on the corresponding row and a constant u. If
+<code>pd_strategy="min_eigenvalue"</code>, diagonal entries are set to the sum of
+the absolute value of the smallest eigenvalue of the precision matrix with
+zeros on the diagonal and a constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev_xx</code></td>
+<td>
+<p>expected proportion of explained variance by the first Principal
+Component (PC1) of a Principal Component Analysis. This is the largest
+eigenvalue of the correlation (if <code>scale_ev=TRUE</code>) or covariance (if
+<code>scale_ev=FALSE</code>) matrix divided by the sum of eigenvalues. If
+<code>ev_xx=NULL</code> (the default), the constant u is chosen by maximising the
+contrast of the correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>logical indicating if the proportion of explained variance by
+PC1 should be computed from the correlation (<code>scale=TRUE</code>) or
+covariance (<code>scale=FALSE</code>) matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u_list</code></td>
+<td>
+<p>vector with two numeric values defining the range of values to
+explore for constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>accuracy for the search of parameter u as defined in
+<code>optimise</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Entries that are equal to zero in the adjacency matrix <code>theta</code>
+are also equal to zero in the generated precision matrix. These zero
+entries indicate conditional independence between the corresponding pair of
+variables (see <code>SimulateGraphical</code>).
+</p>
+<p>Argument <code>pk</code> can be specified to create groups of variables and allow
+for nonzero precision entries to be sampled from different distributions
+between two variables belonging to the same group or to different groups.
+</p>
+<p>If <code>continuous=FALSE</code>, nonzero off-diagonal entries of the precision
+matrix are sampled from a discrete uniform distribution taking values in
+<code>v_within</code> (for entries in the diagonal block) or <code>v_between</code>
+(for entries in off-diagonal blocks). If <code>continuous=TRUE</code>, nonzero
+off-diagonal entries are sampled from a continuous uniform distribution
+taking values in the range given by <code>v_within</code> or <code>v_between</code>.
+</p>
+<p>Diagonal entries of the precision matrix are defined to ensure positive
+definiteness as described in <code>MakePositiveDefinite</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>true simulated precision matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>value of the constant u used to ensure that <code>omega</code> is
+positive definite.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Bodinier B, Filippi S, Nost TH, Chiquet J, Chadeau-Hyam M (2021).
+“Automated calibration for stability selection in penalised regression and graphical models: a multi-OMICs network application exploring the molecular response to tobacco smoking.”
+<a href="https://arxiv.org/abs/2106.02521">https://arxiv.org/abs/2106.02521</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SimulateGraphical</code>, <code>MakePositiveDefinite</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulation of an adjacency matrix
+theta &lt;- SimulateAdjacency(pk = c(5, 5), nu_within = 0.7)
+print(theta)
+
+# Simulation of a precision matrix maximising the contrast
+simul &lt;- SimulatePrecision(theta = theta)
+print(simul$omega)
+
+# Simulation of a precision matrix with specific ev by PC1
+simul &lt;- SimulatePrecision(
+  theta = theta,
+  pd_strategy = "min_eigenvalue",
+  ev_xx = 0.3, scale = TRUE
+)
+print(simul$omega)
+</code></pre>
+
+
+</div>

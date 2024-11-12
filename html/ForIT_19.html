@@ -1,0 +1,281 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>INFCvpeSUM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate tree bole volume or phytomass for stems groups, with associated accuracy info</h2>
+
+<h3>Description</h3>
+
+<p>Cumulative estimation of the volume or phytomass of groups of trees is just
+the summation of the values computed with <code>INFCvpe()</code>, but the computation of
+accuracy estimates is improved using these summation functions.<br>
+Two approaches are available.
+</p>
+
+<ul>
+<li>
+<p> Via <code>INFCvpe_summarise()</code> that processes and returns a data frame
+</p>
+</li>
+<li>
+<p> or by following aggregation functions within a standard <code>summarise()</code>:
+</p>
+
+<ul>
+<li> <p><code>INFCvpe_sum()</code>
+</p>
+</li>
+<li> <p><code>INFCvpe_ConfInt()</code>
+</p>
+</li>
+<li> <p><code>INFCvpe_OutOfDomain()</code>
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">INFCvpe_summarise(
+  in.data,
+  EPPOcode_C,
+  dbh_C,
+  h_tot_C,
+  quantity = "vol",
+  p = 0.95
+)
+
+INFCvpe_sum(EPPOcode, dbh, h_tot, quantity = "vol")
+
+INFCvpe_ConfInt(EPPOcode, dbh, h_tot, quantity = "vol", p = 0.95)
+
+INFCvpe_OutOfDomain(EPPOcode, dbh, h_tot)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>in.data</code></td>
+<td>
+<p>A dataframe (or tibble) containing tally data to be matched with
+"EPPOcode_C", "dbh_C" and "htot_C" arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EPPOcode_C</code></td>
+<td>
+<p>A string, the name of the column in <code>in.data</code> with the
+species EPPO codes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbh_C</code></td>
+<td>
+<p>A string, the name of the column in <code>in.data</code> with the
+breast height diameter values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h_tot_C</code></td>
+<td>
+<p>A string, the name of the column in <code>in.data</code> with the
+tree total height values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantity</code></td>
+<td>
+<p>(default = <code>"vol"</code>) A character vector specifying required
+quantity/ies: <code>c("vol", "dw1" : "dw4")</code>.
+Use <code>qantities()</code> to decode definitions.
+</p>
+
+<ul>
+<li>
+<p> for <code>INFCvpe_summarise()</code>, if <code>length(unique(quantity)) &gt; 1</code>,
+rows in in.data will be replicated for each value.
+</p>
+</li>
+<li>
+<p> for <code>INFCvpe_SUM functions</code>, length(quantity) must be 1
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>(default <code>p = 95%</code>) probability used to compute <code>cihw</code>
+(with length = 1 or length = length(dbh))
+</p>
+<p>OPZIONE 2  <code>INFCvpe_SUM functions</code>:</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EPPOcode</code></td>
+<td>
+<p>A character vector with the species EPPO codes
+(with length = 1 or length = length(dbh))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbh</code></td>
+<td>
+<p>A numeric vector with the brest height diameter values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h_tot</code></td>
+<td>
+<p>A numeric vector with the tree total height values
+(with length = 1 or length = length(dbh))</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Functions developed following Tabacchi et al. (2011), pages 23-26.
+</p>
+
+
+<h3>Value</h3>
+
+
+<ul>
+<li> <p><code>INFCvpe_summarise()</code> returns a dataframe (tibble) with
+the grouping columns defined with <code>group_by()</code>, and the following columns:
+</p>
+
+<ul>
+<li> <p><code>quantity</code>: as additional grouping column,
+</p>
+</li>
+<li> <p><code>n</code> : number of trees in the group,
+</p>
+</li>
+<li> <p><code>n_out</code> : the number of <code>(dbh, htot)</code> pairs that are 'out of the domain',
+</p>
+</li>
+<li> <p><code>est</code> : the estimated value,
+</p>
+</li>
+<li> <p><code>cihw</code> : confidence interval half width
+</p>
+</li>
+<li> <p><code>p</code>: probability used computing <code>cihw</code>
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>INFCvpe_SUM</code> - the functions of this family return a numeric vector,
+aggregating rows within the same group,
+</p>
+
+<ul>
+<li> <p><code>INFCvpe_sum()</code> returns the sum of the estimated quantities,
+</p>
+</li>
+<li> <p><code>INFCvpe_ConfInt()</code> returns 'confidence interval half width',
+</p>
+</li>
+<li> <p><code>INFCvpe_OutOfDomain()</code> returns the number of 'out of domain'
+<code>(dhb, h_tot)</code> pairs included in the summation
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>INFCvpe()</code> to compute individual estimates, with detailed accuracy evaluation
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+Sezione &lt;- function(EPPOcodes){
+  # retrive 'Sezione' name, decoding EPPO codes
+  INFCspecies %&gt;% 
+    dplyr::filter(EPPOcode %in% EPPOcodes) %&gt;%
+    dplyr::left_join(INFCcatalog,by = "pag")%&gt;% 
+    dplyr::select(section) %&gt;% 
+    purrr::pluck(1)
+}
+
+tst &lt;- ForIT_test_data %&gt;%
+  dplyr::filter(UC != "U0") 
+# select Tabachi et al. example data
+
+tst %&gt;%
+  dplyr::group_by(specie) %&gt;%
+  INFCvpe_summarise("specie", "d130", "h_dendro") %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::mutate(specie = Sezione(specie),
+                dplyr::across(c("est", "cihw"), ~round(.x, 1))
+  ) %&gt;%
+  dplyr::select(specie, est, cihw) %&gt;%
+  dplyr::arrange(specie) %&gt;%
+  dplyr::slice(2, 1, 3) %&gt;% 
+  t() %&gt;% 
+  provideDimnames(base = list(dimnames(.)[[1]], ""), unique=FALSE)
+# Compare ForIT (ver 2) output
+## specie "Aceri"  "Abete bianco" "Faggio"
+## est    "4623.0" "4044.2"       "1079.4"
+## cihw   "567.5"  "661.2"        "275.4" 
+# with 'Tabella 2' in Tabacchi et al. (2011, pag. 27)
+## specie "aceri"  "abete bianco" "faggio"
+## est    "4623.0" "4044.2"       "1079.4"
+## cihw   "567.4"  "662.4"        "279.2"
+
+# Using 'INFCvpe_summarise()'
+
+## Overall totals
+tst %&gt;%
+  INFCvpe_summarise("specie", "d130", "h_dendro", quantity = c("vol", "dw4"))
+
+## Group by dbh class ('cld')
+tst %&gt;%
+  dplyr::mutate(cld = ceiling(d130/5)*5) %&gt;%
+  dplyr::group_by(UC, specie, cld) %&gt;%
+  INFCvpe_summarise("specie", "d130", "h_dendro")
+
+## Group by sampling unit ('UC')
+tst %&gt;%
+  dplyr::group_by(UC) %&gt;%
+  INFCvpe_summarise("specie", "d130", "h_dendro", quantity = "dw4")
+
+# Using 'INFCvpeSUM' aggregation functions
+
+## Esitmate 'dw4' phytomass, by sampling unit ('UC')
+tst %&gt;%
+  dplyr::group_by(UC) %&gt;%
+  dplyr::summarise(
+    n_stems = dplyr::n(),
+    OoD = INFCvpe_OutOfDomain(specie, d130, h_dendro),
+    dw4 = INFCvpe_sum(specie, d130, h_dendro, quantity = "dw4"),
+    dw4_ConfInt = INFCvpe_ConfInt(specie, d130, h_dendro, quantity = "dw4")
+  )
+
+## Esitmate volume, by sampling unit ('UC')
+tst %&gt;%
+  dplyr::group_by(UC) %&gt;%
+  dplyr::summarise(
+    n_stems = dplyr::n(),
+    OoD = INFCvpe_OutOfDomain(specie, d130, h_dendro),
+    vol = INFCvpe_sum(specie, d130, h_dendro),
+    vol_ConfInt = INFCvpe_ConfInt(specie, d130, h_dendro)
+  )
+
+rm(tst, Sezione)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

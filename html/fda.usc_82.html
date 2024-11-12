@@ -1,0 +1,223 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dfv.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Delsol, Ferraty and Vieu test for no functional-scalar interaction</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>dfv.test</code> tests the null hypothesis of no interaction between a functional covariate and a scalar response in a general framework. The null hypothesis is </p>
+<p style="text-align: center;"><code class="reqn">H_0:\,m(X)=0,</code>
+</p>
+<p> where <code class="reqn">m(\cdot)</code> denotes the regression function of the functional variate <code class="reqn">X</code> over the centred scalar response <code class="reqn">Y</code> (<code class="reqn">E[Y]=0</code>). The null hypothesis is tested by the smoothed integrated square error of the response (see Details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dfv.statistic(
+  X.fdata,
+  Y,
+  h = quantile(x = metric.lp(X.fdata), probs = c(0.05, 0.1, 0.15, 0.25, 0.5)),
+  K = function(x) 2 * dnorm(abs(x)),
+  weights = rep(1, dim(X.fdata$data)[1]),
+  d = metric.lp,
+  dist = NULL
+)
+
+dfv.test(
+  X.fdata,
+  Y,
+  B = 5000,
+  h = quantile(x = metric.lp(X.fdata), probs = c(0.05, 0.1, 0.15, 0.25, 0.5)),
+  K = function(x) 2 * dnorm(abs(x)),
+  weights = rep(1, dim(X.fdata$data)[1]),
+  d = metric.lp,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X.fdata</code></td>
+<td>
+<p>Functional covariate. The object must be in the class <code>fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Scalar response. Must be a vector with the same number of elements as functions are in <code>X.fdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Bandwidth parameter for the kernel smoothing. This is a crucial parameter that affects the power performance of the test. One possibility to choose it is considering the Cross-validatory bandwidth of the nonparametric functional regression, given by the function <code>fregre.np</code> (see Examples). 
+Other possibility is to consider a grid of bandwidths. This is the default option, considering the grid given by the quantiles 0.05, 0.10, 0.15, 0.25 and 0.50 of the functional <code class="reqn">L^2</code> distances of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>Kernel function. If no specified it is taken to be the rescaled right part of the normal density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>A vector of weights for the sample data. The default is the uniform weights <code>rep(1,dim(X.fdata$data)[1])</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>Semimetric to use in the kernel smoothers. By default is the <code class="reqn">L^2</code> distance given by <code>metric.lp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>Matrix of distances of the functional data, used to save time in the bootstrap calibration. If not given, the matrix is automatically computed using the semimetric <code>d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of bootstrap replicates to calibrate the distribution of the test statistic. <code>B=5000</code> replicates are the recommended for carry out the test, although for exploratory analysis (<b>not inferential</b>), an acceptable less time-consuming option is <code>B=500</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Either to show or not information about computing progress.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Delsol, Ferraty and Vieu statistic is defined as 
+</p>
+<p style="text-align: center;"><code class="reqn">T_n=\int\bigg(\sum_{i=1}^n(Y_i-m(X_i))K\bigg(\frac{d(X,X_i)}{h}\bigg)\bigg)^2\omega(X)dP_X(X)</code>
+</p>
+
+<p>and in the case of no interaction with centred scalar response (when <code class="reqn">H_0:\,m(X)=0</code> 
+holds), its sample version is computed from 
+</p>
+<p style="text-align: center;"><code class="reqn">T_n=\frac{1}{n}\sum_{j=1}^n\bigg(\sum_{i=1}^n Y_iK\bigg(\frac{d(X_j,X_i)}{h}\bigg)\bigg)^2\omega(X_j).</code>
+</p>
+
+<p>The sample version implemented here does not consider a splitting of the sample, as the authors 
+comment in their paper. The statistic is computed by the function <code>dfv.statistic</code> and, before
+applying the test, the response <code class="reqn">Y</code> is centred. The distribution of the test statistic
+is approximated by a wild bootstrap on the residuals, using the <em>golden section bootstrap</em>.
+</p>
+<p>Please note that if a grid of bandwidths is passed, a harmless warning message will prompt at the
+end of the test (it comes from returning several p-values in the <code>htest</code> class).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The value of <code>dfv.statistic</code> is a vector of length <code>length(h)</code> with the values
+of the statistic for each bandwidth. The value of <code>dfv.test</code> is an object with class 
+<code>"htest"</code> whose underlying structure is a list containing the following components:
+</p>
+
+<ul>
+<li> <p>statistic The value of the Delsol, Ferraty and Vieu test statistic.
+</p>
+</li>
+<li> <p>boot.statistics A vector of length <code>B</code> with the values of the bootstrap test statistics.
+</p>
+</li>
+<li> <p>p.value The p-value of the test.
+</p>
+</li>
+<li> <p>method The character string "Delsol, Ferraty and Vieu test for no functional-scalar interaction".
+</p>
+</li>
+<li> <p>BThe number of bootstrap replicates used.
+</p>
+</li>
+<li> <p>hBandwidth parameters for the test.
+</p>
+</li>
+<li> <p>KKernel function used.
+</p>
+</li>
+<li> <p>weightsThe weights considered.
+</p>
+</li>
+<li> <p>dMatrix of distances of the functional data.
+</p>
+</li>
+<li> <p>data.nameThe character string "Y=0+e"
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>No NA's are allowed neither in the functional covariate nor in the scalar response.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eduardo Garcia-Portugues. Please, report bugs and suggestions
+to <a href="mailto:eduardo.garcia.portugues@uc3m.es">eduardo.garcia.portugues@uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Delsol, L., Ferraty, F. and Vieu, P. (2011). Structural test in regression on functional variables. 
+Journal of Multivariate Analysis, 102, 422-447. <a href="https://doi.org/10.1016/j.jmva.2010.10.003">doi:10.1016/j.jmva.2010.10.003</a>
+</p>
+<p>Delsol, L. (2013). No effect tests in regression on functional variable and some applications to spectrometric studies. Computational Statistics, 28(4), 1775-1811. <a href="https://doi.org/10.1007/s00180-012-0378-1">doi:10.1007/s00180-012-0378-1</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rwild</code>, <code>flm.test</code>, <code>flm.Ftest</code>, <code>fregre.np</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## Simulated example ##
+X=rproc2fdata(n=50,t=seq(0,1,l=101),sigma="OU")
+
+beta0=fdata(mdata=rep(0,length=101)+rnorm(101,sd=0.05),
+argvals=seq(0,1,l=101),rangeval=c(0,1))
+beta1=fdata(mdata=cos(2*pi*seq(0,1,l=101))-(seq(0,1,l=101)-0.5)^2+
+rnorm(101,sd=0.05),argvals=seq(0,1,l=101),rangeval=c(0,1))
+
+# Null hypothesis holds
+Y0=drop(inprod.fdata(X,beta0)+rnorm(50,sd=0.1))
+
+# Null hypothesis does not hold
+Y1=drop(inprod.fdata(X,beta1)+rnorm(50,sd=0.1))
+
+# We use the CV bandwidth given by fregre.np
+# Do not reject H0
+dfv.test(X,Y0,h=fregre.np(X,Y0)$h.opt,B=100)
+# dfv.test(X,Y0,B=5000)
+
+# Reject H0
+dfv.test(X,Y1,B=100)
+# dfv.test(X,Y1,B=5000)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

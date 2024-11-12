@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmri.pvalue</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> P-values </h2>
+
+<h3>Description</h3>
+
+<p>Determine p-values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmri.pvalue(spm, mode="basic", na.rm=FALSE, minimum.signal = 0, alpha= 0.05)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spm</code></td>
+<td>
+ <p><code>fmrispm</code> object </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p> type of pvalue definition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p><code>na.rm</code> specifies how NA's in the SPM are handled. NA's may occur
+in voxel where the time series information did not allow for estimating parameters and their variances
+or where the time series information where constant over time. A high (1e19) value of the variance
+and a parameter of 0 are used to characterize NA's. If <code>na.rm=TRUE</code> the pvalue for the corresponding voxels
+is set to 1. Otherwise pvalues are assigned according to the information found in the SPM at the voxel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimum.signal</code></td>
+<td>
+<p>allows to specify a (positive) minimum value for detected signals. If minimum.signal &gt;0
+the thresholds are to conservative, this case needs further improvements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Significance level in case of <code>mode="FDR"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If only a contrast is given in <code>spm</code>, we simply use a t-statistic
+and define p-values according to random field theory for the resulting gaussian
+field (sufficiently large number of df - see ref.). If <code>spm</code> is a
+vector of length larger than one for each voxel, a chisq field is
+calculated and evaluated (see
+Worsley and Taylor (2006)). If <code>delta</code> is given, a cone statistics is
+used.
+</p>
+<p>The parameter <code>mode</code> allows for different kinds of p-value
+calculation. <code>mode="voxelwise"</code> refers to voxelwise tests while
+<code>mode="Bonferroni"</code> adjusts the significance level for multiple testing.
+An alternative is <code>mode="FDR"</code> specifying signal detection by False
+Discovery Rate (FDR) with proportion of false positives level specified by <code>alpha</code>.
+The other choices apply results on excursion sets of random fields
+(Worsley 1994, Adler 2003) for smoothed SPM's.
+"basic" corresponds to a global definition of the
+resel counts based on the amount of smoothness achieved by an equivalent
+Gaussian filter. The propagation condition ensures, that under the
+hypothesis
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{\Theta} = 0</code>
+</p>
+
+<p>adaptive smoothing performs like a
+non adaptive filter with the same kernel function which justifies this
+approach. "local"
+corresponds to a more conservative setting, where the p-value is
+derived from the estimated local resel counts that has been achieved by
+adaptive smoothing. In contrast to "basic", "global" takes a global
+median to adjust for the randomness of the weighting scheme generated
+by adaptive smoothing. "global" and "local" are more conservative than
+"basic", that is, they generate slightly larger p-values.</p>
+
+
+<h3>Value</h3>
+
+<p>Object with class attributes "fmripvalue" and "fmridata"
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+<p> p-value. use with <code>plot</code> for thresholding.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> voxelsize ratio </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p> data dimension </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrf</code></td>
+<td>
+<p> expected BOLD response for contrast (single stimulus only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>maximal pvalue as scale information</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>actual threshold used</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Unexpected side effects may occur if spm does not meet the
+requirements, especially if a parameter estimate vector of length greater than 2 through
+argument <code>vvector</code> in <code>fmri.lm</code> has been produced for every voxel.</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Karsten Tabelow <a href="mailto:tabelow@wias-berlin.de">tabelow@wias-berlin.de</a> </p>
+
+
+<h3>References</h3>
+
+<p>Polzehl, J. and Tabelow, K. (2007)
+<em>fmri: A Package for Analyzing fmri Data</em>,
+R News, 7:13-17 .
+</p>
+<p>Tabelow, K., Polzehl, J., Voss, H.U., and Spokoiny, V. (2006).
+<em>Analysing fMRI
+experiments with structure adaptive smoothing procedures</em>,
+NeuroImage, 33:55-62.
+</p>
+<p>Worsley, K.J., and Taylor, J.E., <em>Detecting fMRI activation
+allowing for unknown latency of the hemodynamic response</em>,
+NeuroImage 29:649-654 (2006).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fmri.lm</code>,  <code>fmri.smooth</code>, <code>plot.fmridata</code>,
+<code>fmri.cluster</code>, <code>fmri.searchlight</code>  </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: fmri.pvalue(smoothresult)
+</code></pre>
+
+
+</div>

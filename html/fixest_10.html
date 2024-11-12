@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bins the values of a variable (typically a factor)</h2>
+
+<h3>Description</h3>
+
+<p>Tool to easily group the values of a given variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bin(x, bin)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector whose values have to be grouped. Can be of any type but must be atomic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin</code></td>
+<td>
+<p>A list of values to be grouped, a vector, a formula, or the special
+values <code>"bin::digit"</code> or <code>"cut::values"</code>. To create a new value from old values,
+use <code>bin = list("new_value"=old_values)</code> with <code>old_values</code> a vector of existing values.
+You can use <code>.()</code> for <code>list()</code>.
+It accepts regular expressions, but they must start with an <code>"@"</code>, like in
+<code>bin="@Aug|Dec"</code>. It accepts one-sided formulas which must contain the variable <code>x</code>,
+e.g. <code>bin=list("&lt;2" = ~x &lt; 2)</code>.
+The names of the list are the new names. If the new name is missing, the first
+value matched becomes the new name. In the name, adding <code>"@d"</code>, with <code>d</code> a digit,
+will relocate the value in position <code>d</code>: useful to change the position of factors.
+Use <code>"@"</code> as first item to make subsequent items be located first in the factor.
+Feeding in a vector is like using a list without name and only a single element.
+If the vector is numeric, you can use the special value <code>"bin::digit"</code> to group
+every <code>digit</code> element.
+For example if <code>x</code> represents years, using <code>bin="bin::2"</code> creates bins of two years.
+With any data, using <code>"!bin::digit"</code> groups every digit consecutive values starting
+from the first value.
+Using <code>"!!bin::digit"</code> is the same but starting from the last value.
+With numeric vectors you can: a) use <code>"cut::n"</code> to cut the vector into <code>n</code> equal parts,
+b) use <code>"cut::a]b["</code> to create the following bins: <code style="white-space: pre;">⁠[min, a]⁠</code>, <code style="white-space: pre;">⁠]a, b[⁠</code>, <code style="white-space: pre;">⁠[b, max]⁠</code>.
+The latter syntax is a sequence of number/quartile (q0 to q4)/percentile (p0 to p100)
+followed by an open or closed square bracket. You can add custom bin names by
+adding them in the character vector after <code>'cut::values'</code>. See details and examples.
+Dot square bracket expansion (see <code>dsb</code>) is enabled.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>It returns a vector of the same length as <code>x</code>.
+</p>
+
+
+<h3>"Cutting" a numeric vector</h3>
+
+<p>Numeric vectors can be cut easily into: a) equal parts, b) user-specified bins.
+</p>
+<p>Use <code>"cut::n"</code> to cut the vector into <code>n</code> (roughly) equal parts. Percentiles are
+used to partition the data, hence some data distributions can lead to create less
+than <code>n</code> parts (for example if P0 is the same as P50).
+</p>
+<p>The user can specify custom bins with the following syntax: <code>"cut::a]b]c]"</code>. Here
+the numbers <code>a</code>, <code>b</code>, <code>c</code>, etc, are a sequence of increasing numbers, each followed
+by an open or closed square bracket. The numbers can be specified as either
+plain numbers (e.g. <code>"cut::5]12[32["</code>), quartiles (e.g. <code>"cut::q1]q3["</code>),
+or percentiles (e.g. <code>"cut::p10]p15]p90]"</code>). Values of different types can be mixed:
+<code>"cut::5]q2[p80["</code> is valid provided the median (<code>q2</code>) is indeed greater
+than <code>5</code>, otherwise an error is thrown.
+</p>
+<p>The square bracket right of each number tells whether the numbers should be included
+or excluded from the current bin. For example, say <code>x</code> ranges from 0 to 100,
+then <code>"cut::5]"</code> will create two  bins: one from 0 to 5 and a second from 6 to 100.
+With <code>"cut::5["</code> the bins would have been 0-4 and 5-100.
+</p>
+<p>A factor is always returned. The labels always report the min and max values in each bin.
+</p>
+<p>To have user-specified bin labels, just add them in the character vector
+following <code>'cut::values'</code>. You don't need to provide all of them, and <code>NA</code> values
+fall back to the default label. For example, <code>bin = c("cut::4", "Q1", NA, "Q3")</code>
+will modify only the first and third label that will be displayed as <code>"Q1"</code> and <code>"Q3"</code>.
+</p>
+
+
+<h3>
+<code>bin</code> vs <code>ref</code>
+</h3>
+
+<p>The functions <code>bin</code> and <code>ref</code> are able to do the same thing, then why use one
+instead of the other? Here are the differences:
+</p>
+
+<ul>
+<li> <p><code>ref</code> always returns a factor. This is in contrast with <code>bin</code> which returns,
+when possible, a vector of the same type as the vector in input.
+</p>
+</li>
+<li> <p><code>ref</code> always places the values modified in the first place of the factor levels.
+On the other hand, <code>bin</code> tries to not modify the ordering of the levels. It is possible
+to make <code>bin</code> mimic the behavior of <code>ref</code> by adding an <code>"@"</code> as the first element of
+the list in the argument <code>bin</code>.
+</p>
+</li>
+<li>
+<p> when a vector (and not a list) is given in input, <code>ref</code> will place each element of
+the vector in the first place of the factor levels. The behavior of <code>bin</code> is
+totally different, <code>bin</code> will transform all the values in the vector into a single
+value in <code>x</code> (i.e. it's binning).
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>See Also</h3>
+
+<p>To re-factor variables: <code>ref</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(airquality)
+month_num = airquality$Month
+table(month_num)
+
+# Grouping the first two values
+table(bin(month_num, 5:6))
+
+# ... plus changing the name to '10'
+table(bin(month_num, list("10" = 5:6)))
+
+# ... and grouping 7 to 9
+table(bin(month_num, list("g1" = 5:6, "g2" = 7:9)))
+
+# Grouping every two months
+table(bin(month_num, "bin::2"))
+
+# ... every 2 consecutive elements
+table(bin(month_num, "!bin::2"))
+
+# ... idem starting from the last one
+table(bin(month_num, "!!bin::2"))
+
+# Using .() for list():
+table(bin(month_num, .("g1" = 5:6)))
+
+
+#
+# with non numeric data
+#
+
+month_lab = c("may", "june", "july", "august", "september")
+month_fact = factor(month_num, labels = month_lab)
+
+# Grouping the first two elements
+table(bin(month_fact, c("may", "jun")))
+
+# ... using regex
+table(bin(month_fact, "@may|jun"))
+
+# ...changing the name
+table(bin(month_fact, list("spring" = "@may|jun")))
+
+# Grouping every 2 consecutive months
+table(bin(month_fact, "!bin::2"))
+
+# ...idem but starting from the last
+table(bin(month_fact, "!!bin::2"))
+
+# Relocating the months using "@d" in the name
+table(bin(month_fact, .("@5" = "may", "@1 summer" = "@aug|jul")))
+
+# Putting "@" as first item means subsequent items will be placed first
+table(bin(month_fact, .("@", "aug", "july")))
+
+#
+# "Cutting" numeric data
+#
+
+data(iris)
+plen = iris$Petal.Length
+
+# 3 parts of (roughly) equal size
+table(bin(plen, "cut::3"))
+
+# Three custom bins
+table(bin(plen, "cut::2]5]"))
+
+# .. same, excluding 5 in the 2nd bin
+table(bin(plen, "cut::2]5["))
+
+# Using quartiles
+table(bin(plen, "cut::q1]q2]q3]"))
+
+# Using percentiles
+table(bin(plen, "cut::p20]p50]p70]p90]"))
+
+# Mixing all
+table(bin(plen, "cut::2[q2]p90]"))
+
+# NOTA:
+# -&gt; the labels always contain the min/max values in each bin
+
+# Custom labels can be provided, just give them in the char. vector
+# NA values lead to the default label
+table(bin(plen, c("cut::2[q2]p90]", "&lt;2", "]2; Q2]", NA, "&gt;90%")))
+
+
+
+#
+# With a formula
+#
+
+data(iris)
+plen = iris$Petal.Length
+
+# We need to use "x"
+table(bin(plen, list("&lt; 2" = ~x &lt; 2, "&gt;= 2" = ~x &gt;= 2)))
+
+
+</code></pre>
+
+
+</div>

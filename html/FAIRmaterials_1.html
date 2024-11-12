@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>process_ontology_files</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Process Ontology CSV Files</h2>
+
+<h3>Description</h3>
+
+<p>This function reads, processes, and combines ontology CSV files from a specified folder.
+These CSV files must be formatted with template from:
+</p>
+<p><a href="https://docs.google.com/spreadsheets/d/1k7gFRc1Yslc-m65aWfFCxqk5UtrKZl9c3GyEFQvLSFU/edit?usp=drive_link">https://docs.google.com/spreadsheets/d/1k7gFRc1Yslc-m65aWfFCxqk5UtrKZl9c3GyEFQvLSFU/edit?usp=drive_link</a>
+</p>
+<p>It can handle subdirectories by producing separate unmerged outputs for each subdirectory.
+The function generates an ontology tree plot, saves it as SVG, and serializes the RDF object
+to Turtle and JSON-LD formats in the specified folder. Additionally, it allows for the merging
+of multiple ontologies, with options to customize the merged RDF dataset's metadata.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">process_ontology_files(
+  folder_path,
+  add_external_onto_info = FALSE,
+  include_graph_valuetype = TRUE,
+  merge_base_uri = NULL,
+  merge_title = NULL,
+  merge_author = NULL,
+  merge_version = NULL,
+  merge_description = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>folder_path</code></td>
+<td>
+<p>Path to the folder containing ontology CSV files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_external_onto_info</code></td>
+<td>
+<p>Logical indicating whether to update information in RDF.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_graph_valuetype</code></td>
+<td>
+<p>Logical indicating whether to include value types in the graph.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_base_uri</code></td>
+<td>
+<p>String containing base URI for the merged ontology.
+Defaults to NULL but is required for merging ontologies.
+Leave as default when only processing one ontology.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_title</code></td>
+<td>
+<p>String containing title for the merged ontology..
+Defaults to NULL will concatenate titles of all merged ontologies.
+Leave as default when only processing one ontology.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_author</code></td>
+<td>
+<p>One String containing authors for the merged ontology.
+Defaults to NULL will concatenate all unique Author names of merged ontologies.
+Leave as default when only processing one ontology.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_version</code></td>
+<td>
+<p>String containing version for the merged ontology..
+Defaults to NULL will leave version blank.
+Leave as default when only processing one ontology.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_description</code></td>
+<td>
+<p>String containing description for the merged ontology.
+Defaults to NULL will concatenate descriptions of all merged ontologies with relative titles as prefixes.
+Leave as default when only processing one ontology.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function processes ontology CSV files in a specified folder and its subdirectories.
+For each subdirectory, it creates separate unmerged outputs named with the folder name prefix.
+The merged output is generated in the main folder path.
+</p>
+<p>If you have a single ontology, place all CSV files in the specified folder and run the function with default parameters.
+The function will generate outputs for this single ontology, including an ontology tree plot and serialized RDF formats.
+</p>
+<p>For multiple ontologies across different subdirectories, the function will process each subdirectory separately. Each
+subdirectories ontology will have its own set of outputs. Additionally the function will merge the ontologies from all
+subdirectories. This merged output can have customized metadata such as title, authors, version, URL, and description.
+If no metadata is specified the merging process concatenates titles, authors, and descriptions from all included ontologies.
+Note that specifying a base uri is required for merging ontologies.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create temporary directory
+temp_dir &lt;- tempdir()
+XRay_test_folder &lt;- file.path(temp_dir, "XRay")
+dir.create(XRay_test_folder, recursive = TRUE)
+
+# Copy CSV files from the package's extdata to the temporary directory
+extdata_path &lt;- system.file("extdata", "XRay", package = "FAIRmaterials")
+file.copy(from = list.files(extdata_path, full.names = TRUE),
+  to = XRay_test_folder, recursive = TRUE)
+
+# Process the CSV files in temp the XRay folder
+process_ontology_files(XRay_test_folder, add_external_onto_info = FALSE)
+
+# Clean up
+unlink(temp_dir, recursive = TRUE)
+</code></pre>
+
+
+</div>

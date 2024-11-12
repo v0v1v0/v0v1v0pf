@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.fks</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plotting fks objects</h2>
+
+<h3>Description</h3>
+
+<p>Plotting method for objects of class <code>fks</code>. This function
+provides tools visualisation of the state vector of the Kalman smoother output
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fks'
+plot(x, CI = 0.95, ahatt.idx = 1:nrow(x$ahatt), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The output of <code>fks</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI</code></td>
+<td>
+<p>The confidence interval in case <code>type == "state"</code>. Set
+<code>CI</code> to <code>NA</code> if no confidence interval shall be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ahatt.idx</code></td>
+<td>
+<p>An vector giving the indexes of the predicted state variables
+which shall be plotted if <code>type == "state"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to either <code>plot</code>,
+<code>qqnorm</code>, <code>qqplot</code> or <code>acf</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The state variables are plotted. By the argument <code>ahatt.idx</code>, the user can specify
+which of the smoothed (<code class="reqn">a_{t|n}</code>) state variables will be drawn.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fks</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## &lt;---------------------------------------------------------------------------&gt;
+## Example 3: Local level model for the treering data
+## &lt;---------------------------------------------------------------------------&gt;
+## Transition equation:
+## alpha[t+1] = alpha[t] + eta[t], eta[t] ~ N(0, HHt)          
+## Measurement equation:
+## y[t] = alpha[t] + eps[t], eps[t] ~  N(0, GGt)
+
+y &lt;- treering
+y[c(3, 10)] &lt;- NA  # NA values can be handled
+
+## Set constant parameters:
+dt &lt;- ct &lt;- matrix(0)
+Zt &lt;- Tt &lt;- array(1,c(1,1,1))
+a0 &lt;- y[1]            # Estimation of the first width
+P0 &lt;- matrix(100)     # Variance of 'a0'
+
+## Estimate parameters:
+fit.fkf &lt;- optim(c(HHt = var(y, na.rm = TRUE) * .5,
+                   GGt = var(y, na.rm = TRUE) * .5),
+                 fn = function(par, ...)
+                 -fkf(HHt = array(par[1],c(1,1,1)), GGt = array(par[2],c(1,1,1)), ...)$logLik,
+                 yt = rbind(y), a0 = a0, P0 = P0, dt = dt, ct = ct,
+                 Zt = Zt, Tt = Tt)
+
+## Filter tree ring data with estimated parameters:
+fkf.obj &lt;- fkf(a0, P0, dt, ct, Tt, Zt, HHt = array(fit.fkf$par[1],c(1,1,1)),
+               GGt = array(fit.fkf$par[2],c(1,1,1)), yt = rbind(y))
+
+fks.obj &lt;- fks(fkf.obj)
+plot(fks.obj)
+##lines(as.numeric(y),col="blue")
+
+
+</code></pre>
+
+
+</div>

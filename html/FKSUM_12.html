@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fk_ICA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Independent component analysis with sample entropy estimated via kernel density</h2>
+
+<h3>Description</h3>
+
+<p>Performs minimum entropy projection pursuit
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fk_ICA(X, ncomp = 1, beta = c(.25, .25), hmult = 1.5, it = 20, nbin = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>numeric data matrix (num_data x num_dimensions).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncomp</code></td>
+<td>
+<p>integer number of indpenedent components to extract.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>numeric vector of kernel coefficients. See Hofmeyr (2019) for details. The
+default is the smooth order one kernel described in the paper.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmult</code></td>
+<td>
+<p>positive numeric. The bandwidth in the kernel density is set to hmult multiplied by Silverman's rule of thumb value, which is based on the AMISE minimiser when the underlying distribution is Gaussian.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>it</code></td>
+<td>
+<p>integer maximum number of iterations. The default is 20.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbin</code></td>
+<td>
+<p>integer number of bins if binning estimator is to be used. The default is to compute the exact entropy estimate from the kde.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named list with fields
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$X</code></td>
+<td>
+<p>the data matrix given as argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$K</code></td>
+<td>
+<p>the pre-whitening matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$W</code></td>
+<td>
+<p>the estimated un-mixing matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$S</code></td>
+<td>
+<p>the estimated source matrix, S = sweep(X,2,colMeans(X),'-')%*%K%*%W.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Hofmeyr, D.P. (2021) "Fast exact evaluation of univariate kernel sums", <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, 43(2), 447-458.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">op &lt;- par(no.readonly = TRUE)
+
+set.seed(1)
+
+### Generate a set of data with 5 non-Gaussian components
+### and 20 noise (Gaussian) components. The non-Gaussian
+### components are cubed Gaussian, exponential, uniform,
+### t3 and bimodal Gaussian mixture.
+
+errdim = 10
+ndat = 2000
+X = cbind(rnorm(ndat)^3/5, rexp(ndat), runif(ndat)*sqrt(12)*2, rt(ndat, 3),
+    c(rnorm(ndat/2), rexp(ndat/2)+2), matrix(rnorm(errdim*ndat), ncol = errdim))
+
+### Generate a random mixing matrix and mixed data XX
+
+R = matrix(rnorm((5+errdim)*(5+errdim)), ncol = 5+errdim)
+XX = X%*%R
+
+### Apply fk_ICA to XX to extract components.
+### Note that ordering of extracted components is
+### in some sense arbitrary w.r.t. their generation
+
+model &lt;- fk_ICA(XX, ncol(XX))
+
+par(mfrow = c(1, 5))
+
+for(i in 1:5) plot(density(model$S[,i]))
+
+par(op)
+</code></pre>
+
+
+</div>

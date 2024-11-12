@@ -1,0 +1,302 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>uniRankVar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Univariate analysis of features (additional values returned)</h2>
+
+<h3>Description</h3>
+
+<p>This function reports the mean and standard deviation for each feature in a model, and ranks them according to a user-specified score.
+Additionally, it does a Kolmogorov-Smirnov (KS) test on the raw and <em>z</em>-standardized data.
+It also reports the raw and <em>z</em>-standardized <em>t</em>-test score, the <em>p</em>-value of the Wilcoxon rank-sum test, the integrated discrimination improvement (IDI), the net reclassification improvement (NRI), the net residual improvement (NeRI), and the area under the ROC curve (AUC).
+Furthermore, it reports the <em>z</em>-value of the variable significance	on the fitted model.
+Besides reporting an ordered data frame, this function returns all arguments as values, so that the results can be updates with the <code>update.uniRankVar</code> if needed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	uniRankVar(variableList,
+	           formula,
+	           Outcome,
+	           data,
+	           categorizationType = c("Raw",
+	                                   "Categorical",
+	                                   "ZCategorical",
+	                                   "RawZCategorical",
+	                                   "RawTail",
+	                                   "RawZTail",
+	                                   "Tail",
+	                                   "RawRaw"),
+	           type = c("LOGIT", "LM", "COX"),
+	           rankingTest = c("zIDI",
+	                           "zNRI",
+	                           "IDI",
+	                           "NRI",
+	                           "NeRI",
+	                           "Ztest",
+	                           "AUC",
+	                           "CStat",
+	                           "Kendall"),
+	            cateGroups = c(0.1, 0.9),
+	            raw.dataFrame = NULL,
+	            testData = NULL,
+	            description = ".",
+	            uniType = c("Binary", "Regression"),
+	            FullAnalysis=TRUE,
+	            acovariates = NULL, 
+	            timeOutcome = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>variableList</code></td>
+<td>
+
+<p>A data frame with two columns. The first one must have the names of the candidate variables and the other one the description of such variables
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>An object of class <code>formula</code> with the formula to be fitted
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The name of the column in <code>data</code> that stores an optional binary outcome that may be used to show the stratified analysis
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame where all variables are stored in different columns
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorizationType</code></td>
+<td>
+
+<p>How variables will be analyzed : As given in <code>data</code> ("Raw"); broken into the <em>p</em>-value categories given by <code>cateGroups</code> ("Categorical"); broken into the <em>p</em>-value categories given by <code>cateGroups</code>, and weighted by the <em>z</em>-score ("ZCategorical"); broken into the <em>p</em>-value categories given by <code>cateGroups</code>, weighted by the <em>z</em>-score, plus the raw values ("RawZCategorical"); raw values, plus the tails ("RawTail"); or raw values, weighted by the <em>z</em>-score, plus the tails ("RawZTail")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Fit type: Logistic ("LOGIT"), linear ("LM"), or Cox proportional hazards ("COX")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rankingTest</code></td>
+<td>
+
+<p>Variables will be ranked based on: The <em>z</em>-score of the IDI ("zIDI"), the <em>z</em>-score of the NRI ("zNRI"), the IDI ("IDI"), the NRI ("NRI"), the NeRI ("NeRI"), the <em>z</em>-score of the model fit ("Ztest"), the AUC ("AUC"), the Somers' rank correlation ("Cstat"), or the Kendall rank correlation ("Kendall")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cateGroups</code></td>
+<td>
+
+<p>A vector of percentiles to be used for the categorization procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw.dataFrame</code></td>
+<td>
+
+<p>A data frame similar to <code>data</code>, but with unadjusted data, used to get the means and variances of the unadjusted data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testData</code></td>
+<td>
+
+<p>A data frame for model testing
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+
+<p>The name of the column in <code>variableList</code> that stores the variable description
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniType</code></td>
+<td>
+
+<p>Type of univariate analysis: Binary classification ("Binary") or regression ("Regression")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FullAnalysis</code></td>
+<td>
+
+<p>If FALSE it will only order the features according to its z-statistics of the linear model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acovariates</code></td>
+<td>
+
+<p>the list of covariates
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeOutcome</code></td>
+<td>
+
+<p>the name of the Time to event feature
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function will create valid dummy categorical variables if, and only if, <code>data</code> has been <em>z</em>-standardized.
+The <em>p</em>-values provided in <code>cateGroups</code> will be converted to its corresponding <em>z</em>-score, which will then be used to create the categories.
+If non <em>z</em>-standardized data were to be used, the categorization analysis would return wrong results.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>orderframe</code></td>
+<td>
+
+<p>A sorted list of model variables stored in a data frame 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variableList</code></td>
+<td>
+
+<p>The argument <code>variableList</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>The argument <code>formula</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The argument <code>Outcome</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The argument <code>data</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorizationType</code></td>
+<td>
+
+<p>The argument <code>categorizationType</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>The argument <code>type</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rankingTest</code></td>
+<td>
+
+<p>The argument <code>rankingTest</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cateGroups</code></td>
+<td>
+
+<p>The argument <code>cateGroups</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw.dataFrame</code></td>
+<td>
+
+<p>The argument <code>raw.dataFrame</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+
+<p>The argument <code>description</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniType</code></td>
+<td>
+
+<p>The argument <code>uniType</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena and Antonio Martinez-Torteya</p>
+
+
+<h3>References</h3>
+
+<p>Pencina, M. J., D'Agostino, R. B., &amp; Vasan, R. S. (2008). Evaluating the added predictive ability of a new marker: from area under the ROC curve to reclassification and beyond. <em>Statistics in medicine</em> <b>27</b>(2), 157-172.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>update.uniRankVar, 
+				 univariateRankVariables</code></p>
+
+
+</div>

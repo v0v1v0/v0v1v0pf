@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as.fcat.data.frame</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert a data frame to a format catalog</h2>
+
+<h3>Description</h3>
+
+<p>This function takes a data frame as input
+and converts it to a format catalog based on the information contained
+in the data frame. The data frame should have 5 columns: "Name", "Type",
+"Expression", "Label" and "Order".
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'data.frame'
+as.fcat(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The data frame to convert.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The <code>as.fcat.data.frame</code> converts a data frame to a format catalog. A
+corresponding conversion for class "tbl_df" converts a tibble.
+</p>
+<p>To understand the structure of the input data frame, create a format and use
+the <code>as.data.frame</code> method to convert the format to a data frame.
+Then observe the columns and organization of the data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A format catalog based on the information contained in the 
+input data frame.
+</p>
+
+
+<h3>Input Data Frame Specifications</h3>
+
+<p>The input data frame should contain the following columns:
+</p>
+
+<ul>
+<li> <p><strong>Name</strong>: The name of the format
+</p>
+</li>
+<li> <p><strong>Type</strong>: The type of format.  See the type codes below.
+</p>
+</li>
+<li> <p><strong>Expression</strong>: The formatting expression. The expression will 
+hold different types of values depending on the format type.
+</p>
+</li>
+<li> <p><strong>Label</strong>: The label for user-defined, "U" type formats.
+</p>
+</li>
+<li> <p><strong>Order</strong>: The order for user-defined, "U" type formats. 
+</p>
+</li>
+</ul>
+<p>Any additional columns will be ignored.  Column names are case-insensitive.
+</p>
+<p>Valid values for the "Type" column are as follows:
+</p>
+
+<ul>
+<li> <p><strong>U</strong>: User Defined List created with the <code>value</code> 
+function.
+</p>
+</li>
+<li> <p><strong>S</strong>: A formatting string of formatting codes.  
+See FormattingStrings.
+</p>
+</li>
+<li> <p><strong>F</strong>: A vectorized function.
+</p>
+</li>
+<li> <p><strong>V</strong>: A named vector lookup.</p>
+</li>
+</ul>
+<p>The "Label" and "Order" columns are used only for a type "U", user-defined
+format created with the <code>value</code> function.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other fcat: 
+<code>as.data.frame.fcat()</code>,
+<code>as.fcat()</code>,
+<code>as.fcat.fmt_lst()</code>,
+<code>as.fcat.list()</code>,
+<code>fcat()</code>,
+<code>is.fcat()</code>,
+<code>print.fcat()</code>,
+<code>read.fcat()</code>,
+<code>write.fcat()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create a format catalog
+c1 &lt;- fcat(num_fmt  = "%.1f",
+           label_fmt = value(condition(x == "A", "Label A"),
+                             condition(x == "B", "Label B"),
+                             condition(TRUE, "Other")),
+           date_fmt = "%d-%b-%Y")
+           
+# Convert catalog to data frame to view the structure
+df &lt;- as.data.frame(c1)
+print(df)
+#       Name Type Expression   Label Order
+# 1   num_fmt    S       %.1f            NA
+# 2 label_fmt    U   x == "A" Label A    NA
+# 3 label_fmt    U   x == "B" Label B    NA
+# 4 label_fmt    U       TRUE   Other    NA
+# 5  date_fmt    S   %d-%b-%Y            NA
+
+# Convert data frame back to a format catalog
+c2 &lt;- as.fcat(df)
+c2
+# # A format catalog: 3 formats
+# - $date_fmt: type S, "%d-%b-%Y"
+# - $label_fmt: type U, 3 conditions
+# - $num_fmt: type S, "%.1f"
+
+# Use re-converted catalog
+fapply(123.456, c2$num_fmt)
+# [1] "123.5"
+
+fapply(c("A", "B", "C", "B"), c2$label_fmt)
+# [1] "Label A" "Label B" "Other"   "Label B"
+
+fapply(Sys.Date(), c2$date_fmt)
+# [1] "07-Jan-2024"
+</code></pre>
+
+
+</div>

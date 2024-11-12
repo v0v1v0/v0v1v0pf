@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>eigen.pda</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Stability Analysis for Principle Differential Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs a stability analysis of the result of <code>pda.fd</code>, returning
+the real and imaginary parts of the eigenfunctions associated with the
+linear differential operator.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">eigen.pda(pdaList,plotresult=TRUE,npts=501,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pdaList</code></td>
+<td>
+
+<p>a list object returned by <code>pda.fd</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotresult</code></td>
+<td>
+
+<p>should the result be plotted? Default is TRUE
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npts</code></td>
+<td>
+
+<p>number of points to use for plotting.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>other arguments for 'plot'.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Conducts an eigen decomposition of the linear differential equation implied
+by the result of <code>pda.fd</code>. Imaginary eigenvalues indicate instantaneous
+oscillatory behavior. Positive real eigenvalues indicate exponential increase,
+negative real eigenvalues correspond to exponential decay. If the principle
+differential analysis also included the estimation of a forcing function, the
+limiting stable points are also tracked.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list with elements
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+<p>The evaluation points of the coefficient functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigvals</code></td>
+<td>
+<p>The corresponding eigenvalues at each time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limvals</code></td>
+<td>
+<p>The stable points of the system at each time.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pda.fd</code>
+<code>plot.pda.fd</code>
+<code>pda.overlay</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#  A pda analysis of the handwriting data
+
+# reduce the size to reduce the compute time for the example
+ni &lt;- 281
+indx &lt;- seq(1, 1401, length=ni)
+fdaarray = handwrit[indx,,]
+fdatime  &lt;- seq(0, 2.3, len=ni)
+
+#  basis for coordinates
+
+fdarange &lt;- c(0, 2.3)
+breaks = seq(0,2.3,length.out=116)
+norder = 6
+fdabasis = create.bspline.basis(fdarange,norder=norder,breaks=breaks)
+nbasis &lt;- fdabasis$nbasis
+
+#  parameter object for coordinates
+
+fdaPar = fdPar(fd(matrix(0,nbasis,1),fdabasis),int2Lfd(4),1e-8)
+
+#  coordinate functions and a list tontaining them
+
+Xfd = smooth.basis(fdatime, fdaarray[,,1], fdaPar)$fd
+Yfd = smooth.basis(fdatime, fdaarray[,,2], fdaPar)$fd
+
+xfdlist = list(Xfd, Yfd)
+
+#  basis and parameter object for weight functions
+
+fdabasis2 = create.bspline.basis(fdarange,norder=norder,nbasis=31)
+fdafd2    = fd(matrix(0,31,2),fdabasis2)
+pdaPar    = fdPar(fdafd2,1,1e-8)
+
+pdaParlist = list(pdaPar, pdaPar)
+
+bwtlist = list( list(pdaParlist,pdaParlist), list(pdaParlist,pdaParlist) )
+
+</code></pre>
+
+
+</div>

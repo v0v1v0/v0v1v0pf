@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_flow_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot a daily streamflow data set</h2>
+
+<h3>Description</h3>
+
+<p>Plot the daily mean flow values from a streamflow data set. Plots daily discharge values 
+from all years, unless specified. Can choose specific dates to start and end plotting. Can choose to plot out each year 
+separately. Multiple groups/stations can be plotted if provided with the <code>groups</code> argument. Returns a list of plots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_flow_data(
+  data,
+  dates = Date,
+  values = Value,
+  groups = STATION_NUMBER,
+  station_number,
+  roll_days = 1,
+  roll_align = "right",
+  water_year_start = 1,
+  start_year,
+  end_year,
+  exclude_years,
+  months = 1:12,
+  start_date,
+  end_date,
+  log_discharge = FALSE,
+  log_ticks = ifelse(log_discharge, TRUE, FALSE),
+  plot_by_year = FALSE,
+  one_plot = FALSE,
+  include_title = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame of daily data that contains columns of dates, flow values, and (optional) groups (e.g. station numbers).
+Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains dates formatted YYYY-MM-DD. Only required if dates column name is not 
+'Date' (default). Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains numeric flow values, in units of cubic metres per second.
+Only required if values column name is not 'Value' (default). Leave blank if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains unique identifiers for different data sets, if applicable. Only required 
+if groups column name is not 'STATION_NUMBER'. Function will automatically group by a column named 'STATION_NUMBER' if 
+present. Remove the 'STATION_NUMBER' column beforehand to remove this grouping. Leave blank if using <code>station_number</code> 
+argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>station_number</code></td>
+<td>
+<p>Character string vector of seven digit Water Survey of Canada station numbers (e.g. <code>"08NM116"</code>) of
+which to extract daily streamflow data from a HYDAT database. Requires <code>tidyhydat</code> package and a HYDAT database.
+Leave blank if using <code>data</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_days</code></td>
+<td>
+<p>Numeric value of the number of days to apply a rolling mean. Default <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_align</code></td>
+<td>
+<p>Character string identifying the direction of the rolling mean from the specified date, either by the first 
+(<code>'left'</code>), last (<code>'right'</code>), or middle (<code>'center'</code>) day of the rolling n-day group of observations. 
+Default <code>'right'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>water_year_start</code></td>
+<td>
+<p>Numeric value indicating the month (<code>1</code> through <code>12</code>) of the start of water year for
+analysis. Default <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_year</code></td>
+<td>
+<p>Numeric value of the first year to consider for analysis. Leave blank or set well before start date (i.e.
+<code>1800</code>) to use from the first year of the source data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_year</code></td>
+<td>
+<p>Numeric value of the last year to consider for analysis. Leave blank or set well after end date (i.e.
+<code>2100</code>) to use up to the last year of the source data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude_years</code></td>
+<td>
+<p>Numeric vector of years to exclude from analysis. Leave blank or set to <code>NULL</code> to include all years.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>months</code></td>
+<td>
+<p>Numeric vector of months to include in plotting For example, <code>3</code> for March, <code>6:8</code> for Jun-Aug or 
+<code>c(10:12,1)</code> for first four months (Oct-Jan) when <code>water_year_start = 10</code> (Oct). Default plots all 
+months (<code>1:12</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Date (YYYY-MM-DD) of first date to consider for plotting. Leave blank if all years are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_date</code></td>
+<td>
+<p>Date (YYYY-MM-DD) of last date to consider for plotting. Leave blank if all years are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_discharge</code></td>
+<td>
+<p>Logical value to indicate plotting the discharge axis (Y-axis) on a logarithmic scale. Default <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_ticks</code></td>
+<td>
+<p>Logical value to indicate plotting logarithmic scale ticks when using a log-scale discharge axis.
+Default to <code>FALSE</code> when <code>log_discharge = FALSE</code> and <code>TRUE</code> when <code>log_discharge = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_by_year</code></td>
+<td>
+<p>Logical value to indicate whether to plot each year of data individually. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>one_plot</code></td>
+<td>
+<p>Logical value to indicate whether to plot all groups/stations on one plot. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_title</code></td>
+<td>
+<p>Logical value to indicate adding the group/station number to the plot, if provided. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A ggplot2 object of daily flows from flow_data or HYDAT flow data provided
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Run if HYDAT database has been downloaded (using tidyhydat::download_hydat())
+if (file.exists(tidyhydat::hy_downloaded_db())) {
+
+# Plot data from a data frame and data argument
+flow_data &lt;- tidyhydat::hy_daily_flows(station_number = "08NM116")
+plot_flow_data(data = flow_data)
+
+# Plot data directly from HYDAT
+plot_flow_data(station_number = "08NM116")
+
+# Plot statistics with custom years
+plot_flow_data(station_number = "08NM116",
+               start_year = 1981,
+               end_year = 2010,
+               exclude_years = c(1991,1993:1995))
+                 
+# Plot data multiple groups on one plot
+plot_flow_data(station_number = c("08NM241", "08NM242"),
+               one_plot = TRUE) 
+               
+# Plot data between specific dates
+plot_flow_data(station_number = "08NM116",
+               start_date = "1990-01-01",
+               end_date = "1990-06-01")
+               
+}
+</code></pre>
+
+
+</div>

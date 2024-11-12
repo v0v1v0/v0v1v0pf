@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>svyglmuni</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Univariable survey-weighted generalised linear models</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper for <code>svyglm</code>. Fit a generalised linear model to
+data from a complex survey design, with inverse-probability weighting and
+design-based standard errors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">svyglmuni(design, dependent, explanatory, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>Survey design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent</code></td>
+<td>
+<p>Character vector of length 1: name of depdendent variable
+(must have 2 levels).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explanatory</code></td>
+<td>
+<p>Character vector of any length: name(s) of explanatory
+variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to <code>svyglm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of univariable fitted model outputs. Output is of class
+<code>svyglmlist</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fit2df, finalfit_merge</code>
+</p>
+<p>Other finalfit model wrappers: 
+<code>coxphmulti()</code>,
+<code>coxphuni()</code>,
+<code>crrmulti()</code>,
+<code>crruni()</code>,
+<code>glmmixed()</code>,
+<code>glmmulti_boot()</code>,
+<code>glmmulti()</code>,
+<code>glmuni()</code>,
+<code>lmmixed()</code>,
+<code>lmmulti()</code>,
+<code>lmuni()</code>,
+<code>svyglmmulti()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Examples taken from survey::svyglm() help page. 
+
+library(survey)
+library(dplyr)
+
+data(api)
+dependent = "api00"
+explanatory = c("ell", "meals", "mobility")
+
+library(survey)
+library(dplyr)
+
+data(api)
+
+apistrat = apistrat %&gt;% 
+  mutate(
+  api00 = ff_label(api00, "API in 2000 (api00)"),
+  ell = ff_label(ell, "English language learners (percent)(ell)"),
+  meals = ff_label(meals, "Meals eligible (percent)(meals)"),
+  mobility = ff_label(mobility, "First year at the school (percent)(mobility)"),
+  sch.wide = ff_label(sch.wide, "School-wide target met (sch.wide)")
+  )
+
+# Linear example
+dependent = "api00"
+explanatory = c("ell", "meals", "mobility")
+
+# Stratified design
+dstrat = svydesign(id=~1,strata=~stype, weights=~pw, data=apistrat, fpc=~fpc)
+
+# Univariable fit
+fit_uni = dstrat %&gt;%
+  svyglmuni(dependent, explanatory) %&gt;%
+  fit2df(estimate_suffix = " (univariable)")
+
+# Multivariable fit
+fit_multi = dstrat %&gt;%
+  svyglmmulti(dependent, explanatory) %&gt;%
+  fit2df(estimate_suffix = " (multivariable)")
+
+# Pipe together
+apistrat %&gt;%
+  summary_factorlist(dependent, explanatory, fit_id = TRUE) %&gt;%
+  ff_merge(fit_uni) %&gt;% 
+  ff_merge(fit_multi) %&gt;% 
+  select(-fit_id, -index) %&gt;%
+  dependent_label(apistrat, dependent)
+
+# Binomial example
+## Note model family needs specified and exponentiation if desired
+
+dependent = "sch.wide"
+explanatory = c("ell", "meals", "mobility")
+
+# Univariable fit
+fit_uni = dstrat %&gt;%
+  svyglmuni(dependent, explanatory, family = "quasibinomial") %&gt;%
+  fit2df(exp = TRUE, estimate_name = "OR", estimate_suffix = " (univariable)")
+
+# Multivariable fit
+fit_multi = dstrat %&gt;%
+  svyglmmulti(dependent, explanatory, family = "quasibinomial") %&gt;%
+  fit2df(exp = TRUE, estimate_name = "OR", estimate_suffix = " (multivariable)")
+
+# Pipe together
+apistrat %&gt;%
+  summary_factorlist(dependent, explanatory, fit_id = TRUE) %&gt;%
+  ff_merge(fit_uni) %&gt;% 
+  ff_merge(fit_multi) %&gt;% 
+  select(-fit_id, -index) %&gt;%
+  dependent_label(apistrat, dependent)
+</code></pre>
+
+
+</div>

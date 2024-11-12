@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CreateDensity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create density functions from raw data, histogram objects or frequency tables with bins</h2>
+
+<h3>Description</h3>
+
+<p>Create kernel density estimate along the support of the raw data using the HADES method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CreateDensity(
+  y = NULL,
+  histogram = NULL,
+  freq = NULL,
+  bin = NULL,
+  optns = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A vector of raw readings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>histogram</code></td>
+<td>
+<p>A <code>histogram</code> object in R. Use this option when histogram object is only available, but not the raw data <code>y</code>. The default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>A frequency vector. Use this option when frequency table is only available, but not the raw sample or the histogram object. The corresponding <code>bin</code> should be provided together. The default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin</code></td>
+<td>
+<p>A bin vector having its length with <code>length(freq)+1</code>. Use this option when frequency table is only available, but not the raw sample or the histogram object. The corresponding <code>freq</code> should be provided together.The default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code>. See ‘Details’.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available control options are
+</p>
+
+<dl>
+<dt>userBwMu</dt>
+<dd>
+<p>The bandwidth value for the smoothed mean function; positive numeric - default: determine automatically based on the data-driven bandwidth selector proposed by Sheather and Jones (1991)</p>
+</dd>
+<dt>nRegGrid</dt>
+<dd>
+<p>The number of support points the KDE; numeric - default: 101.</p>
+</dd>
+<dt>delta</dt>
+<dd>
+<p>The size of the bin to be used; numeric - default: <code>diff(range(y))/1000</code>. It only works when the raw sample is available.</p>
+</dd>
+<dt>kernel</dt>
+<dd>
+<p>smoothing kernel choice, <code>"rect"</code>, <code>"gauss"</code>, <code>"epan"</code>, <code>"gausvar"</code>, <code>"quar"</code> - default: <code>"gauss"</code>.</p>
+</dd>
+<dt>infSupport</dt>
+<dd>
+<p>logical if we expect the distribution to have infinite support or not; logical - default: <code>FALSE</code>.</p>
+</dd>
+<dt>outputGrid</dt>
+<dd>
+<p>User defined output grid for the support of the KDE, it overrides <code>nRegGrid</code>; numeric - default: <code>NULL</code>.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list containing the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>The bandwidth used for smoothing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of length <code>nRegGrid</code> with the values of the KDE's support points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A vector of length <code>nRegGrid</code> with the values of the KDE at the support points.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<ul>
+<li> <p><cite>H.-G. Müller, J.L. Wang and W.B. Capra (1997). "From lifetables to hazard rates: The transformation approach." Biometrika 84, 881–892.</cite>
+</p>
+</li>
+<li> <p><cite>S.J. Sheather and M.C. Jones (1991). "A reliable data-based bandwidth selection method for kernel density estimation." JRSS-B 53, 683–690.</cite>
+</p>
+</li>
+<li> <p><cite>H.-G. Müller, U. Stadtmüller, and T. Schmitt. (1987) "Bandwidth choice and confidence intervals for derivatives of noisy data." Biometrika 74, 743–749.</cite>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+### compact support case
+
+# input: raw sample
+set.seed(100)
+n &lt;- 100
+x0 &lt;-seq(0,1,length.out=51)
+Y &lt;- rbeta(n,3,2)
+f1 &lt;- CreateDensity(y=Y,optns = list(outputGrid=x0))
+
+# input: histogram
+histY &lt;- hist(Y)
+f2 &lt;- CreateDensity(histogram=histY,optns = list(outputGrid=x0))
+
+# input: frequency table with unequally spaced (random) bins
+binY &lt;- c(0,sort(runif(9)),1)
+freqY &lt;- c()
+for (i in 1:(length(binY)-1)) {
+  freqY[i] &lt;- length(which(Y&gt;binY[i] &amp; Y&lt;=binY[i+1]))
+}
+f3 &lt;- CreateDensity(freq=freqY, bin=binY,optns = list(outputGrid=x0))
+
+# plot
+plot(f1$x,f1$y,type='l',col=2,lty=2,lwd=2,
+     xlim=c(0,1),ylim=c(0,2),xlab='domain',ylab='density')
+points(f2$x,f2$y,type='l',col=3,lty=3,lwd=2)
+points(f3$x,f3$y,type='l',col=4,lty=4,lwd=2)
+points(x0,dbeta(x0,3,2),type='l',lwd=2)
+legend('topleft',
+       c('true','raw sample','histogram','frequency table (unequal bin)'),
+       col=1:4,lty=1:4,lwd=3,bty='n')
+
+### infinite support case
+
+# input: raw sample
+set.seed(100)
+n &lt;- 200
+x0 &lt;-seq(-3,3,length.out=101)
+Y &lt;- rnorm(n)
+f1 &lt;- CreateDensity(y=Y,optns = list(outputGrid=x0))
+
+# input: histogram
+histY &lt;- hist(Y)
+f2 &lt;- CreateDensity(histogram=histY,optns = list(outputGrid=x0))
+
+# input: frequency table with unequally spaced (random) bins
+binY &lt;- c(-3,sort(runif(9,-3,3)),3)
+freqY &lt;- c()
+for (i in 1:(length(binY)-1)) {
+  freqY[i] &lt;- length(which(Y&gt;binY[i] &amp; Y&lt;=binY[i+1]))
+}
+f3 &lt;- CreateDensity(freq=freqY, bin=binY,optns = list(outputGrid=x0))
+
+# plot
+plot(f1$x,f1$y,type='l',col=2,lty=2,lwd=2,
+     xlim=c(-3,3),ylim=c(0,0.5),xlab='domain',ylab='density')
+points(f2$x,f2$y,type='l',col=3,lty=3,lwd=2)
+points(f3$x,f3$y,type='l',col=4,lty=4,lwd=2)
+points(x0,dnorm(x0),type='l',lwd=2)
+legend('topright',
+       c('true','raw sample','histogram','frequency table (unequal bin)'),
+       col=1:4,lty=1:4,lwd=3,bty='n')
+
+</code></pre>
+
+
+</div>

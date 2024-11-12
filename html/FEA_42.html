@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FEMStress.2d</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>FEMStress.2d</h2>
+
+<h3>Description</h3>
+
+<p>Creates a complete finite element model using stress for a given 2D mesh under specified boundary conditions (constrain and load).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FEMStress.2d(meshP, meshT, centroid, BoundConx, BoundCony, SFShear,
+SFTensile, Length, area, Fx, Fy,  Y, Nu, Thick)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>meshP</code></td>
+<td>
+<p>Matrix (2 x n) containing coordinate points of the mesh nodes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meshT</code></td>
+<td>
+<p>Matrix (3 x n) containing the number of the coordinate point that forms a given triangle within the mesh.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centroid</code></td>
+<td>
+<p>Matrix (2 x n) containing coordinate points of the centroid of each triangular element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BoundConx</code></td>
+<td>
+<p>Boundary constraint for nodes in the x-direction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BoundCony</code></td>
+<td>
+<p>Boundary constraint for nodes in the y-direction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SFShear</code></td>
+<td>
+<p>Magnitude of positive shear traction; if there is no surface traction then SFShear = 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SFTensile</code></td>
+<td>
+<p>Magnitude of tensile surface traction; if there is no surface traction then SFTensile = 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Length</code></td>
+<td>
+<p>Truss length</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>Triangle element area</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fx</code></td>
+<td>
+<p>Load vector for the x-direction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fy</code></td>
+<td>
+<p>Load vector for the y-direction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Value of Young's (Elastic) modulus</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Nu</code></td>
+<td>
+<p>Value of Poisson's ratio</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Thick</code></td>
+<td>
+<p>Value of the thickness of the mesh, a value must be given.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Completes the FEM to generate values of stress and strain and nodal displacement.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>NodeDisplacement</code></td>
+<td>
+<p>Node displacement on each axis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LocalStress</code></td>
+<td>
+<p>Stress as calucated from stress, strain, and stress from strain. Three (3) [3 x n] matrices where [x, y, tau]</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(triMesh)
+data(dime)
+
+meshP = triMesh$MeshPts$p
+meshT = triMesh$MeshPts$T
+centroid = triMesh$Centroids
+Y = matrix(20e9, nrow = NROW(meshT))
+Nu = matrix(0.45, nrow = NROW(meshT))
+Thick = 0.001
+DOF = 6
+BoundConx = BoundCony = numeric(NROW(meshP))
+BoundConx[1:NROW(meshP)] = BoundCony[1:NROW(meshP)] = 1
+BoundConx[c(10, 11, 12)] = BoundCony[c(10, 11, 12)] = 0
+SFShear = 0
+SFTensile = 0
+Length = dime$TrussLength
+area = dime$Area
+Fx = 10
+Fy = 10
+
+fea_stress = FEMStress.2d(meshP, meshT, centroid, BoundConx, BoundCony, SFShear, SFTensile,
+             Length, area, Fx, Fy, Y, Nu, Thick)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>distinctiveness_stack</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Distinctiveness on a stacked data.frame</h2>
+
+<h3>Description</h3>
+
+<p>Compute Functional Distinctiveness for several communities, from a stacked
+(or tidy) data.frame of communities, with one column for species identity,
+one for community identity and an optional one for relative abundances. Also
+needs a species functional distances matrix. Functional distinctiveness
+relates to the functional "originality" of a species in a community. The
+closer to 1 the more the species is functionally distinct from the rest of
+the community. See <code>distinctiveness()</code> function or the
+functional rarity indices vignette included in the package
+(type <code>vignette("rarity_indices", package = "funrar")</code>), for more details
+on the metric. <strong>IMPORTANT NOTE</strong>: in order to get functional rarity indices
+between 0 and 1, the distance metric has to be scaled between 0 and 1.
+You can either use <code style="white-space: pre;">⁠_stack()⁠</code> or <code style="white-space: pre;">⁠_tidy()⁠</code> functions as they are aliases of
+one another.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">distinctiveness_stack(
+  com_df,
+  sp_col,
+  com,
+  abund = NULL,
+  dist_matrix,
+  relative = FALSE
+)
+
+distinctiveness_tidy(
+  com_df,
+  sp_col,
+  com,
+  abund = NULL,
+  dist_matrix,
+  relative = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>com_df</code></td>
+<td>
+<p>a stacked (= tidy) data.frame from a single community with each
+row representing a species in a community</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sp_col</code></td>
+<td>
+<p>a character vector, the name of the species column in <code>com_df</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>com</code></td>
+<td>
+<p>a character vector, the column name for communities names</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abund</code></td>
+<td>
+<p>a character vector, the name of the column containing relative
+abundances values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist_matrix</code></td>
+<td>
+<p>a functional distance matrix as given by
+<code>compute_dist_matrix()</code>, with species name as row and column names</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relative</code></td>
+<td>
+<p>a logical indicating if distinctiveness should be scaled
+relatively to the community (scaled by max functional
+distance among the species of the targeted community)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>the same data.frame with the additional <strong>Di</strong> column giving
+functional distinctiveness values for each species
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>scarcity_stack()</code>,
+<code>uniqueness_stack()</code>,
+<code>restrictedness_stack()</code>;
+<code>distinctiveness()</code> Details section for detail on the index
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("aravo", package = "ade4")
+
+# Example of trait table
+tra = aravo$traits[, c("Height", "SLA", "N_mass")]
+# Distance matrix
+dist_mat = compute_dist_matrix(tra)
+
+# Site-species matrix converted into data.frame
+mat = as.matrix(aravo$spe)
+mat = make_relative(mat)
+dat = matrix_to_stack(mat, "value", "site", "species")
+dat$site = as.character(dat$site)
+dat$species = as.character(dat$species)
+
+di_df = distinctiveness_stack(dat, "species", "site", "value", dist_mat)
+head(di_df)
+
+</code></pre>
+
+
+</div>

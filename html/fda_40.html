@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cor.fd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Correlation matrix from functional data object(s) 
+</h2>
+
+<h3>Description</h3>
+
+<p>Compute a correlation matrix for one or two functional data objects.  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cor.fd(evalarg1, fdobj1, evalarg2=evalarg1, fdobj2=fdobj1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>evalarg1</code></td>
+<td>
+
+<p>a vector of argument values for fdobj1.   
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evalarg2</code></td>
+<td>
+
+<p>a vector of argument values for fdobj2.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdobj1, fdobj2</code></td>
+<td>
+
+<p>functional data objects 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>1.  var1 &lt;- var.fd(fdobj1) 
+2.  evalVar1 &lt;- eval.bifd(evalarg1, evalarg1, var1)
+3.  if(missing(fdobj2)) Convert evalVar1 to correlations
+4.  else:  
+4.1.  var2 &lt;- var.fd(fdobj2)
+4.2.  evalVar2 &lt;- eval.bifd(evalarg2, evalarg2, var2)
+4.3.  var12 &lt;- var.df(fdobj1, fdobj2)
+4.4.  evalVar12 &lt;- eval.bifd(evalarg1, evalarg2, var12)
+4.5.  Convert evalVar12 to correlations  
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix or array:
+</p>
+<p>With one or two functional data objects, fdobj1 and possibly fdobj2,
+the value is a matrix of dimensions length(evalarg1) by length(evalarg2) giving the
+correlations at those points of fdobj1 if missing(fdobj2) or of
+correlations between eval.fd(evalarg1, fdobj1) and eval.fd(evalarg2,
+fdobj2).
+</p>
+<p>With a single multivariate data object with k variables, the value is
+a 4-dimensional array of dim = c(nPts, nPts, 1, choose(k+1, 2)), where
+nPts = length(evalarg1).  
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mean.fd</code>, 
+<code>sd.fd</code>, 
+<code>std.fd</code>
+<code>stdev.fd</code>
+<code>var.fd</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">daybasis3 &lt;- create.fourier.basis(c(0, 365))
+daybasis5 &lt;- create.fourier.basis(c(0, 365), 5)
+tempfd3 &lt;- with(CanadianWeather, smooth.basis(
+       day.5, dailyAv[,,"Temperature.C"], 
+       daybasis3, fdnames=list("Day", "Station", "Deg C"))$fd )
+precfd5 &lt;- with(CanadianWeather, smooth.basis(
+       day.5, dailyAv[,,"log10precip"], 
+       daybasis5, fdnames=list("Day", "Station", "Deg C"))$fd )
+
+# Correlation matrix for a single functional data object
+(tempCor3 &lt;- cor.fd(seq(0, 356, length=4), tempfd3))
+
+# Cross correlation matrix between two functional data objects 
+# Compare with structure described above under 'value':
+(tempPrecCor3.5 &lt;- cor.fd(seq(0, 365, length=4), tempfd3,
+                          seq(0, 356, length=6), precfd5))
+
+# The following produces contour and perspective plots
+
+daybasis65 &lt;- create.fourier.basis(rangeval=c(0, 365), nbasis=65)
+daytempfd &lt;- with(CanadianWeather, smooth.basis(
+       day.5, dailyAv[,,"Temperature.C"], 
+       daybasis65, fdnames=list("Day", "Station", "Deg C"))$fd )
+dayprecfd &lt;- with(CanadianWeather, smooth.basis(
+       day.5, dailyAv[,,"log10precip"], 
+       daybasis65, fdnames=list("Day", "Station", "log10(mm)"))$fd )
+
+str(tempPrecCor &lt;- cor.fd(weeks, daytempfd, weeks, dayprecfd))
+# dim(tempPrecCor)= c(53, 53)
+
+op &lt;- par(mfrow=c(1,2), pty="s")
+contour(weeks, weeks, tempPrecCor, 
+        xlab="Average Daily Temperature",
+        ylab="Average Daily log10(precipitation)",
+        main=paste("Correlation function across locations\n",
+          "for Canadian Anual Temperature Cycle"),
+        cex.main=0.8, axes=FALSE)
+axisIntervals(1, atTick1=seq(0, 365, length=5), atTick2=NA, 
+            atLabels=seq(1/8, 1, 1/4)*365,
+            labels=paste("Q", 1:4) )
+axisIntervals(2, atTick1=seq(0, 365, length=5), atTick2=NA, 
+            atLabels=seq(1/8, 1, 1/4)*365,
+            labels=paste("Q", 1:4) )
+persp(weeks, weeks, tempPrecCor,
+      xlab="Days", ylab="Days", zlab="Correlation")
+mtext("Temperature-Precipitation Correlations", line=-4, outer=TRUE)
+par(op)
+
+# Correlations and cross correlations
+# in a bivariate functional data object
+gaittime   &lt;- (1:20)/21
+gaitbasis5 &lt;- create.fourier.basis(c(0,1),nbasis=5)
+gaitfd5    &lt;- smooth.basis(gaittime, gait, gaitbasis5)$fd
+
+gait.t3 &lt;- (0:2)/2
+(gaitCor3.5 &lt;- cor.fd(gait.t3, gaitfd5))
+# Check the answers with manual computations
+gait3.5 &lt;- eval.fd(gait.t3, gaitfd5)
+all.equal(cor(t(gait3.5[,,1])), gaitCor3.5[,,,1])
+# TRUE
+all.equal(cor(t(gait3.5[,,2])), gaitCor3.5[,,,3])
+# TRUE
+all.equal(cor(t(gait3.5[,,2]), t(gait3.5[,,1])),
+               gaitCor3.5[,,,2])
+# TRUE
+
+# NOTE:
+dimnames(gaitCor3.5)[[4]]
+# [1] Hip-Hip
+# [2] Knee-Hip 
+# [3] Knee-Knee
+# If [2] were "Hip-Knee", then
+# gaitCor3.5[,,,2] would match 
+# cor(t(gait3.5[,,1]), t(gait3.5[,,2]))
+# *** It does NOT.  Instead, it matches:  
+# cor(t(gait3.5[,,2]), t(gait3.5[,,1]))
+
+</code></pre>
+
+
+</div>

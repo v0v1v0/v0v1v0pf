@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>VaR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Value-at-Risk (VaR) and expected shortfall (ES)</h2>
+
+<h3>Description</h3>
+
+<p>Compute Value-at-Risk (VaR) and Expected Shortfall (ES) for a fitted
+GARCH-APARCH model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fGARCH'
+VaR(dist, p_loss = 0.05, ..., tol)
+
+## S3 method for class 'fGARCH'
+ES(dist, p_loss = 0.05, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+
+<p>an object from class <code>"fGARCH"</code>, obtained from <code>garchFit()</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_loss</code></td>
+<td>
+<p>level, default is 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>tollerance</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We provide methods for the generic functions <code>cvar::VaR</code> and
+<code>cvar::ES</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>We use the traditional definition of VaR as the negated lower
+quantile. For example, if <code class="reqn">X</code> are returns on an asset,
+VAR<code class="reqn">{}_\alpha</code> = <code class="reqn">-q_\alpha</code>, where
+<code class="reqn">q_\alpha</code> is the lower <code class="reqn">\alpha</code> quantile of <code class="reqn">X</code>.
+Equivalently, VAR<code class="reqn">{}_\alpha</code> is equal to the lower
+<code class="reqn">1-\alpha</code> quantile of <code class="reqn">-X</code> (the loss series).  For
+details see the vignette in package <span class="pkg">cvar</span> availalble at
+<a href="https://cran.r-project.org/package=cvar/vignettes/Guide_cvar.pdf">https://cran.r-project.org/package=cvar/vignettes/Guide_cvar.pdf</a>
+(or by calling <code>vignette("Guide_cvar", package = "cvar")</code>).
+</p>
+<p>If you wish to overlay the VaR or ES over returns, just negate the
+VaR/ES, see the examples.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>VaR</code> and <code>ES</code> in package <span class="pkg">cvar</span>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## simulate a time series of returns
+x &lt;- garchSim( garchSpec(), n = 500)
+class(x)
+## fit a GARCH model
+fit &lt;- garchFit(~ garch(1, 1), data = x, trace = FALSE)
+
+head(VaR(fit))
+head(ES(fit))
+
+## use plot method for fitted GARCH models
+plot(fit, which = 14) # VaR
+plot(fit, which = 15) # ES
+plot(fit, which = 16) # VaR &amp; ES
+## plot(fit) # choose the plot interactively
+
+## diy plots
+
+## overlay VaR and ES over returns
+## here x is from class 'timeSeries', so we convert VaR/ES to timeSeries
+## don't forget to negate the result of VaR()/ES(),
+plot(x)
+lines(timeSeries(-VaR(fit)), col = "red")
+lines(timeSeries(-ES(fit)), col = "blue")
+
+## alternatively, plot losses (rather than returns) and don't negate VaR()/ES()
+plot(-x)
+lines(timeSeries(VaR(fit)), col = "red")
+lines(timeSeries(ES(fit)), col = "blue")
+</code></pre>
+
+
+</div>

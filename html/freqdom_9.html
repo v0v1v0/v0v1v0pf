@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dpca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Dynamic Principal Components and dynamic Karhunen Loeve extepansion</h2>
+
+<h3>Description</h3>
+
+<p>Dynamic principal component analysis (DPCA) decomposes multivariate time series into uncorrelated components. Compared
+to classical principal components, DPCA decomposition outputs components which are uncorrelated in time, allowing
+simpler modeling of the processes and maximizing long run variance of the projection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dpca(X, q = 30, freq = (-1000:1000/1000) * pi, Ndpc = dim(X)[2])
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a vector time series given as a <code class="reqn">(T\times d)</code>-matix. Each row corresponds to a timepoint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>window size for the kernel estimator, i.e. a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>a vector containing frequencies in <code class="reqn">[-\pi, \pi]</code> on which the spectral density should be evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ndpc</code></td>
+<td>
+<p>is the number of principal component filters to compute as in <code>dpca.filters</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This convenience function applies the DPCA methodology and returns filters (<code>dpca.filters</code>), scores
+(<code>dpca.scores</code>), the spectral density (<code>spectral.density</code>), variances (<code>dpca.var</code>) and
+Karhunen-Leove expansion (<code>dpca.KLexpansion</code>).
+</p>
+<p>See the example for understanding usage, and help pages for details on individual functions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing
+</p>
+
+<ul>
+<li> <p><code>scores</code> <code class="reqn">\quad</code> DPCA scores (<code>dpca.scores</code>)
+</p>
+</li>
+<li> <p><code>filters</code> <code class="reqn">\quad</code>  DPCA filters (<code>dpca.filters</code>)
+</p>
+</li>
+<li> <p><code>spec.density</code> <code class="reqn">\quad</code>  spectral density of <code>X</code> (<code>spectral.density</code>)
+</p>
+</li>
+<li> <p><code>var</code> <code class="reqn">\quad</code> amount of variance explained by dynamic principal components (<code>dpca.var</code>)
+</p>
+</li>
+<li> <p><code>Xhat</code> <code class="reqn">\quad</code>  Karhunen-Loeve expansion using <code>Ndpc</code> dynamic principal components (<code>dpca.KLexpansion</code>)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Hormann, S., Kidzinski, L., and Hallin, M.
+<em>Dynamic functional principal components.</em> Journal of the Royal
+Statistical Society: Series B (Statistical Methodology) 77.2 (2015): 319-348.
+</p>
+<p>Brillinger, D.
+<em>Time Series</em> (2001), SIAM, San Francisco.
+</p>
+<p>Shumway, R., and Stoffer, D.
+<em>Time series analysis and its applications: with R examples</em> (2010), Springer Science &amp; Business Media
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">X = rar(100,3)
+
+# Compute DPCA with only one component
+res.dpca = dpca(X, q = 5, Ndpc = 1)
+
+# Compute PCA with only one component
+res.pca = prcomp(X, center = TRUE)
+res.pca$x[,-1] = 0
+
+# Reconstruct the data
+var.dpca = (1 - sum( (res.dpca$Xhat - X)**2 ) / sum(X**2))*100
+var.pca = (1 - sum( (res.pca$x %*% t(res.pca$rotation) - X)**2 ) / sum(X**2))*100
+
+cat("Variance explained by DPCA:\t",var.dpca,"%\n")
+cat("Variance explained by PCA:\t",var.pca,"%\n")
+</code></pre>
+
+
+</div>

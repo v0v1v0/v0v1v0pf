@@ -1,0 +1,184 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.fRegress</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Predict method for Functional Regression
+</h2>
+
+<h3>Description</h3>
+
+<p>Model predictions for object of class <code>fRegress</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fRegress'
+predict(object, newdata=NULL, se.fit = FALSE,
+     interval = c("none", "confidence", "prediction"),
+     level = 0.95, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>Object of class inheriting from <code>fRegress</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+
+<p>Either NULL or a list matching object$xfdlist.
+</p>
+<p>If(is.null(newdata)) predictions &lt;- object$yhatfdobj
+</p>
+<p>If newdata is a list, predictions = the sum of either 
+</p>
+<p>newdata[i] * betaestfdlist[i] if object$yfdobj has class <code>fd</code> 
+</p>
+<p>or 
+</p>
+<p>inprod(newdata[i], betaestfdlist[i]) if class(object$yfdobj) =
+<code>numeric</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+
+<p>a switch indicating if standard errors of predictions are required
+</p>
+<p>NOTE:  se.fit = TRUE is NOT IMPLEMENTED YET.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+
+<p>type of prediction (response or model term)
+</p>
+<p>NOTE:  Only "intervale = 'none'" has been implemented so far.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Tolerance/confidence level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments for other methods
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>1.  Without <code>newdata</code>, fit &lt;- object$yhatfdobj.
+</p>
+<p>2.  With <code>newdata</code>, if(class(object$y) == 'numeric'), fit &lt;- sum
+over i of inprod(betaestlist[i], newdata[i]).  Otherwise, fit &lt;- sum
+over i of betaestlist[i] * newdata[i].
+</p>
+<p>3.  If(se.fit | (interval != 'none')) compute <code>se.fit</code>, then
+return whatever is desired.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The predictions produced by <code>predict.fRegress</code> are either a
+vector or a functional parameter (class <code>fdPar</code>) object, matching
+the class of <code>object$y</code>.
+</p>
+<p>If <code>interval</code> is not "none", the predictions will be
+multivariate for <code>object$y</code> and the requested <code>lwr</code> and
+<code>upr</code> bounds.  If <code>object$y</code> is a scalar, these predictions
+are returned as a matrix;  otherwise, they are a multivariate
+functional parameter object (class <code>fdPar</code>).
+</p>
+<p>If <code>se.fit</code> is <code>TRUE</code>, <code>predict.fRegress</code> returns a
+list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+
+<p>vector or matrix or univariate or multivariate functional parameter
+object depending on the value of <code>interval</code> and the class of
+<code>object$y</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+<p>standard error of predicted means</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Spencer Graves </p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fRegress</code>
+<code>predict</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+## vector response with functional explanatory variable
+##
+## Not run: 
+annualprec &lt;- log10(apply(CanadianWeather$dailyAv[,,
+                   "Precipitation.mm"], 2,sum))
+smallbasis  &lt;- create.fourier.basis(c(0, 365), 25)
+tempfd &lt;- smooth.basis(day.5,
+   CanadianWeather$dailyAv[,,"Temperature.C"], smallbasis)$fd
+precip.Temp.f &lt;- fRegress(annualprec ~ tempfd)
+precip.Temp.p &lt;- predict(precip.Temp.f)
+# plot response vs. fitted 
+oldpar &lt;- par(no.readonly=TRUE)
+plot(annualprec, precip.Temp.p)
+par(oldpar)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>learn_bipartite_graph_nie</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Laplacian matrix of a k-component bipartite graph via Nie's method
+Computes the Laplacian matrix of a bipartite graph on the basis of an observed similarity matrix.</h2>
+
+<h3>Description</h3>
+
+<p>Laplacian matrix of a k-component bipartite graph via Nie's method
+</p>
+<p>Computes the Laplacian matrix of a bipartite graph on the basis of an observed similarity matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">learn_bipartite_graph_nie(
+  S,
+  r,
+  q,
+  k,
+  learning_rate = 1e-04,
+  eta = 1,
+  maxiter = 1000,
+  reltol = 1e-06,
+  verbose = TRUE,
+  record_objective = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>a p x p similarity matrix, where p is the number of nodes in the graph.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>number of nodes in the objects set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>number of nodes in the classes set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>number of components of the graph.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>learning_rate</code></td>
+<td>
+<p>gradient descent parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>rank constraint hyperparameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol</code></td>
+<td>
+<p>relative tolerance as a convergence criteria.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether or not to show a progress bar during the iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>record_objective</code></td>
+<td>
+<p>whether or not to record the objective function value during iterations.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing possibly the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>laplacian</code></td>
+<td>
+<p>estimated Laplacian matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjacency</code></td>
+<td>
+<p>estimated adjacency matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>estimated graph weights matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>number of iterations taken to reach convergence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>boolean flag to indicate whether or not the optimization converged</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj_fun</code></td>
+<td>
+<p>objective function value per iteration</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Feiping Nie, Xiaoqian Wang, Cheng Deng, Heng Huang.
+"Learning A Structured Optimal Bipartite Graph for Co-Clustering".
+Advances in Neural Information Processing Systems (NIPS 2017)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(finbipartite)
+library(igraph)
+set.seed(42)
+r &lt;- 50
+q &lt;- 5
+p &lt;- r + q
+
+bipartite &lt;- sample_bipartite(r, q, type="Gnp", p = 1, directed=FALSE)
+# randomly assign edge weights to connected nodes
+E(bipartite)$weight &lt;- 1
+Lw &lt;- as.matrix(laplacian_matrix(bipartite))
+B &lt;- -Lw[1:r, (r+1):p]
+B[,] &lt;- runif(length(B))
+B &lt;- B / rowSums(B)
+# utils functions
+from_B_to_laplacian &lt;- function(B) {
+  A &lt;- from_B_to_adjacency(B)
+  return(diag(rowSums(A)) - A)
+}
+
+from_B_to_adjacency &lt;- function(B) {
+  r &lt;- nrow(B)
+  q &lt;- ncol(B)
+  zeros_rxr &lt;- matrix(0, r, r)
+  zeros_qxq &lt;- matrix(0, q, q)
+  return(rbind(cbind(zeros_rxr, B), cbind(t(B), zeros_qxq)))
+}
+Ltrue &lt;- from_B_to_laplacian(B)
+X &lt;- MASS::mvrnorm(100*p, rep(0, p), MASS::ginv(Ltrue))
+S &lt;- cov(X)
+bipartite_graph &lt;- learn_bipartite_graph_nie(S = S,
+                                             r = r,
+                                             q = q,
+                                             k = 1,
+                                             learning_rate = 5e-1,
+                                             eta = 0,
+                                             verbose=FALSE)
+</code></pre>
+
+
+</div>

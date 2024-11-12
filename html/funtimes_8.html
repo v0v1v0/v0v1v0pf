@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ccf_boot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-Correlation of Autocorrelated Time Series</h2>
+
+<h3>Description</h3>
+
+<p>Account for possible autocorrelation of time series when assessing the statistical significance
+of their cross-correlation. A sieve bootstrap approach is used to generate multiple copies
+of the time series with the same autoregressive dependence, under the null hypothesis of the
+two time series under investigation being uncorrelated. The significance of cross-correlation
+coefficients is assessed based on the distribution of their bootstrapped counterparts.
+Both Pearson and Spearman types of coefficients are obtained, but a plot is provided for
+only one type, with significant correlations shown using filled circles (see Examples).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ccf_boot(
+  x,
+  y,
+  lag.max = NULL,
+  plot = c("Pearson", "Spearman", "none"),
+  level = 0.95,
+  B = 1000,
+  smooth = FALSE,
+  cl = 1L,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p>univariate numeric time-series objects or numeric vectors for which to
+compute cross-correlation. Different time attributes in <code>ts</code> objects are
+acknowledged, see Example 2 below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag.max</code></td>
+<td>
+<p>maximum lag at which to calculate the cross-correlation. Will be
+automatically limited as in <code>ccf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>choose whether to plot results for Pearson correlation (default, or use
+<code>plot = "Pearson"</code>), Spearman correlation (use <code>plot = "Spearman"</code>), or
+suppress plotting (use <code>plot = "none"</code>). Both Pearson's and Spearman's results are
+given in the output, regardless of the <code>plot</code> setting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>confidence level, from 0 to 1. Default is 0.95, that is, 95% confidence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap simulations to obtain empirical critical values.
+Default is 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth</code></td>
+<td>
+<p>logical value indicating whether the bootstrap confidence bands
+should be smoothed across lags.
+Default is <code>FALSE</code> meaning no smoothing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>parameter to specify computer cluster for bootstrapping passed to
+the package <code>parallel</code> (default <code>cl = 1</code>, means no cluster is used).
+Possible values are:
+</p>
+
+<ul>
+<li>
+<p> cluster object (list) produced by makeCluster.
+In this case, a new cluster is not started nor stopped;
+</p>
+</li>
+<li> <p><code>NULL</code>. In this case, the function will detect
+available cores (see detectCores) and, if there are
+multiple cores (<code class="reqn">&gt;1</code>), a cluster will be started with
+makeCluster. If started, the cluster will be stopped
+after the computations are finished;
+</p>
+</li>
+<li>
+<p> positive integer defining the number of cores to start a cluster.
+If <code>cl = 1</code> (default), no attempt to create a cluster will be made.
+If <code>cl</code> &gt; 1, a cluster will be started (using makeCluster)
+and stopped afterward (using stopCluster).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other parameters passed to the function <code>ARest</code> to control
+how autoregressive dependencies are estimated. The same set of parameters is used
+separately on <code>x</code> and <code>y</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that the smoothing of confidence bands is implemented purely for the look.
+This smoothing is different from the
+smoothing methods that can be applied to adjust bootstrap performance
+(De Angelis and Young 1992).
+For correlations close to the significance bounds, the setting of <code>smooth</code> might
+affect the decision on the statistical significance.
+In this case, it is recommended to keep <code>smooth = FALSE</code> and set a higher <code>B</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame with the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Lag</code></td>
+<td>
+<p>lags for which the following values were obtained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_P</code></td>
+<td>
+<p>observed Pearson correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_P, upper_P</code></td>
+<td>
+<p>lower and upper confidence bounds (for the confidence level set by <code>level</code>) for Pearson correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_S</code></td>
+<td>
+<p>observed Spearman correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_S, upper_S</code></td>
+<td>
+<p>lower and upper confidence bounds (for the confidence level set by <code>level</code>) for Spearman correlations.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Vyacheslav Lyubchich
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ARest</code>, <code>ar</code>, <code>ccf</code>,
+<code>HVK</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Fix seed for reproducible simulations:
+set.seed(1)
+
+# Example 1
+# Simulate independent normal time series of same lengths
+x &lt;- rnorm(100)
+y &lt;- rnorm(100)
+# Default CCF with parametric confidence band
+ccf(x, y)
+# CCF with bootstrap
+tmp &lt;- ccf_boot(x, y)
+# One can extract results for both Pearson and Spearman correlations
+tmp$rP
+tmp$rS
+
+# Example 2
+# Simulated ts objects of different lengths and starts (incomplete overlap)
+x &lt;- arima.sim(list(order = c(1, 0, 0), ar = 0.5), n = 30)
+x &lt;- ts(x, start = 2001)
+y &lt;- arima.sim(list(order = c(2, 0, 0), ar = c(0.5, 0.2)), n = 40)
+y &lt;- ts(y, start = 2020)
+# Show how x and y are aligned
+ts.plot(x, y, col = 1:2, lty = 1:2)
+# The usual CCF
+ccf(x, y)
+# CCF with bootstrap confidence intervals
+ccf_boot(x, y, plot = "Spearman")
+# Notice that only +-7 lags can be calculated in both cases because of the small
+# overlap of the time series. If we save these time series as plain vectors, the time
+# information would be lost, and the time series will be misaligned.
+ccf(as.numeric(x), as.numeric(y))
+
+# Example 3
+# Box &amp; Jenkins time series of sales and a leading indicator, see ?BJsales
+plot.ts(cbind(BJsales.lead, BJsales))
+# Each of the BJ time series looks as having a stochastic linear trend, so apply differences
+plot.ts(cbind(diff(BJsales.lead), diff(BJsales)))
+# Get cross-correlation of the differenced series
+ccf_boot(diff(BJsales.lead), diff(BJsales), plot = "Spearman")
+# The leading indicator "stands out" with significant correlations at negative lags,
+# showing it can be used to predict the sales 2-3 time steps ahead (that is,
+# diff(BJsales.lead) at times t-2 and t-3 is strongly correlated with diff(BJsales) at
+# current time t).
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

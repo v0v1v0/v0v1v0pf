@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>beta_div_contrib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Main function for computing contributional <strong>beta</strong> diversity</h2>
+
+<h3>Description</h3>
+
+<p>Based on joint taxa-function input data (i.e., contributional data), the beta diversity (i.e., inter-sample distance or divergence)
+will be computed for the subset of taxa encoding each individual function separately. A large List object containing all these tables
+can be returned, or alternatively these tables will be written to the disk as plain-text files.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">beta_div_contrib(
+  metrics = NULL,
+  func_tab = NULL,
+  abun_tab = NULL,
+  contrib_tab = NULL,
+  in_tree = NULL,
+  func_ids = NULL,
+  return_objects = FALSE,
+  write_outfiles = FALSE,
+  outdir = NULL,
+  ncores = 1,
+  samp_colname = "sample",
+  func_colname = "function.",
+  taxon_colname = "taxon",
+  abun_colname = "taxon_abun"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>beta diversity metrics to compute. Must be default metric computed by <code>parallelDist::parDist</code> or one of "weighted_unifrac", "unweighted_unifrac", or "jensen_shannon_div".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func_tab</code></td>
+<td>
+<p>data.frame object containing function copy numbers, with rows as functions and columns as taxa. Required if <code>abun_tab</code> is specified, and is mutually exclusive with <code>contrib_tab</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abun_tab</code></td>
+<td>
+<p>data.frame object containing taxonomic abundances across samples, with rows as taxa and columns as samples. Required if <code>func_tab</code> is specified, and is mutually exclusive with <code>contrib_tab</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrib_tab</code></td>
+<td>
+<p>data.frame object containing combined taxa abundances and function copy numbers across taxa. Must contain columns corresponding to the sample ids, function ids, taxa ids, and taxa
+abundances within samples. These column names are specified by the <code>samp_colname</code>, <code>func_colname</code>, <code>taxon_colname</code>, and <code>abun_colname</code>, respectively.Mutually exclusive with <code>abun_tab</code> and <code>func_tab</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>in_tree</code></td>
+<td>
+<p>phylo object to use if <code>weighted_unifrac</code> or <code>unweighted_unifrac</code> are specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func_ids</code></td>
+<td>
+<p>character vector specifying subset of function ids to include for analysis. Will analyze all functions present if this is not specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_objects</code></td>
+<td>
+<p>Boolean vector of length one, specifying whether function should return a list of all output distance tables (nested by metric name, and then by function id). Incompatible with <code>write_outfiles</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write_outfiles</code></td>
+<td>
+<p>Boolean vector of length one, specifying whether function write all distance tables to plain-text files in the specified <code>outdir</code> location. Incompatible with <code>return_objects</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outdir</code></td>
+<td>
+<p>character vector of length one, indicating where to save output files if <code>write_outfiles = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>integer indicating number of cores to use for parallelizable steps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp_colname</code></td>
+<td>
+<p>sample id column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func_colname</code></td>
+<td>
+<p>function id column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxon_colname</code></td>
+<td>
+<p>taxon id column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abun_colname</code></td>
+<td>
+<p>taxonomic abundance (within each sample) column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Input data can be either a separate function copy number and taxonomic abundance table, or a joint contributional table.
+Metrics must be one of "weighted_unifrac", "unweighted_unifrac", "jensen_shannon_div", or a default metric available through the <code>parallelDist::parDist</code> function. See <code>?parallelDist::parDist</code> for a description of all default metrics.
+</p>
+<p>The taxonomic abundances will be converted to relative abundances prior to computing inter-sample distances.
+</p>
+
+
+<h3>Value</h3>
+
+<p>differs depending on the <code>return_objects</code> and <code>write_outfiles</code> parameters.
+</p>
+<p>If <code>return_objects = TRUE</code>, then a nested List will be returned.
+Each specific beta diversity metric will be the first level, and the functions are the second level
+(e.g., contrib_beta$binary$func2).
+</p>
+<p>If <code>write_outfiles</code> then a character vector will be returned, indicating where the output tables were written.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># First, simulate some (non-realistic) data.
+set.seed(123)
+test_tree &lt;- ape::rtree(100)
+test_abun &lt;- data.frame(matrix(rnorm(500), nrow = 100, ncol = 5))
+rownames(test_abun) &lt;- test_tree$tip.label
+colnames(test_abun) &lt;- c("sample1", "sample2", "sample3", "sample4", "sample5")
+test_abun[test_abun &lt; 0] &lt;- 0
+test_func &lt;- data.frame(matrix(sample(c(0L, 1L), 200, replace = TRUE),
+                               nrow = 2, ncol = 100))
+colnames(test_func) &lt;- test_tree$tip.label
+rownames(test_func) &lt;- c("func1", "func2")
+
+# Compute beta diversity, based on Weighted UniFrac and Jaccard distances
+# (i.e., "binary").
+contrib_beta &lt;- beta_div_contrib(metrics = c("weighted_unifrac", "binary"),
+                                 func_tab = test_func,
+                                 abun_tab = test_abun,
+                                 in_tree = test_tree,
+                                 return_objects = TRUE,
+                                 ncores = 1)
+
+# Parse beta diversity distance list value for a specific function (func2) and
+# distance metric (Jaccard).
+contrib_beta$binary$func2
+
+</code></pre>
+
+
+</div>

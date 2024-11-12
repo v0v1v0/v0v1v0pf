@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as.fd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Convert a spline object to class 'fd'
+</h2>
+
+<h3>Description</h3>
+
+<p>Translate a spline object of another class into the 
+Functional Data (class <code>fd</code>) format.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as.fd(x, ...)
+## S3 method for class 'fdSmooth'
+as.fd(x, ...)
+## S3 method for class 'function'
+as.fd(x, ...)
+## S3 method for class 'smooth.spline'
+as.fd(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>an object to be converted to class <code>fd</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>optional arguments passed to specific methods, currently
+unused.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The behavior depends on the <code>class</code> and nature of <code>x</code>.
+</p>
+
+<dl>
+<dt>as.fd.fdSmooth</dt>
+<dd>
+<p>extract the <code>fd</code> component</p>
+</dd>
+<dt>as.fd.function</dt>
+<dd>
+<p>Create an <code>fd</code> object from a function of the form
+created by <code>splinefun</code>.  This will translate method
+= 'fmn' and 'natural' but not 'periodic':  'fmn' splines
+are isomorphic to standard B-splines with coincident
+boundary knots, which is the basis produced by 
+<code>create.bspline.basis</code>.  'natural' splines occupy 
+a subspace of this space, with the restriction that the
+second derivative at the end points is zero (as noted in
+the Wikipedia <code>spline</code> article).  'periodic' splines
+do not use coincident boundary knots and are not 
+currently supported in <code>fda</code>;  instead, <code>fda</code>
+uses finite Fourier bases for periodic phenomena.
+</p>
+</dd>
+<dt>as.fd.smooth.spline</dt>
+<dd>
+<p>Create an <code>fd</code> object from a <code>smooth.spline</code>
+object.
+</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Spencer Graves</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009), 
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+<p><code>spline</code> entry in <em>Wikipedia</em>
+<a href="https://en.wikipedia.org/wiki/Spline_(mathematics)">https://en.wikipedia.org/wiki/Spline_(mathematics)</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fd</code>
+<code>splinefun</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+## as.fd.fdSmooth
+##
+girlGrowthSm &lt;- with(growth, 
+  smooth.basisPar(argvals=age, y=hgtf, lambda=0.1))
+girlGrowth.fd &lt;- as.fd(girlGrowthSm)
+
+##
+## as.fd.function(splinefun(...), ...)
+##
+x2 &lt;- 1:7
+y2 &lt;- sin((x2-0.5)*pi)
+fd_function &lt;- splinefun(x2, y2)
+fd.  &lt;- as.fd(fd_function)
+x.   &lt;- seq(1, 7, .02)
+fdx. &lt;- fda::eval.fd(x., fd.)
+
+# range(y2, fx., fdx.) generates an error 2012.04.22
+
+rfdx &lt;- range(fdx.)
+
+oldpar &lt;- par(no.readonly= TRUE)
+plot(range(x2), range(y2, fdx., rfdx), type='n')
+points(x2, y2)
+lines(x., sin((x.-0.5)*pi), lty='dashed')
+lines(x., fdx., col='blue')
+lines(x., eval.fd(x., fd.), col='red', lwd=3, lty='dashed')
+# splinefun and as.fd(splineful(...)) are close
+# but quite different from the actual function
+# apart from the actual 7 points fitted,
+# which are fitted exactly
+# ... and there is no information in the data
+# to support a better fit!
+
+# Translate also a natural spline
+fn &lt;- splinefun(x2, y2, method='natural')
+fn. &lt;- as.fd(fn)
+lines(x., fn(x.), lty='dotted', col='blue')
+lines(x., eval.fd(x., fn.), col='green', lty='dotted', lwd=3)
+
+if(!CRAN()) {
+# Will NOT translate a periodic spline
+# fp &lt;- splinefun(x, y, method='periodic')
+# as.fd(fp)
+# Error in as.fd.function(fp) :
+#  x (fp)  uses periodic B-splines, and as.fd is programmed
+#   to translate only B-splines with coincident boundary knots.
+}
+
+##
+## as.fd.smooth.spline ... this doesn't work (24 January 2024)
+##
+#cars.spl &lt;- with(cars, smooth.spline(speed, dist))
+#cars.fd  &lt;- as.fd(cars.spl)
+
+#plot(dist~speed, cars)
+#lines(cars.spl)
+#sp. &lt;- with(cars, seq(min(speed), max(speed), len=101))
+#d. &lt;- eval.fd(sp., cars.fd)
+#lines(sp., d., lty=2, col='red', lwd=3)
+par(oldpar)
+</code></pre>
+
+
+</div>

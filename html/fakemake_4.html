@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>make</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mock the Unix Make Utility</h2>
+
+<h3>Description</h3>
+
+<p>Mock the Unix Make Utility
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">make(
+  name,
+  make_list,
+  force = FALSE,
+  recursive = force,
+  verbose = FALSE,
+  verbosity = 2,
+  dry_run = FALSE,
+  unconditionally = FALSE,
+  stop_on_warning = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>The name or alias of a make target.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>make_list</code></td>
+<td>
+<p>The <code>makelist</code> (a listed version of a
+<code>Makefile</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force</code></td>
+<td>
+<p>Force the target to be build?
+See <em>Details</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recursive</code></td>
+<td>
+<p>Force the target to be build recursively? 
+See <em>Details</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Be verbose?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbosity</code></td>
+<td>
+<p>Give the level of verbosity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dry_run</code></td>
+<td>
+<p>Run dry? Mock GNU <code>make</code>'s -n option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unconditionally</code></td>
+<td>
+<p>Force the target's code to be evaluated
+unconditionally to any prerequisites?
+See <em>Details</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stop_on_warning</code></td>
+<td>
+<p><code>Throw an error and abort</code> if 
+a recipe throws a
+<code>warning</code>?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>force, recursive</code><br>
+Forcing a target mocks adding .PHONY to a GNU <code>Makefile</code> if you
+set recursive to FALSE. If recursive is TRUE, then the whole make chain will
+be forced.
+</p>
+<p><code>unconditionally</code><br>
+Setting <code>unconditionally</code> to <code>TRUE</code> allows you to fool
+<code>make</code> similarily to using GNU <code>make</code>'s –touch option.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>Invisibly</code> a character vector
+containing the targets made during the current run.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">str(make_list &lt;- provide_make_list("minimal"))
+# build all
+withr::with_dir(tempdir(), print(make("all.Rout", make_list)))
+# nothing to be done
+withr::with_dir(tempdir(), print(make("all.Rout", make_list)))
+# forcing all.Rout
+withr::with_dir(tempdir(), print(make("all.Rout", make_list, force = TRUE,
+                                      recursive = FALSE)))
+# forcing all.Rout recursively
+withr::with_dir(tempdir(), print(make("all.Rout", make_list, force = TRUE))) 
+
+# show files
+dir(tempdir(), pattern = ".*\\.Rout")
+
+# dry run
+file.remove(dir(tempdir(), pattern = ".*\\.Rout", full.names = TRUE))
+withr::with_dir(tempdir(), print(make("all.Rout", make_list,
+                                      dry_run = TRUE)))
+dir(tempdir(), pattern = ".*\\.Rout")
+
+# make unconditionally
+dir(tempdir(), pattern = ".*\\.Rout")
+withr::with_dir(tempdir(), print(make("all.Rout", make_list,
+                                      unconditionally = TRUE)))
+dir(tempdir(), pattern = ".*\\.Rout")
+
+</code></pre>
+
+
+</div>

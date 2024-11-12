@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vectorize_reader</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Vectorize a single-input read function to read multiple files</h2>
+
+<h3>Description</h3>
+
+<p>The resulting vectorized read function still takes all the arguments of the
+original function.
+</p>
+<p>Uses <code>purrr::list_rbind()</code> to bind the data frames, which generates
+a data frame with a superset of the columns from all the files,
+filling <code>NA</code> where data was not present.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vectorize_reader(read_fn, file_path_to = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>read_fn</code></td>
+<td>
+<p>The read function to vectorize. The first argument must be the
+files to read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_path_to</code></td>
+<td>
+<p>A string, which if provided, is the name of the column
+containing the file paths in the result. See 'names_to' in
+<code>purrr::list_rbind()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A version of <code>read_fn</code> that can read multiple paths.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>purrr::list_rbind()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Convert iris$Species to character to simplify comparison.
+iris_chr &lt;- iris
+iris_chr$Species &lt;- as.character(iris$Species)
+
+
+# `iris` data frame separated into multiple subset files.
+iris_files &lt;- system.file("extdata", package = "filecacher") |&gt;
+  list.files(pattern = "_only[.]csv$", full.names = TRUE)
+
+try(read.csv(iris_files))
+vectorize_reader(read.csv)(
+  iris_files,
+  stringsAsFactors = TRUE
+) |&gt;
+  all.equal(iris)
+
+
+if (rlang::is_installed("arrow")) {
+  try(arrow::read_csv_arrow(iris_files))
+  vectorize_reader(arrow::read_csv_arrow)(
+    iris_files
+  ) |&gt;
+    as.data.frame() |&gt;
+    all.equal(iris_chr)
+}
+
+
+if (rlang::is_installed("data.table")) {
+  try(data.table::fread(iris_files))
+  vectorize_reader(data.table::fread)(
+    iris_files,
+    stringsAsFactors = TRUE
+  ) |&gt;
+    as.data.frame() |&gt;
+    all.equal(iris)
+}
+</code></pre>
+
+
+</div>

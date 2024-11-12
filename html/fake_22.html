@@ -1,0 +1,319 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SimulateCorrelation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation of a correlation matrix</h2>
+
+<h3>Description</h3>
+
+<p>Simulates a correlation matrix. This is done in three steps with (i) the
+simulation of an undirected graph encoding conditional independence, (ii) the
+simulation of a (positive definite) precision matrix given the graph, and
+(iii) the re-scaling of the inverse of the precision matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SimulateCorrelation(
+  pk = 10,
+  theta = NULL,
+  implementation = HugeAdjacency,
+  topology = "random",
+  nu_within = 0.1,
+  nu_between = NULL,
+  nu_mat = NULL,
+  v_within = c(0.5, 1),
+  v_between = c(0.1, 0.2),
+  v_sign = c(-1, 1),
+  continuous = TRUE,
+  pd_strategy = "diagonally_dominant",
+  ev_xx = NULL,
+  scale_ev = TRUE,
+  u_list = c(1e-10, 1),
+  tol = .Machine$double.eps^0.25,
+  output_matrices = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pk</code></td>
+<td>
+<p>vector of the number of variables per group in the simulated
+dataset. The number of nodes in the simulated graph is <code>sum(pk)</code>. With
+multiple groups, the simulated (partial) correlation matrix has a block
+structure, where blocks arise from the integration of the <code>length(pk)</code>
+groups. This argument is only used if <code>theta</code> is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>optional binary and symmetric adjacency matrix encoding the
+conditional independence structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>implementation</code></td>
+<td>
+<p>function for simulation of the graph. By default,
+algorithms implemented in <code>huge.generator</code> are used.
+Alternatively, a user-defined function can be used. It must take <code>pk</code>,
+<code>topology</code> and <code>nu</code> as arguments and return a
+<code>(sum(pk)*(sum(pk)))</code> binary and symmetric matrix for which diagonal
+entries are all equal to zero. This function is only applied if
+<code>theta</code> is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>topology</code></td>
+<td>
+<p>topology of the simulated graph. If using
+<code>implementation=HugeAdjacency</code>, possible values are listed for the
+argument <code>graph</code> of <code>huge.generator</code>. These are:
+"random", "hub", "cluster", "band" and "scale-free".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_within</code></td>
+<td>
+<p>probability of having an edge between two nodes belonging to
+the same group, as defined in <code>pk</code>. If <code>length(pk)=1</code>, this is
+the expected density of the graph. If <code>implementation=HugeAdjacency</code>,
+this argument is only used for <code>topology="random"</code> or
+<code>topology="cluster"</code> (see argument <code>prob</code> in
+<code>huge.generator</code>). Only used if <code>nu_mat</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_between</code></td>
+<td>
+<p>probability of having an edge between two nodes belonging
+to different groups, as defined in <code>pk</code>. By default, the same density
+is used for within and between blocks (<code>nu_within</code>=<code>nu_between</code>).
+Only used if <code>length(pk)&gt;1</code>. Only used if <code>nu_mat</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_mat</code></td>
+<td>
+<p>matrix of probabilities of having an edge between nodes
+belonging to a given pair of node groups defined in <code>pk</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_within</code></td>
+<td>
+<p>vector defining the (range of) nonzero entries in the
+diagonal blocks of the precision matrix. These values must be between -1
+and 1 if <code>pd_strategy="min_eigenvalue"</code>. If <code>continuous=FALSE</code>,
+<code>v_within</code> is the set of possible precision values. If
+<code>continuous=TRUE</code>, <code>v_within</code> is the range of possible precision
+values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_between</code></td>
+<td>
+<p>vector defining the (range of) nonzero entries in the
+off-diagonal blocks of the precision matrix. This argument is the same as
+<code>v_within</code> but for off-diagonal blocks. It is only used if
+<code>length(pk)&gt;1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_sign</code></td>
+<td>
+<p>vector of possible signs for precision matrix entries. Possible
+inputs are: <code>-1</code> for positive partial correlations, <code>1</code> for
+negative partial correlations, or <code>c(-1, 1)</code> for both positive and
+negative partial correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>continuous</code></td>
+<td>
+<p>logical indicating whether to sample precision values from
+a uniform distribution between the minimum and maximum values in
+<code>v_within</code> (diagonal blocks) or <code>v_between</code> (off-diagonal blocks)
+(if <code>continuous=TRUE</code>) or from proposed values in <code>v_within</code>
+(diagonal blocks) or <code>v_between</code> (off-diagonal blocks) (if
+<code>continuous=FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_strategy</code></td>
+<td>
+<p>method to ensure that the generated precision matrix is
+positive definite (and hence can be a covariance matrix). If
+<code>pd_strategy="diagonally_dominant"</code>, the precision matrix is made
+diagonally dominant by setting the diagonal entries to the sum of absolute
+values on the corresponding row and a constant u. If
+<code>pd_strategy="min_eigenvalue"</code>, diagonal entries are set to the sum of
+the absolute value of the smallest eigenvalue of the precision matrix with
+zeros on the diagonal and a constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev_xx</code></td>
+<td>
+<p>expected proportion of explained variance by the first Principal
+Component (PC1) of a Principal Component Analysis. This is the largest
+eigenvalue of the correlation (if <code>scale_ev=TRUE</code>) or covariance (if
+<code>scale_ev=FALSE</code>) matrix divided by the sum of eigenvalues. If
+<code>ev_xx=NULL</code> (the default), the constant u is chosen by maximising the
+contrast of the correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale_ev</code></td>
+<td>
+<p>logical indicating if the proportion of explained variance by
+PC1 should be computed from the correlation (<code>scale_ev=TRUE</code>) or
+covariance (<code>scale_ev=FALSE</code>) matrix. If <code>scale_ev=TRUE</code>, the
+correlation matrix is used as parameter of the multivariate normal
+distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u_list</code></td>
+<td>
+<p>vector with two numeric values defining the range of values to
+explore for constant u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>accuracy for the search of parameter u as defined in
+<code>optimise</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output_matrices</code></td>
+<td>
+<p>logical indicating if the true precision and (partial)
+correlation matrices should be included in the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to the graph simulation function
+provided in <code>implementation</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In Step 1, the conditional independence structure between the
+variables is simulated. This is done using <code>SimulateAdjacency</code>.
+</p>
+<p>In Step 2, the precision matrix is simulated using
+<code>SimulatePrecision</code> so that (i) its nonzero entries correspond
+to edges in the graph simulated in Step 1, and (ii) it is positive definite
+(see <code>MakePositiveDefinite</code>).
+</p>
+<p>In Step 3, the covariance is calculated as the inverse of the precision
+matrix. The correlation matrix is then obtained by re-scaling the
+covariance matrix (see <code>cov2cor</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>simulated correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>simulated precision matrix. Only returned if
+<code>output_matrices=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>adjacency matrix of the
+simulated graph. Only returned if <code>output_matrices=TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>SimulatePrecision</code>, <code>MakePositiveDefinite</code>
+</p>
+<p>Other simulation functions: 
+<code>SimulateAdjacency()</code>,
+<code>SimulateClustering()</code>,
+<code>SimulateComponents()</code>,
+<code>SimulateGraphical()</code>,
+<code>SimulateRegression()</code>,
+<code>SimulateStructural()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldpar &lt;- par(no.readonly = TRUE)
+par(mar = rep(7, 4))
+
+# Random correlation matrix
+set.seed(1)
+simul &lt;- SimulateCorrelation(pk = 10)
+Heatmap(simul$sigma,
+  col = c("navy", "white", "darkred"),
+  text = TRUE, format = "f", digits = 2,
+  legend_range = c(-1, 1)
+)
+
+# Correlation matrix with homogeneous block structure
+set.seed(1)
+simul &lt;- SimulateCorrelation(
+  pk = c(5, 5),
+  nu_within = 1,
+  nu_between = 0,
+  v_sign = -1,
+  v_within = 1
+)
+Heatmap(simul$sigma,
+  col = c("navy", "white", "darkred"),
+  text = TRUE, format = "f", digits = 2,
+  legend_range = c(-1, 1)
+)
+
+# Correlation matrix with heterogeneous block structure
+set.seed(1)
+simul &lt;- SimulateCorrelation(
+  pk = c(5, 5),
+  nu_within = 0.5,
+  nu_between = 0,
+  v_sign = -1
+)
+Heatmap(simul$sigma,
+  col = c("navy", "white", "darkred"),
+  text = TRUE, format = "f", digits = 2,
+  legend_range = c(-1, 1)
+)
+
+par(oldpar)
+
+</code></pre>
+
+
+</div>

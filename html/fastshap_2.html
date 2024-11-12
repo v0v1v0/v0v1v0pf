@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>explain</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast approximate Shapley values</h2>
+
+<h3>Description</h3>
+
+<p>Compute fast (approximate) Shapley values for a set of features using the
+Monte Carlo algorithm described in Strumbelj and Igor (2014). An efficient
+algorithm for tree-based models, commonly referred to as Tree SHAP, is also
+supported for <a href="https://cran.r-project.org/package=lightgbm">lightgbm</a> and
+<a href="https://cran.r-project.org/package=xgboost">xgboost</a> models; see Lundberg
+et. al. (2020) for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">explain(object, ...)
+
+## Default S3 method:
+explain(
+  object,
+  feature_names = NULL,
+  X = NULL,
+  nsim = 1,
+  pred_wrapper = NULL,
+  newdata = NULL,
+  adjust = FALSE,
+  baseline = NULL,
+  shap_only = TRUE,
+  parallel = FALSE,
+  ...
+)
+
+## S3 method for class 'lm'
+explain(
+  object,
+  feature_names = NULL,
+  X,
+  nsim = 1,
+  pred_wrapper,
+  newdata = NULL,
+  adjust = FALSE,
+  exact = FALSE,
+  baseline = NULL,
+  shap_only = TRUE,
+  parallel = FALSE,
+  ...
+)
+
+## S3 method for class 'xgb.Booster'
+explain(
+  object,
+  feature_names = NULL,
+  X = NULL,
+  nsim = 1,
+  pred_wrapper,
+  newdata = NULL,
+  adjust = FALSE,
+  exact = FALSE,
+  baseline = NULL,
+  shap_only = TRUE,
+  parallel = FALSE,
+  ...
+)
+
+## S3 method for class 'lgb.Booster'
+explain(
+  object,
+  feature_names = NULL,
+  X = NULL,
+  nsim = 1,
+  pred_wrapper,
+  newdata = NULL,
+  adjust = FALSE,
+  exact = FALSE,
+  baseline = NULL,
+  shap_only = TRUE,
+  parallel = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A fitted model object (e.g., a <code>ranger::ranger()</code>,
+<code>xgboost::xgboost()</code>, or <code>earth::earth()</code> object, to name
+a few).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional optional arguments to be passed on to
+<code>foreach::foreach()</code> whenever <code>parallel = TRUE</code>. For example, you may need
+to supply additional packages that the parallel task depends on via the
+<code>.packages</code> argument to <code>foreach::foreach()</code>. <strong>NOTE:</strong>
+<code>foreach::foreach()</code>'s <code>.combine</code> argument is already set internally by
+<code>explain()</code>, so passing it via the <code>...</code> argument would likely result in an
+error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_names</code></td>
+<td>
+<p>Character string giving the names of the predictor
+variables (i.e., features) of interest. If <code>NULL</code> (default) they will be
+taken from the column names of <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A matrix-like R object (e.g., a data frame or matrix) containing
+ONLY the feature columns from the training data (or suitable background data
+set). <strong>NOTE:</strong> This argument is required whenever <code>exact = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of Monte Carlo repetitions to use for estimating each
+Shapley value (only used when <code>exact = FALSE</code>). Default is 1.
+<strong>NOTE:</strong> To obtain the most accurate results, <code>nsim</code> should be set
+as large as feasibly possible.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_wrapper</code></td>
+<td>
+<p>Prediction function that requires two arguments,
+<code>object</code> and <code>newdata</code>. <strong>NOTE:</strong> This argument is required
+whenever <code>exact = FALSE</code>. The output of this function should be
+determined according to:
+</p>
+
+<dl>
+<dt>Regression</dt>
+<dd>
+<p>A numeric vector of predicted outcomes.</p>
+</dd>
+<dt>Binary classification</dt>
+<dd>
+<p>A vector of predicted class probabilities
+for the reference class.</p>
+</dd>
+<dt>Multiclass classification</dt>
+<dd>
+<p>A vector of predicted class probabilities
+for the reference class.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>A matrix-like R object (e.g., a data frame or matrix)
+containing ONLY the feature columns for the observation(s) of interest; that
+is, the observation(s) you want to compute explanations for. Default is
+<code>NULL</code> which will produce approximate Shapley values for all the rows in
+<code>X</code> (i.e., the training data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust</code></td>
+<td>
+<p>Logical indicating whether or not to adjust the sum of the
+estimated Shapley values to satisfy the <em>local accuracy</em> property; that is,
+to equal the difference between the model's prediction for that sample and
+the average prediction over all the training data (i.e., <code>X</code>). Default is
+<code>FALSE</code> and setting to <code>TRUE</code> requires <code>nsim</code> &gt; 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>baseline</code></td>
+<td>
+<p>Numeric baseline to use when adjusting the computed Shapley
+values to achieve <em>local accuracy</em>. Adjusted Shapley values for a single
+prediction (<code>fx</code>) will sum to the difference <code>fx - baseline</code>. Defaults to
+<code>NULL</code>, which corresponds to the average predictions computed from <code>X</code>, and
+zero otherwise (i.e., no additional predictions will be computed and the
+baseline attribute of the output will be set to zero).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shap_only</code></td>
+<td>
+<p>Logical indicating whether or not to include additional
+output useful for plotting (i.e., <code>newdata</code> and the <code>baseline</code> value.). This
+is convenient, for example, when using <code>shapviz::shapviz()</code> for plotting.
+Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical indicating whether or not to compute the approximate
+Shapley values in parallel across features; default is <code>FALSE</code>. <strong>NOTE:</strong>
+setting <code>parallel = TRUE</code> requires setting up an appropriate (i.e.,
+system-specific) <em>parallel backend</em> as described in the
+<a href="https://cran.r-project.org/package=foreach">foreach</a>; for details, see
+<code>vignette("foreach", package = "foreach")</code> in R.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>Logical indicating whether to compute exact Shapley values.
+Currently only available for <code>stats::lm()</code>,
+<code>xgboost::xgboost()</code>, and <code>lightgbm::lightgbm()</code> objects.
+Default is <code>FALSE</code>. Note that setting <code>exact = TRUE</code> will return
+explanations for each of the <code>stats::terms()</code> in an
+<code>stats::lm()</code> object. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>shap_only = TRUE</code> (the default), a matrix is returned with one
+column for each feature specified in <code>feature_names</code> (if
+<code>feature_names = NULL</code>, the default, there will
+be one column for each feature in <code>X</code>) and one row for each observation
+in <code>newdata</code> (if <code>newdata = NULL</code>, the default, there will be one
+row for each observation in <code>X</code>). Additionally, the returned matrix will
+have an attribute called <code>"baseline"</code> containing the baseline value. If
+<code>shap_only = FALSE</code>, then a list is returned with three components:
+</p>
+
+<ul>
+<li> <p><code>shapley_values</code> - a matrix of Shapley values (as described above);
+</p>
+</li>
+<li> <p><code>feature_values</code> - the corresponding feature values (for plotting with
+<code>shapviz::shapviz()</code>);
+</p>
+</li>
+<li> <p><code>baseline</code> - the corresponding baseline value (for plotting with
+<code>shapviz::shapviz()</code>).
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>Setting <code>exact = TRUE</code> with a linear model (i.e., an
+<code>stats::lm()</code> or <code>stats::glm()</code> object) assumes that the
+input features are independent. Also, setting <code>adjust = TRUE</code> is
+experimental and we follow the same approach as in
+<a href="https://github.com/shap/shap">shap</a>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Strumbelj, E., and Igor K. (2014). Explaining prediction models and
+individual predictions with feature contributions. Knowledge and information
+systems, 41(3), 647-665.
+</p>
+<p>Lundberg, S. M., Erion, G., Chen, H., DeGrave, A., Prutkin, J. M., Nair, B.,
+Katz, R., Himmelfarb, J., Bansal, N., and Lee, Su-In (2020). From local
+explanations to global understanding with explainable AI for trees.
+Nature Machine Intelligence, 2(1), 2522–5839.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>You can find more examples (with larger and more realistic data
+sets) on the <strong>fastshap</strong> GitHub repository:
+<a href="https://github.com/bgreenwell/fastshap">https://github.com/bgreenwell/fastshap</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# A projection pursuit regression (PPR) example
+#
+
+# Load the sample data; see ?datasets::mtcars for details
+data(mtcars)
+
+# Fit a projection pursuit regression model
+fit &lt;- ppr(mpg ~ ., data = mtcars, nterms = 5)
+
+# Prediction wrapper
+pfun &lt;- function(object, newdata) {  # needs to return a numeric vector
+  predict(object, newdata = newdata)  
+}
+
+# Compute approximate Shapley values using 10 Monte Carlo simulations
+set.seed(101)  # for reproducibility
+shap &lt;- explain(fit, X = subset(mtcars, select = -mpg), nsim = 10, 
+                pred_wrapper = pfun)
+head(shap)
+</code></pre>
+
+
+</div>

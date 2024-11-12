@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sbm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an undirected stochastic blockmodel object</h2>
+
+<h3>Description</h3>
+
+<p>To specify a stochastic blockmodel, you must specify
+the number of nodes (via <code>n</code>), the mixing matrix (via <code>k</code> or <code>B</code>),
+and the relative block probabilites (optional, via <code>pi</code>).
+We provide defaults for most of these options to enable
+rapid exploration, or you can invest the effort
+for more control over the model parameters. We <strong>strongly recommend</strong>
+setting the <code>expected_degree</code> or <code>expected_density</code> argument
+to avoid large memory allocations associated with
+sampling large, dense graphs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sbm(
+  n,
+  k = NULL,
+  B = NULL,
+  ...,
+  pi = rep(1/k, k),
+  sort_nodes = TRUE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of nodes in the network. Must be
+a positive integer. This argument is required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>(mixing matrix) The number of blocks in the blockmodel.
+Use when you don't want to specify the mixing-matrix by hand.
+When <code>k</code> is specified, the elements of <code>B</code> are drawn
+randomly from a <code>Uniform(0, 1)</code> distribution.
+This is subject to change, and may not be reproducible.
+<code>k</code> defaults to <code>NULL</code>. You must specify either <code>k</code>
+or <code>B</code>, but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>(mixing matrix) A <code>k</code> by <code>k</code> matrix of block connection
+probabilities. The probability that a node in block <code>i</code> connects
+to a node in community <code>j</code> is <code>Poisson(B[i, j])</code>. Must be
+a square matrix. <code>matrix</code> and <code>Matrix</code> objects are both
+acceptable. If <code>B</code> is not symmetric, it will be
+symmetrized via the update <code>B := B + t(B)</code>. Defaults to <code>NULL</code>.
+You must specify either <code>k</code> or <code>B</code>, but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>undirected_factor_model</code>
+</p>
+
+<dl>
+<dt><code>expected_degree</code></dt>
+<dd>
+<p>If specified, the desired expected degree
+of the graph. Specifying <code>expected_degree</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Do not specify both
+<code>expected_degree</code> and <code>expected_density</code> at the same time.</p>
+</dd>
+<dt><code>expected_density</code></dt>
+<dd>
+<p>If specified, the desired expected density
+of the graph. Specifying <code>expected_density</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Do not specify both
+<code>expected_degree</code> and <code>expected_density</code> at the same time.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi</code></td>
+<td>
+<p>(relative block probabilities) Relative block
+probabilities. Must be positive, but do not need to sum
+to one, as they will be normalized internally.
+Must match the dimensions of <code>B</code> or <code>k</code>. Defaults to
+<code>rep(1 / k, k)</code>, or a balanced blocks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort_nodes</code></td>
+<td>
+<p>Logical indicating whether or not to sort the nodes
+so that they are grouped by block and by <code>theta</code>. Useful for plotting.
+Defaults to <code>TRUE</code>. When <code>TRUE</code>, nodes are first sorted by block
+membership, and then by degree-correction parameters within each block.
+Additionally, <code>pi</code> is sorted in increasing order, and the columns
+of the <code>B</code> matrix are permuted to match the new order of <code>pi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poisson_edges</code></td>
+<td>
+<p>Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when <code>FALSE</code>, we assume that <code>S</code> specifies a desired between-factor
+connection probability, and back-transform this <code>S</code> to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_self_loops</code></td>
+<td>
+<p>Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds allowing
+self-loops, and these are then removed after the fact.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A stochastic block is equivalent to a degree-corrected
+stochastic blockmodel where the degree heterogeneity parameters
+have all been set equal to 1.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>undirected_sbm</code> S3 object, which is a subclass of the
+<code>dcsbm()</code> object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other stochastic block models: 
+<code>dcsbm()</code>,
+<code>directed_dcsbm()</code>,
+<code>mmsbm()</code>,
+<code>overlapping_sbm()</code>,
+<code>planted_partition()</code>
+</p>
+<p>Other undirected graphs: 
+<code>chung_lu()</code>,
+<code>dcsbm()</code>,
+<code>erdos_renyi()</code>,
+<code>mmsbm()</code>,
+<code>overlapping_sbm()</code>,
+<code>planted_partition()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(27)
+
+lazy_sbm &lt;- sbm(n = 1000, k = 5, expected_density = 0.01)
+lazy_sbm
+
+# by default we get a multigraph (i.e. multiple edges are
+# allowed between the same two nodes). using bernoulli edges
+# will with an adjacency matrix with only zeroes and ones
+
+bernoulli_sbm &lt;- sbm(
+  n = 5000,
+  k = 300,
+  poisson_edges = FALSE,
+  expected_degree = 8
+)
+
+bernoulli_sbm
+
+edgelist &lt;- sample_edgelist(bernoulli_sbm)
+edgelist
+
+A &lt;- sample_sparse(bernoulli_sbm)
+
+# only zeroes and ones!
+sign(A)
+
+</code></pre>
+
+
+</div>

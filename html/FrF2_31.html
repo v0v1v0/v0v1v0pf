@@ -1,0 +1,152 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compromise</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Function to support estimability requests for compromise designs </h2>
+
+<h3>Description</h3>
+
+<p>Addelman (1962) and Ke and Wu (2005) discuss compromise plans of different types. 
+Their creation is supported by the function compromise.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    compromise(nfactors, G1, class=3, msg=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nfactors</code></td>
+<td>
+<p> overall number of factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G1</code></td>
+<td>
+<p> vector with indices of factors in group G1 (cf. details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p> class of compromise designs that is to be generated; 1, 2, 3, or 4, cf. details below </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>msg</code></td>
+<td>
+<p> logical stating whether the <code>minnruns.clear</code> element of the result
+should be reported in a message</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For compromise plans, the factors are decomposed into a group G1 and a group G2. 
+The different classes of compromise plans require estimability of different subsets 
+of 2fis in addition to main effects:<br><br>
+Class 1: all 2fis within group G1 are estimable<br>
+Class 2: all 2fis within group G1 are estimable, 
+as well as all 2fis within group G2<br>
+Class 3: all 2fis within group G1 are estimable, 
+as well as all 2fis between groups G1 and G2<br>
+Class 4: all 2fis between groups G1 and G2 are estimable<br></p>
+<p>The function returns a list of four components (cf. section “Value”). 
+They can be used as input for the function <code>FrF2</code>, if compromise 
+plans are to be created. Both distinct designs (Addelman 1962) and clear designs 
+(Ke, Tang and Wu 2005) can be constructed, 
+depending on the settings of option <code>clear</code> in function 
+<code>FrF2</code>. More explanations on specifying estimability requirements 
+for 2fis in general are provided under <code>estimable.2fis</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Value is a list of the four components <code>perms.full</code>, <code>requirement</code>, 
+<code>class</code>, and <code>minnrun.clear</code>. The last two components are purely imformative, 
+while the first two provide input parameters for function <code>FrF2</code>.<br><code>requirement</code> can be used for specifying the required 2fis in the <code>estimable</code> option, 
+both with <code>clear=FALSE</code> and <code>clear=TRUE</code>. 
+For <code>clear=FALSE</code>, <code>perms.full</code> can be used in the <code>perms</code> option 
+for speeding up the search into a hopefully realistic time frame.<br><code>minnrun.clear</code> indicates the minimum number of runs needed for a clear design.
+</p>
+<p>Note that the catalogue <code>catlg</code> contains all designs needed for 
+accomodating existing clear compromise designs in up to 128 runs (even minimum aberration
+among all existing clear compromise designs; for a catalogue of these, cf. Gr\"omping 2010).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Ulrike Groemping </p>
+
+
+<h3>References</h3>
+
+<p>Addelman, S. (1962). Symmetrical and asymmetrical fractional factorial plans. 
+<em>Technometrics</em> <b>4</b>, 47-58.
+</p>
+<p>Groemping, U. (2012). Creating clear designs: a graph-based algorithm and a 
+catalog of clear compromise plans. <em>IIE Transactions</em> <b>44</b>, 988-1001. 
+doi: <a href="https://doi.org/10.1080/0740817X.2012.654848">10.1080/0740817X.2012.654848</a>. Early preprint at 
+<a href="http://www1.bht-berlin.de/FB_II/reports/Report-2010-005.pdf">http://www1.bht-berlin.de/FB_II/reports/Report-2010-005.pdf</a>.
+</p>
+<p>Ke, W., Tang, B. and Wu, H. (2005). Compromise plans with clear two-factor interactions. 
+<em>Statistica Sinica</em> <b>15</b>, 709-715.
+</p>
+
+
+<h3>See Also</h3>
+
+<p> See Also <code>FrF2</code> for creation of regular fractional factorial designs 
+as well as <code>estimable.2fis</code> 
+for statistical and algorithmic information on estimability of 2-factor interactions</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## seven factors two of which are in group G1
+C1 &lt;- compromise(7, c(2,4), class=1)
+C1$perms.full  ## the same for all classes
+C1$requirement
+C2 &lt;- compromise(7, c(2,4), class=2)
+C2$requirement
+C3 &lt;- compromise(7, c(2,4), class=3)
+C3$requirement
+C4 &lt;- compromise(7, c(2,4), class=4)
+C4$requirement
+
+## Not run: 
+########## usage of estimable ###########################
+  ## design with with BD clear in 16 runs
+  FrF2(16,7,estimable = C1$requirement)
+  ## design with BD estimable on a distinct column in 16 runs (any design will do,
+  ##    if resolution IV!!!
+  FrF2(16,7,estimable = C1$requirement, clear=FALSE, perms=C1$perms.full)
+  ## all four classes, mostly clear, for 32 runs
+  FrF2(32,7,estimable = C1$requirement)
+  FrF2(32,7,estimable = C2$requirement)   ## requires resolution V
+         ## as clear class 2 compromise designs do not exist due to Ke et al. 2005
+  FrF2(32,7,estimable = C2$requirement, clear=FALSE, perms=C2$perms.full)
+  FrF2(32,7,estimable = C3$requirement)
+  FrF2(32,7,estimable = C4$requirement)
+  ## two additional factors H and J that do not show up in the requirement set
+  FrF2(32,9,estimable = C3$requirement)
+  ## two additional factors H and J that do not show up in the requirement set
+  FrF2(32,9,estimable = C3$requirement, clear=FALSE)
+  ## note that this is not possible for distinct designs in case perms is needed,
+  ## because perms must have nfactors columns
+
+## End(Not run)
+</code></pre>
+
+
+</div>

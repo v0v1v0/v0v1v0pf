@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmri.designG</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Design matrix for fMRI group analysis </h2>
+
+<h3>Description</h3>
+
+<p>This function returns a design matrix for multi-subject fMRI data to fit a Linear Mixed-effects Model (one-stage procedure) with given stimuli, polynomial drift terms and a set of known population parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmri.designG(hrf, subj = 1, runs = 1, group = NULL, XG = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>hrf</code></td>
+<td>
+<p> vector or matrix containing expected BOLD response(s) 
+for one session, typically a <code>fmri.stimulus</code> object. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subj</code></td>
+<td>
+<p> number of subjects in the study. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runs</code></td>
+<td>
+<p> number of repeated measures within subjects. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p> optional vector to define groups. 
+It is expected one value per subject. A grouping factor can also be part of <code>XG</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XG</code></td>
+<td>
+<p> optionally, a group-level design matrix of class <code>"data.frame"</code>, which contains population parameters such as ages or gender corresponding to the subjects. It is expected one value per subject. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Based on the dimensionality of the <code>hrf</code> object, which provides the total number of scans (time-points) within each session, the entered number of subjects and repeated measures the auxiliary variables: "subj", "run", "scan" and "session" are generated as first part of the returned design matrix.
+</p>
+<p>If no <code>group</code> argument is specified, only one population will be assumed; otherwise group labels are replicated within sessions of the same subject. 
+</p>
+<p>First a design matrix for a single run is created by calling: <code>x &lt;- fmri.design(hrf, order = 2)</code>. Hence the polynomial drift terms are defined orthogonal to the stimuli (see <code>fmri.design</code>). This matrix is replicated blockwise to all sessions assuming the same experimental design for all runs. The first drift term, a column of ones, is called "drift0" and models an intercept.
+</p>
+<p>If given, further subject characteristics are filled in the design matrix.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A design matrix as a data frame, which contains the following variables:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>subj</code></td>
+<td>
+<p> consecutive subject number: 1 to <code>subj</code> specified as factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run</code></td>
+<td>
+<p> consecutive run number within the subjects: 1 to <code>runs</code> specified as factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scan</code></td>
+<td>
+<p> consecutive scan number: 1 to T within each session </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>session</code></td>
+<td>
+<p> consecutive experiment number: 1 to <code>(subj*runs)</code> specified as factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p> grouping variable specified as factor, one group by default </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrf, hrf2, ...</code></td>
+<td>
+<p> replicated expected BOLD-response(s) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drift0, drift1, drift2</code></td>
+<td>
+<p> replicated polynomial drift terms 
+created with <code>fmri.design(hrf, order = 2)</code> orthogonal to the stimuli
+given in <code>hrf</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> further expanded between-subject factors and covariates </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Sibylle Dames </p>
+
+
+<h3>References</h3>
+
+<p>Polzehl, J. and Tabelow, K.(2007). <em>fmri: A Package for Analyzing fmri Data</em>, R News, 7:13-17.  
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fmri.stimulus</code>, <code>fmri.design</code>, <code>fmri.lmePar</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">subj &lt;- 6
+runs &lt;- 1
+scans &lt;- 121
+times &lt;- c(12, 48, 84, 120, 156, 192, 228, 264) 
+duration &lt;- 24          
+tr &lt;- 2.5
+
+hrf &lt;- fmri.stimulus(scans, times, duration, tr, times = TRUE)
+x.group &lt;- fmri.designG(hrf, subj = subj, runs = runs)
+# View(x.group)
+</code></pre>
+
+
+</div>

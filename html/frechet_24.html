@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LocPointPrReg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Local Cox point process regression.</h2>
+
+<h3>Description</h3>
+
+<p>Local Fréchet regression for replicated Cox point processes with respect to <code class="reqn">L^2</code>-Wasserstein distance on shape space and Euclidean 2-norm on intensity factor space.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LocPointPrReg(xin = NULL, tin = NULL, T0 = NULL, xout = NULL, optns = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p>An n by p matrix with input measurements of the predictors, where p is at most 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tin</code></td>
+<td>
+<p>A list holding the sample of event times of each replicated point process, where the ith element of the list <code>tin</code> holds the event times of the point process corresponding to the ith row of <code>xin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T0</code></td>
+<td>
+<p>A positive scalar that defines the time window [0,<code>T0</code>] where the replicated Cox point processes are observed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>A k by p matrix with output measurements of the predictors. Default is <code>xin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of control parameters specified by <code>list(name=value)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available control options are <code>bwDen</code>, <code>kernelReg</code> (see <code>LocDenReg</code> for these option descriptions) and
+</p>
+
+<dl>
+<dt>L</dt>
+<dd>
+<p>Upper Lipschitz constant for quantile space; numeric -default: 1e10.</p>
+</dd>
+<dt>M</dt>
+<dd>
+<p>Lower Lipschitz constant for quantile space; numeric -default: 1e-10.</p>
+</dd>
+<dt>dSup</dt>
+<dd>
+<p>User defined output grid for the support of kernel density estimation used in <code>CreateDensity()</code> for mapping from quantile space to shape space. This grid must be in [0,<code>T0</code>]. Default is an equidistant with <code>nqSup</code>+2 points.</p>
+</dd>
+<dt>nqSup</dt>
+<dd>
+<p>A scalar with the number of equidistant points in (0,1) used to obtain the empirical quantile function from each point process. Default: 500.</p>
+</dd>
+<dt>bwReg</dt>
+<dd>
+<p>A vector of length p used as the bandwidth for the Fréchet regression or <code>"CV"</code> (default), i.e., a data-adaptive selection done by leave-one-out cross-validation.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>Input <code>xout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dSup</code></td>
+<td>
+<p>Support of each estimated (up to a constant) conditional intensity regression function in the columns of <code>intensityReg</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intensityReg</code></td>
+<td>
+<p>A matrix of dimension <code>length(dSup)</code> by <code>nrow(xout)</code> holding the estimated intensity regression functions up to a constant over the support grid <code>dSup</code>, where each column corresponds to a predictor level in the corresponding row of <code>xout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p>Input <code>xin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of control options used.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Petersen, A., &amp; Müller, H.-G. (2019). "Fréchet regression for random objects with Euclidean predictors." The Annals of Statistics, 47(2), 691–719.</cite>
+</p>
+<p><cite>Gajardo, Á. and Müller, H.-G. (2022). "Cox Point Process Regression." IEEE Transactions on Information Theory, 68(2), 1133-1156.</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+n=100
+alpha_n=sqrt(n)
+alpha1=2.0
+beta1=1.0
+gridQ=seq(0,1,length.out=500+2)[2:(500+1)]
+X=runif(n,0,1)#p=1
+tau=matrix(0,nrow=n,ncol=1)
+for(i in 1:n){
+  tau[i]=alpha1+beta1*X[i]+truncnorm::rtruncnorm(1, a=-0.3, b=0.3, mean = 0, sd = 1.0)
+}
+Ni_n=matrix(0,nrow=n,ncol=1)
+u0=0.4
+u1=0.5
+u2=0.05
+u3=-0.01
+tin=list()
+for(i in 1:n){
+  Ni_n[i]=rpois(1,alpha_n*tau[i])
+  mu_x=u0+u1*X[i]+truncnorm::rtruncnorm(1,a=-0.1,b=0.1,mean=0,sd=1)
+  sd_x=u2+u3*X[i]+truncnorm::rtruncnorm(1,a=-0.02,b=0.02,mean=0,sd=0.5)
+  if(Ni_n[i]==0){
+    tin[[i]]=c()
+  }else{
+    tin[[i]]=truncnorm::rtruncnorm(Ni_n[i],a=0,b=1,mean=mu_x,sd=sd_x) #Sample from truncated normal
+  }
+}
+res=LocPointPrReg(
+  xin=matrix(X,ncol=1),
+  tin=tin,T0=1,xout=matrix(seq(0,1,length.out=10),ncol=1),
+  optns=list(bwDen=0.1,bwReg=0.1)
+)
+
+</code></pre>
+
+
+</div>

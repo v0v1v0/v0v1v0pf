@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mvspectrum</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates spectrum of multivariate time series</h2>
+
+<h3>Description</h3>
+
+<p>The spectrum of a multivariate time series is a matrix-valued function of the 
+frequency <code class="reqn">\lambda \in [-\pi, \pi]</code>, which is symmetric/Hermitian around 
+<code class="reqn">\lambda = 0</code>.
+</p>
+<p><code>mvspectrum</code> estimates it and returns a 3D array of dimension 
+<code class="reqn">num.freqs \times K \times K</code>.  Since the spectrum is symmetric/Hermitian around
+<code class="reqn">\lambda = 0</code> it is sufficient to store only positive frequencies.  
+In the implementation in this package we thus usually 
+consider only positive frequencies (omitting <code class="reqn">0</code>); <code>num.freqs</code> refers
+to the number of positive frequencies only.
+</p>
+<p><code>normalize_mvspectrum</code> normalizes the spectrum such that
+it adds up to <code class="reqn">0.5</code> over all positive frequencies (by symmetry it will 
+add up to 1 over the whole range – thus the name <em>normalize</em>). 
+</p>
+<p>For a <code class="reqn">K</code>-dimensional time series it adds
+up to a Hermitian <code class="reqn">K \times K</code> matrix with 0.5 in the diagonal and
+imaginary elements (real parts equal to <code class="reqn">0</code>) in the off-diagonal. 
+Since it is Hermitian the mvspectrum will add up to the identity matrix
+over the whole range of frequencies, since the off-diagonal elements
+are purely imaginary (real part equals 0) and thus add up to 0.
+</p>
+<p><code>check_mvspectrum_normalized</code> checks if the spectrum is normalized 
+(see <code>normalize_mvspectrum</code> for the requirements).
+</p>
+<p><code>mvpgram</code> computes the multivariate periodogram estimate using
+bare-bone multivariate fft (<code>mvfft</code>). Use
+<code>mvspectrum(..., method = 'pgram')</code> instead of <code>mvpgram</code> directly.
+</p>
+<p>This function is merely included to have one method that does not
+require the <span class="pkg">astsa</span> nor the <span class="pkg">sapa</span> R packages.  However, 
+it is strongly encouraged to install either one of them to get (much)
+better estimates.  See Details.
+</p>
+<p><code>get_spectrum_from_mvspectrum</code> extracts the spectrum of one time series from an
+<code>"mvspectrum"</code> object by taking the i-th diagonal entry for each frequency.
+</p>
+<p><code>spectrum_of_linear_combination</code> computes the spectrum of the linear
+combination  <code class="reqn">\mathbf{y}_t = \mathbf{X}_t \boldsymbol \beta</code> of <code class="reqn">K</code> 
+time series <code class="reqn">\mathbf{X}_t</code>.  This can be efficiently computed by the 
+quadratic form
+</p>
+<p style="text-align: center;"><code class="reqn">
+  f_{y}(\lambda) = \boldsymbol \beta' f_{\mathbf{X}}(\lambda) \boldsymbol \beta \geq 0,
+</code>
+</p>
+
+<p>for each <code class="reqn">\lambda</code>. This holds for any <code class="reqn">\boldsymbol \beta</code> 
+(even <code class="reqn">\boldsymbol \beta = \boldsymbol 0</code> – not only for 
+<code class="reqn">||\boldsymbol \beta ||_2 = 1</code>.
+For <code class="reqn">\boldsymbol \beta = \boldsymbol e_i</code> (the i-th basis vector) 
+this is equivalent to <code>get_spectrum_from_mvspectrum(..., which = i)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mvspectrum(
+  series,
+  method = c("mvspec", "pgram", "pspectrum", "ar"),
+  normalize = FALSE,
+  smoothing = FALSE,
+  ...
+)
+
+normalize_mvspectrum(mvspectrum.output)
+
+check_mvspectrum_normalized(f.U, check.attribute.only = TRUE)
+
+mvpgram(series)
+
+get_spectrum_from_mvspectrum(
+  mvspectrum.output,
+  which = seq_len(dim(mvspectrum.output)[2])
+)
+
+spectrum_of_linear_combination(mvspectrum.output, beta)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>series</code></td>
+<td>
+<p>a <code class="reqn">T \times K</code> array with <code>T</code> observations from the 
+<code class="reqn">K</code>-dimensional time series <code class="reqn">\mathbf{X}_t</code>. Can be a <code>matrix</code>, <code>data.frame</code>, 
+or a multivariate <code>ts</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>string; method for spectrum estimation: use <code>"pspectrum"</code> for
+<code>pspectrum</code>; use 
+<code>"mvspec"</code> to use <code>mvspec</code> (<span class="pkg">astsa</span> package); or
+use <code>"pgram"</code> to use <code>spec.pgram</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the spectrum will be normalized (see 
+Value below for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smoothing</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the spectrum will be
+smoothed with a nonparametric estimate using <code>gam</code> 
+and an exponential family (with <code>link = log</code>). Only works
+for univariate spectrum. The smoothing
+parameter is chosen automatically using generalized cross-validation 
+(see <code>gam</code> for details). Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>pspectrum</code> or 
+<code>mvspec</code> (e.g., <code>taper</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mvspectrum.output</code></td>
+<td>
+<p>an object of class <code>"mvspectrum"</code> representing
+the multivariate spectrum of <code class="reqn">\mathbf{X}_t</code> (not necessarily <code>normalize</code>d).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.U</code></td>
+<td>
+<p>multivariate spectrum of class <code>'mvspectrum'</code> with 
+<code>normalize = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.attribute.only</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it checks the 
+attribute only.  This is much faster (it just needs to look up one attribute
+value), but it might not surface silent bugs.  For sake of performance
+the package uses the attribute version by default.  However, for 
+testing/debugging the full computational version can be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>integer(s); the spectrum of which series whould be extracted. By default,
+it returns all univariate spectra as a matrix (frequencies in rows).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>numeric; vector <code class="reqn">\boldsymbol \beta</code> that defines the linear
+combination.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For an orthonormal time series <code class="reqn">\mathbf{U}_t</code> the raw periodogram adds up 
+to <code class="reqn">I_K</code> 
+over all (negative and positive) frequencies.  Since we only consider
+positive frequencies, the normalized multivariate spectrum should add up to
+<code class="reqn">0.5 \cdot I_K</code> plus a Hermitian imaginary matrix (which will add up to zero
+when combined with its symmetric counterpart.)
+As we often use non-parametric smoothing for less variance, the spectrum estimates
+do not satisfy this identity exactly. <code>normalize_mvspectrum</code> thus adjust the 
+estimates so they satisfy it again exactly.
+</p>
+<p><code>mvpgram</code> has no options for improving spectrum estimation whatsoever.
+It thus yields very noisy (in fact, inconsistent) estimates of the 
+multivariate spectrum <code class="reqn">f_{\mathbf{X}}(\lambda)</code>. 
+If you want to obtain better estimates then please use other <code>method</code>s in
+<code>mvspectrum</code> (this is highly recommended to obtain more 
+reasonable/stable estimates).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>mvspectrum</code> returns a 3D array of dimension <code class="reqn">num.freqs \times K \times K</code>, where
+</p>
+
+<ul>
+<li>
+<p> num.freqs is the number of frequencies
+</p>
+</li>
+<li>
+<p> K is the number of series (columns in <code>series</code>).
+</p>
+</li>
+</ul>
+<p>It also has an <code>"normalized"</code> attribute, which is
+<code>FALSE</code> if <code>normalize = FALSE</code>; otherwise <code>TRUE</code>.
+See <code>normalize_mvspectrum</code> for details.
+</p>
+<p><code>normalize_mvspectrum</code> returns a normalized spectrum over 
+positive frequencies, which:
+</p>
+
+<dl>
+<dt>univariate:</dt>
+<dd>
+<p>adds up to <code class="reqn">0.5</code>,</p>
+</dd>
+<dt>multivariate:</dt>
+<dd>
+<p>adds up to Hermitian <code class="reqn">K \times K</code> matrix
+with 0.5 in the diagonal and purely imaginary elements in the off-diagonal.</p>
+</dd> 
+</dl>
+<p><code>check_mvspectrum_normalized</code> throws an error if spectrum is not
+normalized correctly.
+</p>
+<p><code>get_spectrum_from_mvspectrum</code> returns either a matrix of all univariate spectra,
+or one single column (if <code>which</code> is specified.)
+</p>
+<p><code>spectrum_of_linear_combination</code> returns a vector with length equal to 
+the number of rows of <code>mvspectrum.output</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>See References in <code>spectrum</code>, <code>pspectrum</code>, 
+<code>mvspec</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+XX &lt;- cbind(rnorm(100), arima.sim(n = 100, list(ar = 0.9)))
+ss3d &lt;- mvspectrum(XX)
+dim(ss3d)
+
+ss3d[2,,] # at omega_1; in general complex-valued, but Hermitian
+identical(ss3d[2,,], Conj(t(ss3d[2,,]))) # is Hermitian
+## Not run: 
+  ss &lt;- mvspectrum(XX[, 1], method="pspectrum", smoothing = TRUE)
+  mvspectrum(XX, normalize = TRUE)
+
+## End(Not run)
+ss &lt;- mvspectrum(whiten(XX)$U, normalize = TRUE)
+
+xx &lt;- scale(rnorm(100), center = TRUE, scale = FALSE)
+var(xx)
+sum(mvspectrum(xx, normalize = FALSE, method = "pgram")) * 2
+sum(mvspectrum(xx, normalize = FALSE, method = "mvspec")) * 2
+## Not run: 
+  sum(mvspectrum(xx, normalize = FALSE, method = "pspectrum")) * 2
+
+## End(Not run)
+## Not run: 
+xx &lt;- scale(rnorm(100), center = TRUE, scale = FALSE)
+ss &lt;- mvspectrum(xx)
+ss.n &lt;- normalize_mvspectrum(ss)
+sum(ss.n)
+# multivariate
+UU &lt;- whiten(matrix(rnorm(40), ncol = 2))$U
+S.U &lt;- mvspectrum(UU, method = "mvspec")
+mvspectrum2wcov(normalize_mvspectrum(S.U))
+
+## End(Not run)
+
+XX &lt;- matrix(rnorm(1000), ncol = 2)
+SS &lt;- mvspectrum(XX, "mvspec")
+ss1 &lt;- mvspectrum(XX[, 1], "mvspec")
+
+SS.1 &lt;- get_spectrum_from_mvspectrum(SS, 1)
+plot.default(ss1, SS.1)
+abline(0, 1, lty = 2, col = "blue")
+
+
+XX &lt;- matrix(arima.sim(n = 1000, list(ar = 0.9)), ncol = 4)
+beta.tmp &lt;- rbind(1, -1, 2, 0)
+yy &lt;- XX %*% beta.tmp
+
+SS &lt;- mvspectrum(XX, "mvspec")
+ss.yy.comb &lt;- spectrum_of_linear_combination(SS, beta.tmp)
+ss.yy &lt;- mvspectrum(yy, "mvspec")
+
+plot(ss.yy, log = TRUE) # using plot.mvspectrum()
+lines(ss.yy.comb, col = "red", lty = 1, lwd = 2) 
+
+</code></pre>
+
+
+</div>

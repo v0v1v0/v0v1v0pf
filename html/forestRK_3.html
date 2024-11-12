@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>criteria.after.split.calculator</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculates Entropy or Gini Index of a node after a given split
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculates Entropy or Gini Index of a particular node after a particular split;
+this function is called within <code>construct.treeRK</code> function.
+</p>
+<p>The argument <code>split.record</code> is a <code>kidids_split</code> object
+from the package <code>partykit</code>; the method <code>kidids_split</code> splits the
+data according to the criteria specified by an user ahead of time, and returns
+a vector storing the index of the split group (group "1" or "2") that each
+observation from the original data in question belongs to after the split has
+occurred.
+</p>
+<p>For more information about the function, please see the <code>partykit</code>
+documentation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"> criteria.after.split.calculator(x.node = data.frame(), y.new.node = c(),
+                                 split.record = kidids_split(),
+                                 entropy = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x.node</code></td>
+<td>
+
+<p>numericized data frame of covariates (obtained via <code>x.organizer()</code>)
+from a particular node that is to be split; <code>x.node</code> should contain no
+<code>NA</code> or <code>NaN</code>'s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.new.node</code></td>
+<td>
+
+<p>numericized class type of each observation from a particular node that is to
+be split; <code>y.new.node</code> should contain no <code>NA</code> or<code>NaN</code>'s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split.record</code></td>
+<td>
+
+<p>output of the <code>kidids_split</code> function from the <code>partykit</code> package
+that describes a particular split.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy</code></td>
+<td>
+
+<p><code>TRUE</code> if Entropy is used as the splitting criteria;
+<code>FALSE</code> if Gini Index is used instead.
+Default is set to <code>TRUE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The value of Entropy or Gini Index of a particular node after a particular
+split.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Hyunjin Cho, <a href="mailto:h56cho@uwaterloo.ca">h56cho@uwaterloo.ca</a>
+Rebecca Su, <a href="mailto:y57su@uwaterloo.ca">y57su@uwaterloo.ca</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>criteria.calculator</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## example: iris dataset
+  library(forestRK) # load the package forestRK
+  library(partykit)
+
+  # covariates of training data set
+  x.train &lt;- x.organizer(iris[,1:4], encoding = "num")[c(1:25,51:75,101:125),]
+  # numericized class types of observations of training dataset
+  y.train &lt;- y.organizer(iris[c(1:25,51:75,101:125),5])$y.new
+  ## criteria.after.split.calculator() example in the implementation
+  ## of the forestRK algorithm
+
+  ent.status &lt;- TRUE
+
+  # number.of.columns.of.x.node
+  # = total number of covariates that we consider
+  number.of.columns.of.x.node &lt;- dim(x.train)[2]
+  # m.try = the randomly chosen number of covariates that we consider
+  # at the time of split
+  m.try &lt;- sample(1:(number.of.columns.of.x.node),1)
+  ## sample m.try number of covariates from the list of all covariates
+  K &lt;- sample(1:(number.of.columns.of.x.node), m.try)
+
+  # split the data
+  # (the choice of the type of split used here is only arbitrary)
+  # for more information about kidids_split,
+  # please refer to the documentation for the package 'partykit'
+  sp &lt;- partysplit(varid=K[1], breaks = x.train[1,K[1]], index = NULL,
+                   right = TRUE, prob = NULL, info = NULL)
+  split.record &lt;- kidids_split(sp, data=x.train)
+
+  # implement critera.after.split function based on kidids_split object
+  criteria.after.split &lt;- criteria.after.split.calculator(x.train,
+                                    y.train, split.record, ent.status)
+  criteria.after.split
+</code></pre>
+
+
+</div>

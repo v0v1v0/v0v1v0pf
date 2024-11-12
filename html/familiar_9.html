@@ -1,0 +1,272 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>.finish_data_preparation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Internal function for finalising generic data processing</h2>
+
+<h3>Description</h3>
+
+<p>Internal function for finalising generic data processing
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">.finish_data_preparation(
+  data,
+  sample_id_column,
+  batch_id_column,
+  series_id_column,
+  outcome_column,
+  outcome_type,
+  include_features,
+  class_levels,
+  censoring_indicator,
+  event_indicator,
+  competing_risk_indicator,
+  check_stringency = "strict",
+  reference_method = "auto"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.table with feature data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_id_column</code></td>
+<td>
+<p>(<strong>recommended</strong>) Name of the column containing
+sample or subject identifiers. See <code>batch_id_column</code> above for more
+details.
+</p>
+<p>If unset, every row will be identified as a single sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch_id_column</code></td>
+<td>
+<p>(<strong>recommended</strong>) Name of the column containing batch
+or cohort identifiers. This parameter is required if more than one dataset
+is provided, or if external validation is performed.
+</p>
+<p>In familiar any row of data is organised by four identifiers:
+</p>
+
+<ul>
+<li>
+<p> The batch identifier <code>batch_id_column</code>: This denotes the group to which a
+set of samples belongs, e.g. patients from a single study, samples measured
+in a batch, etc. The batch identifier is used for batch normalisation, as
+well as selection of development and validation datasets.
+</p>
+</li>
+<li>
+<p> The sample identifier <code>sample_id_column</code>: This denotes the sample level,
+e.g. data from a single individual. Subsets of data, e.g. bootstraps or
+cross-validation folds, are created at this level.
+</p>
+</li>
+<li>
+<p> The series identifier <code>series_id_column</code>: Indicates measurements on a
+single sample that may not share the same outcome value, e.g. a time
+series, or the number of cells in a view.
+</p>
+</li>
+<li>
+<p> The repetition identifier: Indicates repeated measurements in a single
+series where any feature values may differ, but the outcome does not.
+Repetition identifiers are always implicitly set when multiple entries for
+the same series of the same sample in the same batch that share the same
+outcome are encountered.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>series_id_column</code></td>
+<td>
+<p>(<strong>optional</strong>) Name of the column containing series
+identifiers, which distinguish between measurements that are part of a
+series for a single sample. See <code>batch_id_column</code> above for more details.
+</p>
+<p>If unset, rows which share the same batch and sample identifiers but have a
+different outcome are assigned unique series identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_column</code></td>
+<td>
+<p>(<strong>recommended</strong>) Name of the column containing the
+outcome of interest. May be identified from a formula, if a formula is
+provided as an argument. Otherwise an error is raised. Note that <code>survival</code>
+and <code>competing_risk</code> outcome type outcomes require two columns that
+indicate the time-to-event or the time of last follow-up and the event
+status.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_type</code></td>
+<td>
+<p>(<strong>recommended</strong>) Type of outcome found in the outcome
+column. The outcome type determines many aspects of the overall process,
+e.g. the available feature selection methods and learners, but also the
+type of assessments that can be conducted to evaluate the resulting models.
+Implemented outcome types are:
+</p>
+
+<ul>
+<li> <p><code>binomial</code>: categorical outcome with 2 levels.
+</p>
+</li>
+<li> <p><code>multinomial</code>: categorical outcome with 2 or more levels.
+</p>
+</li>
+<li> <p><code>count</code>: Poisson-distributed numeric outcomes.
+</p>
+</li>
+<li> <p><code>continuous</code>: general continuous numeric outcomes.
+</p>
+</li>
+<li> <p><code>survival</code>: survival outcome for time-to-event data.
+</p>
+</li>
+</ul>
+<p>If not provided, the algorithm will attempt to obtain outcome_type from
+contents of the outcome column. This may lead to unexpected results, and we
+therefore advise to provide this information manually.
+</p>
+<p>Note that <code>competing_risk</code> survival analysis are not fully supported, and
+is currently not a valid choice for <code>outcome_type</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_features</code></td>
+<td>
+<p>(<em>optional</em>) Feature columns that are specifically
+included in the data set. By default all features are included. Cannot
+overlap with <code>exclude_features</code>, but may overlap <code>signature</code>. Features in
+<code>signature</code> and <code>novelty_features</code> are always included. If both
+<code>exclude_features</code> and <code>include_features</code> are provided, <code>include_features</code>
+takes precedence, provided that there is no overlap between the two.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class_levels</code></td>
+<td>
+<p>(<em>optional</em>) Class levels for <code>binomial</code> or <code>multinomial</code>
+outcomes. This argument can be used to specify the ordering of levels for
+categorical outcomes. These class levels must exactly match the levels
+present in the outcome column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censoring_indicator</code></td>
+<td>
+<p>(<strong>recommended</strong>) Indicator for right-censoring in
+<code>survival</code> and <code>competing_risk</code> analyses. <code>familiar</code> will automatically
+recognise <code>0</code>, <code>false</code>, <code>f</code>, <code>n</code>, <code>no</code> as censoring indicators, including
+different capitalisations. If this parameter is set, it replaces the
+default values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event_indicator</code></td>
+<td>
+<p>(<strong>recommended</strong>) Indicator for events in <code>survival</code>
+and <code>competing_risk</code> analyses. <code>familiar</code> will automatically recognise <code>1</code>,
+<code>true</code>, <code>t</code>, <code>y</code> and <code>yes</code> as event indicators, including different
+capitalisations. If this parameter is set, it replaces the default values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>competing_risk_indicator</code></td>
+<td>
+<p>(<strong>recommended</strong>) Indicator for competing
+risks in <code>competing_risk</code> analyses. There are no default values, and if
+unset, all values other than those specified by the <code>event_indicator</code> and
+<code>censoring_indicator</code> parameters are considered to indicate competing
+risks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_stringency</code></td>
+<td>
+<p>Specifies stringency of various checks. This is mostly:
+</p>
+
+<ul>
+<li> <p><code>strict</code>: default value used for <code>summon_familiar</code>. Thoroughly checks
+input data. Used internally for checking development data.
+</p>
+</li>
+<li> <p><code>external_warn</code>: value used for <code>extract_data</code> and related methods. Less
+stringent checks, but will warn for possible issues. Used internally for
+checking data for evaluation and explanation.
+</p>
+</li>
+<li> <p><code>external</code>: value used for external methods such as <code>predict</code>. Less
+stringent checks, particularly for identifier and outcome columns, which may
+be completely absent. Used internally for <code>predict</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference_method</code></td>
+<td>
+<p>(<em>optional</em>) Method used to set reference levels for
+categorical features. There are several options:
+</p>
+
+<ul>
+<li> <p><code>auto</code> (default): Categorical features that are not explicitly set by the
+user, i.e. columns containing boolean values or characters, use the most
+frequent level as reference. Categorical features that are explicitly set,
+i.e. as factors, are used as is.
+</p>
+</li>
+<li> <p><code>always</code>: Both automatically detected and user-specified categorical
+features have the reference level set to the most frequent level. Ordinal
+features are not altered, but are used as is.
+</p>
+</li>
+<li> <p><code>never</code>: User-specified categorical features are used as is.
+Automatically detected categorical features are simply sorted, and the
+first level is then used as the reference level. This was the behaviour
+prior to familiar version 1.3.0.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is used to update data.table provided by loading the
+data. When part of the main familiar workflow, this function is used after
+.parse_initial_settings –&gt; .load_data –&gt; .update_initial_settings.
+</p>
+<p>When used to parse external data (e.g. in conjunction with familiarModel)
+it follows after .load_data. Hence the function contains several checks
+which are otherwise part of .update_initial_settings.
+</p>
+
+
+<h3>Value</h3>
+
+<p>data.table with expected column names.
+</p>
+
+
+</div>

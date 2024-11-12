@@ -1,0 +1,88 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>validateObject</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Validate Object</h2>
+
+<h3>Description</h3>
+
+<p>This function validates an object using a list of checks. If any check
+fails, an error handler is called and a default value is returned. This
+function is intended to slightly simplify cases where a long list of
+complex and convoluted predetermined checks are needed. For simpler cases
+like type checking, it is recommended to use <code>stopifnot()</code> or
+<code>assertthat::assert_that()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">validateObject(obj, checks, errorHandler = warningp, defaultReturn = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>The object to validate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checks</code></td>
+<td>
+<p>A single function or list of functions, each taking the object
+as an argument and returning NULL if the check passes or an error message if
+the check fails.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>errorHandler</code></td>
+<td>
+<p>A function to handle errors, taking the error message as
+an argument. Default is <code>warning</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>defaultReturn</code></td>
+<td>
+<p>The value to return if any check fails. Default is NULL.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The original object if all checks pass, or <code>defaultReturn</code> if any
+check fails.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Define some checks
+checkNotNull &lt;- function(x) if (is.null(x)) "Object is NULL" else NULL
+checkIsNumeric &lt;- function(x) {
+    if (!is.numeric(x)) "Object is not numeric" else NULL
+}
+
+# Validate an object
+obj &lt;- 42
+validateObject(obj, list(checkNotNull, checkIsNumeric))
+
+# Validate an object that fails a check
+obj &lt;- NULL
+try(
+    validateObject(
+        obj,
+        list(checkNotNull, checkIsNumeric, errorHandler = stop)
+    ),
+    silent = TRUE
+)
+</code></pre>
+
+
+</div>

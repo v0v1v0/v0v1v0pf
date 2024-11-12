@@ -1,0 +1,81 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>list_files_github_gists</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>List Github Gists of User</h2>
+
+<h3>Description</h3>
+
+<p>Given a username, return a dataframe with paths to all the gists by that user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">list_files_github_gists(
+  user,
+  pattern = stringr::regex("(r|rmd|rmarkdown|qmd)$", ignore_case = TRUE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>user</code></td>
+<td>
+<p>Character string of username whose github gists you want to pull.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>Regex pattern to keep only matching files. Default is
+<code>stringr::regex("(r|rmd|rmarkdown|qmd)$", ignore_case = TRUE)</code> which will
+keep only R, Rmarkdown and Quarto documents. If you have a lot of .md gists
+that can be converted to .R files you may want to edit this argument. To
+keep all files use <code>"."</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Dataframe with <code>relative_paths</code> and <code>absolute_paths</code> of file paths.
+Because gists do not exist in a folder structure <code>relative_paths</code> will
+generally just be a file name. <code>absolute_paths</code> a url to the raw file. See
+<code>unnest_results()</code> for helper to put into an easier to read format.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>list_files_github_repo()</code>, <code>list_files_wd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+library(funspotr)
+
+# pulling and analyzing my R file github gists
+gists_urls &lt;- list_files_github_gists("brshallo", pattern = ".")
+
+# Will just parse the first 2 files/gists
+# Note that is easy to hit the API limit if have lots of gists
+contents &lt;- filter(gists_urls, str_detect_r_docs(absolute_paths)) %&gt;%
+  slice(1:2) %&gt;%
+  spot_funs_files()
+
+
+contents %&gt;%
+  unnest_results()
+
+</code></pre>
+
+
+</div>

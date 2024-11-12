@@ -1,0 +1,341 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vcov.fixest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes the variance/covariance of a <code>fixest</code> object</h2>
+
+<h3>Description</h3>
+
+<p>This function extracts the variance-covariance of estimated parameters from a model
+estimated with <code>femlm</code>, <code>feols</code> or <code>feglm</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fixest'
+vcov(
+  object,
+  vcov = NULL,
+  se = NULL,
+  cluster,
+  ssc = NULL,
+  attr = FALSE,
+  forceCovariance = FALSE,
+  keepBounded = FALSE,
+  nthreads = getFixest_nthreads(),
+  vcov_fix = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>fixest</code> object. Obtained using the functions <code>femlm</code>, <code>feols</code> or <code>feglm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>Versatile argument to specify the VCOV. In general, it is either a character
+scalar equal to a VCOV type, either a formula of the form: <code>vcov_type ~ variables</code>. The
+VCOV types implemented are: "iid", "hetero" (or "HC1"), "cluster", "twoway",
+"NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". It also accepts
+object from <code>vcov_cluster</code>, <code>vcov_NW</code>, <code>NW</code>,
+<code>vcov_DK</code>, <code>DK</code>, <code>vcov_conley</code> and
+<code>conley</code>. It also accepts covariance matrices computed externally.
+Finally it accepts functions to compute the covariances. See the <code>vcov</code> documentation
+in the <a href="https://lrberge.github.io/fixest/articles/fixest_walkthrough.html#the-vcov-argument-1">vignette</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Character scalar. Which kind of standard error should be computed:
+“standard”, “hetero”, “cluster”, “twoway”, “threeway”
+or “fourway”? By default if there are clusters in the estimation:
+<code>se = "cluster"</code>, otherwise <code>se = "iid"</code>. Note that this argument is deprecated,
+you should use <code>vcov</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>Tells how to cluster the standard-errors (if clustering is requested).
+Can be either a list of vectors, a character vector of variable names, a formula or
+an integer vector. Assume we want to perform 2-way clustering over <code>var1</code> and <code>var2</code>
+contained in the data.frame <code>base</code> used for the estimation. All the following
+<code>cluster</code> arguments are valid and do the same thing:
+<code>cluster = base[, c("var1", "var2")]</code>, <code>cluster = c("var1", "var2")</code>, <code>cluster = ~var1+var2</code>.
+If the two variables were used as fixed-effects in the estimation, you can leave it
+blank with <code>vcov = "twoway"</code> (assuming <code>var1</code> [resp. <code>var2</code>] was
+the 1st [resp. 2nd] fixed-effect). You can interact two variables using <code>^</code> with
+the following syntax: <code>cluster = ~var1^var2</code> or <code>cluster = "var1^var2"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ssc</code></td>
+<td>
+<p>An object of class <code>ssc.type</code> obtained with the function <code>ssc</code>. Represents
+how the degree of freedom correction should be done.You must use the function <code>ssc</code>
+for this argument. The arguments and defaults of the function <code>ssc</code> are:
+<code>adj = TRUE</code>, <code>fixef.K="nested"</code>, <code>cluster.adj = TRUE</code>, <code>cluster.df = "min"</code>,
+<code>t.df = "min"</code>, <code style="white-space: pre;">⁠fixef.force_exact=FALSE)⁠</code>. See the help of the function <code>ssc</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr</code></td>
+<td>
+<p>Logical, defaults to <code>FALSE</code>. Whether to include the attributes describing how
+the VCOV was computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forceCovariance</code></td>
+<td>
+<p>(Advanced users.) Logical, default is <code>FALSE</code>. In the peculiar case
+where the obtained Hessian is not invertible (usually because of collinearity of
+some variables), use this option to force the covariance matrix, by using a generalized
+inverse of the Hessian. This can be useful to spot where possible problems come from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepBounded</code></td>
+<td>
+<p>(Advanced users – <code>feNmlm</code> with non-linear part and bounded
+coefficients only.) Logical, default is <code>FALSE</code>. If <code>TRUE</code>, then the bounded coefficients
+(if any) are treated as unrestricted coefficients and their S.E. is computed (otherwise
+it is not).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nthreads</code></td>
+<td>
+<p>The number of threads. Can be: a) an integer lower than, or equal to,
+the maximum number of threads; b) 0: meaning all available threads will be used;
+c) a number strictly between 0 and 1 which represents the fraction of all threads to use.
+The default is to use 50% of all threads. You can set permanently the number
+of threads used within this package using the function <code>setFixest_nthreads</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov_fix</code></td>
+<td>
+<p>Logical scalar, default is <code>TRUE</code>. If the VCOV ends up not being
+positive definite, whether to "fix" it using an eigenvalue decomposition
+(a la Cameron, Gelbach &amp; Miller 2011).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to <code>summary.fixest</code>.
+</p>
+<p>The computation of the VCOV matrix is first done in <code>summary.fixest</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For an explanation on how the standard-errors are computed and what is the exact meaning of
+the arguments, please have a look at the dedicated vignette:
+<a href="https://lrberge.github.io/fixest/articles/standard_errors.html">On standard-errors</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns a <code class="reqn">K\times K</code> square matrix where <code class="reqn">K</code> is the number of variables
+of the fitted model.
+If <code>attr = TRUE</code>, this matrix has an attribute “type” specifying how this
+variance/covariance matrix has been computed.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Berge
+</p>
+
+
+<h3>References</h3>
+
+<p>Ding, Peng, 2021, "The Frisch–Waugh–Lovell theorem for standard errors." Statistics &amp; Probability Letters 168.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>You can also compute VCOVs with the following functions: <code>vcov_cluster</code>,
+<code>vcov_hac</code>, <code>vcov_conley</code>.
+</p>
+<p>See also the main estimation functions <code>femlm</code>, <code>feols</code> or <code>feglm</code>.
+<code>summary.fixest</code>, <code>confint.fixest</code>, <code>resid.fixest</code>, <code>predict.fixest</code>, <code>fixef.fixest</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load panel data
+data(base_did)
+
+# Simple estimation on a panel
+est = feols(y ~ x1, base_did)
+
+# ======== #
+# IID VCOV #
+# ======== #
+
+# By default the VCOV assumes iid errors:
+se(vcov(est))
+
+# You can make the call for an iid VCOV explicitly:
+se(vcov(est, "iid"))
+
+#
+# Heteroskedasticity-robust VCOV
+#
+
+# By default the VCOV assumes iid errors:
+se(vcov(est, "hetero"))
+
+# =&gt; note that it also accepts vcov = "White" and vcov = "HC1" as aliases.
+
+# =============== #
+# Clustered VCOVs #
+# =============== #
+
+# To cluster the VCOV, you can use a formula of the form cluster ~ var1 + var2 etc
+# Let's cluster by the panel ID:
+se(vcov(est, cluster ~ id))
+
+# Alternative ways:
+
+# -&gt; cluster is implicitly assumed when a one-sided formula is provided
+se(vcov(est, ~ id))
+
+# -&gt; using the argument cluster instead of vcov
+se(vcov(est, cluster = ~ id))
+
+# For two-/three- way clustering, just add more variables:
+se(vcov(est, ~ id + period))
+
+# -------------------|
+# Implicit deduction |
+# -------------------|
+# When the estimation contains FEs, the dimension on which to cluster
+# is directly inferred from the FEs used in the estimation, so you don't need
+# to explicitly add them.
+
+est_fe = feols(y ~ x1 | id + period, base_did)
+
+# Clustered along "id"
+se(vcov(est_fe, "cluster"))
+
+# Clustered along "id" and "period"
+se(vcov(est_fe, "twoway"))
+
+
+# =========== #
+# Panel VCOVs #
+# =========== #
+
+# ---------------------|
+# Newey West (NW) VCOV |
+# ---------------------|
+# To obtain NW VCOVs, use a formula of the form NW ~ id + period
+se(vcov(est, NW ~ id + period))
+
+# If you want to change the lag:
+se(vcov(est, NW(3) ~ id + period))
+
+# Alternative way:
+
+# -&gt; using the vcov_NW function
+se(vcov(est, vcov_NW(unit = "id", time = "period", lag = 3)))
+
+# -------------------------|
+# Driscoll-Kraay (DK) VCOV |
+# -------------------------|
+# To obtain DK VCOVs, use a formula of the form DK ~ period
+
+se(vcov(est, DK ~ period))
+
+# If you want to change the lag:
+se(vcov(est, DK(3) ~ period))
+
+# Alternative way:
+
+# -&gt; using the vcov_DK function
+se(vcov(est, vcov_DK(time = "period", lag = 3)))
+
+# -------------------|
+# Implicit deduction |
+# -------------------|
+# When the estimation contains a panel identifier, you don't need
+# to re-write them later on
+
+est_panel = feols(y ~ x1, base_did, panel.id = ~id + period)
+
+# Both methods, NM and DK, now work automatically
+se(vcov(est_panel, "NW"))
+se(vcov(est_panel, "DK"))
+
+
+# =================================== #
+# VCOVs robust to spatial correlation #
+# =================================== #
+
+data(quakes)
+est_geo = feols(depth ~ mag, quakes)
+
+# ------------|
+# Conley VCOV |
+# ------------|
+# To obtain a Conley VCOV, use a formula of the form conley(cutoff) ~ lat + lon
+# with lat/lon the latitude/longitude variable names in the data set
+se(vcov(est_geo, conley(100) ~ lat + long))
+
+# Alternative way:
+
+# -&gt; using the vcov_DK function
+se(vcov(est_geo, vcov_conley(lat = "lat", lon = "long", cutoff = 100)))
+
+# -------------------|
+# Implicit deduction |
+# -------------------|
+# By default the latitude and longitude are directly fetched in the data based
+# on pattern matching. So you don't have to specify them.
+# Furhter, an automatic cutoff is deduced by default.
+
+# The following works:
+se(vcov(est_geo, "conley"))
+
+
+# ======================== #
+# Small Sample Corrections #
+# ======================== #
+
+# You can change the way the small sample corrections are done with the argument ssc.
+# The argument ssc must be created by the ssc function
+se(vcov(est, ssc = ssc(adj = FALSE)))
+
+# You can add directly the call to ssc in the vcov formula.
+# You need to add it like a variable:
+se(vcov(est, iid ~ ssc(adj = FALSE)))
+se(vcov(est, DK ~ period + ssc(adj = FALSE)))
+
+
+
+</code></pre>
+
+
+</div>

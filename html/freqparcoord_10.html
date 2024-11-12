@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regdiag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Diagnosing regression model fit using parallel coordinates.
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs parametric regression model fit diagnostics, based on
+freqparcoord.  One axis is the "divergences," the differences
+beween the parametric and nonparametric estimates of the population
+regression function, while the other axes are the predictor variables.
+Note that the divergences are NOT the parametric model residuals, e.g.
+differences between fitted model values and response ("Y") values.  
+</p>
+<p>The question addressed is, "In what regions of predictor space is the
+parametric fit poorer?"  To answer that, the divergences are
+grouped into upper and lower tails; e.g. if <code>tail</code> is set to 0.10,
+we find the data points that have divergences in the lower and upper
+10%, then plot both groups, as well as the middle.
+</p>
+<p>The parallel coordinates plot then can be used to identify regions in
+which the parametric model tends to either under- or overpredict the
+response, thus indicating possible addition of interaction or
+polynomial terms.
+</p>
+<p>Furthermore, in the case for <code>regdiag</code> in which an <code>lm</code> object
+is input, the adjusted R-squared value for the parametric model and the
+R-squared value from the nonparametric fit are computed.  If the
+nonparametric value is substantially larger than the parametric one,
+this is an indication of some deficiency in the parametric model, thus
+providing some quantitative information on whether inclusion of 
+interaction and/or polynomial terms may be useful. 
+</p>
+<p>The term <em>regression</em> is used in the sense of condtional mean
+response given the predictors.  Thus parametric classification models
+such as the logistic may also be used, with the regression function
+being the condtional probability of response = 1, given the predictors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regdiag(regout, tail=0.10, k=NULL, m=5,
+      checkna = TRUE, cls = NULL, nchunks = length(cls))
+regdiagbas(preds, resp, parest, tail=0.10, k=NULL, m=5,
+      checkna = TRUE, cls = NULL, nchunks = length(cls))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>regout</code></td>
+<td>
+<p>Output of <code>lm</code> or <code>glm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preds</code></td>
+<td>
+<p>Matrix of predictor values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resp</code></td>
+<td>
+<p>Vector of response values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parest</code></td>
+<td>
+<p>Parametric model estimates of the population
+regression function at the predictor data points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tail</code></td>
+<td>
+<p>Proportion of most negative and most positive divergences
+to use in grouping.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>See freqparcoord.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>See freqparcoord.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkna</code></td>
+<td>
+<p>See freqparcoord.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cls</code></td>
+<td>
+<p>See freqparcoord.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nchunks</code></td>
+<td>
+<p>See freqparcoord.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+ 
+<p>The population regression function (including the case of a probability
+function in a classification problem) is estimated nonparametrically at the
+observation points, using knnreg.
+</p>
+<p>The nonparametric estimates are subtracted from the parametric ones,
+yielding the divergences.  A frequency-parallel coordinates plot is
+displayed as described above. 
+</p>
+<p>The R-squared values are available in the situation noted earlier.  The
+nonparametric R-squared value is calculated as the squared correlation
+between estimated regression value and the response value.
+</p>
+<p>It is possible that in one of the tail groups the response value is
+constant, in which case an error message appears.  If so, try a larger
+value of <code>tail</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of type "gg" (a <span class="pkg">ggplot2</span> object, displays when printed), 
+with new components added:
+</p>
+
+<ul>
+<li>
+<p>The nonparametric regression estimates, in <code>nonparest</code>.
+</p>
+</li>
+<li>
+<p>In the case of a linear model specified via <code>regout</code>, the
+adjusted R-squared value for the parametric model, in <code>paramr2</code>,
+and <code>nonparamr2</code>, the R-squared value from the nonparametric 
+fit.  The latter is the squared correlation between predicted and 
+actual response values 
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Norm Matloff &lt;matloff@cs.ucdavis.edu&gt; and Yingkang Xie
+&lt;yingkang.xie@gmail.com&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(mlb)
+
+lmout &lt;- lm(mlb$Weight ~ mlb$Height + mlb$Age)
+p &lt;- regdiag(lmout,0.10,k=50,m=25)
+p
+# taller, older players are overpredicted, with shorter, younger players
+# underpredicted; suggests that adding quadratic terms for Height, Age
+# may help in the tails
+# let's compare the R-squared values
+p$paramr2 
+p$nonparamr2 
+# not much difference (param. model a bit better), possibly due to 
+# small sample size 
+
+# doing it "the long way" (showing use without an lm/glm object)
+parest &lt;- lmout$fitted.values
+regdiagbas(mlb[c("Height","Age")], mlb$Weight,parest,0.10,k=50,m=25)
+
+data(prgeng)
+pg &lt;- prgeng
+pg1 &lt;- pg[pg$wageinc &gt;= 40000 &amp; pg$wkswrkd &gt;= 48,]
+l1 &lt;- lm(wageinc ~ age+educ+sex,data=pg1)
+p &lt;- regdiag(l1)
+p
+p$paramr2
+p$nonparamr2
+# young men's wages underpredicted, older women overpredicted; both
+# R-squared values low, but nonpar is about 27% higher, indicating room
+# for improvement; interaction and polynomial terms may help
+
+## Not run: 
+data(newadult)
+g1 &lt;- glm(gt50 ~ edu + age + gender + mar, data=newadult, family=binomial)
+regdiag(g1)
+# parametric model underpredicts older highly-educated married men,
+# and overpredicts young female lesser-educated singles; might try adding 
+# interaction terms 
+
+## End(Not run)
+</code></pre>
+
+
+</div>

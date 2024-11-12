@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fatreturns</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simple and Elaborated Prices to Returns</h2>
+
+<h3>Description</h3>
+
+<p><code>fatreturns</code> is an elaborated function to compute prices to returns. 
+It includes a pre-treatment for negative prices. 
+It computes either log-returns (default) or percentage-returns. 
+It handles properly NA values in the input vector, replacing them by 0
+in the output vector. Doing so, it warrants that the sum of the log-returns 
+(when selected) is equal to the difference of the log-prices. 
+It works with vector, matrix, data.frame, timeSeries, xts, zoo, list, list of lists 
+and even list of vector, data.frame, timeSeries, xts, zoo mixed together.
+The returned object is of same dimension and same class than the input object 
+with the first line filled with 0.
+The results may be as per one, per cent (default), per thousand and per ten thousand. 
+</p>
+<p><code>logreturns</code> is an improved version of function <code>100*diff(log(x))</code> to handle 
+vector, matrix, data.frame and list. It handles properly the first line and the NA values. 
+It does not control time, rownames and colnames but may return them.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fatreturns(x, log = TRUE, per = "cent", e = NULL, dfrcol = 1,
+  na.rm = TRUE)
+
+logreturns(x)
+
+replaceNA(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The prices (vector, data.frame, matrix, timeSeries, xts, zoo, list).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>boolean. log returns or percentage returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>per</code></td>
+<td>
+<p>character. Either "one", "cent, "thousand", "tenthousand" or 
+"o", "c", "th", "te". Multiply the result by 1, 100, 1000, 10000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e</code></td>
+<td>
+<p>NULL or positive numeric. NULL is for no change <code>f(x)=x</code>. 
+A positive numeric designates the focal point of the hyperbola 
+to turn negative prices into positive prices, keeping the hierarchy:  
+<code>f(x)=(x+sqrt(x*x+e*e))/2</code>. There is currently no rules of thumb 
+for the optimal value of <code>e</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfrcol</code></td>
+<td>
+<p>integer. For data.frame only, designates the column that handles the time 
+and must be processed separately. Use <code>dfrcol = 0</code> if all columns 
+must be processed and there is no time (or turn the data.frame to a matrix).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>boolean. Replace <code>x[t]=NA</code> with the previous non-NA value available 
+in the price serie such that <code>(x[t-1], x[t]=x[t-1], x[t+1])</code> and 
+calculate the returns accordingly. Force 0 in the first line of the returns 
+if <code>x[1]=NA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Negative prices in financial markets, like interest rates in Europe, are a 
+nightmare as the rough calculation of the returns generates non-sense values.
+<code>elevate</code> uses an hyperbola and implements the following formula: 
+</p>
+<p style="text-align: center;"><code class="reqn"> elevate(x, e) = (x + sqrt(x*x + e*e)) / 2 </code>
+</p>
+
+<p>There is currently no rule of thumb to calculate <code>e</code>. 
+When <code class="reqn">e = NULL</code>, there is no change and the output is identical to the input.
+When <code class="reqn">e = 0</code>, all negative values are turned to 0.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+fatreturns(extractData())
+logreturns(getDSdata())
+
+</code></pre>
+
+
+</div>

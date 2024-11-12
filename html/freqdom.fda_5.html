@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fts.dpca.filters</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional dynamic PCA filters</h2>
+
+<h3>Description</h3>
+
+<p>From a given spectral density operator the dynamic principal component filter sequences are computed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fts.dpca.filters(F, Ndpc = F$basisX$nbasis, q = 30)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>spectral density operator, provided as an object of class <code>fts.freqdom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ndpc</code></td>
+<td>
+<p>an integer <code class="reqn">\in\{1,\ldots, d\}</code> with <code class="reqn">d=</code><code>F$basisX$nbasis</code>. It is the number of dynamic principal components to be computed. By default it is set equal to <code class="reqn">d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>a non-negative integer. DPCA filter coefficients at lags <code class="reqn">|h|\leq</code> q will be computed. By default <code>q=30</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Dynamic principal components are linear filters <code class="reqn">(\phi_{\ell k}(u)\colon k\in \mathbf{Z})</code>, <code class="reqn">1\leq\ell\leq d</code>.
+They are defined as the Fourier coefficients of the dynamic eigenvector <code class="reqn">\varphi_\ell(\omega)(u)</code> of a spectral density
+kernel <code class="reqn">f_\omega(u,v)</code>, i.e. <code class="reqn">\int_0^1 f_\omega(u,v)\varphi_\ell(\omega)(v)dv=\lambda_\ell(\omega)\varphi_\ell(\omega)(u)</code>
+and
+</p>
+<p style="text-align: center;"><code class="reqn">
+  \phi_{\ell k}(u):=\frac{1}{2\pi}\int_{-\pi}^\pi \varphi_\ell(\omega)(u) \exp(-ik\omega) d\omega.
+</code>
+</p>
+
+<p>The index <code class="reqn">\ell</code> is referring to the <code class="reqn">\ell</code>-th largest dynamic eigenvalue <code class="reqn">\lambda_\ell(\omega)</code>. For a given spectral
+density operator (provided as on object of class <code>fts.freqdom</code>) the function <code>fts.dpca.filters</code> computes
+<code class="reqn">\phi_{\ell k}(u)</code> for <code class="reqn">|k|\leq</code> q. Filters will be computed for <code class="reqn">1\leq \ell\leq \code{Ndpc}</code>.
+</p>
+<p>For more details we refer to  Hormann et al. (2015).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>fts.timedom</code>.  The list has the following components:
+</p>
+
+<ul>
+<li> <p><code>operators</code> <code class="reqn">\quad</code> an array. Each matrix in this array has dimension <code class="reqn">\code{Ndpc}\times d</code> and is assigned to a certain lag.
+For a given lag <code class="reqn">k</code>, the rows of the matrix correspond to the coefficient vector of the filter functions.
+</p>
+</li>
+<li> <p><code>lags</code> <code class="reqn">\quad</code> a vector with the lags of the filter coefficients.
+</p>
+</li>
+<li> <p><code>basisX</code> <code class="reqn">\quad</code> <code>F$basis</code>, hence an object of class <code>basis.fd</code> (see <code>create.basis</code>).
+</p>
+</li>
+<li> <p><code>correspondence</code> <code class="reqn">\quad</code> the correspondence matrix: all scalar products between basis functions.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Hormann, S., Kidzinski, L., and Hallin, M.
+<em>Dynamic functional principal components.</em> Journal of the Royal
+Statistical Society: Series B (Statistical Methodology) 77.2 (2015): 319-348.
+</p>
+<p>Brillinger, D.
+<em>Time Series</em> (2001), SIAM, San Francisco.
+</p>
+<p>Shumway, R.H., and Stoffer, D.S.
+<em>Time Series Analysis and Its Applications</em> (2006), Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The multivariate equivalent in the <code>freqdom</code> package: <code>dpca.filters</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(pm10)
+X = center.fd(pm10)
+
+# Compute the spectral density operator with Bartlett weights
+SD = fts.spectral.density(X, freq = (-50:50/50) * pi, q = 2, weight="Bartlett")
+filters = fts.dpca.filters(SD, 2, q = 10)
+
+# Plot filters 1 and 2
+fts.plot.filters(filters, 2, one.plot = TRUE)
+
+# Recompute with a different estimate of the spectral density (largerg q)
+SD = fts.spectral.density(X, freq = (-50:50/50) * pi, q = 5, weight="Bartlett")
+filters = fts.dpca.filters(SD, 2, q = 10)
+
+# Plot filters 1 and 2
+fts.plot.filters(filters, 2, one.plot = TRUE)
+</code></pre>
+
+
+</div>

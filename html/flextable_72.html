@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compose</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Define displayed values and mixed content</h2>
+
+<h3>Description</h3>
+
+<p>Modify flextable displayed values with eventually
+mixed content paragraphs.
+</p>
+<p>Function is handling complex formatting as image insertion with
+<code>as_image()</code>, superscript with <code>as_sup()</code>, formated
+text with <code>as_chunk()</code> and several other <em>chunk</em> functions.
+</p>
+<p>Function <code>mk_par</code> is another name for <code>compose</code> as
+there is an unwanted <strong>conflict with package 'purrr'</strong>.
+</p>
+<p>If you only need to add some content at the end
+or the beginning of paragraphs and keep existing
+content as it is, functions <code>append_chunks()</code> and
+<code>prepend_chunks()</code> should be prefered.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compose(x, i = NULL, j = NULL, value, part = "body", use_dot = FALSE)
+
+mk_par(x, i = NULL, j = NULL, value, part = "body", use_dot = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a flextable object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>rows selection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>column selection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>a call to function <code>as_paragraph()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>part</code></td>
+<td>
+<p>partname of the table (one of 'all', 'body', 'header', 'footer')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_dot</code></td>
+<td>
+<p>by default <code>use_dot=FALSE</code>; if <code>use_dot=TRUE</code>,
+<code>value</code> is evaluated within a data.frame augmented of a column named <code>.</code>
+containing the <code>j</code>th column.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>fp_text_default()</code>, <code>as_chunk()</code>, <code>as_b()</code>, <code>as_word_field()</code>, <code>labelizor()</code>
+</p>
+<p>Other functions for mixed content paragraphs: 
+<code>append_chunks()</code>,
+<code>as_paragraph()</code>,
+<code>prepend_chunks()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">ft_1 &lt;- flextable(head(cars, n = 5), col_keys = c("speed", "dist", "comment"))
+ft_1 &lt;- mk_par(
+  x = ft_1, j = "comment",
+  i = ~ dist &gt; 9,
+  value = as_paragraph(
+    colorize(as_i("speed: "), color = "gray"),
+    as_sup(sprintf("%.0f", speed))
+  )
+)
+ft_1 &lt;- set_table_properties(ft_1, layout = "autofit")
+ft_1
+
+# using `use_dot = TRUE` ----
+set.seed(8)
+dat &lt;- iris[sample.int(n = 150, size = 10), ]
+dat &lt;- dat[order(dat$Species), ]
+
+
+ft_2 &lt;- flextable(dat)
+ft_2 &lt;- mk_par(ft_2,
+  j = ~ . - Species,
+  value = as_paragraph(
+    minibar(.,
+      barcol = "white",
+      height = .1
+    )
+  ), use_dot = TRUE
+)
+ft_2 &lt;- theme_vader(ft_2)
+ft_2 &lt;- autofit(ft_2)
+ft_2
+</code></pre>
+
+
+</div>

@@ -1,0 +1,342 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>applyFolds</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-Validation and Bootstrapping over Curves</h2>
+
+<h3>Description</h3>
+
+<p>Cross-validation and bootstrapping over curves to compute the empirical risk for 
+hyper-parameter selection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">applyFolds(
+  object,
+  folds = cv(rep(1, length(unique(object$id))), type = "bootstrap"),
+  grid = 1:mstop(object),
+  fun = NULL,
+  riskFun = NULL,
+  numInt = object$numInt,
+  papply = mclapply,
+  mc.preschedule = FALSE,
+  showProgress = TRUE,
+  compress = FALSE,
+  ...
+)
+
+## S3 method for class 'FDboost'
+cvrisk(
+  object,
+  folds = cvLong(id = object$id, weights = model.weights(object)),
+  grid = 1:mstop(object),
+  papply = mclapply,
+  fun = NULL,
+  mc.preschedule = FALSE,
+  ...
+)
+
+cvLong(
+  id,
+  weights = rep(1, l = length(id)),
+  type = c("bootstrap", "kfold", "subsampling", "curves"),
+  B = ifelse(type == "kfold", 10, 25),
+  prob = 0.5,
+  strata = NULL
+)
+
+cvMa(
+  ydim,
+  weights = rep(1, l = ydim[1] * ydim[2]),
+  type = c("bootstrap", "kfold", "subsampling", "curves"),
+  B = ifelse(type == "kfold", 10, 25),
+  prob = 0.5,
+  strata = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>fitted FDboost-object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>a weight matrix with number of rows equal to the number of observed trajectories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>the grid over which the optimal number of boosting iterations (mstop) is searched.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>if <code>fun</code> is <code>NULL</code>, the out-of-bag risk is returned. 
+<code>fun</code>, as a function of <code>object</code>, 
+may extract any other characteristic of the cross-validated models. These are returned as is.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>riskFun</code></td>
+<td>
+<p>only exists in <code>applyFolds</code>; allows to compute other risk functions than the risk 
+of the family that was specified in object. 
+Must be specified as function of arguments <code>(y, f, w = 1)</code>, where <code>y</code> is the 
+observed response, <code>f</code> is the prediction from the model and <code>w</code> is the weight. 
+The risk function must return a scalar numeric value for vector valued input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numInt</code></td>
+<td>
+<p>only exists in <code>applyFolds</code>; the scheme for numerical integration, 
+see <code>numInt</code> in <code>FDboost</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>papply</code></td>
+<td>
+<p>(parallel) apply function, defaults to <code>mclapply</code> from 
+R package <code>parallel</code>, see <code>cvrisk</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.preschedule</code></td>
+<td>
+<p>Defaults to <code>FALSE</code>. Preschedule tasks if they are parallelized using <code>mclapply</code>.
+For details see <code>mclapply</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showProgress</code></td>
+<td>
+<p>logical, defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>logical, defaults to <code>FALSE</code>. Only used to force a meaningful
+behaviour of <code>applyFolds</code> with hmatrix objects when using nested resampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to the (parallel) apply function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>the id-vector as integers 1, 2, ... specifying which observations belong to the same curve, 
+deprecated in <code>cvMa()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>a numeric vector of (integration) weights, defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character argument for specifying the cross-validation 
+method. Currently (stratified) bootstrap, k-fold cross-validation, subsampling and 
+leaving-one-curve-out cross validation (i.e. jack knife on curves) are implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of folds, per default 25 for <code>bootstrap</code> and
+<code>subsampling</code> and 10 for <code>kfold</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob</code></td>
+<td>
+<p>percentage of observations to be included in the learning samples 
+for subsampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>a factor of the same length as <code>weights</code> for stratification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ydim</code></td>
+<td>
+<p>dimensions of response-matrix</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The number of boosting iterations is an important hyper-parameter of boosting.   
+It be chosen using the functions <code>applyFolds</code> or <code>cvrisk.FDboost</code>. Those functions 
+compute honest, i.e., out-of-bag, estimates of the empirical risk for different 
+numbers of boosting iterations. 
+The weights (zero weights correspond to test cases) are defined via the folds matrix, 
+see <code>cvrisk</code> in package mboost. 
+</p>
+<p>In case of functional response, we recommend to use <code>applyFolds</code>. 
+It recomputes the model in each fold using <code>FDboost</code>. Thus, all parameters are recomputed, 
+including the smooth offset (if present) and the identifiability constraints (if present, only 
+relevant for <code>bolsc</code>, <code>brandomc</code> and <code>bbsc</code>).  
+Note, that the function <code>applyFolds</code> expects folds that give weights
+per curve without considering integration weights.  
+</p>
+<p>The function <code>cvrisk.FDboost</code> is a wrapper for <code>cvrisk</code> in package mboost. 
+It overrides the default for the folds, so that the folds are sampled on the level of curves 
+(not on the level of single observations, which does not make sense for functional response).  
+Note that the smooth offset and the computation of the identifiability constraints
+are not part of the refitting if <code>cvrisk</code> is used. 
+Per default the integration weights of the model fit are used to compute the prediction errors 
+(as the integration weights are part of the default folds). 
+Note that in <code>cvrisk</code> the weights are rescaled to sum up to one. 
+</p>
+<p>The functions <code>cvMa</code> and <code>cvLong</code> can be used to build an appropriate 
+weight matrix for functional response to be used with <code>cvrisk</code> as sampling 
+is done on the level of curves. The probability for each 
+curve to enter a fold is equal over all curves.     
+The function <code>cvMa</code> takes the dimensions of the response matrix as input argument and thus
+can only be used for regularly observed response. 
+The function <code>cvLong</code> takes the id variable and the weights as arguments and thus can be used
+for responses in long format that are potentially observed irregularly. 
+</p>
+<p>If <code>strata</code> is defined 
+sampling is performed in each stratum separately thus preserving 
+the distribution of the <code>strata</code> variable in each fold.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>cvMa</code> and <code>cvLong</code> return a matrix of sampling weights to be used in <code>cvrisk</code>. 
+</p>
+<p>The functions <code>applyFolds</code> and <code>cvrisk.FDboost</code> return a <code>cvrisk</code>-object, 
+which is a matrix of the computed out-of-bag risk. The matrix has the folds in rows and the 
+number of boosting iteratins in columns. Furhtermore, the matrix has attributes including: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>risk</code></td>
+<td>
+<p>name of the applied risk function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>model call of the model object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mstop</code></td>
+<td>
+<p>gird of stopping iterations that is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>name for the type of folds</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Use argument <code>mc.cores = 1L</code> to set the numbers of cores that is used in 
+parallel computation. On Windows only 1 core is possible, <code>mc.cores = 1</code>, which is the default.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cvrisk</code> to perform cross-validation with scalar response.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">Ytest &lt;- matrix(rnorm(15), ncol = 3) # 5 trajectories, each with 3 observations 
+Ylong &lt;- as.vector(Ytest)
+## 4-folds for bootstrap for the response in long format without integration weights
+cvMa(ydim = c(5,3), type = "bootstrap", B = 4)  
+cvLong(id = rep(1:5, times = 3), type = "bootstrap", B = 4)
+
+if(require(fda)){
+ ## load the data
+ data("CanadianWeather", package = "fda")
+ 
+ ## use data on a daily basis 
+ canada &lt;- with(CanadianWeather, 
+                list(temp = t(dailyAv[ , , "Temperature.C"]),
+                     l10precip = t(dailyAv[ , , "log10precip"]),
+                     l10precip_mean = log(colMeans(dailyAv[ , , "Precipitation.mm"]), base = 10),
+                     lat = coordinates[ , "N.latitude"],
+                     lon = coordinates[ , "W.longitude"],
+                     region = factor(region),
+                     place = factor(place),
+                     day = 1:365,  ## corresponds to t: evaluation points of the fun. response 
+                     day_s = 1:365))  ## corresponds to s: evaluation points of the fun. covariate
+ 
+## center temperature curves per day 
+canada$tempRaw &lt;- canada$temp
+canada$temp &lt;- scale(canada$temp, scale = FALSE) 
+rownames(canada$temp) &lt;- NULL ## delete row-names 
+  
+## fit the model  
+mod &lt;- FDboost(l10precip ~ 1 + bolsc(region, df = 4) + 
+                 bsignal(temp, s = day_s, cyclic = TRUE, boundary.knots = c(0.5, 365.5)), 
+               timeformula = ~ bbs(day, cyclic = TRUE, boundary.knots = c(0.5, 365.5)), 
+               data = canada)
+mod &lt;- mod[75]
+
+
+  #### create folds for 3-fold bootstrap: one weight for each curve
+  set.seed(123)
+  folds_bs &lt;- cv(weights = rep(1, mod$ydim[1]), type = "bootstrap", B = 3)
+
+  ## compute out-of-bag risk on the 3 folds for 1 to 75 boosting iterations  
+  cvr &lt;- applyFolds(mod, folds = folds_bs, grid = 1:75)
+
+  ## weights per observation point  
+  folds_bs_long &lt;- folds_bs[rep(1:nrow(folds_bs), times = mod$ydim[2]), ]
+  attr(folds_bs_long, "type") &lt;- "3-fold bootstrap"
+  ## compute out-of-bag risk on the 3 folds for 1 to 75 boosting iterations  
+  cvr3 &lt;- cvrisk(mod, folds = folds_bs_long, grid = 1:75)
+
+
+
+  ## plot the out-of-bag risk
+  oldpar &lt;- par(mfrow = c(1,3))
+  plot(cvr); legend("topright", lty=2, paste(mstop(cvr)))
+  plot(cvr3); legend("topright", lty=2, paste(mstop(cvr3)))
+  par(oldpar)
+
+
+}
+
+</code></pre>
+
+
+</div>

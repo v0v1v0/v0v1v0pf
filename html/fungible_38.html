@@ -1,0 +1,473 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>faMB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiple Battery Factor Analysis by Maximum Likelihood Methods</h2>
+
+<h3>Description</h3>
+
+<p><code>faMB</code> estimates multiple battery factor analysis using maximum 
+likelihood estimation procedures described by Browne (1979, 1980). Unrotated
+multiple battery solutions are rotated (using the <span class="pkg">GPArotation</span> package) 
+from a user-specified number of of random (orthogonal) starting configurations. 
+Based on procedures analogous to those in the <code>faMain</code> function,
+rotation complexity values of all solutions are ordered to determine
+the number of local solutions and the "global" minimum solution (i.e., the 
+minimized rotation complexity value from the finite number of solutions).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">faMB(
+  X = NULL,
+  R = NULL,
+  n = NULL,
+  NB = NULL,
+  NVB = NULL,
+  numFactors = NULL,
+  epsilon = 1e-06,
+  rotate = "oblimin",
+  rotateControl = NULL,
+  PrintLevel = 0,
+  Seed = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>(Matrix) A raw data matrix (or data frame) structured in a subject 
+(row) by variable (column) format. Defaults to <code>X = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>(Matrix) A correlation matrix. Defaults to <code>R = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>(Numeric) Sample size associated with either the raw data (X) or 
+the correlation matrix (R). Defaults to <code>n = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NB</code></td>
+<td>
+<p>(Numeric) The number of batteries to analyze. In interbattery factor analysis NB = 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NVB</code></td>
+<td>
+<p>(Vector) The number of variables in each battery. For example, 
+analyzing three batteries including seven, four, and five variables 
+(respectively) would be specified as <code>NVB = c(7, 4, 5)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFactors</code></td>
+<td>
+<p>(Numeric) The number of factors to extract for subsequent 
+rotation. Defaults to <code>numFactors = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>(Numeric) The convergence threshold for the Gauss-Seidel iterator
+when analyzing three or more batteries. Defaults to <code>epsilon = 1e-06</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotate</code></td>
+<td>
+<p>(Character) Designate which rotation algorithm to apply. The 
+following are available rotation options: "oblimin", "quartimin", 
+"oblimax", "entropy", "quartimax", "varimax", "simplimax", 
+"bentlerT", "bentlerQ", "tandemI", "tandemII", "geominT", "geominQ", "cfT", 
+"cfQ", "infomaxT", "infomaxQ", "mccammon", "bifactorT", "bifactorQ", and 
+"none". Defaults to rotate = "oblimin". See <span class="pkg">GPArotation</span> package for more 
+details. Note that rotations ending in "T" and "Q" represent orthogonal and 
+oblique rotations, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotateControl</code></td>
+<td>
+<p>(List) A list of control values to pass to the factor rotation algorithms.
+</p>
+
+<ul>
+<li> <p><strong>numberStarts</strong>: (Numeric) The number of random (orthogonal) 
+starting configurations for the chosen rotation method (e.g., oblimin). The first
+rotation will always commence from the unrotated factors orientation.
+Defaults to numberStarts = 10. 
+</p>
+</li>
+<li> <p><strong>gamma</strong>: (Numeric) This is a tuning parameter (between 0 
+and 1, inclusive) for an oblimin rotation.  See the <span class="pkg">GPArotation</span> 
+library's oblimin documentation for more details. Defaults to gamma = 0 
+(i.e., a quartimin rotation).
+</p>
+</li>
+<li> <p><strong>delta</strong>: (Numeric) This is a tuning parameter for the geomin
+rotation. It adds a small number (default = .01) to the squared factor 
+loadings before computing the geometric means in the discrepancy function.
+</p>
+</li>
+<li> <p><strong>kappa</strong>: (Numeric) The main parameterization of the 
+Crawford-Ferguson (CF) rotations (i.e., "cfT" and "cfQ" for orthogonal and 
+oblique CF rotation, respectively). Defaults to kappa = 0. 
+</p>
+</li>
+<li> <p><strong>k</strong>: (Numeric) A specific parameter of the simplimax rotation. 
+Defaults to k = the number of observed variables.
+</p>
+</li>
+<li> <p><strong>standardize</strong>: (Character) The standardization routine used 
+on the unrotated factor structure. The three options are "none", "Kaiser", 
+and "CM". Defaults to standardize = "none". 
+</p>
+
+<ul>
+<li> <p><strong>"none"</strong>: No standardization is applied to the unrotated 
+factor structure. 
+</p>
+</li>
+<li> <p><strong>"Kaiser"</strong>: Use a factor structure matrix that has been 
+normed by Kaiser's method (i.e., normalize all rows to have a unit length).
+</p>
+</li>
+<li> <p><strong>"CM"</strong>: Use a factor structure matrix that has been normed
+by the Cureton-Mulaik method.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>epsilon</strong>: (Numeric) The rotational convergence criterion to 
+use. Defaults to epsilon = 1e-5.
+</p>
+</li>
+<li> <p><strong>power</strong>: (Numeric) Raise factor loadings the the n-th power 
+in the <code>promaxQ</code> rotation. Defaults to power = 4.
+</p>
+</li>
+<li> <p><strong>maxItr</strong>: (Numeric) The maximum number of iterations for the 
+rotation algorithm. Defaults to maxItr = 15000.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PrintLevel</code></td>
+<td>
+<p>(Numeric) When a value greater than zero is specified, 
+<code>PrintLevel</code> prints the maximum change in communality estimates 
+for each iteration of the Gauss-Seidel function. Note that Gauss-Seidel 
+iteration is only called when three or more 
+batteries are analyzed. Defaults to <code>PrintLevel = 0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Seed</code></td>
+<td>
+<p>(Integer) Starting seed for the random number generator. 
+Defaults to <code>Seed = 1</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>faMB</code> function will produce abundant output in addition
+to the rotated multiple battery factor pattern and factor correlation matrices. 
+</p>
+
+<ul>
+<li> <p><strong>loadings</strong>: (Matrix) The (possibly) rotated multiple battery factor solution with the 
+lowest evaluated complexity value <em>of the examined random starting configurations</em>. 
+It is not guaranteed to find the "true" global minimum. Note that multiple
+(or even all) local solutions can have the same discrepancy functions.
+</p>
+</li>
+<li> <p><strong>Phi</strong>: (Matrix) The factor correlations of the rotated factor 
+solution with the lowest evaluated discrepancy function (see Details).
+</p>
+</li>
+<li> <p><strong>fit</strong>: (Vector) A vector containing the following fit statistics:
+</p>
+
+<ul>
+<li> <p><strong>ChiSq</strong>: Chi-square goodness of fit value. 
+Note that, as recommended by Browne (1979), we apply Lawley's (1959) correction when computing the chi-square value when <code>NB = 2</code>.
+</p>
+</li>
+<li> <p><strong>DF</strong>: Degrees of freedom for the estimated model. 
+</p>
+</li>
+<li> <p><strong>pvalue</strong>: P-value associated with the above chi-square statistic.
+</p>
+</li>
+<li> <p><strong>AIC</strong>: Akaike's Information Criterion where a lower value indicates better fit. 
+</p>
+</li>
+<li> <p><strong>BIC</strong>: Bayesian Information Criterion where a lower value indicates better fit. 
+</p>
+</li>
+<li> <p><strong>RMSEA</strong>: Root mean squared error of approximation (Steiger &amp; Lind, 1980).
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>R</strong>: (Matrix) The <em>sample</em> correlation matrix, 
+useful when raw data are supplied. 
+</p>
+</li>
+<li> <p><strong>Rhat</strong>: (Matrix) The <em>reproduced</em> correlation matrix with communalities on the diagonal. 
+</p>
+</li>
+<li> <p><strong>Resid</strong>: (Matrix) A residual matrix (R - Rhat). 
+</p>
+</li>
+<li> <p><strong>facIndeterminacy</strong>: (Vector) A vector (with length equal to the number of factors)
+containing Guttman's (1955) index of factor indeterminacy for each factor. 
+</p>
+</li>
+<li> <p><strong>localSolutions</strong>: (List) A list (of length equal to the 
+<code>numberStarts</code> argument within <code>rotateControl</code>) containing all local solutions 
+in ascending order of their rotation complexity values (i.e., the first solution 
+is the "global" minimum). Each solution returns the following:
+</p>
+
+<ul>
+<li> <p><strong>loadings</strong>: (Matrix) the factor loadings, 
+</p>
+</li>
+<li> <p><strong>Phi</strong>: (Matrix) factor correlations, 
+</p>
+</li>
+<li> <p><strong>RotationComplexityValue</strong>: (Numeric) the complexity value of the rotation algorithm, 
+</p>
+</li>
+<li> <p><strong>facIndeterminacy</strong>: (Vector) A vector of factor indeterminacy indices for each common factor, and 
+</p>
+</li>
+<li> <p><strong>RotationConverged</strong>: (Logical) convergence status of the rotation algorithm. 
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>numLocalSets</strong>: (Numeric) An integer indicating how many sets of local solutions
+with the same discrepancy value were obtained. 
+</p>
+</li>
+<li> <p><strong>localSolutionSets</strong>: (List) A list (of length equal to the 
+<code>numLocalSets</code>) that contains all local solutions with the same 
+rotation complexity value. Note that it is not guarenteed that all 
+solutions with the same complexity values have equivalent factor loading patterns. 
+</p>
+</li>
+<li> <p><strong>rotate</strong>: (Character) The chosen rotation algorithm.
+</p>
+</li>
+<li> <p><strong>rotateControl</strong>: (List) A list of the control parameters 
+passed to the rotation algorithm.
+</p>
+</li>
+<li> <p><strong>unSpunSolution</strong>: (List) A list of output parameters (e.g., loadings, Phi, etc) from 
+the rotated solution that was obtained by rotating directly from the unspun 
+(i.e., not multiplied by a random orthogonal transformation matrix) common 
+factor orientation. 
+</p>
+</li>
+<li> <p><strong>Call</strong>: (call) A copy of the function call.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+
+<ul>
+<li>
+<p> Niels G. Waller (nwaller@umn.edu)
+</p>
+</li>
+<li>
+<p> Casey Giordano (Giord023@umn.edu)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Boruch, R. F., Larkin, J. D., Wolins, L., &amp; MacKinney, A. C. (1970). 
+Alternative methods of analysis: Multitrait-multimethod data. <em>Educational 
+and Psychological Measurement, 30</em>(4), 833–853. 
+https://doi.org/10.1177/0013164470030004055
+</p>
+<p>Browne, M. W.  (1979).  The maximum-likelihood solution in inter-battery factor analysis. 
+<em>British Journal of Mathematical and Statistical Psychology, 32</em>(1), 75-86.
+</p>
+<p>Browne, M. W.  (1980).  Factor analysis of multiple batteries by maximum likelihood.  
+<em>British Journal of Mathematical and Statistical Psychology, 33</em>(2), 184-199.
+</p>
+<p>Browne, M. W. (2001). An overview of analytic rotation in 
+exploratory factor analysis. <em>Multivariate Behavioral Research, 36</em>(1), 111-150.
+</p>
+<p>Browne, M. and Cudeck, R. (1992). Alternative ways of assessing model fit. 
+<em>Sociological Methods and Research, 21(2)</em>, 230-258.
+</p>
+<p>Burnham, K. P. &amp; Anderson, D. R.  (2004).  Multimodel inference: Understanding AIC and BIC in model selection.  
+<em>Sociological methods and research, 33</em>, 261-304.
+</p>
+<p>Cudeck, R. (1982). Methods for estimating between-battery factors,
+<em>Multivariate Behavioral Research, 17</em>(1), 47-68. 10.1207/s15327906mbr1701_3
+</p>
+<p>Cureton, E. E., &amp; Mulaik, S. A. (1975). The weighted varimax 
+rotation and the promax rotation. <em>Psychometrika, 40</em>(2), 183-195.
+</p>
+<p>Guttman, L. (1955). The determinacy of factor score matrices with 
+implications for five other basic problems of common factor theory. 
+<em>British Journal of Statistical Psychology, 8</em>(2), 65-81.
+</p>
+<p>Steiger, J. &amp; Lind, J. (1980). Statistically based tests for the
+number of common factors. In <em>Annual meeting of the Psychometric Society, 
+Iowa City, IA, volume 758</em>.
+</p>
+<p>Tucker, L. R.  (1958).  An inter-battery method of factor analysis.  
+<em>Psychometrika, 23</em>(2), 111-136.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># These examples reproduce published multiple battery analyses. 
+
+# ----EXAMPLE 1: Browne, M. W. (1979)----
+#
+# Data originally reported in:
+# Thurstone, L. L. &amp; Thurstone, T. G. (1941). Factorial studies 
+# of intelligence. Psychometric Monograph (2), Chicago: Univ. 
+# Chicago Press.
+
+## Load Thurstone &amp; Thurstone's data used by Browne (1979)
+data(Thurstone41)
+
+Example1Output &lt;-  faMB(R             = Thurstone41, 
+                        n             = 710,
+                        NB            = 2, 
+                        NVB           = c(4,5), 
+                        numFactors    = 2,
+                        rotate        = "oblimin",
+                        rotateControl = list(standardize = "Kaiser"))
+                        
+summary(Example1Output, PrintLevel = 2)                         
+
+# ----EXAMPLE 2: Browne, M. W. (1980)----
+# Data originally reported in:
+# Jackson, D. N. &amp; Singer, J. E. (1967). Judgments, items and 
+# personality. Journal of Experimental Research in Personality, 20, 70-79.
+
+## Load Jackson and Singer's dataset
+data(Jackson67)
+
+
+
+Example2Output &lt;-  faMB(R             = Jackson67, 
+                        n             = 480,
+                        NB            = 5, 
+                        NVB           = rep(4,5), 
+                        numFactors    = 4,
+                        rotate        = "varimax",
+                        rotateControl = list(standardize = "Kaiser"),
+                        PrintLevel    = 1)
+                        
+summary(Example2Output)                         
+
+
+
+# ----EXAMPLE 3: Cudeck (1982)----
+# Data originally reported by:
+# Malmi, R. A., Underwood, B. J., &amp; Carroll, J. B. (1979).
+# The interrelationships among some associative learning tasks. 
+# Bulletin of the Psychonomic Society, 13(3), 121-123. DOI: 10.3758/BF03335032 
+
+## Load Malmi et al.'s dataset
+data(Malmi79)
+
+Example3Output &lt;- faMB(R             = Malmi79, 
+                       n             = 97,
+                       NB            = 3, 
+                       NVB           = c(3, 3, 6), 
+                       numFactors    = 2,
+                       rotate        = "oblimin",
+                       rotateControl = list(standardize = "Kaiser"))
+                       
+summary(Example3Output)                        
+
+
+
+# ----Example 4: Cudeck (1982)----
+# Data originally reported by: 
+# Boruch, R. F., Larkin, J. D., Wolins, L. and MacKinney, A. C. (1970). 
+#  Alternative methods of analysis: Multitrait-multimethod data. Educational 
+#  and Psychological Measurement, 30,833-853.
+
+## Load Boruch et al.'s dataset
+data(Boruch70)
+
+Example4Output &lt;- faMB(R             = Boruch70,
+                       n             = 111,
+                       NB            = 2,
+                       NVB           = c(7,7),
+                       numFactors    = 2,
+                       rotate        = "oblimin",
+                       rotateControl = list(standardize  = "Kaiser",
+                                            numberStarts = 100))
+                                            
+summary(Example4Output, digits = 3)                                             
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast hierarchical, agglomerative clustering of dissimilarity data</h2>
+
+<h3>Description</h3>
+
+<p>This function implements hierarchical clustering with the same interface as <code>hclust</code> from the <span class="pkg">stats</span> package but with much faster algorithms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hclust(d, method="complete", members=NULL)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>a dissimilarity structure as produced by <code>dist</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the agglomeration method to be used. This must be (an
+unambiguous abbreviation of) one of <code>"single"</code>,
+<code>"complete"</code>, <code>"average"</code>, <code>"mcquitty"</code>,
+<code>"ward.D"</code>, <code>"ward.D2"</code>, <code>"centroid"</code> or <code>"median"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>members</code></td>
+<td>
+<p><code>NULL</code> or a vector with length the number of
+observations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the documentation of the original function
+<code>hclust</code> in the <span class="pkg">stats</span> package.
+</p>
+<p>A comprehensive User's manual
+<a href="https://CRAN.R-project.org/package=fastcluster/vignettes/fastcluster.pdf">fastcluster.pdf</a> is available as a vignette. Get this from the R command line with <code>vignette('fastcluster')</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>'hclust'</code>. It encodes a stepwise dendrogram.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Müllner</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://danifold.net/fastcluster.html">https://danifold.net/fastcluster.html</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>fastcluster</code>, <code>hclust.vector</code>, <code>stats::hclust</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Taken and modified from stats::hclust
+#
+# hclust(...)        # new method
+# stats::hclust(...) # old method
+
+require(fastcluster)
+require(graphics)
+
+hc &lt;- hclust(dist(USArrests), "ave")
+plot(hc)
+plot(hc, hang = -1)
+
+## Do the same with centroid clustering and squared Euclidean distance,
+## cut the tree into ten clusters and reconstruct the upper part of the
+## tree from the cluster centers.
+hc &lt;- hclust(dist(USArrests)^2, "cen")
+memb &lt;- cutree(hc, k = 10)
+cent &lt;- NULL
+for(k in 1:10){
+  cent &lt;- rbind(cent, colMeans(USArrests[memb == k, , drop = FALSE]))
+}
+hc1 &lt;- hclust(dist(cent)^2, method = "cen", members = table(memb))
+opar &lt;- par(mfrow = c(1, 2))
+plot(hc,  labels = FALSE, hang = -1, main = "Original Tree")
+plot(hc1, labels = FALSE, hang = -1, main = "Re-start from 10 clusters")
+par(opar)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>to_flow</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create flow objects</h2>
+
+<h3>Description</h3>
+
+<p>Use a set of shell commands (flow mat) and flow definition to create flow object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">to_flow(x, ...)
+
+is.flow(x)
+
+## S3 method for class 'character'
+to_flow(x, def, grp_col, jobname_col, cmd_col, ...)
+
+## S3 method for class 'flowmat'
+to_flow(
+  x,
+  def,
+  flowname,
+  grp_col,
+  jobname_col,
+  cmd_col,
+  submit = FALSE,
+  execute = FALSE,
+  containerize = TRUE,
+  platform,
+  flow_run_path,
+  qobj,
+  verbose = opts_flow$get("verbose"),
+  ...
+)
+
+## S3 method for class 'data.frame'
+to_flow(x, ...)
+
+## S3 method for class 'list'
+to_flow(
+  x,
+  def,
+  flowname,
+  flow_run_path,
+  desc,
+  qobj,
+  module_cmds = opts_flow$get("module_cmds"),
+  verbose = opts_flow$get("verbose"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>this can either to a filename, a data.frame or a list. 
+In case it is a file name, it should be a tsv file representing a flow_mat. See to_flowmat for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Supplied to specific functions like to_flow.data.frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>def</code></td>
+<td>
+<p>a flow definition. Basically a table with resource requirements and mapping of the jobs in this flow.
+See to_flowdef for details on the format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grp_col</code></td>
+<td>
+<p>name of the grouping column in the supplied flow_mat.
+See to_flow for details. Default value is [samplename].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jobname_col</code></td>
+<td>
+<p>name of the job name column in flow_mat. Default value is [jobname].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cmd_col</code></td>
+<td>
+<p>name of the command column name in flow_mat. Default value is [cmd].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flowname</code></td>
+<td>
+<p>name of the flow, this is used as part of the execution foldername.
+A good simple identifier, which does not support any special characters. 
+Names may use characters (a-z) and numbers (0-9), using underscore (_) as a word separator.
+Default value is  [flowname].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>submit</code></td>
+<td>
+<p>after creating a flow object, should flowr 
+also use submit_flow to perform a dry-run OR real submission.
+See below for details. Default value is [FALSE]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>execute</code></td>
+<td>
+<p>when calling submit_flow, 
+should flowr execute the flow or perform a dry-run. See below for details. Default value is [FALSE].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>containerize</code></td>
+<td>
+<p>if the flowmat has multiple samples, 
+flowr creates a creates a new date-stamped folder, and includes all
+flows in this batch inside it. 
+This is keeps the logs clean, and containerizes each batch.
+To disable this behavior set this to FALSE, default is [TRUE].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>platform</code></td>
+<td>
+<p>a specifying the platform to use, possible values are local, lsf, torque, moab, sge and slurm
+This over-rides the platform column in the flowdef. (optional)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flow_run_path</code></td>
+<td>
+<p>base path to be used for execution of this flow. 
+flowr would create a new time-stamped folder in this base path and 
+use it for logs, scripts etc. 
+The default is retrieved using <code>opts_flow$get("flow_run_path")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qobj</code></td>
+<td>
+<p>Depreciated, modify cluster templates as explained on 
+<a href="http://flow-r.github.io/flowr/install.html#hpcc_support_overview">flow-r.github.io/flowr</a>.
+An object of class queue.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A numeric value indicating the amount of messages to produce.
+Values are integers varying from 0, 1, 2, 3, .... Please refer to the verbose page for more details.
+<code>opts_flow$get("verbose")</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>desc</code></td>
+<td>
+<p>Advanced Use. final flow name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>module_cmds</code></td>
+<td>
+<p>A character vector of additional commands, which will be prepended to each script of the flow. 
+Default is retrieved using <code>opts_flow$get("module_cmds")</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The parameter x can be a path to a flow_mat, or a data.frame (as read by read_sheet).
+This is a minimum three column table with columns: samplename, jobname and cmd.
+See to_flowmat for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a flow object. If execute=TRUE, fobj is rich with information about where and how
+the flow was executed. It would include details like jobids, path to exact scripts run etc.
+To use kill_flow, to kill all the jobs one would need a rich flow object, with job ids present.
+</p>
+<p><strong>Behaviour:</strong>
+What goes in, and what to expect in return?
+</p>
+
+<ul>
+<li>
+<p> submit=FALSE &amp; execute=FALSE: Create and return a flow object
+</p>
+</li>
+<li>
+<p> submit=TRUE &amp; execute=FALSE: dry-run, Create a flow object then, create a structured execution folder with all the commands
+</p>
+</li>
+<li>
+<p> submit=TRUE, execute=TRUE: Do all of the above and then, submit to cluster
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>to_flowmat, to_flowdef, to_flowdet, flowopts and submit_flow
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Use this link for a few elaborate examples:
+## http://flow-r.github.io/flowr/flowr/tutorial.html#define_modules
+
+ex = file.path(system.file(package = "flowr"), "pipelines")
+flowmat = as.flowmat(file.path(ex, "sleep_pipe.tsv"))
+flowdef = as.flowdef(file.path(ex, "sleep_pipe.def"))
+fobj = to_flow(x = flowmat, def = flowdef, flowname = "sleep_pipe", platform = "lsf")
+
+
+## create a vector of shell commands
+cmds = c("sleep 1", "sleep 2")
+## create a named list
+lst = list("sleep" = cmds)
+## create a flowmat
+flowmat = to_flowmat(lst, samplename = "samp")
+
+## Use flowmat to create a skeleton flowdef
+flowdef = to_flowdef(flowmat)
+
+## use both (flowmat and flowdef) to create a flow
+fobj = to_flow(flowmat, flowdef)
+
+## submit the flow to the cluster (execute=TRUE) or do a dry-run (execute=FALSE)
+## Not run: 
+fobj2 = submit_flow(fobj, execute=FALSE)
+fobj3 = submit_flow(fobj, execute=TRUE)
+
+## Get the status or kill all the jobs
+status(fobj3)
+kill(fobj3)
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

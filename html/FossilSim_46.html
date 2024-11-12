@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim.trait.values</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate trait values with variation across lineages</h2>
+
+<h3>Description</h3>
+
+<p>Fossil recovery rates or other parameter values can be simulated for a phylo (<code>tree</code>) or taxonomy (<code>taxonomy</code>) object.
+Under the <code>autocorrelated</code> model, trait values evolve along lineages according to a Brownian motion process, where the strength of the relationship between ancestor and descendant values is determined by the parameter <code class="reqn">\nu</code> (<code>v</code>).
+If <code class="reqn">\nu</code> is small values will be more similar between ancestor and descendants, and if <code class="reqn">\nu</code> is zero all trait values will be equal.
+For a given species <code class="reqn">i</code> with ancestor <code class="reqn">j</code>, a new trait value <code class="reqn">\kappa_i</code> is drawn from a lognormal distribution with
+</p>
+<p style="text-align: center;"><code class="reqn">\kappa_i ~ LN( ln([\kappa_j] - (\sigma^2/2), \sigma)</code>
+</p>
+
+<p>where <code class="reqn">\sigma = \nu * t_i</code> and <code class="reqn">t_i</code> is the lineage duration of the species.
+This fossil recovery model is described in Heath et al. (2014) and is equivalent to the autocorrelated relaxed clock model described in Kishino et al. (2001).
+Under the <code>BM</code> and <code>OU</code> models traits are simulated under a standard Brownian motion or Ornstein-Uhlenbeck process with rate parameter <code class="reqn">\nu</code> (<code>v</code>).
+The OU model has the additional parameter <code>alpha</code>, which determines the strength with which trait values are attracted to the mean. Note the <code>init</code> argument will specify both the value at the root and the mean of the process under the OU model.
+Under the <code>independent</code> model a new trait value is drawn for each species from any valid user-specified distribution (<code>dist</code>).
+<code>change.pr</code> is the probability that a trait value will change at each speciation event.
+If <code>change.pr = 1</code> trait values will be updated at every speciation events.
+Finally, traits can be simulated under the standard Lewis Mk model (<code>Mk</code>), with symmetric rates of change. The rate is specified using <code>v</code> and number of states using <code>k</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim.trait.values(
+  init = 1,
+  tree = NULL,
+  taxonomy = NULL,
+  root.edge = TRUE,
+  model = "autocorrelated",
+  v = 0.01,
+  alpha = 0.1,
+  min.value = -Inf,
+  max.value = Inf,
+  dist = function() {
+     runif(1, 0, 2)
+ },
+  change.pr = 1,
+  k = 2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>Initial value at the origin or root of the phylo or taxonomy object. Default = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>Phylo object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxonomy</code></td>
+<td>
+<p>Taxonomy object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root.edge</code></td>
+<td>
+<p>If TRUE include the root edge. Default = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model used to simulate rate variation across lineages. Options include "autocorrelated" (default), "BM" (Brownian motion), "OU" (Ornstein-Uhlenbeck), "independent" or the Lewis "Mk" model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Brownian motion parameter <code class="reqn">v</code> used in the autocorrelated, BM and OU models. Or rate change under the Mk model. Default = 0.01.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Ornstein-Uhlenbeck parameter <code class="reqn">alpha</code>. Determines the strength with which trait values are pulled back towards the mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.value</code></td>
+<td>
+<p>Min trait value allowed under the BM and OU models. Default = -Inf.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.value</code></td>
+<td>
+<p>Max trait value allowed under the BM and OU models. Default = Inf.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>Distribution of trait values used to draw new values under the "independent" model. This parameter is ignored if <code>model = "autocorrealted"</code>. The default is a uniform distribution with <em>U(0, 2)</em>. The distribution function must return a single value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>change.pr</code></td>
+<td>
+<p>Probability that trait values change at speciation events. Default = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of states used for the Mk model. Default = 2.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector of parameter values.
+Values are output for each species in the order in which they appear in the taxonomy object (if taxonomy was provided) or for each edge in the order in which they appear in the tree object.
+If the tree object has a root edge (<code>root.edge</code>), the first entry in the vector will correspond to this edge.
+</p>
+
+
+<h3>References</h3>
+
+<p>Heath et al. 2014. The fossilized birth-death process for coherent calibration of divergence-time estimates. PNAS 111:E2957-E2966.<br>
+Kishino et al. 2001. Performance of a divergence time estimation method under a probabilistic model of rate evolution MBE 18:352-361.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># simulate tree
+t = ape::rtree(6)
+
+# simulate taxonomy
+s = sim.taxonomy(t, 0.5, 1, 0.5)
+
+# simulate rates under the autocorrelated trait values model
+rate = 2
+rates = sim.trait.values(rate, taxonomy = s, v = 1)
+f = sim.fossils.poisson(rates, taxonomy = s)
+plot(f, t)
+
+# simulate rates under the independent trait values model
+dist = function() { rlnorm(1, log(rate), 1) }
+rates = sim.trait.values(rate, taxonomy = s, model = "independent", dist = dist)
+f = sim.fossils.poisson(rates, taxonomy = s)
+plot(f, t)
+
+# simulate rates under the independent trait values model with infrequent changes
+rates = sim.trait.values(rate, taxonomy = s, model = "independent",
+                        dist = dist, change.pr = 0.1)
+f = sim.fossils.poisson(rates, taxonomy = s)
+plot(f, t)
+
+# simulate traits under Brownian motion and convert into rates
+traits = sim.trait.values(0, taxonomy = s, model = "BM", v = 2)
+# function for translating states into rates
+translate.states = function(traits, low, high) sapply(traits, function(t) if(t &lt; 0) low else high)
+# sampling rates
+low = 0.1
+high = 2
+rates = translate.states(traits, low, high)
+f = sim.fossils.poisson(rates, taxonomy = s)
+plot(f, tree = t)
+
+</code></pre>
+
+
+</div>

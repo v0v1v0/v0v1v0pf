@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLXMRcondlogit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>FlexMix Interface to Conditional Logit Models</h2>
+
+<h3>Description</h3>
+
+<p>Model driver for fitting mixtures of conditional logit models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLXMRcondlogit(formula = . ~ ., strata)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula which is interpreted relative to the formula
+specified in the call to <code>flexmix</code> using
+<code>update.formula</code>. Default is to use the original
+<code>flexmix</code> model
+formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>A formula which is interpreted such that no intercept is
+fitted and which allows to determine the variable indicating which
+observations are from the same stratum.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The M-step is performed using <code>coxph.fit</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>FLXMRcondlogit</code> inheriting from <code>FLXMRglm</code>.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>To ensure identifiability repeated measurements are
+necessary. Sufficient conditions are given in Gruen and Leisch (2008).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bettina Gruen
+</p>
+
+
+<h3>References</h3>
+
+<p>Bettina Gruen and Friedrich Leisch. Identifiability of finite mixtures
+of multinomial logit models with varying and fixed
+effects. <em>Journal of Classification</em>, <b>25</b>, 225–247. 2008.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FLXMRmultinom</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (require("Ecdat")) {
+  data("Catsup", package = "Ecdat")
+  ## To reduce the time needed for the example only a subset is used
+  Catsup &lt;- subset(Catsup, id %in% 1:100)
+  Catsup$experiment &lt;- seq_len(nrow(Catsup))
+  vnames &lt;- c("display", "feature", "price")
+  Catsup_long &lt;-
+    reshape(Catsup,
+            idvar = c("id", "experiment"),
+            times = c(paste("heinz", c(41, 32, 28), sep = ""),
+              "hunts32"),
+            timevar = "brand",
+            varying = matrix(colnames(Catsup)[2:13], nrow = 3, byrow = TRUE),
+            v.names = vnames,
+            direction = "long")
+  Catsup_long$selected &lt;- with(Catsup_long, choice == brand)
+  Catsup_long &lt;- Catsup_long[, c("id", "selected", "experiment", vnames, "brand")]
+  Catsup_long$brand &lt;- relevel(factor(Catsup_long$brand), "hunts32")
+  set.seed(0808)
+  flx1 &lt;- flexmix(selected ~ display + feature + price + brand | id,
+                  model = FLXMRcondlogit(strata = ~ experiment), 
+                  data = Catsup_long, k = 1)
+}
+</code></pre>
+
+
+</div>

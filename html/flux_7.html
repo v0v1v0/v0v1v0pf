@@ -1,0 +1,351 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>budget.reco</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Predict fluxes from GPP and Reco models and prepare for summing them up to budgets.
+</h2>
+
+<h3>Description</h3>
+
+<p>The functions predict fluxes from GPP and <code class="reqn">R_{eco}</code> models and prepare the data for summing them up to budgets including feeding in set.back positions and values (e.g. to truncate the output or to acknowledge the harvesting of biomass) and several adjustments and corrections.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">budget.reco(models, new.data, set.back = NULL, time.unit = "extract", 
+adjust = TRUE, correct = list(thresh = "get", cvrm = TRUE, wndw = 12, 
+intvl = 0.95), return.models = FALSE)
+
+budget.gpp(models, new.data, set.back = NULL, time.unit = "extract", 
+adjust = FALSE, correct = list(thresh = "get", cvrm = TRUE, wndw = 12, 
+intvl = 0.95), PAR.correct = 100, return.models = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+
+<p>List model objects of class <code>"breco"</code> or <code>"bgpp"</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new.data</code></td>
+<td>
+
+<p>Data from a climate station or other logging facility including timestamps. For <code class="reqn">R_{eco}</code>  all temperature variables that have been used to construct the models are needed. For GPP PAR values are needed and the respective column must be named "PAR". The timestamp column (<code>POSIXt</code>) must be named "timestamp".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set.back</code></td>
+<td>
+
+<p>Data.frame with two columns, the first a <code>timestamp</code> and the second either a <code>value</code> of <code class="reqn">R_{eco}</code> or GPP, to which fluxes should be set at the date and time in timestamp. Additionally, the second column can contain a value of <code>-999</code> or <code>-9999</code> for the start or end of the data series during budgeting.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.unit</code></td>
+<td>
+
+<p>By default the time intervals between data points in <code>new.data</code> are extracted from the <code>timestamp</code> vector. However, by setting <code>time.unit</code> you can additionally give a number that represents the interval in seconds. The function uses this information to linearly interpolate values via <code>lips</code> when some are missing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust</code></td>
+<td>
+
+<p>Logical. When <code>TRUE</code>, predicted fluxes are adjusted by fitting a linear model to the relationship of predicted to measured fluxes and extracting the slope. This  slope value is then used to adjust all predicted fluxes by calculating <code>flux</code> / <code>slope</code>. This is applied to the finished time series of fluxes. For <code>budget.reco</code> default is <code>TRUE</code> whereas for <code>budget.gpp</code> default is <code>FALSE</code>. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correct</code></td>
+<td>
+
+<p>This triggers a further correction: Unreasonably high fluxes or spikes are identified and eliminated. This is applied to the finished time series of fluxes. The argument requires a named list with the entries <code>thresh</code>, <code>cvrm</code> (logical), <code>wndw</code>, and <code>intvl</code>. When no correction is wanted set <code>correct</code> = <code>NULL</code>. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PAR.correct</code></td>
+<td>
+
+<p>Numeric representing the value of PAR (e.g. PPFD in micromole per squaremeter per second) below which GPP is assumed to be 0. This is applied to the finished time series of fluxes. All predicted GPP fluxes are corrected to 0 according to this value. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.models</code></td>
+<td>
+
+<p>Logical. Shall models be returned?
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>How does it work?</b> Both functions take a list of model objects (of class <code>"breco"</code> for <code class="reqn">R_{eco}</code> models and of class <code>"bgpp"</code> for GPP) and predict fluxes via <code>predict.nls</code>. The required variables are taken from <code>new.data</code>. Fluxes are predicted for each model either for the whole time interval in <code>new.data</code> or when <code>set.back</code> is given with start and end configuration (values <code>-999</code> and <code>-9999</code>) for the defined time period. If the integration period is defined with <code>set.back</code>, the models that are temporally closest to the start and end times are duplicated and get the respective timestamps. With all models, fluxes are predicted forward from the date and time the models are hooked onto (argument <code>hook</code> in <code>reco.bulk</code> and <code>gpp.bulk</code>) up to the next model's date and time as well as backward down to the previous model's date and time. The resulting two flux vectors for the time period between two consecutive models (one based on the first, the other based on the second model) are linearly interpolated (see below). The same is done for the model errors. Errors are extracted from the model objects and assigned to each interpolated flux from one model to the next and to the previous. Then they are linearly interpolated (see  below).
+</p>
+<p>Further, IDs are assigned to the weighted fluxes to identify the periods between two models. This is needed later for model error propagation. The fluxes in the time series between the first and the second model in the whole list get ID = 1, the fluxes in the time series between the second and the third model in the whole list get ID = 2, and so on.
+</p>
+<p><b>How does interpolation work?</b> Linear interpolation of the two vectors (one based on the first model, the other based on the second model) is achieved by calculating weighted means of the integrated fluxes for each date and time with the weights the distances in time to the corresponding model timestamp. Thus, close to the one model timestamp the weighted mean of the two fluxes is almost entirely determined by that model, in the middle of the time series between two model dates both fluxes contribute equally to the mean and close to the other model timestamp the weighted mean of the two fluxes is almost entirely determined by that other model.
+</p>
+<p><b>Why <code>adjust</code>?</b> It may happen that in sum the various models in a seasonal, annual or even bigger dat set tend to over- or underestimate the measured fluxes. To correct for this, the predicted fluxes can be adjusted as explained above. This typically leads to better overall modelling performance.
+</p>
+<p><b>Why <code>correct</code>?</b> Especially with locally fitted <code class="reqn">R_{eco}</code> models it happens - most often with winter data - that predicted fluxes are much higher than supported by the measurements because of the exponential element in fitting <code class="reqn">R_{eco}</code> models. The model itself is fine but may have been fitted to temperature data spanning a relatively small range. If the temperatures in <code>new.data</code> are much higher (in relative terms), then unreasonable high fluxes may result. Such fluxes are identified and eliminated by <code>correct</code>. 
+</p>
+<p><b>How is <code>correct</code>ed?</b> <code>thresh</code> specifies a maximum predicted flux allowed. When set to "get" (default) it is determined based on the data that were used to construct the models and represents the highest flux ever measured across all campaigns of the series. <code>cvrm</code> (logical) triggers whether further despiking should be done with <code>wndw</code> the width of the moving window in which the coefficient of variation (cv) is calculated and <code>intvl</code> the probability of the <code>quantile</code> against which cv should be tested. All fluxes with corresponding cv &gt; <code>quantile(cv, intvl)</code> are eliminated.
+</p>
+<p><b>Why <code>PAR.correct</code>?</b> Because the function not only predicts with all the provided models using <code>new.data</code> but also interpolates linearly between models, it happens that unreasonable GPP values are predicted reflecting photosynthesis under no or very low light conditions. These are just set to plant physiologically sensible 0. <code>PAR.correct</code>ion is done after inserting <code>set.back</code>(s) for cutting(s).
+</p>
+<p>All data gaps resulting from corrections are then filled with linear interpolation from the values adjacent to the gap via <code>lips</code>.
+</p>
+<p><b>How <code>set.back</code> is used to factor in cut dates or the like:</b>. When further <code>set.back</code> values are given in addition to the definition of the start and end dates, e.g. to acknowledge for biomass removal when predicting GPP fluxes, two things happen. First, the time series of fluxes resulting from all of the above is changed like this: At the date and time of a cut the flux  is set to the value given in <code>set.back</code> and then fluxes are linearly interpolated to the next proper model date by weighted means in the same manner as described above. Second, cut models are defined as linear models and integrated into the model list according to their timestamp. Thus, when run with <code>return.models = TRUE</code>, the updated model list can be used with <code>tbl8</code> to extract the relevant model parameters.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Both functions return a <code>data.frame</code> (called <code>tbl</code>) containing the predicted values, timestamps, etc. and optionally an object of class <code>"breco"</code> or <code>"bgpp"</code> (called <code>models</code>) containing the final models including the start and end models and any <code>set.back</code> models when <code>set.back</code>s were specified.
+</p>
+<p>For <code>budget.reco</code> <code>tbl</code> has 4 columns
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>reco.flux </code></td>
+<td>
+<p> Predicted and interpolated fluxes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reco.se </code></td>
+<td>
+<p> Model errors spawned across predicted and interpolated fluxes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reco.id </code></td>
+<td>
+<p> ID that identifies the model periods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timestamp </code></td>
+<td>
+<p> Timestamps</p>
+</td>
+</tr>
+</table>
+<p>For <code>budget.gpp</code> <code>tbl</code> has 4 columns
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>gpp.flux </code></td>
+<td>
+<p> Predicted and interpolated fluxes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpp.se </code></td>
+<td>
+<p> Model errors spawned across predicted and interpolated fluxes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpp.id </code></td>
+<td>
+<p> ID that identifies the model periods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timestamp </code></td>
+<td>
+<p> Timestamps</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gerald Jurasinski, <a href="mailto:gerald.jurasinski@uni-rostock.de">gerald.jurasinski@uni-rostock.de</a>,
+</p>
+<p>with ideas by Sascha Beetz, <a href="mailto:sascha.beetz@uni-rostock.de">sascha.beetz@uni-rostock.de</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Beetz S, Liebersbach H, Glatzel S, Jurasinski G, Buczko U, Hoper H (2013) Effects of land use intensity on the full greenhouse gas balance in an Atlantic peat bog. Biogeosciences 10:1067-1082
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fluxx</code>, <code>reco</code>, <code>gpp</code>, <code>gpp2</code>, <code>reco.bulk</code>, <code>gpp.bulk</code>, <code>modjust</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### The examples are consecutive and are a suggestion
+### how to run the whole process from bulk modelling
+### over corrections and checks to full budgets including
+### propagated model and interpolation error terms.
+
+## The whole examples section is marked as
+## not run because parts take longer than
+## accepted by CRAN incoming checks.
+## Remove first hash in each line to run them.
+
+## Not run ##
+## load data
+#data(amd)
+#data(amc)
+## set global conversion factor
+## All fluxes are in micromole * m-2 * s-1,
+## thus they are transformed to g CO2-C * m-2 *1/2h
+#uf &lt;- 12*60*30/1000000
+#
+#### Reco ### (for details see reco.bulk)
+## extract opaque (dark) chamber measurements 
+#amr &lt;- amd[amd$kind=="D",]
+## fit reco models
+#r.models &lt;- reco.bulk(flux ~ t.air + t.soil2 + t.soil5 + 
+#t.soil10 + timestamp, amr, amr$campaign, window=3, 
+#remove.outliers=TRUE, method="arr", min.dp=2)
+## adjust models
+#r.models &lt;- modjust(r.models, alpha=0.1, min.dp=3)
+#
+### prepare Reco budget (predict half hourly values for two years)
+## define set.back with start and end dates only
+## (typically you would take this from read in table)
+#set.back &lt;- data.frame(timestamp = c("2010-01-01 00:30", "2011-12-31 23:30"), 
+#value = c(-999, -9999))
+#set.back$timestamp &lt;- strptime(set.back$timestamp, format="%Y-%m-%d %H:%M", tz="GMT")
+## run budget function with defaults
+#r.bdgt &lt;- budget.reco(r.models, amc, set.back)
+## prepare for quality check (global model of predicted ~ measured)
+#r.check &lt;- checkm(r.bdgt, amr)
+## have a look
+#par(pty="s")
+#lims &lt;- range(r.check$reco.flux, r.check$flux)
+#plot(reco.flux ~ flux, data=r.check, xlim=lims, ylim=lims)
+#abline(coef=c(0,1), lty=3)
+#mf1 &lt;- lm(reco.flux ~ flux, r.check)
+#abline(mf1)
+#summary(mf1)
+## calculate daily values (better for plotting)
+#r.bdgt$day &lt;- format(r.bdgt$timestamp, format="%Y-%m-%d")
+#r.daily &lt;- data.frame(day = unique(r.bdgt$day))
+#r.daily$day &lt;- as.POSIXct(strptime(r.daily$day, format="%Y-%m-%d", 
+#tz="GMT"), tz="GMT")
+## in addition to summing up per day, change unit
+#r.daily$reco &lt;- tapply(r.bdgt$reco.flux*uf, r.bdgt$day, sum)
+## same for the model error terms
+#r.daily$se &lt;- tapply(r.bdgt$reco.se*uf, r.bdgt$day, sum)
+#
+#
+#### GPP ### (for details see gpp.bulk)
+#g.models &lt;- gpp.bulk(flux ~ PAR + timestamp + kind, amd, amd$campaign, 
+#method="Falge", min.dp=5)
+#
+### prepare GPP budget (predict half hourly values for two years)
+## define set.back with start, end, and cut dates
+## (typically you would take this from read in table)
+#set.back &lt;- data.frame(timestamp = c("2010-01-01 00:30", "2011-12-31 23:30", 
+#"2010-07-22 12:00", "2010-09-03 12:00", "2010-10-13 12:00", "2011-06-29 12:00", 
+#"2011-08-11 12:00", "2011-10-21 12:00"), value = c(-999, -9999, rep(-0.0001, 6)))
+#set.back$timestamp &lt;- strptime(set.back$timestamp, format="%Y-%m-%d %H:%M", tz="GMT")
+## have a look at the resulting data.frame
+#set.back
+## run budget function with correct = NULL and return the models
+#g.bdgt &lt;- budget.gpp(g.models, amc, set.back, correct=NULL, return.models=TRUE)
+## the cut models are also returned:
+#tbl8(g.bdgt$models)
+## extract the half hourly values to proceed
+#g.bdgt &lt;- g.bdgt$tbl
+## make daily values (better for plotting)
+#g.bdgt$day &lt;- format(g.bdgt$timestamp, format="%Y-%m-%d")
+#g.daily &lt;- data.frame(day = unique(g.bdgt$day))
+#g.daily$day &lt;- as.POSIXct(strptime(g.daily$day, format="%Y-%m-%d", tz="GMT"), tz="GMT")
+## in addition to summing up per day, change unit
+#g.daily$gpp &lt;- tapply(g.bdgt$gpp.flux*uf, g.bdgt$day, sum)
+## same for the model error terms
+#g.daily$se &lt;- tapply(g.bdgt$gpp.se*uf, g.bdgt$day, sum)
+#
+#
+#### Budgets ###
+### doing the actual budgeting
+## first bring Reco and GPP budget data together
+## because of different handling data sets
+## may be of different length, therefore use merge
+#r.bdgt$ts &lt;- as.character(r.bdgt$timestamp)
+#g.bdgt$ts &lt;- as.character(g.bdgt$timestamp)
+#bdgt &lt;- merge(r.bdgt, g.bdgt[, -c(ncol(g.bdgt)-2, ncol(g.bdgt)-1)], 
+#by.x="ts", by.y="ts", all.x=TRUE)
+## calculate NEE
+#bdgt$nee.flux &lt;- bdgt$reco.flux + bdgt$gpp.flux
+## error propagation 
+#bdgt$nee.se &lt;- sqrt(bdgt$reco.se^2 + bdgt$gpp.se^2)/sqrt(2)
+## define unique id that spans across reco and gpp ids
+#bdgt$nee.id &lt;- paste(bdgt$reco.id, bdgt$gpp.id, sep=".")
+## do budgets of fluxes (sum and use global conversion factor, see above) and error terms
+## the model errors are summed up per model id and resulting
+## sums are combined following error propagation
+#with(bdgt, {c(
+#  reco = sum(reco.flux*uf, na.rm=TRUE), 
+#	reco.me = sqrt(sum(tapply(reco.se, reco.id, sum)^2))*uf, 
+#	gpp = sum(gpp.flux*uf, na.rm=TRUE), 
+#	gpp.me = sqrt(sum(tapply(gpp.se, gpp.id, sum)^2))*uf, 
+#	nee = sum(nee.flux*uf, na.rm=TRUE), 
+#	nee.me = sqrt(sum(tapply(nee.se, nee.id, sum, na.rm=TRUE)^2))*uf
+#)})
+#
+### annual budget incl. interpolation error
+#set.back &lt;- data.frame(timestamp = c("2010-01-01 00:30", 
+#"2010-12-31 23:30"), value = c(-999, -9999))
+#set.back$timestamp &lt;- strptime(set.back$timestamp, format="%Y-%m-%d %H:%M", tz="GMT")
+### reco.ie
+## redoing budget with annual bounds
+#r.bdgt.2010 &lt;- budget.reco(r.models, amc, set.back, return.models=TRUE)
+## run budget.ie with lo = 3 and it = 10 (default of 100 is advisable but slow)
+#r.ie2010 &lt;- budget.ie(r.bdgt.2010, lo=3, it=10) 
+## summary statistic and factor in the uf
+#r.ie2010 &lt;- sd(r.ie2010*uf) 
+## gpp.ie
+## redoing budget with annual bounds
+#g.bdgt.2010 &lt;- budget.gpp(g.models, amc, set.back, correct=NULL, return.models=TRUE)
+#g.ie2010 &lt;- budget.ie(g.bdgt.2010, lo=3, it=10) 
+#g.ie2010 &lt;- sd(g.ie2010*uf) 
+#
+## do the actual budgeting
+#tmp &lt;- bdgt[(bdgt$timestamp &gt;= set.back$timestamp[1]) &amp; 
+#(bdgt$timestamp &lt;= set.back$timestamp[2]),]
+#with(tmp, {c(
+#  reco = sum(reco.flux*uf, na.rm=TRUE), 
+#	reco.me = sqrt(sum(tapply(reco.se, reco.id, sum)^2))*uf,
+#	reco.ie = r.ie2010,
+#	gpp = sum(gpp.flux*uf, na.rm=TRUE), 
+#	gpp.me = sqrt(sum(tapply(gpp.se, gpp.id, sum)^2))*uf,
+#	gpp.ie = g.ie2010, 
+#	nee = sum(nee.flux*uf, na.rm=TRUE), 
+#	nee.me = sqrt(sum(tapply(nee.se, nee.id, sum, na.rm=TRUE)^2))*uf,
+#	nee.ie = sqrt(r.ie2010^2 + g.ie2010^2)
+#)})
+#
+## End not run ##
+</code></pre>
+
+
+</div>

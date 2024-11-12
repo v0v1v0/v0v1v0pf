@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spa_contour</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Capture the frontier of a plateau region object</h2>
+
+<h3>Description</h3>
+
+<p><code>spa_contour()</code> extracts the frontier (i.e., linear boundary) of a plateau region object by maintaining its membership degrees.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spa_contour(pregion)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>pregion</code></td>
+<td>
+<p>A <code>pregion</code> object. It throws an error if a different type is given.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The <code>spa_contour()</code> function implements the definition of <em>fuzzy frontier</em> of a fuzzy region object in the context of Spatial Plateau Algebra.
+The <em>fuzzy frontier</em> of a fuzzy region object <code>A</code> collects all single points of <code>A</code>, preserving its membership degrees, that are not in the interior of its support.
+</p>
+<p>Note that fuzzy frontier is different from fuzzy boundary (see <code>spa_boundary()</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>pline</code> object that represents the contour (i.e. frontier) of a plateau region object given as input.
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li> <p><a href="https://ieeexplore.ieee.org/document/7737976">Carniel, A. C.; Schneider, M. A Conceptual Model of Fuzzy Topological Relationships for Fuzzy Regions. In Proceedings of the 2016 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2016), pp. 2271-2278, 2016.</a>
+</p>
+</li>
+<li> <p><a href="https://ieeexplore.ieee.org/document/8491565">Carniel, A. C.; Schneider, M. Spatial Plateau Algebra: An Executable Type System for Fuzzy Spatial Data Types. In Proceedings of the 2018 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2018), pp. 1-8, 2018.</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(sf)
+library(ggplot2)
+
+# defining two different types of membership functions
+trap_mf &lt;- function(a, b, c, d) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), 1, (d - x)/(d - c), na.rm = TRUE), 0)
+  }
+}
+
+set.seed(7)
+tbl = tibble(x = runif(20, min = 0, max = 30), 
+             y = runif(20, min = 0, max = 50), 
+             z = runif(20, min = 0, max = 100))
+classes &lt;- c("cold", "hot")
+cold_mf &lt;- trap_mf(0, 10, 20, 35)
+hot_mf &lt;- trap_mf(20, 50, 100, 100)
+
+# Getting the convex hull on the points to clip plateau region objects during their constructions
+pts &lt;- st_as_sf(tbl, coords = c(1, 2))
+ch &lt;- st_convex_hull(do.call(c, st_geometry(pts)))
+
+# Using the standard fuzzification policy based on fuzzy sets
+pregions &lt;- spa_creator(tbl, classes = classes, mfs = c(cold_mf, hot_mf), base_poly = ch)
+pregions
+## Not run: 
+plot(pregions$pgeometry[[1]]) + ggtitle("Cold")
+plot(pregions$pgeometry[[2]]) + ggtitle("Hot")
+
+## End(Not run)
+# capturing and showing the frontier of each pgeometry object previously created
+cold_contour &lt;- spa_contour(pregions$pgeometry[[1]])
+hot_contour &lt;- spa_contour(pregions$pgeometry[[2]])
+## Not run: 
+plot(cold_contour) + ggtitle("Frontier (Cold)")
+plot(hot_contour) + ggtitle("Frontier (Hot)")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

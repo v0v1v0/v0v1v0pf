@@ -1,0 +1,270 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.plm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Semi-functional partially linear model with scalar response.</h2>
+
+<h3>Description</h3>
+
+<p>Computes functional regression between functional (and non functional)
+explanatory variables and scalar response using asymmetric kernel
+estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.plm(
+  formula,
+  data,
+  h = NULL,
+  Ker = AKer.norm,
+  metric = metric.lp,
+  type.CV = GCV.S,
+  type.S = S.NW,
+  par.CV = list(trim = 0, draw = FALSE),
+  par.S = list(w = 1),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class <code>formula</code> (or one that can be coerced
+to that class): a symbolic description of the model to be fitted. The
+details of model specification are given under <code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>List that containing the variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Bandwidth, <code>h&gt;0</code>. Default argument values are provided as the
+sequence of length 51 from 2.5%–quantile to 25%–quantile of the distance
+between the functional data, see <code>h.default</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ker</code></td>
+<td>
+<p>Type of asymmetric kernel used, by default asymmetric normal
+kernel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>Metric function, by default <code>metric.lp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.CV</code></td>
+<td>
+<p>Type of cross-validation. By default generalized
+cross-validation <code>GCV.S</code> method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.S</code></td>
+<td>
+<p>Type of smothing matrix <code>S</code>. By default <code>S</code> is
+calculated by Nadaraya-Watson kernel estimator (<code>S.NW</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.CV</code></td>
+<td>
+<p>List of parameters for <code>type.CV</code>: <code>trim</code>, the alpha
+of the trimming<br> and <code>draw=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.S</code></td>
+<td>
+<p>List of parameters for <code>type.S</code>: <code>w</code>, the weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>An extension of the non-parametric functional regression models is the
+semi-functional partial linear model proposed in Aneiros-Perez and Vieu
+(2005). This model uses a non-parametric kernel procedure as that described
+in <code>fregre.np</code>. The output <code class="reqn">y</code> is scalar. A functional
+covariate <code class="reqn">X</code> and a multivariate non functional covariate <code class="reqn">Z</code> are
+considered.
+</p>
+<p style="text-align: center;"><code class="reqn">y =r(X)+\sum_{j=1}^{p}{Z_j\beta_j}+\epsilon</code>
+</p>
+
+<p>The unknown smooth real function <code class="reqn">r</code> is estimated by means of
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{r}_{h}(X)=\sum_{i=1}^{n}{w_{n,h}(X,X_{i})(Y_{i}-Z_{i}^{T}\hat{\beta}_{h})}</code>
+</p>
+<p> where <code class="reqn">W_h</code> is the weight
+function:
+</p>
+<p><code class="reqn">w_{n,h}(X,X_{i})=\frac{K(d(X,X_i)/h)}{\sum_{j=1}^{n}K(d(X,X_j)/h)}</code> with smoothing
+parameter <code class="reqn">h</code>, an asymmetric kernel <code class="reqn">K</code> and a metric or semi-metric
+<code class="reqn">d</code>.  In <code>fregre.plm()</code> by default <code class="reqn">W_h</code> is a functional
+version of the Nadaraya-Watson-type weights (<code>type.S=S.NW</code>) with
+asymmetric normal kernel (<code>Ker=AKer.norm</code>) in <code class="reqn">L_2</code><br>
+(<code>metric=metric.lp</code> with <code>p=2</code>). The unknown parameters
+<code class="reqn">\beta_j</code> for the multivariate non functional covariates are estimated
+by means of
+<code class="reqn">\hat{\beta}_j=(\tilde{Z}_{h}^{T}\tilde{Z}_{h})^{-1}\tilde{Z}_{h}^{T}\tilde{Z}_{h}</code> where <code class="reqn">\tilde{Z}_{h}=(I-W_{h})Z</code> with the
+smoothing parameter <code class="reqn">h</code>. The errors <code class="reqn">\epsilon</code> are independent, with
+zero mean, finite variance <code class="reqn">\sigma^2</code> and
+<code class="reqn">E[\epsilon|Z_1,\ldots,Z_p,X(t)]=0</code>.<br></p>
+<p>The first item in the <code>data</code> list is called <em>"df"</em> and is a data
+frame with the response and non functional explanatory variables, as
+<code>link{lm}</code>. If non functional data into the formula then
+<code>lm</code> regression is performed.<br> Functional variable
+(<code>fdata</code> or <code>fd</code> class) is introduced in the second item in the
+<code>data</code> list.  If only functional variable into the formula then
+<code>fregre.np.cv</code> is performed.<br></p>
+<p>The function estimates the value of smoothing parameter or the bandwidth
+<code>h</code> through Generalized Cross-validation <code>GCV</code> criteria. It
+computes the distance between curves using the <code>metric.lp</code>,
+although you can also use other metric function. <br> Different asymmetric
+kernels can be used, see <code>Kernel.asymmetric</code>.<br></p>
+
+
+<h3>Value</h3>
+
+
+<ul>
+<li> <p><code>call</code> The matched call. 
+</p>
+</li>
+<li> <p><code>fitted.values</code> Estimated scalar response. 
+</p>
+</li>
+<li> <p><code>residuals</code> <code>y</code> minus <code>fitted values</code>.
+</p>
+</li>
+<li> <p><code>df.residual</code> The residual degrees of freedom. 
+</p>
+</li>
+<li> <p><code>H</code> Hat matrix.
+</p>
+</li>
+<li> <p><code>r2</code> Coefficient of determination. 
+</p>
+</li>
+<li> <p><code>sr2</code> Residual variance.
+</p>
+</li>
+<li> <p><code>y</code> Scalar response. 
+</p>
+</li>
+<li> <p><code>fdataobj</code> Functional explanatory data.
+</p>
+</li>
+<li> <p><code>XX</code> Non functional explanatory data. 
+</p>
+</li>
+<li> <p><code>mdist</code> Distance matrix between curves. 
+</p>
+</li>
+<li> <p><code>betah</code> beta coefficient estimated 
+</p>
+</li>
+<li> <p><code>data</code> List that containing the variables in the model. 
+</p>
+</li>
+<li> <p><code>Ker</code> Asymmetric kernel used. 
+</p>
+</li>
+<li> <p><code>h.opt</code> Value that minimizes CV or GCV method. 
+</p>
+</li>
+<li> <p><code>h</code> Smoothing parameter or bandwidth.
+</p>
+</li>
+<li> <p><code>data</code> List that containing the
+variables in the model. 
+</p>
+</li>
+<li> <p><code>gcv</code> GCV values. 
+</p>
+</li>
+<li> <p><code>formula</code> formula.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Aneiros-Perez G. and Vieu P. (2005). <em>Semi-functional
+partial linear regression</em>.  Statistics &amp; Probability Letters, 76:1102-1110.
+</p>
+<p>Ferraty, F. and Vieu, P. (2006). <em>Nonparametric functional data
+analysis.</em> Springer Series in Statistics, New York.
+</p>
+<p>Hardle, W. <em>Applied Nonparametric Regression</em>. Cambridge University
+Press, 1994.
+</p>
+<p>Febrero-Bande, M., Oviedo de la Fuente, M. (2012).  <em>Statistical
+Computing in Functional Data Analysis: The R Package fda.usc.</em> Journal of
+Statistical Software, 51(4), 1-28. <a href="https://www.jstatsoft.org/v51/i04/">https://www.jstatsoft.org/v51/i04/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also as: <code>predict.fregre.plm</code> and
+<code>summary.fregre.fd</code><br> Alternative methods:
+<code>fregre.lm</code>, <code>fregre.np</code> and
+<code>fregre.np.cv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(tecator)
+x=tecator$absorp.fdata[1:129]
+dataf=tecator$y[1:129,]
+
+f=Fat~Water+x
+ldata=list("df"=dataf,"x"=x)
+res.plm=fregre.plm(f,ldata)
+summary(res.plm)
+
+# with 2nd derivative of functional data
+x.fd=fdata.deriv(x,nderiv=2)
+f2=Fat~Water+x.fd
+ldata2=list("df"=dataf,"x.fd"=x.fd)
+res.plm2=fregre.plm(f2,ldata2)
+summary(res.plm2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

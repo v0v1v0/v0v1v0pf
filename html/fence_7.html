@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IF.lmer</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Invisible Fence model selection (Linear Mixed Model)</h2>
+
+<h3>Description</h3>
+
+<p>Invisible Fence model selection (Linear Mixed Model)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IF.lmer(full, data, B = 100, REML = TRUE, method = c("marginal",
+  "conditional"), cpus = parallel::detectCores(), lftype = c("abscoef",
+  "tvalue"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>full</code></td>
+<td>
+<p>formula of full model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap sample, parametric for lmer</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>REML</code></td>
+<td>
+<p>Restricted maximum likelihood estimation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>choose either marginal (e.g., GEE) or conditional model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpus</code></td>
+<td>
+<p>Number of parallel computers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lftype</code></td>
+<td>
+<p>subtractive measure type, e.g., absolute value of coefficients, p-value, t-value, etc.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This method (Jiang et. al, 2011) is motivated by computational expensive in complex and high dimensional problem.
+The idea of the method–there is the best model in each dimension (in model space).  The boostrapping determines the coverage
+probability of the selected model in each dimensions. The parsimonious model is the selected model with the highest coverage probabily
+(except the one for the full model, always probability of 1.)
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>full</code></td>
+<td>
+<p>list the full model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>list the number of bootstrap samples that have been used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>list the coverage probabilities of the selected model for each dimension</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>list the number of variables in the parsimonious model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>term</code></td>
+<td>
+<p>list variables included in the full model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>list the variables selected in-the-order in the parsimonious model</p>
+</td>
+</tr>
+</table>
+<p>@note The current Invisible Fence focuses on variable selection. The current routine is applicable to the case in which
+the subtractive measure is the absolute value of the coefficients, p-value, t-value.
+However, the method can be extended to other subtractive measures.  See Jiang et. al (2011) for more details.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jiming Jiang  Jianyang Zhao  J. Sunil Rao  Thuan Nguyen
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>Jiang J., Rao J.S., Gu Z., Nguyen T. (2008),  Fence Methods for Mixed Model Selection. The Annals of Statistics, 36(4): 1669-1692
+</p>
+</li>
+<li>
+<p>Jiming Jiang, Thuan Nguyen and J. Sunil Rao (2011), Invisible fence methods and the identification of differentially expressed gene sets. Statistics and Its Interface, Volume 4, 403-415.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(fence)
+library(snow)
+library(MASS)
+data("X.lmer")
+data = data.frame(X.lmer)
+# non-zero beta I.col.2, I.col.3a, I.col.3b, V5, V7, V8, V9
+beta = matrix(c(0, 1, 1, 1, 1, 0, 0.1, 0.05, 0.25, 0), ncol = 1)
+set.seed(1234)
+alpha = rep(rnorm(100), each = 3)
+mu = alpha + as.matrix(data[,-1]) %*% beta
+data$id = as.factor(data$id)
+data$y = mu + rnorm(300)
+raw = "y ~ (1|id)+I.col.2+I.col.3a+I.col.3b"
+for (i in 5:10) {
+    raw = paste0(raw, "+V", i)
+}
+full = as.formula(raw)
+# The following output takes more than 5 seconds (~70 seconds) to run. 
+
+# obj1.lmer = IF.lmer(full = full, data = data, B = 100, method="conditional",lftype = "abscoef")
+# sort(obj1.lmer$model) 
+
+# obj2.lmer = IF.lmer(full = full, data = data, B = 100, method="conditional",lftype = "tvalue")
+# sort(obj2.lmer$model)
+
+# Similarly, the following scenarios can be run
+
+# obj2.lmer = IF.lmer(full = full, data = data, B = 100, method="conditional",lftype = "tvalue")
+# sort(obj2.lmer$model)
+# obj1.lm = IF.lmer(full = full, data = data, B = 100, method="marginal", lftype = "abscoef")
+# sort(names(obj1.lm$model$coefficients[-1]))
+# obj2.lm = IF.lmer(full = full, data = data, B = 100, method="marginal", lftype = "tvalue")
+# sort(names(obj2.lm$model$coefficients[-1]))
+
+</code></pre>
+
+
+</div>

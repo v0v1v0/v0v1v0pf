@@ -1,0 +1,270 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fglm_trunc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a truncated Functional Generalized Linear Model</h2>
+
+<h3>Description</h3>
+
+<p>Fit a truncated functional linear or logistic regression model using nested group lasso penalty.
+The solution path is computed efficiently using active set algorithm with warm start. Optimal tuning parameters (<code class="reqn">\lambda_s, \lambda_t</code>)
+are chosen by Bayesian information criterion (BIC).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fglm_trunc(
+  Y,
+  X.curves,
+  S = NULL,
+  grid = NULL,
+  family = c("gaussian", "binomial"),
+  degree = 3,
+  nbasis = NULL,
+  knots = NULL,
+  nlambda.s = 10,
+  lambda.s.seq = NULL,
+  precision = 1e-05,
+  parallel = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p><code>n</code>-by-<code>1</code> vector of response.
+Each row is an observed scalar response, which is continous for family="gaussian" and binary (i.e. 0 and 1) for family="binomal".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.curves</code></td>
+<td>
+<p><code>n</code>-by-<code>p</code> matrix of functional predictors.
+Each row is an observation vector at <code>p</code> finite points on <code>[0,T]</code> for some <code>T&gt;0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>(optional) <code>n</code>-by-<code>s</code> matrix of scalar predictors. Binary variable should be coded as numeric rather than factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>A sequence of <code>p</code> points at which <code>X</code> is recorded, including both boundaries <code>0</code> and <code>T</code>. If not
+specified, an equally spaced sequence of length p between 0 and 1 will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Choice of exponential family for the model. The function then uses corresponding canonical link function to fit model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>Degree of the piecewise polynomial. Default 3 for cubic splines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbasis</code></td>
+<td>
+<p>Number of B-spline basis.
+If <code>knots</code> is unspecified, the function choose <code>nbasis - degree - 1</code> <strong>internal</strong> knots at suitable quantiles of <code>grid</code>.
+If <code>knots</code> is specified, the value of <code>nbasis</code> will be <strong>ignored</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p><code>k</code> <strong>internal</strong> breakpoints that define that spline.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda.s</code></td>
+<td>
+<p>(optional) Length of sequence of smoothing regularization parameters. Default 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.s.seq</code></td>
+<td>
+<p>(optional) Sequence of smoothing regularization parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>precision</code></td>
+<td>
+<p>(optional) Error tolerance of the optimization. Default 1e-5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>(optional) If TRUE, use parallel <code>foreach</code> to fit each value of <code>lambda.s.seq</code>. Must register parallel before hand, such as doMC or others.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+
+<h4>Details on spline estimator</h4>
+
+<p>For an order <code>q</code> B-splines (<code>q = degree + 1</code> since an intercept is used) with <code>k</code> internal knots 0 &lt; <code>t_1</code> &lt;...&lt; <code>t_k</code> &lt; T,
+the number of B-spline basis equals <code>q + k</code>. Without truncation (<code class="reqn">\lambda</code>_t=0), the function returns smoothing estimate that is
+equivalent to the method of Cardot and Sarda (2005), and optimal smoothing parameter is chosen by Generalized Cross Validation (GCV).
+</p>
+
+
+
+<h4>Details on <code>family</code>
+</h4>
+
+<p>The model can work with Gaussian or Bernoulli responses. If <code>family="gaussian"</code>, identity link is used. If <code>family="binomial"</code>, logit link is used.
+</p>
+
+
+
+<h4>Details on scalar predictors</h4>
+
+<p><code>FGLMtrunc</code> allows using scalar predictors together with functional predictors. If scalar predictors are used, their estimated coefficients
+are included in <code>alpha</code> form fitted model.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>The <code>grid</code> sequence used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p>The <code>knots</code> sequence used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>The degree of the piecewise polynomial used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta.0</code></td>
+<td>
+<p>Estimate of B-spline coefficients <code class="reqn">\eta</code> <strong>without</strong> truncation penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.0</code></td>
+<td>
+<p>Estimate of functional parameter <code class="reqn">\beta</code> <strong>without</strong> truncation penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta.truncated</code></td>
+<td>
+<p>Estimate of B-spline coefficients <code class="reqn">\eta</code> <strong>with</strong> truncation penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.truncated</code></td>
+<td>
+<p>Estimate of functional parameter <code class="reqn">\beta</code> <strong>with</strong> truncation penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.s0</code></td>
+<td>
+<p>Optimal smoothing regularization parameter <strong>without</strong> truncation chosen by GCV.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.s</code></td>
+<td>
+<p>Optimal smoothing regularization parameter <strong>with</strong> truncation chosen by BIC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.t</code></td>
+<td>
+<p>Optimal truncation regularization parameter chosen by BIC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trunc.point</code></td>
+<td>
+<p>Truncation point <code class="reqn">\delta</code> where <code class="reqn">\beta(t)</code> = 0 for <code class="reqn">t \ge \delta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Intercept (and coefficients of scalar predictors if used) of truncated model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scalar.pred</code></td>
+<td>
+<p>Logical variable indicating whether any scalar predictor was used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>Function call of fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Choice of exponential family used.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Xi Liu, Afshin A. Divani, and Alexander Petersen. "Truncated estimation in functional generalized linear regression models" (2022). <em>Computational Statistics &amp; Data Analysis</em>.
+</p>
+<p>Hervé Cardot and Pacal Sarda. "Estimation in generalized linear models for functional data via penalized likelihood" (2005). <em>Journal of Multivariate Analysis</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>bSpline from splines2 R package for usage of B-spline basis.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Gaussian response
+data(LinearExample)
+Y_linear = LinearExample$Y
+Xcurves_linear = LinearExample$X.curves
+fit1 = fglm_trunc(Y_linear, Xcurves_linear, nbasis = 20, nlambda.s = 1)
+print(fit1)
+plot(fit1)
+
+</code></pre>
+
+
+</div>

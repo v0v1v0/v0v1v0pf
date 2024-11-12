@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_edgelist.matrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Low level interface to sample RPDG edgelists</h2>
+
+<h3>Description</h3>
+
+<p><strong>This is a breaks-off, no safety checks interface.</strong>
+We strongly recommend that you do not call
+<code>sample_edgelist.matrix()</code> unless you know what you are doing,
+and even then, we still do not recommend it, as you will
+bypass all typical input validation.
+<em><strong>extremely loud coughing</strong></em> All those who bypass input
+validation suffer foolishly at their own hand.
+<em><strong>extremely loud coughing</strong></em>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'matrix'
+sample_edgelist(
+  factor_model,
+  S,
+  Y,
+  directed,
+  poisson_edges,
+  allow_self_loops,
+  ...
+)
+
+## S3 method for class 'Matrix'
+sample_edgelist(
+  factor_model,
+  S,
+  Y,
+  directed,
+  poisson_edges,
+  allow_self_loops,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>factor_model</code></td>
+<td>
+<p>An <code>n</code> by <code>k1</code> <code>matrix()</code> or <code>Matrix::Matrix()</code>
+of latent node positions encoding incoming edge community membership.
+The <code>X</code> matrix in Rohe et al (2017). Naming differs only for
+consistency with the S3 generic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>A <code>k1</code> by <code>k2</code> mixing <code>matrix()</code> or <code>Matrix::Matrix()</code>. In
+the undirect case this is assumed to be symmetric but <strong>we do not
+check that this is the case</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A <code>d</code> by <code>k2</code> <code>matrix()</code> or <code>Matrix::Matrix()</code> of latent
+node positions encoding outgoing edge community membership.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directed</code></td>
+<td>
+<p>Logical indicating whether or not the graph should be
+directed. When <code>directed = FALSE</code>, symmetrizes <code>S</code> internally.
+<code>Y = X</code> together with a symmetric <code>S</code> implies a symmetric
+expectation (although not necessarily an undirected graph).
+When <code>directed = FALSE</code>, samples a directed graph with
+symmetric expectation, and then adds edges until symmetry
+is achieved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poisson_edges</code></td>
+<td>
+<p>Whether or not to remove duplicate edges
+after sampling. See Section 2.3 of Rohe et al. (2017)
+for some additional details. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_self_loops</code></td>
+<td>
+<p>Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds allowing
+self-loops, and these are then removed after the fact.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored, for generic consistency only.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements the <code>fastRG</code> algorithm as
+described in Rohe et al (2017). Please see the paper
+(which is short and open access!!) for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A single realization of a random Poisson (or Bernoulli)
+Dot Product Graph, represented as a <code>tibble::tibble()</code> with two
+integer columns, <code>from</code> and <code>to</code>.
+</p>
+<p><strong>NOTE</strong>: Indices for isolated nodes will not appear in the edgelist!
+This can lead to issues if you construct network objects from the
+edgelist directly.
+</p>
+<p>In the undirected case, <code>from</code> and <code>to</code> do not encode
+information about edge direction, but we will always have
+<code>from &lt;= to</code> for convenience of edge identification.
+</p>
+<p>To avoid handling such considerations yourself, we recommend using
+<code>sample_sparse()</code>, <code>sample_igraph()</code>, and <code>sample_tidygraph()</code>
+over <code>sample_edgelist()</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Rohe, Karl, Jun Tao, Xintian Han, and Norbert Binkiewicz. 2017.
+"A Note on Quickly Sampling a Sparse Matrix with Low Rank Expectation."
+Journal of Machine Learning Research; 19(77):1-13, 2018.
+<a href="https://www.jmlr.org/papers/v19/17-128.html">https://www.jmlr.org/papers/v19/17-128.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other samplers: 
+<code>sample_edgelist()</code>,
+<code>sample_igraph()</code>,
+<code>sample_sparse()</code>,
+<code>sample_tidygraph()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(46)
+
+n &lt;- 10000
+d &lt;- 1000
+
+k1 &lt;- 5
+k2 &lt;- 3
+
+X &lt;- matrix(rpois(n = n * k1, 1), nrow = n)
+S &lt;- matrix(runif(n = k1 * k2, 0, .1), nrow = k1)
+Y &lt;- matrix(rpois(n = d * k2, 1), nrow = d)
+
+sample_edgelist(X, S, Y, TRUE, TRUE, TRUE)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,274 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>datSumCond</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data - Aggregates numeric condition data to plot level.</h2>
+
+<h3>Description</h3>
+
+<p>Aggregates CONDPROP_UNADJ variable or other continuous condition variables
+to plot level with option to apply condition filters. If condition variable
+is not CONDPROP_UNADJ the variable is multiplied by CONDPROP_UNADJ for
+weighted sum.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">datSumCond(
+  cond = NULL,
+  datsource = "obj",
+  data_dsn = NULL,
+  plt = NULL,
+  subp_cond = NULL,
+  subplot = NULL,
+  cuniqueid = "PLT_CN",
+  puniqueid = "CN",
+  condid = "CONDID",
+  bycond = FALSE,
+  bysubp = FALSE,
+  subpid = "SUBP",
+  csumvar = NULL,
+  csumvarnm = NULL,
+  cfilter = NULL,
+  getadjplot = FALSE,
+  adjcond = FALSE,
+  NAto0 = FALSE,
+  cround = 5,
+  returnDT = TRUE,
+  savedata = FALSE,
+  savedata_opts = NULL,
+  dbconn = NULL,
+  dbconnopen = FALSE,
+  gui = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cond</code></td>
+<td>
+<p>Data frame or comma-delimited file (*.csv). Condition-level
+table with aggregate variable and CONDPROP_UNADJ.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datsource</code></td>
+<td>
+<p>String. Source of data ('obj', 'csv', 'sqlite', 'gdb').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_dsn</code></td>
+<td>
+<p>String. If datsource='sqlite', the name of SQLite database
+(*.sqlite).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plt</code></td>
+<td>
+<p>Data frame, comma-delimited file (*.csv), shapefile (*.shp), or
+database file. Plot-level table to join the aggregated tree data to (if
+bycond=FALSE). Nonsampled plots (PLOT_STATUS_CD = 3) are removed. Optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subp_cond</code></td>
+<td>
+<p>Dataframe, comma-delimited file (*.csv), or shapefile (*.shp).
+Subplot condition-level table to use to sum condition proportions, 
+if bysubp=TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subplot</code></td>
+<td>
+<p>Dataframe, comma-delimited file (*.csv), or shapefile (*.shp).
+Subplot-level table to used to calculate adjustment factors, to remove 
+nonsampled conditions (SUBP_STATUS_CD = 3). This table is optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cuniqueid</code></td>
+<td>
+<p>String. Unique identifier of cond (default = "PLT_CN").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>puniqueid</code></td>
+<td>
+<p>String. Unique identifier of plt (default = "CN").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condid</code></td>
+<td>
+<p>String. Unique identifier for conditions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bycond</code></td>
+<td>
+<p>Logical. If TRUE, the data are aggregated to the condition
+level (by: cuniqueid, condid). If FALSE, the data are aggregated to the plot
+level (by: puniqueid).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bysubp</code></td>
+<td>
+<p>Logical. If TRUE, data are aggregated to the subplot level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subpid</code></td>
+<td>
+<p>String. Unique identifier of each subplot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csumvar</code></td>
+<td>
+<p>String. One or more variable names to sum to plot level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csumvarnm</code></td>
+<td>
+<p>String. Name of the resulting aggregated plot-level
+variable(s).  Default = csumvar + '_PLT'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cfilter</code></td>
+<td>
+<p>String. A filter to subset the cond data before aggregating
+(e.g., "COND_STATUS_CD == 1"). Must be R syntax.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getadjplot</code></td>
+<td>
+<p>Logical. If TRUE, adjustments are calculated for
+nonsampled conditions on plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjcond</code></td>
+<td>
+<p>Logical. If TRUE, csumvar condition variables are adjusted
+for nonsampled conditions by plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NAto0</code></td>
+<td>
+<p>Logical. If TRUE, convert NA values to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cround</code></td>
+<td>
+<p>Number. The number of digits to round to. If NULL, default=5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnDT</code></td>
+<td>
+<p>Logical. If TRUE, returns data.table object(s). If FALSE,
+returns data.frame object(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves data to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE. If out_layer = NULL,
+default = 'condsum'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbconn</code></td>
+<td>
+<p>Open database connection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbconnopen</code></td>
+<td>
+<p>Logical. If TRUE, keep database connection open.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gui</code></td>
+<td>
+<p>Logical. If gui, user is prompted for parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If variable = NULL, then it will prompt user for input.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of the following items: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>condsum</code></td>
+<td>
+<p> Data frame.
+Plot-level table with aggregated condition attribute. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cfilter</code></td>
+<td>
+
+<p>Condition filter. </p>
+</td>
+</tr>
+</table>
+<p>If savedata=TRUE, condsum is saved to the outfolder.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Nonsampled plots are removed from table.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Aggregate LIVE_CANOPY_CVR_PCT to plot, weighted by CONDPROP_UNADJ
+condsum &lt;- datSumCond(cond = FIESTA::WYcond,
+                      csumvar = "LIVE_CANOPY_CVR_PCT")$condsum
+
+# Check results
+condsum[condsum$PLT_CN == 40404737010690,]
+FIESTA::WYcond[FIESTA::WYcond$PLT_CN == 40404737010690,]
+</code></pre>
+
+
+</div>

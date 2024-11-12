@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_best</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functions to get components from the data collecting object</h2>
+
+<h3>Description</h3>
+
+<p>Functions to get components from the data collecting object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_best(dt, group = NULL)
+
+get_start(dt, group = NULL)
+
+get_interp(dt, group = NULL)
+
+get_interp_last(dt, group = NULL)
+
+get_anchor(dt, group = NULL)
+
+get_search(dt)
+
+get_dir_search(dt, ratio = 5, ...)
+
+get_space_param(dt, ...)
+
+get_theo(dt)
+
+get_interrupt(dt, group = NULL, precision = 0.001)
+
+get_search_count(dt, iter = NULL, group = NULL)
+
+get_basis_matrix(dt)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>a data object collected by the projection pursuit guided tour optimisation in the <code>tourr</code> package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>the variable to label different runs of the optimiser(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio</code></td>
+<td>
+<p>numeric; a buffer value to deviate directional search points from the anchor points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to <code>compute_pca()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>precision</code></td>
+<td>
+<p>numeric; if the index value of the last interpolating point and the anchor point differ by <code>precision</code>, an interruption is registered</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>the variable to be counted by</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>get_best</code>: extract the best basis found by the optimiser(s)
+</p>
+<p><code>get_start</code>: extract the start point of the optimisation
+</p>
+<p><code>get_interp</code>: extract the interpolation points
+</p>
+<p><code>get_interp_last</code>: extract the last point in each interpolation
+</p>
+<p><code>get_anchor</code>: extract the anchor points on the geodesic path
+</p>
+<p><code>get_search</code>: extract search points in the optimisation (for
+<code>search_geodesic</code>)
+</p>
+<p><code>get_dir_search</code>: extract directional search points (for
+<code>search_geodesic</code>)
+</p>
+<p><code>get_space_param</code>: estimate the radius of the background circle
+based on the randomly generated points. The space of projected bases is a
+circle when reduced to 2D. A radius is estimated using the largest distance
+from the bases in the data object to the centre point.
+</p>
+<p><code>get_theo</code>: extract the theoretical basis, if exist
+</p>
+<p><code>get_interrupt</code>: extract the end point of the interpolation and the
+target point in the iteration when an interruption happens. The optimiser
+can find better basis on the interpolation path, an interruption is
+implemented to stop further interpolation from the highest point to the
+target point. This discrepancy is highlighted in the PCA plot.
+</p>
+<p><code>get_search_count</code>: summarise the number of search points in each iteration
+</p>
+<p><code>get_basis_matrix</code>: extract all the bases as a matrix
+</p>
+
+
+<h3>Value</h3>
+
+<p>a tibble object containing the best basis found by the optimiser(s)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">get_search(holes_1d_geo)
+
+get_anchor(holes_1d_geo)
+
+get_start(holes_1d_better)
+
+get_interrupt(holes_1d_better)
+
+get_interp(holes_1d_better) %&gt;% head()
+
+get_basis_matrix(holes_1d_better) %&gt;% head()
+
+get_best(dplyr::bind_rows(holes_1d_better, holes_1d_geo), group = method)
+
+get_search_count(holes_1d_better)
+get_search_count(dplyr::bind_rows(holes_1d_better, holes_1d_geo), group = method)
+
+get_interp_last(holes_1d_better)
+get_interp_last(dplyr::bind_rows(holes_1d_better, holes_1d_geo), group = method)
+
+res &lt;- holes_1d_geo %&gt;% compute_pca() %&gt;% purrr::pluck("aug")
+get_dir_search(res)
+
+best &lt;- matrix(c(0, 1, 0, 0, 0), nrow = 5)
+holes_1d_better %&gt;%
+  bind_theoretical(best, tourr::holes(), raw_data = boa5) %&gt;%
+  get_theo()
+</code></pre>
+
+
+</div>

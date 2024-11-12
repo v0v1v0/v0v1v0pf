@@ -1,0 +1,95 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>coalesce</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Create an index that groups unique values together
+</h2>
+
+<h3>Description</h3>
+
+<p><code>coalesce</code> makes sure that a given index vector is coalesced,
+i.e., identical values are grouped into contiguous blocks. This can be
+used as a much faster alternative to <code>sort.list</code> where the
+goal is to group identical values, but not necessarily in a
+pre-defined order. The algorithm is linear in the length of the vector.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  coalesce(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>character, integer or real vector to coalesce</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The current implementation takes two passes through the vector. In the
+first pass it creates a hash table for the values of <code>x</code> counting
+the occurrences in the process. In the second pass it assigns indices
+for every element based on the index stored in the hash table.
+</p>
+<p>The order of the groups of unique values is defined by the first
+occurence of each unique value, hence it is identical to the order of
+<code>unique</code>.
+</p>
+<p>One common use of <code>coalesce</code> is to allow the use of arbitrary
+vectors in <code>ctapply</code> via
+<code>ctapply(x[coalesce(x)], ...)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Integer vector with the resulting permutation. <code>x[coalesce(x)]</code>
+gives <code>x</code> with contiguous unique values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Simon Urbanek
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>unique</code>, <code>sort.list</code>, <code>ctapply</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">i = rnorm(2e6)
+names(i) = as.integer(rnorm(2e6))
+## compare sorting and coalesce
+system.time(o &lt;- i[order(names(i))])
+system.time(o &lt;- i[coalesce(names(i))])
+
+## more fair comparison taking the coalesce time (and copy) into account
+system.time(tapply(i, names(i), sum))
+system.time({ o &lt;- i[coalesce(names(i))]; ctapply(o, names(o), sum) })
+
+## in fact, using ctapply() on a dummy vector is faster than table() ...
+## believe it or not ... (that that is actually wasteful, since coalesce
+## already computed the table internally anyway ...)
+ftable &lt;- function(x) {
+   t &lt;- ctapply(rep(0L, length(x)), x[coalesce(x)], length)
+   t[sort.list(names(t))]
+}
+system.time(table(names(i)))
+system.time(ftable(names(i)))
+</code></pre>
+
+
+</div>

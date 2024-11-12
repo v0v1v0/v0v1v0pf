@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>UD_attach_ds</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Attach Data Set to UD State</h2>
+
+<h3>Description</h3>
+
+<p>Attaches a dataset to the UD state supplied.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">UD_attach_ds(
+  state,
+  clean = NULL,
+  isgood = TRUE,
+  load_msg = NULL,
+  data_file_local = NULL,
+  data_file_ext = NULL,
+  data_file = NULL,
+  sheet = NULL,
+  sheets = NULL,
+  code = "",
+  object_name = NULL,
+  contents = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>state</code></td>
+<td>
+<p>UD state module.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clean</code></td>
+<td>
+<p>Boolean switch to determine if the headers in the loaded dataset was cleaned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isgood</code></td>
+<td>
+<p>Boolean object indicating if the file was successfully loaded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>load_msg</code></td>
+<td>
+<p>Text message indicated the success or any problems encountered when uploading the file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_file_local</code></td>
+<td>
+<p>Full path to the data file on the server.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_file_ext</code></td>
+<td>
+<p>File extension of the uploaded file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_file</code></td>
+<td>
+<p>Dataset file name without the path.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sheet</code></td>
+<td>
+<p>If the uploaded file is an excel file, this is the currently selected sheet.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sheets</code></td>
+<td>
+<p>If the uploaded file is an excel file, this is a character vector of the sheets present in that file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>code</code></td>
+<td>
+<p>Code to load dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object_name</code></td>
+<td>
+<p>Name of the dataset object created when code is evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contents</code></td>
+<td>
+<p>Data frame containting the contents of the data file.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>state with data set attached
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># We need a module state object to use this function:
+id="UD"
+sess_res = UD_test_mksession(session=list())
+state = sess_res$state
+
+# This is the full path to a test data file:
+data_file_local  =  system.file(package="formods", "test_data", "TEST_DATA.xlsx")
+
+# Excel file extension
+data_file_ext    = "xlsx"
+
+# Base file name
+data_file        = "TEST_DATA.xlsx"
+
+# Excel files need a sheet specification:
+sheet           = "DATA"
+
+# We will also attach the sheets along with it
+sheets = readxl::excel_sheets(data_file_local)
+
+ds_read_res = UD_ds_read(state,
+  data_file_ext   = data_file_ext,
+  data_file_local = data_file_local,
+  data_file       = data_file,
+  sheets          = sheets,
+  sheet          = sheet)
+
+# This would contain the loading code that will cascade down
+# to the other modules when generating snippets and
+# reproducible scripts
+code = ds_read_res$code
+
+# This is the R Object name that is used internally
+# and in generated scripts. Should be the same as in
+# the code above
+object_name = ds_read_res$object_name
+
+# This is the actual dataset:
+contents   = ds_read_res$contents
+
+state =  UD_attach_ds(
+         state,
+         data_file_local = data_file_local,
+         data_file_ext   = ".xlsx",
+         data_file       = data_file,
+         sheet           = sheet,
+         sheets          = sheets,
+         code            = code,
+         object_name     = object_name,
+         contents        = contents)
+
+state
+</code></pre>
+
+
+</div>

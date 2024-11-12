@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>censored.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit Null Distribution To Censored Data by Maximum Likelihood</h2>
+
+<h3>Description</h3>
+
+<p><code>censored.fit</code> fits  a null distribution 
+to censored data.
+</p>
+<p><code>fndr.cutoff</code> finds a suitable cutoff point based on the 
+(approximate) false non-discovery rate (FNDR).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">censored.fit(x, cutoff, statistic=c("normal", "correlation", "pvalue", "studentt"))
+fndr.cutoff(x, statistic=c("normal", "correlation", "pvalue", "studentt"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of test statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>truncation point (this may a single value or a vector).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>type of statistic - normal, correlation, or student t.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As null model truncated normal, truncated student t or a truncated
+correlation density is assumed.  The truncation point is specified
+by the cutoff parameter.  All data points whose absolute value
+are large than the cutoff point are ignored when fitting the truncated
+null model via maximum likelihood.  The total number of data points is
+only used to estimate the fraction of null values eta0.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>censored.fit</code> returns a matrix whose rows contain the estimated parameters and corresponding errors
+for each cutoff point. 
+</p>
+<p><code>fndr.cutoff</code> returns a tentative cutoff point.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fdrtool</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load "fdrtool" library
+library("fdrtool")
+
+# simulate normal data
+sd.true = 2.232
+n = 5000
+z = rnorm(n, sd=sd.true)
+censored.fit(z, c(2,3,5), statistic="normal")
+
+
+# simulate contaminated mixture of correlation distribution
+r = rcor0(700, kappa=10)
+u1 = runif(200, min=-1, max=-0.7)
+u2 = runif(200, min=0.7, max=1)
+rc = c(r, u1, u2)
+
+censored.fit(r, 0.7, statistic="correlation")
+censored.fit(rc, 0.7, statistic="correlation")
+
+# pvalue example
+data(pvalues)
+co = fndr.cutoff(pvalues, statistic="pvalue")
+co
+censored.fit(pvalues, cutoff=co, statistic="pvalue")
+</code></pre>
+
+
+</div>

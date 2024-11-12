@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastPOSIXct</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fast version of <code>as.POSIXct.character</code> for GMT fixed format.
+</h2>
+
+<h3>Description</h3>
+
+<p><code>fastPOSIXct</code> converts timestamps in textual (string) form into
+<code>POSIXct</code> objects. It interprets sequences of digits
+separated by non-digits as a timestamp in GMT. The order of
+interpretation is fixed: year, month, day, hour, minute, second.
+Note that only true (positive) POSIX dates (since 1970-01-01 00:00:00)
+are supported and <code>fastPOSIXct</code> accepts dates up to year 2199.
+</p>
+<p>It is extremely fast (compared to <code>as.POSIXct</code> by several orders
+of magnitude (on some platforms 1000x faster) since it uses pure text
+parsing and no system calls.
+</p>
+<p><code>fastDate</code> is a faster shorthand for
+<code>as.Date(fastPOSIXct(x, "GMT", 3L, fixed))</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastPOSIXct(x, tz = NULL, required.components = 3L, fixed = NA)
+fastDate(x, fixed = NA)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>string vector to interpret as timestamps</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>timezone for the resulting <code>POSIXct</code> object - this is
+NOT the time of <code>x</code>, that will always be GMT!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>required.components</code></td>
+<td>
+<p>minimum number of timestamp components that
+are required. For example 3 means only the date is required, 6 means
+all components (up to the seconds) are required. If the requirement
+is not met, the result for that entry will be <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p><code>NA</code> for separator-based parsing. If the components
+of the time stamp have fixed-width format (where separators are
+optional or non-existent) then this can be set to the number of
+characters expected for the year (see details).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>By default the parsing is done by extracting digits separated by
+non-digits. Each such group of digits is then interpreted in the
+order year, month, day, hour, minute and seconds. The separators can
+be arbitrary and of any length. Years less than 100 are assumed to be
+2000..2099. For example, <code>"2022-01-05 09:15"</code> has five groups
+(from year to minute). The same timestamp would also be parsed from
+<code>"22/1/1, time 9:15"</code> or the ISO standard GMT form
+<code>"2022-01-01T09:15:00Z"</code>.
+</p>
+<p>If the format uses no separators then <code>fixed</code> can be set to the
+length of the year component (in digits) – months through
+minutes are assumed to have at most two digits each. For example, the
+following call will have the same timestamp result as above:
+<code>fastPOSIXct("2201010915", fixed=2)</code>. Note that separators are
+still allowed in the fixed parsing and will terminate the preceding
+group so <code>"220101 9:15"</code> would yield the same result.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Numeric vector of the class <code>POSIXct</code> (<code>fastPOSIXct</code>) or
+<code>Date</code> (<code>fastDate</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Simon Urbanek
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>as.POSIXct</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## let us generate a bunch of random timestamps until today
+  ts &lt;- as.character(.POSIXct(runif(1e4) * unclass(Sys.time()), "GMT"))
+
+  ## convert them using as.POSIXct
+  system.time(a &lt;- as.POSIXct(ts, "GMT"))
+
+  ## same using the fast method
+  system.time(b &lt;- fastPOSIXct(ts, "GMT"))
+
+  identical(a, b)
+
+  ## same for dates
+  day &lt;- substr(ts, 1, 10)
+  
+  system.time(da &lt;- as.Date(day))
+  system.time(db &lt;- fastDate(day))
+  identical(da, db)
+  
+  ## some parsing examples
+  fastPOSIXct("2022-01-05 09:15", "GMT")
+  fastPOSIXct("22/1/1, the time is 9:15", "GMT")
+  fastPOSIXct("2022-01-01T09:15:00Z", "GMT")
+  fastPOSIXct("2201010915", "GMT", fixed=2)
+
+  ## the same converted to your local time zone
+  fastPOSIXct("2022-01-05 09:15")
+  ## or ET
+  fastPOSIXct("2022-01-05 09:15", "US/Eastern")
+</code></pre>
+
+
+</div>

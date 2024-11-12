@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>future_by</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Apply a Function to a Data Frame Split by Factors via Futures</h2>
+
+<h3>Description</h3>
+
+<p>Apply a Function to a Data Frame Split by Factors via Futures
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">future_by(
+  data,
+  INDICES,
+  FUN,
+  ...,
+  simplify = TRUE,
+  future.envir = parent.frame()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> object, normally a data frame, possibly a matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>INDICES</code></td>
+<td>
+<p>A factor or a list of factors, each of length <code>nrow(data)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>a function to be applied to (usually data-frame) subsets of <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>logical: see base::tapply.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>future.envir</code></td>
+<td>
+<p>An environment passed as argument <code>envir</code> to
+<code>future::future()</code> as-is.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments pass to <code>future_lapply()</code> and
+then to <code>FUN()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Internally, <code>data</code> is grouped by <code>INDICES</code> into a list of <code>data</code>
+subset elements which is then processed by <code>future_lapply()</code>.
+When the groups differ significantly in size, the processing time
+may differ significantly between the groups.
+To correct for processing-time imbalances, adjust the amount of chunking
+via arguments <code>future.scheduling</code> and <code>future.chunk.size</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "by", giving the results for each subset.
+This is always a list if simplify is false, otherwise a list
+or array (see base::tapply).
+See also <code>base::by()</code> for details.
+</p>
+
+
+<h3>Note on 'stringsAsFactors'</h3>
+
+<p>The <code>future_by()</code> is modeled as closely as possible to the
+behavior of <code>base::by()</code>.  Both functions have "default" S3 methods that
+calls <code>data &lt;- as.data.frame(data)</code> internally.  This call may in turn call
+an S3 method for <code>as.data.frame()</code> that coerces strings to factors or not
+depending on whether it has a <code>stringsAsFactors</code> argument and what its
+default is.
+For example, the S3 method of <code>as.data.frame()</code> for lists changed its
+(effective) default from <code>stringsAsFactors = TRUE</code> to
+<code>stringsAsFactors = TRUE</code> in R 4.0.0.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## ---------------------------------------------------------
+## by()
+## ---------------------------------------------------------
+library(datasets) ## warpbreaks
+library(stats)    ## lm()
+
+y0 &lt;- by(warpbreaks, warpbreaks[,"tension"],
+         function(x) lm(breaks ~ wool, data = x))
+
+plan(multisession)
+y1 &lt;- future_by(warpbreaks, warpbreaks[,"tension"],
+                function(x) lm(breaks ~ wool, data = x))
+
+plan(sequential)
+y2 &lt;- future_by(warpbreaks, warpbreaks[,"tension"],
+                function(x) lm(breaks ~ wool, data = x))
+</code></pre>
+
+
+</div>

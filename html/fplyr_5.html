@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmply</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read, process and write to multiple output files</h2>
+
+<h3>Description</h3>
+
+<p>Sometimes a file should be processed in many different ways. <code>fmply()</code>
+applies a function to each block of the file; the function should return a
+list of <em>m</em> <code>data.table</code>s, each of which is written to a different
+output file. Optionally, the function can return a list of <em>m + 1</em>,
+where the first <em>m</em> elements are <code>data.table</code>s and are written
+to the output files, while the last element is returned as in <code>flply()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmply(
+  input,
+  outputs,
+  FUN,
+  ...,
+  key.sep = "\t",
+  sep = "\t",
+  skip = 0,
+  header = TRUE,
+  nblocks = Inf,
+  stringsAsFactors = FALSE,
+  colClasses = NULL,
+  select = NULL,
+  drop = NULL,
+  col.names = NULL,
+  parallel = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Path of the input file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputs</code></td>
+<td>
+<p>Vector of <em>m</em> paths for the output files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>A function to apply to each block. Takes as input a <code>data.table</code>
+and optionally additional arguments. It should return a list of length
+<em>m</em>, the same length as the <code>outputs</code> vector. The first element
+of the list is written to the first output file, the second element of the
+list to the second output file, and so on. Besides these <em>m</em> <code>data.table</code>s,
+it can return an additional element, which is also returned by <code>fmply()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to FUN.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key.sep</code></td>
+<td>
+<p>The character that delimits the first field from the rest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>The field delimiter (often equal to <code>key.sep</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>Number of lines to skip at the beginning of the file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>header</code></td>
+<td>
+<p>Whether the file has a header.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nblocks</code></td>
+<td>
+<p>The number of blocks to read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stringsAsFactors</code></td>
+<td>
+<p>Whether to convert strings into factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colClasses</code></td>
+<td>
+<p>Vector or list specifying the class of each field.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>The columns (names or numbers) to be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop</code></td>
+<td>
+<p>The columns (names or numbers) not to be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.names</code></td>
+<td>
+<p>Names of the columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Number of cores to use.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>FUN</code> returns <em>m</em> elements, <code>fmply()</code> returns
+NULL invisibly. If <code>FUN</code> returns <em>m + 1</em>
+elements, <code>fmply()</code> returns the list of all the last elements. As a
+side effect, it writes the first <em>m</em> outputs of <code>FUN</code> to the
+<code>outputs</code> files.
+</p>
+
+
+<h3>Slogan</h3>
+
+<p>fmply: from <strong>f</strong>ile to <strong>m</strong>ultiple files
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+fin &lt;- system.file("extdata", "dt_iris.csv", package = "fplyr")
+fout1 &lt;- tempfile()
+fout2 &lt;- ""
+
+# Copy the input file to tempfile as it is, and, at the same time, print
+# a summary to the console
+fmply(fin, c(fout1, fout2), function(d) {
+    list(d, data.table(unclass(summary(d))))
+})
+
+fout3 &lt;- tempfile()
+fout4 &lt;- tempfile()
+
+# Use linear and polynomial regression and print the outputs to two files
+fmply(fin, c(fout3, fout4), function(d) {
+    lr.fit &lt;- lm(Sepal.Length ~ ., data = d[, !"Species"])
+    lr.summ &lt;- data.table(Species = d$Species[1], t(coefficients(lr.fit)))
+    pr.fit &lt;- lm(Sepal.Length ~ poly(as.matrix(d[, 3:5]), degree = 3),
+                 data = d[, !"Species"])
+    pr.summ &lt;- data.table(Species = d$Species[1], t(coefficients(pr.fit)))
+    list(lr.summ, pr.summ)
+})
+
+</code></pre>
+
+
+</div>

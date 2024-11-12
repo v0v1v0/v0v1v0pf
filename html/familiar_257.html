@@ -1,0 +1,1572 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>train_familiar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create models using end-to-end machine learning</h2>
+
+<h3>Description</h3>
+
+<p>Train models using familiar. Evaluation is not performed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">train_familiar(
+  formula = NULL,
+  data = NULL,
+  experiment_data = NULL,
+  cl = NULL,
+  experimental_design = "fs+mb",
+  learner = NULL,
+  hyperparameter = NULL,
+  verbose = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>An R formula. The formula can only contain feature names and
+dot (<code>.</code>). The <code>*</code> and <code>+1</code> operators are not supported as these refer to
+columns that are not present in the data set.
+</p>
+<p>Use of the formula interface is optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.table</code> object, a <code>data.frame</code> object, list containing
+multiple <code>data.table</code> or <code>data.frame</code> objects, or paths to data files.
+</p>
+<p><code>data</code> should be provided if no file paths are provided to the <code>data_files</code>
+argument. If both are provided, only <code>data</code> will be used.
+</p>
+<p>All data is expected to be in wide format, and ideally has a sample
+identifier (see <code>sample_id_column</code>), batch identifier (see <code>cohort_column</code>)
+and outcome columns (see <code>outcome_column</code>).
+</p>
+<p>In case paths are provided, the data should be stored as <code>csv</code>, <code>rds</code> or
+<code>RData</code> files. See documentation for the <code>data_files</code> argument for more
+information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>experiment_data</code></td>
+<td>
+<p>Experimental data may provided in the form of</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>Cluster created using the <code>parallel</code> package. This cluster is then
+used to speed up computation through parallelisation. When a cluster is not
+provided, parallelisation is performed by setting up a cluster on the local
+machine.
+</p>
+<p>This parameter has no effect if the <code>parallel</code> argument is set to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>experimental_design</code></td>
+<td>
+<p>(<strong>required</strong>) Defines what the experiment looks
+like, e.g. <code>cv(bt(fs,20)+mb,3,2)</code> for 2 times repeated 3-fold
+cross-validation with nested feature selection on 20 bootstraps and
+model-building. The basic workflow components are:
+</p>
+
+<ul>
+<li> <p><code>fs</code>: (required) feature selection step.
+</p>
+</li>
+<li> <p><code>mb</code>: (required) model building step.
+</p>
+</li>
+<li> <p><code>ev</code>: (optional) external validation. Setting this is not required for
+<code>train_familiar</code>, but if validation batches or cohorts are present in the
+dataset (<code>data</code>), these should be indicated in the <code>validation_batch_id</code>
+argument.
+</p>
+</li>
+</ul>
+<p>The different components are linked using <code>+</code>.
+</p>
+<p>Different subsampling methods can be used in conjunction with the basic
+workflow components:
+</p>
+
+<ul>
+<li> <p><code>bs(x,n)</code>: (stratified) .632 bootstrap, with <code>n</code> the number of
+bootstraps. In contrast to <code>bt</code>, feature pre-processing parameters and
+hyperparameter optimisation are conducted on individual bootstraps.
+</p>
+</li>
+<li> <p><code>bt(x,n)</code>: (stratified) .632 bootstrap, with <code>n</code> the number of
+bootstraps. Unlike <code>bs</code> and other subsampling methods, no separate
+pre-processing parameters or optimised hyperparameters will be determined
+for each bootstrap.
+</p>
+</li>
+<li> <p><code>cv(x,n,p)</code>: (stratified) <code>n</code>-fold cross-validation, repeated <code>p</code> times.
+Pre-processing parameters are determined for each iteration.
+</p>
+</li>
+<li> <p><code>lv(x)</code>: leave-one-out-cross-validation. Pre-processing parameters are
+determined for each iteration.
+</p>
+</li>
+<li> <p><code>ip(x)</code>: imbalance partitioning for addressing class imbalances on the
+data set. Pre-processing parameters are determined for each partition. The
+number of partitions generated depends on the imbalance correction method
+(see the <code>imbalance_correction_method</code> parameter).
+</p>
+</li>
+</ul>
+<p>As shown in the example above, sampling algorithms can be nested.
+</p>
+<p>The simplest valid experimental design is <code>fs+mb</code>. This is the default in
+<code>train_familiar</code>, and will create one model for each feature selection
+method in <code>fs_method</code>. To create more models, a subsampling method should
+be introduced, e.g. <code>bs(fs+mb,20)</code> to create 20 models based on bootstraps
+of the data.
+</p>
+<p>This argument is ignored if the <code>experiment_data</code> argument is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>learner</code></td>
+<td>
+<p>(<strong>required</strong>) Name of the learner used to develop a model. A
+sizeable number learners is supported in <code>familiar</code>. Please see the
+vignette on learners for more information concerning the available
+learners. Unlike the <code>summon_familiar</code> function, <code>train_familiar</code> only
+allows for a single learner.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hyperparameter</code></td>
+<td>
+<p>(<em>optional</em>) List, or nested list containing
+hyperparameters for learners. If a nested list is provided, each sublist
+should have the name of the learner method it corresponds to, with list
+elements being named after the intended hyperparameter, e.g.
+<code>"glm_logistic"=list("sign_size"=3)</code>
+</p>
+<p>All learners have hyperparameters. Please refer to the vignette on learners
+for more details. If no parameters are provided, sequential model-based
+optimisation is used to determine optimal hyperparameters.
+</p>
+<p>Hyperparameters provided by the user are never optimised. However, if more
+than one value is provided for a single hyperparameter, optimisation will
+be conducted using these values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Indicates verbosity of the results. Default is TRUE, and all
+messages and warnings are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>.parse_experiment_settings</code>, <code>.parse_setup_settings</code>, <code>.parse_preprocessing_settings</code>, <code>.parse_feature_selection_settings</code>, <code>.parse_model_development_settings</code>, <code>.parse_hyperparameter_optimisation_settings</code>
+</p>
+
+<dl>
+<dt><code>batch_id_column</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Name of the column containing batch
+or cohort identifiers. This parameter is required if more than one dataset
+is provided, or if external validation is performed.
+</p>
+<p>In familiar any row of data is organised by four identifiers:
+</p>
+
+<ul>
+<li>
+<p> The batch identifier <code>batch_id_column</code>: This denotes the group to which a
+set of samples belongs, e.g. patients from a single study, samples measured
+in a batch, etc. The batch identifier is used for batch normalisation, as
+well as selection of development and validation datasets.
+</p>
+</li>
+<li>
+<p> The sample identifier <code>sample_id_column</code>: This denotes the sample level,
+e.g. data from a single individual. Subsets of data, e.g. bootstraps or
+cross-validation folds, are created at this level.
+</p>
+</li>
+<li>
+<p> The series identifier <code>series_id_column</code>: Indicates measurements on a
+single sample that may not share the same outcome value, e.g. a time
+series, or the number of cells in a view.
+</p>
+</li>
+<li>
+<p> The repetition identifier: Indicates repeated measurements in a single
+series where any feature values may differ, but the outcome does not.
+Repetition identifiers are always implicitly set when multiple entries for
+the same series of the same sample in the same batch that share the same
+outcome are encountered.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>sample_id_column</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Name of the column containing
+sample or subject identifiers. See <code>batch_id_column</code> above for more
+details.
+</p>
+<p>If unset, every row will be identified as a single sample.</p>
+</dd>
+<dt><code>series_id_column</code></dt>
+<dd>
+<p>(<strong>optional</strong>) Name of the column containing series
+identifiers, which distinguish between measurements that are part of a
+series for a single sample. See <code>batch_id_column</code> above for more details.
+</p>
+<p>If unset, rows which share the same batch and sample identifiers but have a
+different outcome are assigned unique series identifiers.</p>
+</dd>
+<dt><code>development_batch_id</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more batch or cohort
+identifiers to constitute data sets for development. Defaults to all, or
+all minus the identifiers in <code>validation_batch_id</code> for external validation.
+Required if external validation is performed and <code>validation_batch_id</code> is
+not provided.</p>
+</dd>
+<dt><code>validation_batch_id</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more batch or cohort
+identifiers to constitute data sets for external validation. Defaults to
+all data sets except those in <code>development_batch_id</code> for external
+validation, or none if not. Required if <code>development_batch_id</code> is not
+provided.</p>
+</dd>
+<dt><code>outcome_name</code></dt>
+<dd>
+<p>(<em>optional</em>) Name of the modelled outcome. This name will
+be used in figures created by <code>familiar</code>.
+</p>
+<p>If not set, the column name in <code>outcome_column</code> will be used for
+<code>binomial</code>, <code>multinomial</code>, <code>count</code> and <code>continuous</code> outcomes. For other
+outcomes (<code>survival</code> and <code>competing_risk</code>) no default is used.</p>
+</dd>
+<dt><code>outcome_column</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Name of the column containing the
+outcome of interest. May be identified from a formula, if a formula is
+provided as an argument. Otherwise an error is raised. Note that <code>survival</code>
+and <code>competing_risk</code> outcome type outcomes require two columns that
+indicate the time-to-event or the time of last follow-up and the event
+status.</p>
+</dd>
+<dt><code>outcome_type</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Type of outcome found in the outcome
+column. The outcome type determines many aspects of the overall process,
+e.g. the available feature selection methods and learners, but also the
+type of assessments that can be conducted to evaluate the resulting models.
+Implemented outcome types are:
+</p>
+
+<ul>
+<li> <p><code>binomial</code>: categorical outcome with 2 levels.
+</p>
+</li>
+<li> <p><code>multinomial</code>: categorical outcome with 2 or more levels.
+</p>
+</li>
+<li> <p><code>count</code>: Poisson-distributed numeric outcomes.
+</p>
+</li>
+<li> <p><code>continuous</code>: general continuous numeric outcomes.
+</p>
+</li>
+<li> <p><code>survival</code>: survival outcome for time-to-event data.
+</p>
+</li>
+</ul>
+<p>If not provided, the algorithm will attempt to obtain outcome_type from
+contents of the outcome column. This may lead to unexpected results, and we
+therefore advise to provide this information manually.
+</p>
+<p>Note that <code>competing_risk</code> survival analysis are not fully supported, and
+is currently not a valid choice for <code>outcome_type</code>.</p>
+</dd>
+<dt><code>class_levels</code></dt>
+<dd>
+<p>(<em>optional</em>) Class levels for <code>binomial</code> or <code>multinomial</code>
+outcomes. This argument can be used to specify the ordering of levels for
+categorical outcomes. These class levels must exactly match the levels
+present in the outcome column.</p>
+</dd>
+<dt><code>event_indicator</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Indicator for events in <code>survival</code>
+and <code>competing_risk</code> analyses. <code>familiar</code> will automatically recognise <code>1</code>,
+<code>true</code>, <code>t</code>, <code>y</code> and <code>yes</code> as event indicators, including different
+capitalisations. If this parameter is set, it replaces the default values.</p>
+</dd>
+<dt><code>censoring_indicator</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Indicator for right-censoring in
+<code>survival</code> and <code>competing_risk</code> analyses. <code>familiar</code> will automatically
+recognise <code>0</code>, <code>false</code>, <code>f</code>, <code>n</code>, <code>no</code> as censoring indicators, including
+different capitalisations. If this parameter is set, it replaces the
+default values.</p>
+</dd>
+<dt><code>competing_risk_indicator</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Indicator for competing
+risks in <code>competing_risk</code> analyses. There are no default values, and if
+unset, all values other than those specified by the <code>event_indicator</code> and
+<code>censoring_indicator</code> parameters are considered to indicate competing
+risks.</p>
+</dd>
+<dt><code>signature</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more names of feature columns that are
+considered part of a specific signature. Features specified here will
+always be used for modelling. Ranking from feature selection has no effect
+for these features.</p>
+</dd>
+<dt><code>novelty_features</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more names of feature columns
+that should be included for the purpose of novelty detection.</p>
+</dd>
+<dt><code>exclude_features</code></dt>
+<dd>
+<p>(<em>optional</em>) Feature columns that will be removed
+from the data set. Cannot overlap with features in <code>signature</code>,
+<code>novelty_features</code> or <code>include_features</code>.</p>
+</dd>
+<dt><code>include_features</code></dt>
+<dd>
+<p>(<em>optional</em>) Feature columns that are specifically
+included in the data set. By default all features are included. Cannot
+overlap with <code>exclude_features</code>, but may overlap <code>signature</code>. Features in
+<code>signature</code> and <code>novelty_features</code> are always included. If both
+<code>exclude_features</code> and <code>include_features</code> are provided, <code>include_features</code>
+takes precedence, provided that there is no overlap between the two.</p>
+</dd>
+<dt><code>reference_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Method used to set reference levels for
+categorical features. There are several options:
+</p>
+
+<ul>
+<li> <p><code>auto</code> (default): Categorical features that are not explicitly set by the
+user, i.e. columns containing boolean values or characters, use the most
+frequent level as reference. Categorical features that are explicitly set,
+i.e. as factors, are used as is.
+</p>
+</li>
+<li> <p><code>always</code>: Both automatically detected and user-specified categorical
+features have the reference level set to the most frequent level. Ordinal
+features are not altered, but are used as is.
+</p>
+</li>
+<li> <p><code>never</code>: User-specified categorical features are used as is.
+Automatically detected categorical features are simply sorted, and the
+first level is then used as the reference level. This was the behaviour
+prior to familiar version 1.3.0.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>imbalance_correction_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Type of method used to
+address class imbalances. Available options are:
+</p>
+
+<ul>
+<li> <p><code>full_undersampling</code> (default): All data will be used in an ensemble
+fashion. The full minority class will appear in each partition, but
+majority classes are undersampled until all data have been used.
+</p>
+</li>
+<li> <p><code>random_undersampling</code>: Randomly undersamples majority classes. This is
+useful in cases where full undersampling would lead to the formation of
+many models due major overrepresentation of the largest class.
+</p>
+</li>
+</ul>
+<p>This parameter is only used in combination with imbalance partitioning in
+the experimental design, and <code>ip</code> should therefore appear in the string
+that defines the design.</p>
+</dd>
+<dt><code>imbalance_n_partitions</code></dt>
+<dd>
+<p>(<em>optional</em>) Number of times random
+undersampling should be repeated. 10 undersampled subsets with balanced
+classes are formed by default.</p>
+</dd>
+<dt><code>parallel</code></dt>
+<dd>
+<p>(<em>optional</em>) Enable parallel processing. Defaults to <code>TRUE</code>.
+When set to <code>FALSE</code>, this disables all parallel processing, regardless of
+specific parameters such as <code>parallel_preprocessing</code>. However, when
+<code>parallel</code> is <code>TRUE</code>, parallel processing of different parts of the
+workflow can be disabled by setting respective flags to <code>FALSE</code>.</p>
+</dd>
+<dt><code>parallel_nr_cores</code></dt>
+<dd>
+<p>(<em>optional</em>) Number of cores available for
+parallelisation. Defaults to 2. This setting does nothing if
+parallelisation is disabled.</p>
+</dd>
+<dt><code>restart_cluster</code></dt>
+<dd>
+<p>(<em>optional</em>) Restart nodes used for parallel computing
+to free up memory prior to starting a parallel process. Note that it does
+take time to set up the clusters. Therefore setting this argument to <code>TRUE</code>
+may impact processing speed. This argument is ignored if <code>parallel</code> is
+<code>FALSE</code> or the cluster was initialised outside of familiar. Default is
+<code>FALSE</code>, which causes the clusters to be initialised only once.</p>
+</dd>
+<dt><code>cluster_type</code></dt>
+<dd>
+<p>(<em>optional</em>) Selection of the cluster type for parallel
+processing. Available types are the ones supported by the parallel package
+that is part of the base R distribution: <code>psock</code> (default), <code>fork</code>, <code>mpi</code>,
+<code>nws</code>, <code>sock</code>. In addition, <code>none</code> is available, which also disables
+parallel processing.</p>
+</dd>
+<dt><code>backend_type</code></dt>
+<dd>
+<p>(<em>optional</em>) Selection of the backend for distributing
+copies of the data. This backend ensures that only a single master copy is
+kept in memory. This limits memory usage during parallel processing.
+</p>
+<p>Several backend options are available, notably <code>socket_server</code>, and <code>none</code>
+(default). <code>socket_server</code> is based on the callr package and R sockets,
+comes with <code>familiar</code> and is available for any OS. <code>none</code> uses the package
+environment of familiar to store data, and is available for any OS.
+However, <code>none</code> requires copying of data to any parallel process, and has a
+larger memory footprint.</p>
+</dd>
+<dt><code>server_port</code></dt>
+<dd>
+<p>(<em>optional</em>) Integer indicating the port on which the
+socket server or RServe process should communicate. Defaults to port 6311.
+Note that ports 0 to 1024 and 49152 to 65535 cannot be used.</p>
+</dd>
+<dt><code>feature_max_fraction_missing</code></dt>
+<dd>
+<p>(<em>optional</em>) Numeric value between <code>0.0</code>
+and <code>0.95</code> that determines the meximum fraction of missing values that
+still allows a feature to be included in the data set. All features with a
+missing value fraction over this threshold are not processed further. The
+default value is <code>0.30</code>.</p>
+</dd>
+<dt><code>sample_max_fraction_missing</code></dt>
+<dd>
+<p>(<em>optional</em>) Numeric value between <code>0.0</code>
+and <code>0.95</code> that determines the maximum fraction of missing values that
+still allows a sample to be included in the data set. All samples with a
+missing value fraction over this threshold are excluded and not processed
+further. The default value is <code>0.30</code>.</p>
+</dd>
+<dt><code>filter_method</code></dt>
+<dd>
+<p>(<em>optional</em>) One or methods used to reduce
+dimensionality of the data set by removing irrelevant or poorly
+reproducible features.
+</p>
+<p>Several method are available:
+</p>
+
+<ul>
+<li> <p><code>none</code> (default): None of the features will be filtered.
+</p>
+</li>
+<li> <p><code>low_variance</code>: Features with a variance below the
+<code>low_var_minimum_variance_threshold</code> are filtered. This can be useful to
+filter, for example, genes that are not differentially expressed.
+</p>
+</li>
+<li> <p><code>univariate_test</code>: Features undergo a univariate regression using an
+outcome-appropriate regression model. The p-value of the model coefficient
+is collected. Features with coefficient p or q-value above the
+<code>univariate_test_threshold</code> are subsequently filtered.
+</p>
+</li>
+<li> <p><code>robustness</code>: Features that are not sufficiently robust according to the
+intraclass correlation coefficient are filtered. Use of this method
+requires that repeated measurements are present in the data set, i.e. there
+should be entries for which the sample and cohort identifiers are the same.
+</p>
+</li>
+</ul>
+<p>More than one method can be used simultaneously. Features with singular
+values are always filtered, as these do not contain information.</p>
+</dd>
+<dt><code>univariate_test_threshold</code></dt>
+<dd>
+<p>(<em>optional</em>) Numeric value between <code>1.0</code> and
+<code>0.0</code> that determines which features are irrelevant and will be filtered by
+the <code>univariate_test</code>. The p or q-values are compared to this threshold.
+All features with values above the threshold are filtered. The default
+value is <code>0.20</code>.</p>
+</dd>
+<dt><code>univariate_test_threshold_metric</code></dt>
+<dd>
+<p>(<em>optional</em>) Metric used with the to
+compare the <code>univariate_test_threshold</code> against. The following metrics can
+be chosen:
+</p>
+
+<ul>
+<li> <p><code>p_value</code> (default): The unadjusted p-value of each feature is used for
+to filter features.
+</p>
+</li>
+<li> <p><code>q_value</code>: The q-value (Story, 2002), is used to filter features. Some
+data sets may have insufficient samples to compute the q-value. The
+<code>qvalue</code> package must be installed from Bioconductor to use this method.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>univariate_test_max_feature_set_size</code></dt>
+<dd>
+<p>(<em>optional</em>) Maximum size of the
+feature set after the univariate test. P or q values of features are
+compared against the threshold, but if the resulting data set would be
+larger than this setting, only the most relevant features up to the desired
+feature set size are selected.
+</p>
+<p>The default value is <code>NULL</code>, which causes features to be filtered based on
+their relevance only.</p>
+</dd>
+<dt><code>low_var_minimum_variance_threshold</code></dt>
+<dd>
+<p>(required, if used) Numeric value
+that determines which features will be filtered by the <code>low_variance</code>
+method. The variance of each feature is computed and compared to the
+threshold. If it is below the threshold, the feature is removed.
+</p>
+<p>This parameter has no default value and should be set if <code>low_variance</code> is
+used.</p>
+</dd>
+<dt><code>low_var_max_feature_set_size</code></dt>
+<dd>
+<p>(<em>optional</em>) Maximum size of the feature
+set after filtering features with a low variance. All features are first
+compared against <code>low_var_minimum_variance_threshold</code>. If the resulting
+feature set would be larger than specified, only the most strongly varying
+features will be selected, up to the desired size of the feature set.
+</p>
+<p>The default value is <code>NULL</code>, which causes features to be filtered based on
+their variance only.</p>
+</dd>
+<dt><code>robustness_icc_type</code></dt>
+<dd>
+<p>(<em>optional</em>) String indicating the type of
+intraclass correlation coefficient (<code>1</code>, <code>2</code> or <code>3</code>) that should be used to
+compute robustness for features in repeated measurements. These types
+correspond to the types in Shrout and Fleiss (1979). The default value is
+<code>1</code>.</p>
+</dd>
+<dt><code>robustness_threshold_metric</code></dt>
+<dd>
+<p>(<em>optional</em>) String indicating which
+specific intraclass correlation coefficient (ICC) metric should be used to
+filter features. This should be one of:
+</p>
+
+<ul>
+<li> <p><code>icc</code>: The estimated ICC value itself.
+</p>
+</li>
+<li> <p><code>icc_low</code> (default): The estimated lower limit of the 95% confidence
+interval of the ICC, as suggested by Koo and Li (2016).
+</p>
+</li>
+<li> <p><code>icc_panel</code>: The estimated ICC value over the panel average, i.e. the ICC
+that would be obtained if all repeated measurements were averaged.
+</p>
+</li>
+<li> <p><code>icc_panel_low</code>: The estimated lower limit of the 95% confidence interval
+of the panel ICC.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>robustness_threshold_value</code></dt>
+<dd>
+<p>(<em>optional</em>) The intraclass correlation
+coefficient value that is as threshold. The default value is <code>0.70</code>.</p>
+</dd>
+<dt><code>transformation_method</code></dt>
+<dd>
+<p>(<em>optional</em>) The transformation method used to
+change the distribution of the data to be more normal-like. The following
+methods are available:
+</p>
+
+<ul>
+<li> <p><code>none</code>: This disables transformation of features.
+</p>
+</li>
+<li> <p><code>yeo_johnson</code>: Transformation using the location and scale invariant
+version of the Yeo-Johnson transformation (Yeo and Johnson, 2000;
+Zwanenburg and Löck, 2023).
+</p>
+</li>
+<li> <p><code>yeo_johnson_robust</code> (default): A robust version of <code>yeo_johnson</code>.
+This method is less sensitive to outliers.
+</p>
+</li>
+<li> <p><code>yeo_johnson_conventional</code>: As <code>yeo_johnson</code>, but without optimisation of
+location and scale parameters. This method is equivalent to the original
+transformation proposed by Yeo and Johnson (2001).
+</p>
+</li>
+<li> <p><code>box_cox</code>: Transformation using the location and scale invariant version
+of the Box-Cox transformation (Box and Cox, 1964; Zwanenburg and Löck,
+2023).
+</p>
+</li>
+<li> <p><code>box_cox_robust</code>: A robust version of <code>yeo_johnson</code>. This method is less
+sensitive to outliers.
+</p>
+</li>
+<li> <p><code>box_cox_conventional</code>: As <code>box_cox</code>, but without optimisation of
+location and scale parameters. This method is equivalent to the original
+transformation proposed by Box and Cox (1964). This method requires
+strictly positive feature values.
+</p>
+</li>
+</ul>
+<p>Transformation requires the <code>power.transform</code> package. Only features that
+contain numerical data are transformed. Transformation parameters obtained
+in development data are stored within <code>featureInfo</code> objects for later use
+with validation data sets.</p>
+</dd>
+<dt><code>transformation_optimisation_criterion</code></dt>
+<dd>
+<p>(<em>optional</em>) Transformation
+parameters are optimised using a criterion, conventionally
+maximum-likelihood-estimation. <code>power.transform</code> implements multiple
+optimisation criteria, of which the following are available:
+</p>
+
+<ul>
+<li> <p><code>mle</code> (default): Optimisation using maximum likelihood estimation.
+</p>
+</li>
+<li> <p><code>cramer_von_mises</code>: Optimisation using the Cramér-von Mises
+criterion. Zwanenburg and Löck (2023) found that this criterion was
+relatively robust against outliers.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>transformation_gof_test_p_value</code></dt>
+<dd>
+<p>(<em>optional</em>) Not all transformations
+will lead to features that are roughly normally distributed. Zwanenburg and
+Löck (2023) established a empirical goodness-of-fit test for central
+normality. This parameter sets the significance for rejecting the
+null-hypothesis that a feature distribution is centrally normal. When the
+null-hypothesis is rejected, no transformation is performed. The default
+value is <code>NULL</code>, which disables the test.</p>
+</dd>
+<dt><code>normalisation_method</code></dt>
+<dd>
+<p>(<em>optional</em>) The normalisation method used to
+improve the comparability between numerical features that may have very
+different scales. The following normalisation methods can be chosen:
+</p>
+
+<ul>
+<li> <p><code>none</code>: This disables feature normalisation.
+</p>
+</li>
+<li> <p><code>standardisation</code>: Features are normalised by subtraction of their mean
+values and division by their standard deviations. This causes every feature
+to be have a center value of 0.0 and standard deviation of 1.0.
+</p>
+</li>
+<li> <p><code>standardisation_trim</code>: As <code>standardisation</code>, but based on the set of
+feature values where the 5% lowest and 5% highest values are discarded.
+This reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>standardisation_winsor</code>: As <code>standardisation</code>, but based on the set of
+feature values where the 5% lowest and 5% highest values are winsorised.
+This reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>standardisation_robust</code> (default): A robust version of <code>standardisation</code>
+that relies on computing Huber's M-estimators for location and scale.
+</p>
+</li>
+<li> <p><code>normalisation</code>: Features are normalised by subtraction of their minimum
+values and division by their ranges. This maps all feature values to a
+<code class="reqn">[0, 1]</code> interval.
+</p>
+</li>
+<li> <p><code>normalisation_trim</code>: As <code>normalisation</code>, but based on the set of feature
+values where the 5% lowest and 5% highest values are discarded. This
+reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>normalisation_winsor</code>: As <code>normalisation</code>, but based on the set of
+feature values where the 5% lowest and 5% highest values are winsorised.
+This reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>quantile</code>: Features are normalised by subtraction of their median values
+and division by their interquartile range.
+</p>
+</li>
+<li> <p><code>mean_centering</code>: Features are centered by substracting the mean, but do
+not undergo rescaling.
+</p>
+</li>
+</ul>
+<p>Only features that contain numerical data are normalised. Normalisation
+parameters obtained in development data are stored within <code>featureInfo</code>
+objects for later use with validation data sets.</p>
+</dd>
+<dt><code>batch_normalisation_method</code></dt>
+<dd>
+<p>(<em>optional</em>) The method used for batch
+normalisation. Available methods are:
+</p>
+
+<ul>
+<li> <p><code>none</code> (default): This disables batch normalisation of features.
+</p>
+</li>
+<li> <p><code>standardisation</code>: Features within each batch are normalised by
+subtraction of the mean value and division by the standard deviation in
+each batch.
+</p>
+</li>
+<li> <p><code>standardisation_trim</code>: As <code>standardisation</code>, but based on the set of
+feature values where the 5% lowest and 5% highest values are discarded.
+This reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>standardisation_winsor</code>: As <code>standardisation</code>, but based on the set of
+feature values where the 5% lowest and 5% highest values are winsorised.
+This reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>standardisation_robust</code>: A robust version of <code>standardisation</code> that
+relies on computing Huber's M-estimators for location and scale within each
+batch.
+</p>
+</li>
+<li> <p><code>normalisation</code>: Features within each batch are normalised by subtraction
+of their minimum values and division by their range in each batch. This
+maps all feature values in each batch to a <code class="reqn">[0, 1]</code> interval.
+</p>
+</li>
+<li> <p><code>normalisation_trim</code>: As <code>normalisation</code>, but based on the set of feature
+values where the 5% lowest and 5% highest values are discarded. This
+reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>normalisation_winsor</code>: As <code>normalisation</code>, but based on the set of
+feature values where the 5% lowest and 5% highest values are winsorised.
+This reduces the effect of outliers.
+</p>
+</li>
+<li> <p><code>quantile</code>: Features in each batch are normalised by subtraction of the
+median value and division by the interquartile range of each batch.
+</p>
+</li>
+<li> <p><code>mean_centering</code>: Features in each batch are centered on 0.0 by
+substracting the mean value in each batch, but are not rescaled.
+</p>
+</li>
+<li> <p><code>combat_parametric</code>: Batch adjustments using parametric empirical Bayes
+(Johnson et al, 2007). <code>combat_p</code> leads to the same method.
+</p>
+</li>
+<li> <p><code>combat_non_parametric</code>: Batch adjustments using non-parametric empirical
+Bayes (Johnson et al, 2007). <code>combat_np</code> and <code>combat</code> lead to the same
+method. Note that we reduced complexity from O(<code class="reqn">n^2</code>) to O(<code class="reqn">n</code>) by
+only computing batch adjustment parameters for each feature on a subset of
+50 randomly selected features, instead of all features.
+</p>
+</li>
+</ul>
+<p>Only features that contain numerical data are normalised using batch
+normalisation. Batch normalisation parameters obtained in development data
+are stored within <code>featureInfo</code> objects for later use with validation data
+sets, in case the validation data is from the same batch.
+</p>
+<p>If validation data contains data from unknown batches, normalisation
+parameters are separately determined for these batches.
+</p>
+<p>Note that for both empirical Bayes methods, the batch effect is assumed to
+produce results across the features. This is often true for things such as
+gene expressions, but the assumption may not hold generally.
+</p>
+<p>When performing batch normalisation, it is moreover important to check that
+differences between batches or cohorts are not related to the studied
+endpoint.</p>
+</dd>
+<dt><code>imputation_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Method used for imputing missing
+feature values. Two methods are implemented:
+</p>
+
+<ul>
+<li> <p><code>simple</code>: Simple replacement of a missing value by the median value (for
+numeric features) or the modal value (for categorical features).
+</p>
+</li>
+<li> <p><code>lasso</code>: Imputation of missing value by lasso regression (using <code>glmnet</code>)
+based on information contained in other features.
+</p>
+</li>
+</ul>
+<p><code>simple</code> imputation precedes <code>lasso</code> imputation to ensure that any missing
+values in predictors required for <code>lasso</code> regression are resolved. The
+<code>lasso</code> estimate is then used to replace the missing value.
+</p>
+<p>The default value depends on the number of features in the dataset. If the
+number is lower than 100, <code>lasso</code> is used by default, and <code>simple</code>
+otherwise.
+</p>
+<p>Only single imputation is performed. Imputation models and parameters are
+stored within <code>featureInfo</code> objects for later use with validation data
+sets.</p>
+</dd>
+<dt><code>cluster_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Clustering is performed to identify and
+replace redundant features, for example those that are highly correlated.
+Such features do not carry much additional information and may be removed
+or replaced instead (Park et al., 2007; Tolosi and Lengauer, 2011).
+</p>
+<p>The cluster method determines the algorithm used to form the clusters. The
+following cluster methods are implemented:
+</p>
+
+<ul>
+<li> <p><code>none</code>: No clustering is performed.
+</p>
+</li>
+<li> <p><code>hclust</code> (default): Hierarchical agglomerative clustering. If the
+<code>fastcluster</code> package is installed, <code>fastcluster::hclust</code> is used (Muellner
+2013), otherwise <code>stats::hclust</code> is used.
+</p>
+</li>
+<li> <p><code>agnes</code>: Hierarchical clustering using agglomerative nesting (Kaufman and
+Rousseeuw, 1990). This algorithm is similar to <code>hclust</code>, but uses the
+<code>cluster::agnes</code> implementation.
+</p>
+</li>
+<li> <p><code>diana</code>: Divisive analysis hierarchical clustering. This method uses
+divisive instead of agglomerative clustering (Kaufman and Rousseeuw, 1990).
+<code>cluster::diana</code> is used.
+</p>
+</li>
+<li> <p><code>pam</code>: Partioning around medioids. This partitions the data into $k$
+clusters around medioids (Kaufman and Rousseeuw, 1990). $k$ is selected
+using the <code>silhouette</code> metric. <code>pam</code> is implemented using the
+<code>cluster::pam</code> function.
+</p>
+</li>
+</ul>
+<p>Clusters and cluster information is stored within <code>featureInfo</code> objects for
+later use with validation data sets. This enables reproduction of the same
+clusters as formed in the development data set.</p>
+</dd>
+<dt><code>cluster_linkage_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Linkage method used for
+agglomerative clustering in <code>hclust</code> and <code>agnes</code>. The following linkage
+methods can be used:
+</p>
+
+<ul>
+<li> <p><code>average</code> (default): Average linkage.
+</p>
+</li>
+<li> <p><code>single</code>: Single linkage.
+</p>
+</li>
+<li> <p><code>complete</code>: Complete linkage.
+</p>
+</li>
+<li> <p><code>weighted</code>: Weighted linkage, also known as McQuitty linkage.
+</p>
+</li>
+<li> <p><code>ward</code>: Linkage using Ward's minimum variance method.
+</p>
+</li>
+</ul>
+<p><code>diana</code> and <code>pam</code> do not require a linkage method.</p>
+</dd>
+<dt><code>cluster_cut_method</code></dt>
+<dd>
+<p>(<em>optional</em>) The method used to define the actual
+clusters. The following methods can be used:
+</p>
+
+<ul>
+<li> <p><code>silhouette</code>: Clusters are formed based on the silhouette score
+(Rousseeuw, 1987). The average silhouette score is computed from 2 to
+<code class="reqn">n</code> clusters, with <code class="reqn">n</code> the number of features. Clusters are only
+formed if the average silhouette exceeds 0.50, which indicates reasonable
+evidence for structure. This procedure may be slow if the number of
+features is large (&gt;100s).
+</p>
+</li>
+<li> <p><code>fixed_cut</code>: Clusters are formed by cutting the hierarchical tree at the
+point indicated by the <code>cluster_similarity_threshold</code>, e.g. where features
+in a cluster have an average Spearman correlation of 0.90. <code>fixed_cut</code> is
+only available for <code>agnes</code>, <code>diana</code> and <code>hclust</code>.
+</p>
+</li>
+<li> <p><code>dynamic_cut</code>: Dynamic cluster formation using the cutting algorithm in
+the <code>dynamicTreeCut</code> package. This package should be installed to select
+this option. <code>dynamic_cut</code> can only be used with <code>agnes</code> and <code>hclust</code>.
+</p>
+</li>
+</ul>
+<p>The default options are <code>silhouette</code> for partioning around medioids (<code>pam</code>)
+and <code>fixed_cut</code> otherwise.</p>
+</dd>
+<dt><code>cluster_similarity_metric</code></dt>
+<dd>
+<p>(<em>optional</em>) Clusters are formed based on
+feature similarity. All features are compared in a pair-wise fashion to
+compute similarity, for example correlation. The resulting similarity grid
+is converted into a distance matrix that is subsequently used for
+clustering. The following metrics are supported to compute pairwise
+similarities:
+</p>
+
+<ul>
+<li> <p><code>mutual_information</code> (default): normalised mutual information.
+</p>
+</li>
+<li> <p><code>mcfadden_r2</code>: McFadden's pseudo R-squared (McFadden, 1974).
+</p>
+</li>
+<li> <p><code>cox_snell_r2</code>: Cox and Snell's pseudo R-squared (Cox and Snell, 1989).
+</p>
+</li>
+<li> <p><code>nagelkerke_r2</code>: Nagelkerke's pseudo R-squared (Nagelkerke, 1991).
+</p>
+</li>
+<li> <p><code>spearman</code>: Spearman's rank order correlation.
+</p>
+</li>
+<li> <p><code>kendall</code>: Kendall rank correlation.
+</p>
+</li>
+<li> <p><code>pearson</code>: Pearson product-moment correlation.
+</p>
+</li>
+</ul>
+<p>The pseudo R-squared metrics can be used to assess similarity between mixed
+pairs of numeric and categorical features, as these are based on the
+log-likelihood of regression models. In <code>familiar</code>, the more informative
+feature is used as the predictor and the other feature as the reponse
+variable. In numeric-categorical pairs, the numeric feature is considered
+to be more informative and is thus used as the predictor. In
+categorical-categorical pairs, the feature with most levels is used as the
+predictor.
+</p>
+<p>In case any of the classical correlation coefficients (<code>pearson</code>,
+<code>spearman</code> and <code>kendall</code>) are used with (mixed) categorical features, the
+categorical features are one-hot encoded and the mean correlation over all
+resulting pairs is used as similarity.</p>
+</dd>
+<dt><code>cluster_similarity_threshold</code></dt>
+<dd>
+<p>(<em>optional</em>) The threshold level for
+pair-wise similarity that is required to form clusters using <code>fixed_cut</code>.
+This should be a numerical value between 0.0 and 1.0. Note however, that a
+reasonable threshold value depends strongly on the similarity metric. The
+following are the default values used:
+</p>
+
+<ul>
+<li> <p><code>mcfadden_r2</code> and <code>mutual_information</code>: <code>0.30</code>
+</p>
+</li>
+<li> <p><code>cox_snell_r2</code> and <code>nagelkerke_r2</code>: <code>0.75</code>
+</p>
+</li>
+<li> <p><code>spearman</code>, <code>kendall</code> and <code>pearson</code>: <code>0.90</code>
+</p>
+</li>
+</ul>
+<p>Alternatively, if the <code style="white-space: pre;">⁠fixed cut⁠</code> method is not used, this value determines
+whether any clustering should be performed, because the data may not
+contain highly similar features. The default values in this situation are:
+</p>
+
+<ul>
+<li> <p><code>mcfadden_r2</code>  and <code>mutual_information</code>: <code>0.25</code>
+</p>
+</li>
+<li> <p><code>cox_snell_r2</code> and <code>nagelkerke_r2</code>: <code>0.40</code>
+</p>
+</li>
+<li> <p><code>spearman</code>, <code>kendall</code> and <code>pearson</code>: <code>0.70</code>
+</p>
+</li>
+</ul>
+<p>The threshold value is converted to a distance (1-similarity) prior to
+cutting hierarchical trees.</p>
+</dd>
+<dt><code>cluster_representation_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Method used to determine
+how the information of co-clustered features is summarised and used to
+represent the cluster. The following methods can be selected:
+</p>
+
+<ul>
+<li> <p><code>best_predictor</code> (default): The feature with the highest importance
+according to univariate regression with the outcome is used to represent
+the cluster.
+</p>
+</li>
+<li> <p><code>medioid</code>: The feature closest to the cluster center, i.e. the feature
+that is most similar to the remaining features in the cluster, is used to
+represent the feature.
+</p>
+</li>
+<li> <p><code>mean</code>: A meta-feature is generated by averaging the feature values for
+all features in a cluster. This method aligns all features so that all
+features will be positively correlated prior to averaging. Should a cluster
+contain one or more categorical features, the <code>medioid</code> method will be used
+instead, as averaging is not possible. Note that if this method is chosen,
+the <code>normalisation_method</code> parameter should be one of <code>standardisation</code>,
+<code>standardisation_trim</code>, <code>standardisation_winsor</code> or <code>quantile</code>.'
+</p>
+</li>
+</ul>
+<p>If the <code>pam</code> cluster method is selected, only the <code>medioid</code> method can be
+used. In that case 1 medioid is used by default.</p>
+</dd>
+<dt><code>parallel_preprocessing</code></dt>
+<dd>
+<p>(<em>optional</em>) Enable parallel processing for the
+preprocessing workflow. Defaults to <code>TRUE</code>. When set to <code>FALSE</code>, this will
+disable the use of parallel processing while preprocessing, regardless of
+the settings of the <code>parallel</code> parameter. <code>parallel_preprocessing</code> is
+ignored if <code>parallel=FALSE</code>.</p>
+</dd>
+<dt><code>fs_method</code></dt>
+<dd>
+<p>(<strong>required</strong>) Feature selection method to be used for
+determining variable importance. <code>familiar</code> implements various feature
+selection methods. Please refer to the vignette on feature selection
+methods for more details.
+</p>
+<p>More than one feature selection method can be chosen. The experiment will
+then repeated for each feature selection method.
+</p>
+<p>Feature selection methods determines the ranking of features. Actual
+selection of features is done by optimising the signature size model
+hyperparameter during the hyperparameter optimisation step.</p>
+</dd>
+<dt><code>fs_method_parameter</code></dt>
+<dd>
+<p>(<em>optional</em>) List of lists containing parameters
+for feature selection methods. Each sublist should have the name of the
+feature selection method it corresponds to.
+</p>
+<p>Most feature selection methods do not have parameters that can be set.
+Please refer to the vignette on feature selection methods for more details.
+Note that if the feature selection method is based on a learner (e.g. lasso
+regression), hyperparameter optimisation may be performed prior to
+assessing variable importance.</p>
+</dd>
+<dt><code>vimp_aggregation_method</code></dt>
+<dd>
+<p>(<em>optional</em>) The method used to aggregate
+variable importances over different data subsets, e.g. bootstraps. The
+following methods can be selected:
+</p>
+
+<ul>
+<li> <p><code>none</code>: Don't aggregate ranks, but rather aggregate the variable
+importance scores themselves.
+</p>
+</li>
+<li> <p><code>mean</code>: Use the mean rank of a feature over the subsets to
+determine the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>median</code>: Use the median rank of a feature over the subsets to determine
+the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>best</code>: Use the best rank the feature obtained in any subset to determine
+the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>worst</code>: Use the worst rank the feature obtained in any subset to
+determine the aggregated feature rank.
+</p>
+</li>
+<li> <p><code>stability</code>: Use the frequency of the feature being in the subset of
+highly ranked features as measure for the aggregated feature rank
+(Meinshausen and Buehlmann, 2010).
+</p>
+</li>
+<li> <p><code>exponential</code>: Use a rank-weighted frequence of occurrence in the subset
+of highly ranked features as measure for the aggregated feature rank (Haury
+et al., 2011).
+</p>
+</li>
+<li> <p><code>borda</code> (default): Use the borda count as measure for the aggregated
+feature rank (Wald et al., 2012).
+</p>
+</li>
+<li> <p><code>enhanced_borda</code>: Use an occurrence frequency-weighted borda count as
+measure for the aggregated feature rank (Wald et al., 2012).
+</p>
+</li>
+<li> <p><code>truncated_borda</code>: Use borda count computed only on features within the
+subset of highly ranked features.
+</p>
+</li>
+<li> <p><code>enhanced_truncated_borda</code>: Apply both the enhanced borda method and the
+truncated borda method and use the resulting borda count as the aggregated
+feature rank.
+</p>
+</li>
+</ul>
+<p>The <em>feature selection methods</em> vignette provides additional information.</p>
+</dd>
+<dt><code>vimp_aggregation_rank_threshold</code></dt>
+<dd>
+<p>(<em>optional</em>) The threshold used to
+define the subset of highly important features. If not set, this threshold
+is determined by maximising the variance in the occurrence value over all
+features over the subset size.
+</p>
+<p>This parameter is only relevant for <code>stability</code>, <code>exponential</code>,
+<code>enhanced_borda</code>, <code>truncated_borda</code> and <code>enhanced_truncated_borda</code> methods.</p>
+</dd>
+<dt><code>parallel_feature_selection</code></dt>
+<dd>
+<p>(<em>optional</em>) Enable parallel processing for
+the feature selection workflow. Defaults to <code>TRUE</code>. When set to <code>FALSE</code>,
+this will disable the use of parallel processing while performing feature
+selection, regardless of the settings of the <code>parallel</code> parameter.
+<code>parallel_feature_selection</code> is ignored if <code>parallel=FALSE</code>.</p>
+</dd>
+<dt><code>novelty_detector</code></dt>
+<dd>
+<p>(<em>optional</em>) Specify the algorithm used for training
+a novelty detector. This detector can be used to identify
+out-of-distribution data prospectively.</p>
+</dd>
+<dt><code>detector_parameters</code></dt>
+<dd>
+<p>(<em>optional</em>) List lists containing hyperparameters
+for novelty detectors. Currently not used.</p>
+</dd>
+<dt><code>parallel_model_development</code></dt>
+<dd>
+<p>(<em>optional</em>) Enable parallel processing for
+the model development workflow. Defaults to <code>TRUE</code>. When set to <code>FALSE</code>,
+this will disable the use of parallel processing while developing models,
+regardless of the settings of the <code>parallel</code> parameter.
+<code>parallel_model_development</code> is ignored if <code>parallel=FALSE</code>.</p>
+</dd>
+<dt><code>optimisation_bootstraps</code></dt>
+<dd>
+<p>(<em>optional</em>) Number of bootstraps that should
+be generated from the development data set. During the optimisation
+procedure one or more of these bootstraps (indicated by
+<code>smbo_step_bootstraps</code>) are used for model development using different
+combinations of hyperparameters. The effect of the hyperparameters is then
+assessed by comparing in-bag and out-of-bag model performance.
+</p>
+<p>The default number of bootstraps is <code>50</code>. Hyperparameter optimisation may
+finish before exhausting the set of bootstraps.</p>
+</dd>
+<dt><code>optimisation_determine_vimp</code></dt>
+<dd>
+<p>(<em>optional</em>) Logical value that indicates
+whether variable importance is determined separately for each of the
+bootstraps created during the optimisation process (<code>TRUE</code>) or the
+applicable results from the feature selection step are used (<code>FALSE</code>).
+</p>
+<p>Determining variable importance increases the initial computational
+overhead. However, it prevents positive biases for the out-of-bag data due
+to overlap of these data with the development data set used for the feature
+selection step. In this case, any hyperparameters of the variable
+importance method are not determined separately for each bootstrap, but
+those obtained during the feature selection step are used instead. In case
+multiple of such hyperparameter sets could be applicable, the set that will
+be used is randomly selected for each bootstrap.
+</p>
+<p>This parameter only affects hyperparameter optimisation of learners. The
+default is <code>TRUE</code>.</p>
+</dd>
+<dt><code>smbo_random_initialisation</code></dt>
+<dd>
+<p>(<em>optional</em>) String indicating the
+initialisation method for the hyperparameter space. Can be one of
+<code>fixed_subsample</code> (default), <code>fixed</code>, or <code>random</code>. <code>fixed</code> and
+<code>fixed_subsample</code> first create hyperparameter sets from a range of default
+values set by familiar. <code>fixed_subsample</code> then randomly draws up to
+<code>smbo_n_random_sets</code> from the grid. <code>random</code> does not rely upon a fixed
+grid, and randomly draws up to <code>smbo_n_random_sets</code> hyperparameter sets
+from the hyperparameter space.</p>
+</dd>
+<dt><code>smbo_n_random_sets</code></dt>
+<dd>
+<p>(<em>optional</em>) Number of random or subsampled
+hyperparameters drawn during the initialisation process. Default: <code>100</code>.
+Cannot be smaller than <code>10</code>. The parameter is not used when
+<code>smbo_random_initialisation</code> is <code>fixed</code>, as the entire pre-defined grid
+will be explored.</p>
+</dd>
+<dt><code>max_smbo_iterations</code></dt>
+<dd>
+<p>(<em>optional</em>) Maximum number of intensify
+iterations of the SMBO algorithm. During an intensify iteration a run-off
+occurs between the current <em>best</em> hyperparameter combination and either 10
+challenger combination with the highest expected improvement or a set of 20
+random combinations.
+</p>
+<p>Run-off with random combinations is used to force exploration of the
+hyperparameter space, and is performed every second intensify iteration, or
+if there is no expected improvement for any challenger combination.
+</p>
+<p>If a combination of hyperparameters leads to better performance on the same
+data than the incumbent <em>best</em> set of hyperparameters, it replaces the
+incumbent set at the end of the intensify iteration.
+</p>
+<p>The default number of intensify iteration is <code>20</code>. Iterations may be
+stopped early if the incumbent set of hyperparameters remains the same for
+<code>smbo_stop_convergent_iterations</code> iterations, or performance improvement is
+minimal. This behaviour is suppressed during the first 4 iterations to
+enable the algorithm to explore the hyperparameter space.</p>
+</dd>
+<dt><code>smbo_stop_convergent_iterations</code></dt>
+<dd>
+<p>(<em>optional</em>) The number of subsequent
+convergent SMBO iterations required to stop hyperparameter optimisation
+early. An iteration is convergent if the <em>best</em> parameter set has not
+changed or the optimisation score over the 4 most recent iterations has not
+changed beyond the tolerance level in <code>smbo_stop_tolerance</code>.
+</p>
+<p>The default value is <code>3</code>.</p>
+</dd>
+<dt><code>smbo_stop_tolerance</code></dt>
+<dd>
+<p>(<em>optional</em>) Tolerance for early stopping due to
+convergent optimisation score.
+</p>
+<p>The default value depends on the square root of the number of samples (at
+the series level), and is <code>0.01</code> for 100 samples. This value is computed as
+<code>0.1 * 1 / sqrt(n_samples)</code>. The upper limit is <code>0.0001</code> for 1M or more
+samples.</p>
+</dd>
+<dt><code>smbo_time_limit</code></dt>
+<dd>
+<p>(<em>optional</em>) Time limit (in minutes) for the
+optimisation process. Optimisation is stopped after this limit is exceeded.
+Time taken to determine variable importance for the optimisation process
+(see the <code>optimisation_determine_vimp</code> parameter) does not count.
+</p>
+<p>The default is <code>NULL</code>, indicating that there is no time limit for the
+optimisation process. The time limit cannot be less than 1 minute.</p>
+</dd>
+<dt><code>smbo_initial_bootstraps</code></dt>
+<dd>
+<p>(<em>optional</em>) The number of bootstraps taken
+from the set of <code>optimisation_bootstraps</code> as the bootstraps assessed
+initially.
+</p>
+<p>The default value is <code>1</code>. The value cannot be larger than
+<code>optimisation_bootstraps</code>.</p>
+</dd>
+<dt><code>smbo_step_bootstraps</code></dt>
+<dd>
+<p>(<em>optional</em>) The number of bootstraps taken from
+the set of <code>optimisation_bootstraps</code> bootstraps as the bootstraps assessed
+during the steps of each intensify iteration.
+</p>
+<p>The default value is <code>3</code>. The value cannot be larger than
+<code>optimisation_bootstraps</code>.</p>
+</dd>
+<dt><code>smbo_intensify_steps</code></dt>
+<dd>
+<p>(<em>optional</em>) The number of steps in each SMBO
+intensify iteration. Each step a new set of <code>smbo_step_bootstraps</code>
+bootstraps is drawn and used in the run-off between the incumbent <em>best</em>
+hyperparameter combination and its challengers.
+</p>
+<p>The default value is <code>5</code>. Higher numbers allow for a more detailed
+comparison, but this comes with added computational cost.</p>
+</dd>
+<dt><code>optimisation_metric</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more metrics used to compute
+performance scores. See the vignette on performance metrics for the
+available metrics.
+</p>
+<p>If unset, the following metrics are used by default:
+</p>
+
+<ul>
+<li> <p><code>auc_roc</code>: For <code>binomial</code> and <code>multinomial</code> models.
+</p>
+</li>
+<li> <p><code>mse</code>: Mean squared error for <code>continuous</code> models.
+</p>
+</li>
+<li> <p><code>msle</code>: Mean squared logarithmic error for <code>count</code> models.
+</p>
+</li>
+<li> <p><code>concordance_index</code>: For <code>survival</code> models.
+</p>
+</li>
+</ul>
+<p>Multiple optimisation metrics can be specified. Actual metric values are
+converted to an objective value by comparison with a baseline metric value
+that derives from a trivial model, i.e. majority class for binomial and
+multinomial outcomes, the median outcome for count and continuous outcomes
+and a fixed risk or time for survival outcomes.</p>
+</dd>
+<dt><code>optimisation_function</code></dt>
+<dd>
+<p>(<em>optional</em>) Type of optimisation function used
+to quantify the performance of a hyperparameter set. Model performance is
+assessed using the metric(s) specified by <code>optimisation_metric</code> on the
+in-bag (IB) and out-of-bag (OOB) samples of a bootstrap. These values are
+converted to objective scores with a standardised interval of
+<code class="reqn">[-1.0, 1.0]</code>. Each pair of objective is subsequently used to compute an
+optimisation score. The optimisation score across different bootstraps is
+than aggregated to a summary score. This summary score is used to rank
+hyperparameter sets, and select the optimal set.
+</p>
+<p>The combination of optimisation score and summary score is determined by
+the optimisation function indicated by this parameter:
+</p>
+
+<ul>
+<li> <p><code>validation</code> or <code>max_validation</code> (default): seeks to maximise OOB score.
+</p>
+</li>
+<li> <p><code>balanced</code>: seeks to balance IB and OOB score.
+</p>
+</li>
+<li> <p><code>stronger_balance</code>: similar to <code>balanced</code>, but with stronger penalty for
+differences between IB and OOB scores.
+</p>
+</li>
+<li> <p><code>validation_minus_sd</code>: seeks to optimise the average OOB score minus its
+standard deviation.
+</p>
+</li>
+<li> <p><code>validation_25th_percentile</code>: seeks to optimise the 25th percentile of
+OOB scores, and is conceptually similar to <code>validation_minus_sd</code>.
+</p>
+</li>
+<li> <p><code>model_estimate</code>: seeks to maximise the OOB score estimate predicted by
+the hyperparameter learner (not available for random search).
+</p>
+</li>
+<li> <p><code>model_estimate_minus_sd</code>: seeks to maximise the OOB score estimate minus
+its estimated standard deviation, as predicted by the hyperparameter
+learner (not available for random search).
+</p>
+</li>
+<li> <p><code>model_balanced_estimate</code>: seeks to maximise the estimate of the balanced
+IB and OOB score. This is similar to the <code>balanced</code> score, and in fact uses
+a hyperparameter learner to predict said score (not available for random
+search).
+</p>
+</li>
+<li> <p><code>model_balanced_estimate_minus_sd</code>: seeks to maximise the estimate of the
+balanced IB and OOB score, minus its estimated standard deviation. This is
+similar to the <code>balanced</code> score, but takes into account its estimated
+spread.
+</p>
+</li>
+</ul>
+<p>Additional detail are provided in the <em>Learning algorithms and
+hyperparameter optimisation</em> vignette.</p>
+</dd>
+<dt><code>hyperparameter_learner</code></dt>
+<dd>
+<p>(<em>optional</em>) Any point in the hyperparameter
+space has a single, scalar, optimisation score value that is <em>a priori</em>
+unknown. During the optimisation process, the algorithm samples from the
+hyperparameter space by selecting hyperparameter sets and computing the
+optimisation score value for one or more bootstraps. For each
+hyperparameter set the resulting values are distributed around the actual
+value. The learner indicated by <code>hyperparameter_learner</code> is then used to
+infer optimisation score estimates for unsampled parts of the
+hyperparameter space.
+</p>
+<p>The following models are available:
+</p>
+
+<ul>
+<li> <p><code>bayesian_additive_regression_trees</code> or <code>bart</code>: Uses Bayesian Additive
+Regression Trees (Sparapani et al., 2021) for inference. Unlike standard
+random forests, BART allows for estimating posterior distributions directly
+and can extrapolate.
+</p>
+</li>
+<li> <p><code>gaussian_process</code> (default): Creates a localised approximate Gaussian
+process for inference (Gramacy, 2016). This allows for better scaling than
+deterministic Gaussian Processes.
+</p>
+</li>
+<li> <p><code>random_forest</code>: Creates a random forest for inference. Originally
+suggested by Hutter et al. (2011). A weakness of random forests is their
+lack of extrapolation beyond observed values, which limits their usefulness
+in exploiting promising areas of hyperparameter space.
+</p>
+</li>
+<li> <p><code>random</code> or <code>random_search</code>: Forgoes the use of models to steer
+optimisation. Instead, a random search is performed.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>acquisition_function</code></dt>
+<dd>
+<p>(<em>optional</em>) The acquisition function influences
+how new hyperparameter sets are selected. The algorithm uses the model
+learned by the learner indicated by <code>hyperparameter_learner</code> to search the
+hyperparameter space for hyperparameter sets that are either likely better
+than the best known set (<em>exploitation</em>) or where there is considerable
+uncertainty (<em>exploration</em>). The acquisition function quantifies this
+(Shahriari et al., 2016).
+</p>
+<p>The following acquisition functions are available, and are described in
+more detail in the <em>learner algorithms</em> vignette:
+</p>
+
+<ul>
+<li> <p><code>improvement_probability</code>: The probability of improvement quantifies the
+probability that the expected optimisation score for a set is better than
+the best observed optimisation score
+</p>
+</li>
+<li> <p><code>improvement_empirical_probability</code>: Similar to
+<code>improvement_probability</code>, but based directly on optimisation scores
+predicted by the individual decision trees.
+</p>
+</li>
+<li> <p><code>expected_improvement</code> (default): Computes expected improvement.
+</p>
+</li>
+<li> <p><code>upper_confidence_bound</code>: This acquisition function is based on the upper
+confidence bound of the distribution (Srinivas et al., 2012).
+</p>
+</li>
+<li> <p><code>bayes_upper_confidence_bound</code>: This acquisition function is based on the
+upper confidence bound of the distribution (Kaufmann et al., 2012).
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>exploration_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Method used to steer exploration in
+post-initialisation intensive searching steps. As stated earlier, each SMBO
+iteration step compares suggested alternative parameter sets with an
+incumbent <strong>best</strong> set in a series of steps. The exploration method
+controls how the set of alternative parameter sets is pruned after each
+step in an iteration. Can be one of the following:
+</p>
+
+<ul>
+<li> <p><code>single_shot</code> (default): The set of alternative parameter sets is not
+pruned, and each intensification iteration contains only a single
+intensification step that only uses a single bootstrap. This is the fastest
+exploration method, but only superficially tests each parameter set.
+</p>
+</li>
+<li> <p><code>successive_halving</code>: The set of alternative parameter sets is
+pruned by removing the worst performing half of the sets after each step
+(Jamieson and Talwalkar, 2016).
+</p>
+</li>
+<li> <p><code>stochastic_reject</code>: The set of alternative parameter sets is pruned by
+comparing the performance of each parameter set with that of the incumbent
+<strong>best</strong> parameter set using a paired Wilcoxon test based on shared
+bootstraps. Parameter sets that perform significantly worse, at an alpha
+level indicated by <code>smbo_stochastic_reject_p_value</code>, are pruned.
+</p>
+</li>
+<li> <p><code>none</code>: The set of alternative parameter sets is not pruned.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>smbo_stochastic_reject_p_value</code></dt>
+<dd>
+<p>(<em>optional</em>) The p-value threshold used
+for the <code>stochastic_reject</code> exploration method.
+</p>
+<p>The default value is <code>0.05</code>.</p>
+</dd>
+<dt><code>parallel_hyperparameter_optimisation</code></dt>
+<dd>
+<p>(<em>optional</em>) Enable parallel
+processing for hyperparameter optimisation. Defaults to <code>TRUE</code>. When set to
+<code>FALSE</code>, this will disable the use of parallel processing while performing
+optimisation, regardless of the settings of the <code>parallel</code> parameter. The
+parameter moreover specifies whether parallelisation takes place within the
+optimisation algorithm (<code>inner</code>, default), or in an outer loop ( <code>outer</code>)
+over learners, data subsamples, etc.
+</p>
+<p><code>parallel_hyperparameter_optimisation</code> is ignored if <code>parallel=FALSE</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a thin wrapper around <code>summon_familiar</code>, and functions like
+it, but automatically skips all evaluation steps. Only a single learner is
+allowed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>One or more familiarModel objects.
+</p>
+
+
+</div>

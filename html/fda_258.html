@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>exponentiate.fd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Powers of a functional data ('fd') object
+</h2>
+
+<h3>Description</h3>
+
+<p>Exponentiate a functional data object where feasible.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fd'
+e1 ^ e2
+exponentiate.fd(e1, e2, tolint=.Machine$double.eps^0.75,
+  basisobj=e1$basis,
+  tolfd=sqrt(.Machine$double.eps)*
+          sqrt(sum(e1$coefs^2)+.Machine$double.eps)^abs(e2),
+  maxbasis=NULL, npoints=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>e1</code></td>
+<td>
+
+<p>object of class 'fd'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e2</code></td>
+<td>
+
+<p>a numeric vector of length 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basisobj</code></td>
+<td>
+<p>reference basis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolint</code></td>
+<td>
+
+<p>if abs(e2-round(e2))&lt;tolint, we assume e2 is an integer.  This
+simplifies the algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolfd</code></td>
+<td>
+
+<p>the maximum error allowed in the difference between the direct
+computation <code>eval.fd(e1)^e2</code> and the computed representation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxbasis</code></td>
+<td>
+
+<p>The maximum number of basis functions in growing
+<code>referencebasis</code> to achieve a fit within <code>tolfd</code>.  Default
+= 2*nbasis12+1 where nbasis12 =
+nbasis of e1^floor(e2).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npoints</code></td>
+<td>
+
+<p>The number of points at which to compute <code>eval.fd(e1)^e2</code> and
+the computed representation to evaluate the adequacy of the
+representation.  Default =
+2*maxbasis-1.  For a max Fourier
+basis, this samples the highest
+frequency at all its extrema and
+zeros.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If e1 has a B-spline basis, this uses the B-spline algorithm.
+</p>
+<p>Otherwise it throws an error unless it finds one of the following
+special cases:
+</p>
+
+<dl>
+<dt>e2 = 0</dt>
+<dd>
+<p>Return an <code>fd</code> object with a constant basis that is
+everywhere 1
+</p>
+</dd>
+<dt>e2 is a positive integer to within tolint</dt>
+<dd>
+<p>Multiply e1 by itself e2 times
+</p>
+</dd>
+<dt>e2 is positive and e1 has a Fourier basis</dt>
+<dd>
+<p>e120 &lt;- e1^floor(e2)
+</p>
+<p>outBasis &lt;- e120$basis
+</p>
+<p>rng &lt;- outBasis$rangeval
+</p>
+<p>Time &lt;- seq(rng[1], rng[2], npoints)
+</p>
+<p>e1.2 &lt;- predict(e1, Time)^e2
+</p>
+<p>fd1.2 &lt;- smooth.basis(Time, e1.2, outBasis)$
+</p>
+<p>d1.2 &lt;- (e1.2 - predict(fd1.2, Time))
+</p>
+<p>if(all(abs(d1.2)&lt;tolfd))return(fd1.2)
+</p>
+<p>Else if(outBasis$nbasis&lt;maxbasis) increase the size of outBasis
+and try again.
+</p>
+<p>Else write a warning with the max(abs(d1.2)) and return fd1.2.
+</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A function data object approximating the desired power.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arithmetic.fd</code>
+<code>basisfd</code>,
+<code>basisfd.product</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+## sin^2
+##
+
+basis3 &lt;- create.fourier.basis(nbasis=3)
+oldpar &lt;- par(no.readonly=TRUE)
+plot(basis3)
+# max = sqrt(2), so
+# integral of the square of each basis function (from 0 to 1) is 1
+integrate(function(x)sin(2*pi*x)^2, 0, 1) # = 0.5
+
+# sin(theta)
+fdsin &lt;- fd(c(0,sqrt(0.5),0), basis3)
+plot(fdsin)
+
+fdsin2 &lt;- fdsin^2
+
+# check
+fdsinsin &lt;- fdsin*fdsin
+# sin^2(pi*time) = 0.5*(1-cos(2*pi*theta) basic trig identity
+plot(fdsinsin) # good
+
+
+all.equal(fdsin2, fdsinsin)
+
+par(oldpar)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spa_boundary</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Capture the fuzzy boundary of a spatial plateau object</h2>
+
+<h3>Description</h3>
+
+<p><code>spa_boundary()</code> yields the fuzzy boundary of a homogeneous spatial plateau object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spa_boundary(pgo)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>pgo</code></td>
+<td>
+<p>A <code>pgeometry</code> object of type <code>ppoint</code>, <code>pline</code>, or <code>pregion</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The <code>spa_boundary()</code> function employs the definition of <em>fuzzy boundary</em> in the context of Spatial Plateau Algebra.
+The <em>fuzzy boundary</em> of a fuzzy spatial object has a heterogeneous nature. For instance, the fuzzy boundary of a plateau region object consists of two parts:
+</p>
+
+<ul>
+<li>
+<p> a plateau line object that corresponds to the boundary of the core of <code>A</code>.
+</p>
+</li>
+<li>
+<p> a plateau region object that comprises all points of <code>A</code> with a membership degree greater than 0 and less than 1.
+</p>
+</li>
+</ul>
+<p>This means that <code>spa_boundary()</code> returns a <code>pcomposition</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>pcomposition</code> object that represents a fuzzy boundary of the <code>pgeometry</code> object given as input.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://onlinelibrary.wiley.com/doi/10.1111/tgis.13044">Carniel, A. C.; Venâncio, P. V. A. B; Schneider, M. fsr: An R package for fuzzy spatial data handling. Transactions in GIS, vol. 27, no. 3, pp. 900-927, 2023.</a>
+</p>
+<p>Concepts and formal definitions of fuzzy boundary are introduced in:
+</p>
+
+<ul>
+<li> <p><a href="https://ieeexplore.ieee.org/document/7737976">Carniel, A. C.; Schneider, M. A Conceptual Model of Fuzzy Topological Relationships for Fuzzy Regions. In Proceedings of the 2016 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2016), pp. 2271-2278, 2016.</a>
+</p>
+</li>
+<li> <p><a href="https://ieeexplore.ieee.org/document/8491565">Carniel, A. C.; Schneider, M. Spatial Plateau Algebra: An Executable Type System for Fuzzy Spatial Data Types. In Proceedings of the 2018 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2018), pp. 1-8, 2018.</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(sf)
+library(ggplot2)
+
+# defining two different types of membership functions
+trap_mf &lt;- function(a, b, c, d) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), 1, (d - x)/(d - c), na.rm = TRUE), 0)
+  }
+}
+
+set.seed(7)
+tbl = tibble(x = runif(20, min = 0, max = 30), 
+             y = runif(20, min = 0, max = 50), 
+             z = runif(20, min = 0, max = 100))
+classes &lt;- c("cold", "hot")
+cold_mf &lt;- trap_mf(0, 10, 20, 35)
+hot_mf &lt;- trap_mf(20, 50, 100, 100)
+
+# Getting the convex hull on the points to clip plateau region objects during their constructions
+pts &lt;- st_as_sf(tbl, coords = c(1, 2))
+ch &lt;- st_convex_hull(do.call(c, st_geometry(pts)))
+
+# Using the standard fuzzification policy based on fuzzy sets
+pregions &lt;- spa_creator(tbl, classes = classes, mfs = c(cold_mf, hot_mf), base_poly = ch)
+## Not run: 
+pregions
+plot(pregions$pgeometry[[1]]) + ggtitle("Cold")
+plot(pregions$pgeometry[[2]]) + ggtitle("Hot")
+
+## End(Not run)
+# capturing and showing the boundary of each pgeometry object previously created
+boundary_cold &lt;- spa_boundary(pregions$pgeometry[[1]])
+boundary_hot &lt;- spa_boundary(pregions$pgeometry[[2]])
+## Not run: 
+plot(boundary_cold) + ggtitle("Boundary (Cold)")
+plot(boundary_hot) + ggtitle("Boundary (Hot)")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

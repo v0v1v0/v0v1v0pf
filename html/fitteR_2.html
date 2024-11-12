@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit distributions to empirical data</h2>
+
+<h3>Description</h3>
+
+<p>Fits theoretical univariate distributions from the R universe to a given set of empirical observations
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitter(
+  X,
+  dom = "discrete",
+  freq = NULL,
+  R = 100,
+  timeout = 5,
+  posList = NULL,
+  fast = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A numeric vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dom</code></td>
+<td>
+<p>A string specifying the domain of ‘X’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>The frequency of values in ‘X’. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>An integer specifying the number of bootstraps. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeout</code></td>
+<td>
+<p>An numeric value specifying the maximum time spend for a fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posList</code></td>
+<td>
+<p>A list. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fast</code></td>
+<td>
+<p>A logical. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This routine is the workhorse of the package. It takes empirical data and systematically tries to fit numerous distributions implemented in R packages to this data.
+Sometimes the empirical data is passed as a histogram. In this case ‘X’ takes the support and ‘freq’ takes the number of occurences of each value in ‘X’. Although not limited to, this makes most sense for discrete data. 
+If there is prior knowledge (or guessing) about candidate theoretical distributions, these can be specified by ‘posList’. This parameter takes a list with names of items being the package name and items being a character vector containing names of the distribtions (with prefix 'd'). If all distributions of a package should be applied, this vector is set to <code>NA</code>.
+Fitting of some distributions can be very slow. They can be skipped if ‘fast’ is set to <code>TRUE</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list serving as an unformatted report summarizing the fitting.
+</p>
+
+
+<h3>Note</h3>
+
+<p>To reduce the computational efforts, usage of the parameter ‘posList’ is recommended. If not specified, the function will try to perform fits to distributions from _ALL_ packages listed in <code>supported.packages</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Markus Boenn
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>printReport</code> for post-processing of all fits
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># continous empirical data
+x &lt;- rnorm(1000, 50, 3)
+if(requireNamespace("ExtDist")){
+r &lt;- fitter(x, dom="c", posList=list(stats=c("dexp"), ExtDist=c("dCauchy")))
+}else{
+r &lt;- fitter(x, dom="c", posList=list(stats=c("dexp", "dt")))
+}
+
+# discrete empirical data
+x &lt;- rnbinom(100, 0.5, 0.2)
+r &lt;- fitter(x, dom="dis", posList=list(stats=NA))
+
+</code></pre>
+
+
+</div>

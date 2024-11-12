@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pollination_weather</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluation of weather conditions for pollination on a daily series</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the number of days with conditions
+favorable, unfavorable and moderately favorable for insect
+pollination of fruit trees during the flowering period using
+daily weather data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pollination_weather(climdata, fendata, lat)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>climdata</code></td>
+<td>
+<p>a dataframe with daily maximum and minimum temperatures,
+wind speed and precipitation. Required columns are Year, Month, Day,
+Tmax, Tmin, u2med (daily mean wind speed) and Prec (precipitation).
+u2max (daily maximum wind speed) is optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fendata</code></td>
+<td>
+<p>a dataframe with julian day of the beginning (sbloom)
+and end (ebloom) of the flowering season. Must contain the columns
+Year, sbloom and ebloom in that order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>the latitude of the site, in decimal degrees, used to estimate 
+hourly temperatures.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Days are classified considering the classification proposed by
+Williams and Sims (1977), by accounting the number of favorable
+hours for pollination within a day. One hour is considered favorable
+if the temperature is above 12.5 C, the speed of the wind below
+4.5 m s-1 and no rainfall occurs (Williams and Sims, 1977; Ramirez and
+Davenport, 2013). Hourly wind speeds from daily values are computed
+using the formulas proposed by Guo et al (2016), using mean daily
+values (u2med, required) and maximum ones (u2max, optional). If 
+only mean wind values are available, the function uses a modified
+version of the Guo formula, so that the maximum values are obtained in 
+daytime hours. No hourly downscaling of rainfall is performed, the 
+function allow daily rainfall below 2.0 mm when estimating if a day
+is favorable for pollination or not.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data frame with the columns Year, Sbloom (bloom start, DOY)
+, Ebloom (end of bloom, DOY), Bloom_length (in days), Fav_d (number of
+favorable days), Modfav_d (number of moderately favorable days) and
+Unfav_d (number of unfavorable days).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carlos Miranda, <a href="mailto:carlos.miranda@unavarra.es">carlos.miranda@unavarra.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Guo Z, Chang C, Wang R, 2016. A novel method to downscale daily wind
+statistics to hourly wind data for wind erosion modelling. In: Bian F.,
+Xie Y. (eds) Geo-Informatics in Resource Management and Sustainable
+Ecosystem. GRMSE 2015. Communications in Computer and Information Science,
+vol 569. Springer, Berlin, Heidelberg
+</p>
+<p>Ramirez F and Davenport TL, 2013. Apple pollination: A review. Scientia
+Horticulturae 162, 188-203.
+</p>
+<p>Williams RR, Sims FP, 1977. The importance of weather and variability
+in flowering time when deciding pollination schemes for Cox's Orange
+Pippin. Experimental Horticulture 29, 15-26.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Estimate weather conditions during blooming season using the example
+# datasets included in the package
+library(magrittr)
+library(dplyr)
+library(lubridate)
+Bloom_BT &lt;- Dates_BT %&gt;% 
+   select(Year, sbloom, ebloom) %&gt;% 
+   filter(Dates_BT$Year&lt;=2002)
+Weather &lt;- Tudela_DW %&gt;%
+   filter (Tudela_DW$Year&lt;=2002)
+Pol_weather_BT &lt;- pollination_weather(Weather,Bloom_BT,42.13132)
+
+</code></pre>
+
+
+</div>

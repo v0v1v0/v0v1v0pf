@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RoMFDI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Robust Multivariate Functional Data Imputation (RoMFDI)</h2>
+
+<h3>Description</h3>
+
+<p>It performs Robust Multivariate Functional Data Imputation (RoMFDI)
+as in Capezza et al. (2024).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RoMFDI(
+  mfdobj,
+  method_pca = "ROBPCA",
+  fev = 0.999,
+  n_dataset = 3,
+  update = TRUE,
+  niter_update = 10,
+  alpha = 0.8
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mfdobj</code></td>
+<td>
+<p>A multivariate functional data object of class mfd.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method_pca</code></td>
+<td>
+<p>The method used in <code>rpca_mfd</code> to perform
+robust multivariate functional principal component analysis (RoMFPCA).
+See <code>rpca_mfd</code>.
+Default is <code>"ROBPCA"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fev</code></td>
+<td>
+<p>Number between 0 and 1 denoting the proportion
+of variability that must be explained by the
+principal components to be selected for dimension reduction after
+applying RoMFPCA on the observed components to impute the missing ones.
+Default is 0.999.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_dataset</code></td>
+<td>
+<p>To take into account the increased noise due to single imputation,
+the proposed RoMFDI allows multiple imputation.
+Due to the presence of the stochastic component in the imputation,
+it is worth explicitly noting that the imputed data set
+is not deterministically assigned.
+Therefore, by performing several times the RoMFDI in the
+imputation step of the
+RoMFCC implementation, the corresponding multiple estimated
+RoMFPCA models could
+be combined by averaging the robustly estimated covariance functions,
+thus performing a
+multiple imputation strategy as suggested by Van Ginkel et al. (2007).
+Default is 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>The RoMFDI performs sequential imputation of missing functional
+components.
+If TRUE, Robust Multivariate Functional
+Principal Component Analysis (RoMFPCA) <code>niter_update</code> is updated times
+during the algorithm.
+If FALSE, the RoMFPCA used for imputation is always the same, i.e.,
+the one performed on the original data sets containing only
+the observations with no missing functional components.
+Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter_update</code></td>
+<td>
+<p>The number of times the RoMFPCA is updated during the algorithm.
+It applies only if update is TRUE. Default value is 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>This parameter measures the fraction of outliers the
+RoMFPCA algorithm should resist and is used only
+if <code>method_pca</code> is <code>"ROBPCA"</code>.
+Default is 0.8.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with <code>n_dataset</code> elements.
+Each element is an <code>mfd</code> object containing <code>mfdobj</code> with
+stochastic imputation of the missing components.
+</p>
+
+
+<h3>References</h3>
+
+<p>Capezza, C., Centofanti, F., Lepore, A., Palumbo, B. (2024)
+Robust Multivariate Functional Control Charts.
+<em>Technometrics</em>, <a href="doi:10.1080/00401706.2024.2327346">doi:10.1080/00401706.2024.2327346</a>.
+</p>
+<p>Van Ginkel, J. R., Van der Ark, L. A., Sijtsma, K., and Vermunt, J. K.
+(2007). Two-way
+imputation: a bayesian method for estimating missing scores in tests
+and questionnaires, and an accurate approximation.
+<em>Computational Statistics &amp; Data Analysis</em>, 51(8):4013–-4027.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(funcharts)
+mfdobj &lt;- get_mfd_list(air, grid = 1:24, n_basis = 13, lambda = 1e-2)
+out &lt;- functional_filter(mfdobj)
+mfdobj_imp &lt;- RoMFDI(out$mfdobj)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

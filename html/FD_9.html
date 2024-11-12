@@ -1,0 +1,281 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>maxent</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimating Probabilities via Maximum Entropy: Improved Iterative Scaling
+</h2>
+
+<h3>Description</h3>
+
+<p><code>maxent</code> returns the probabilities that maximize the entropy conditional on a series of constraints that are linear in the features. It relies on the Improved Iterative Scaling algorithm of Della Pietra et al. (1997). It has been used to predict the relative abundances of a set of species given the trait values of each species and the community-aggregated trait values at a site (Shipley et al. 2006; Shipley 2009; Sonnier et al. 2009).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">maxent(constr, states, prior, tol = 1e-07, lambda = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>constr</code></td>
+<td>
+
+<p>vector of macroscopical constraints (e.g. community-aggregated trait values). Can also be a matrix or data frame, with constraints as columns and data sets (e.g. sites) as rows.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+
+<p>vector, matrix or data frame of states (columns) and their attributes (rows).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+
+<p>vector, matrix or data frame of prior probabilities of states (columns). Can be missing, in which case a maximally uninformative prior is assumed (i.e. uniform distribution).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+
+<p>tolerance threshold to determine convergence. See ‘details’ section. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>Logical. Should <code class="reqn">\lambda</code>-values be returned? 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The biological model of community assembly through trait-based habitat
+filtering (Keddy 1992) has been translated mathematically
+via a maximum entropy (maxent) model by Shipley et al. (2006) and
+Shipley (2009). A maxent model contains three components: (i) a set
+of possible states and their attributes, (ii) a set of macroscopic empirical constraints,
+and (iii) a prior probability distribution <code class="reqn">\mathbf{q}=[q_j]</code>.
+</p>
+<p>In the context of community assembly, states are species, macroscopic
+empirical constraints are community-aggregated traits, and prior probabilities
+<code class="reqn">\mathbf{q}</code> are the relative abundances of species of the regional
+pool (Shipley et al. 2006, Shipley 2009). By default, these prior
+probabilities <code class="reqn">\mathbf{q}</code> are maximally uninformative (i.e. a uniform distribution),
+but can be specificied otherwise (Shipley 2009, Sonnier et al. 2009).
+</p>
+<p>To facilitate the link between the biological model and the mathematical
+model, in the following description of the algorithm states are species and constraints are traits.
+</p>
+<p>Note that if <code>constr</code> is a matrix or data frame containing several sets (rows),
+a maxent model is run on each individual set. In this case if <code>prior</code> is a vector,
+the same prior is used for each set. A different prior can also be specified for each set.
+In this case, the number of rows in <code>prior</code> must be equal to the number of rows in <code>constr</code>. 
+</p>
+<p>If <code class="reqn">\mathbf{q}</code> is not specified, set <code class="reqn">p_{j}=1/S</code> for each of the
+<code class="reqn">S</code> species (i.e. a uniform distribution), where <code class="reqn">p_{j}</code> is the
+probability of species <code class="reqn">j</code>, otherwise <code class="reqn">p_{j}=q_{j}</code>.
+</p>
+<p>Calulate a vector <code class="reqn">\mathbf{c=\left[\mathrm{\mathit{c_{i}}}\right]}=\{c_{1},\; c_{2},\;\ldots,\; c_{T}\}</code>,
+where <code class="reqn">c_{i}={\displaystyle \sum_{j=1}^{S}t_{ij}}</code>; i.e. each <code class="reqn">c_{i}</code>
+is the sum of the values of trait <code class="reqn">i</code> over all species, and <code class="reqn">T</code>
+is the number of traits.
+</p>
+<p>Repeat for each iteration <code class="reqn">k</code> until convergence:
+</p>
+<p>1. For each trait <code class="reqn">t_{i}</code> (i.e. row of the constraint matrix) calculate:
+</p>
+<p style="text-align: center;"><code class="reqn">
+\gamma_{i}(k)=ln\left(\frac{\bar{t}_{i}}{{\displaystyle \sum_{j=1}^{S}\left(p_{j}(k)\; t_{ij}\right)}}\right)\left(\frac{1}{c_{i}}\right)</code>
+</p>
+
+<p>This is simply the natural log of the known community-aggregated
+trait value to the calculated community-aggregated trait value at
+this step in the iteration, given the current values of the probabilities.
+The whole thing is divided by the sum of the known values of the trait
+over all species.
+</p>
+<p>2. Calculate the normalization term <code class="reqn">Z</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">Z(k)=\left({\displaystyle \sum_{j=1}^{S}p_{j}(k)\; e^{\left({\displaystyle \sum_{i=1}^{T}\gamma_{i}(k)}\; t_{ij}\right)}}\right)</code>
+</p>
+
+<p>3. Calculate the new probabilities <code class="reqn">p_{j}</code> of each species at iteration <code class="reqn">k+1</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">p_{j}(k+1)=\frac{{\displaystyle p_{j}(k)\; e^{\left({\displaystyle \sum_{i=1}^{T}\gamma_{i}(k)}\; t_{ij}\right)}}}{Z(k)}</code>
+</p>
+
+<p>4. If <code class="reqn">|max\left(p\left(k+1\right)-p\left(k\right)\right)|\leq</code> tolerance threshold (i.e. argument <code>tol</code>) then stop, else repeat steps 1 to 3.
+</p>
+<p>When convergence is achieved then the resulting probabilities (<code class="reqn">\hat{p}_{j}</code>)
+are those that are as close as possible to <code class="reqn">q_j</code> while simultaneously maximize
+the entropy conditional on the community-aggregated traits. The solution to this problem is
+the Gibbs distribution:
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{p}_{j}=\frac{q_{j}e^{\left({\displaystyle -}{\displaystyle \sum_{i=1}^{T}\lambda_{i}t_{ij}}\right)}}{{\displaystyle \sum_{j=1}^{S}q_{j}}e^{\left({\displaystyle -}{\displaystyle \sum_{i=1}^{T}\lambda_{i}t_{ij}}\right)}}=\frac{q_{j}e^{\left({\displaystyle -}{\displaystyle \sum_{i=1}^{T}\lambda_{i}t_{ij}}\right)}}{Z}</code>
+</p>
+
+<p>This means that one can solve for the Langrange multipliers (i.e.
+weights on the traits, <code class="reqn">\lambda_{i}</code>) by solving the linear system
+of equations:
+</p>
+<p style="text-align: center;"><code class="reqn">\left(\begin{array}{c}
+ln\left(\hat{p}_{1}\right)\\
+ln\left(\hat{p}_{2}\right)\\
+\vdots\\
+ln\left(\hat{p}_{S}\right)\end{array}\right)=\left(\lambda_{1},\;\lambda_{2},\;\ldots,\;\lambda_{T}\right)\left[\begin{array}{cccc}
+t_{11} &amp; t_{12} &amp; \ldots &amp; t_{1S}-ln(Z)\\
+t_{21} &amp; t_{22} &amp; \vdots &amp; t_{2S}-ln(Z)\\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots\\
+t_{T1} &amp; t_{T2} &amp; \ldots &amp; t_{TS}-ln(Z)\end{array}\right]-ln(Z)</code>
+</p>
+
+<p>This system of linear equations has <code class="reqn">T+1</code> unknowns (the <code class="reqn">T</code> values
+of <code class="reqn">\lambda</code> plus <code class="reqn">ln(Z)</code>) and <code class="reqn">S</code> equations. So long as the number
+of traits is less than <code class="reqn">S-1</code>, this system is soluble. In fact, the
+solution is the well-known least squares regression: simply regress
+the values <code class="reqn">ln(\hat{p}_{j})</code> of each species on the trait values
+of each species in a multiple regression.
+</p>
+<p>The intercept is the value of <code class="reqn">ln(Z)</code> and the slopes are the values
+of <code class="reqn">\lambda_{i}</code> and these slopes (Lagrange multipliers) measure
+by how much the <code class="reqn">ln(\hat{p}_{j})</code>, i.e. the <code class="reqn">ln</code>(relative abundances),
+changes as the value of the trait changes.
+</p>
+<p><code>maxent.test</code> provides permutation tests for maxent models (Shipley 2010).
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>prob</code></td>
+<td>
+<p>vector of predicted probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>moments</code></td>
+<td>
+<p>vector of final moments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy</code></td>
+<td>
+<p>Shannon entropy of <code>prob</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>number of iterations required to reach convergence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p><code class="reqn">\lambda</code>-values, only returned if <code>lambda = T</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constr</code></td>
+<td>
+<p>macroscopical constraints</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+<p>states and their attributes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>prior probabilities</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Bill Shipley <a href="mailto:bill.shipley@usherbrooke.ca">bill.shipley@usherbrooke.ca</a>
+</p>
+<p><a href="http://www.billshipley.recherche.usherbrooke.ca/">http://www.billshipley.recherche.usherbrooke.ca/</a>
+</p>
+<p>Ported to <span class="pkg">FD</span> by Etienne Laliberté.
+</p>
+
+
+<h3>References</h3>
+
+<p>Della Pietra, S., V. Della Pietra, and J. Lafferty (1997) Inducing features of random fields. <em>IEEE Transactions Pattern Analysis and Machine Intelligence</em> <b>19</b>:1-13.
+</p>
+<p>Keddy, P. A. (1992) Assembly and response rules: two goals for predictive community ecology. <em>Journal of Vegetation Science</em> <b>3</b>:157-164.
+</p>
+<p>Shipley, B., D. Vile, and É. Garnier (2006) From plant traits to plant communities: a statistical mechanistic approach to biodiversity. <em>Science</em> <b>314</b>: 812–814.
+</p>
+<p>Shipley, B. (2009) From Plant Traits to Vegetation Structure: Chance and Selection in the Assembly of Ecological Communities. Cambridge University Press, Cambridge, UK. 290 pages.
+</p>
+<p>Shipley, B. (2010) Inferential permutation tests for maximum entropy models in ecology. <em>Ecology</em> <b>in press</b>.
+</p>
+<p>Sonnier, G., Shipley, B., and M. L. Navas. 2009. Plant traits, species pools and the prediction of relative abundance in plant communities: a maximum entropy approach. <em>Journal of Vegetation Science</em> <b>in press</b>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>functcomp</code> to compute community-aggregated traits,
+and <code>maxent.test</code> for the permutation tests proposed by Shipley (2010).
+</p>
+<p>Another faster version of <code>maxent</code> for multicore processors called <code>maxentMC</code> is available from Etienne Laliberté (<a href="mailto:etiennelaliberte@gmail.com">etiennelaliberte@gmail.com</a>). It's exactly the same as <code>maxent</code> but makes use of the <span class="pkg">multicore</span>, <span class="pkg">doMC</span>, and <span class="pkg">foreach</span> packages. Because of this, <code>maxentMC</code> only works on POSIX-compliant OS's (essentially anything but Windows).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># an unbiased 6-sided dice, with mean = 3.5
+# what is the probability associated with each side,
+# given this constraint?
+maxent(3.5, 1:6)
+
+# a biased 6-sided dice, with mean = 4
+maxent(4, 1:6)
+
+# example with tussock dataset
+traits &lt;- tussock$trait[, c(2:7, 11)] # use only continuous traits
+traits &lt;- na.omit(traits) # remove 2 species with NA's
+abun &lt;- tussock$abun[, rownames(traits)] # abundance matrix
+abun &lt;- t(apply(abun, 1, function(x) x / sum(x) )) # relative abundances
+agg &lt;- functcomp(traits, abun) # community-aggregated traits
+traits &lt;- t(traits) # transpose matrix
+
+# run maxent on site 1 (first row of abun), all species
+pred.abun &lt;- maxent(agg[1,], traits)
+
+## Not run: 
+# do the constraints give predictive ability?
+maxent.test(pred.abun, obs = abun[1,], nperm = 49)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

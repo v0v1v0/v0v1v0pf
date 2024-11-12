@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>survrtrunc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Nonparametric estimator of survival from right-truncated, uncensored data</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the survivor function from right-truncated, uncensored data by
+reversing time, interpreting the data as left-truncated, applying the
+Kaplan-Meier / Lynden-Bell estimator and transforming back.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">survrtrunc(t, rtrunc, tmax, data = NULL, eps = 0.001, conf.int = 0.95)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>Vector of observed times from an initial event to a final event.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rtrunc</code></td>
+<td>
+<p>Individual-specific right truncation points, so that each
+individual's survival time <code>t</code> would not have been observed if it was
+greater than the corresponding element of <code>rtrunc</code>.   If any of these
+are greater than <code>tmax</code>, then the actual individual-level truncation
+point for these individuals is taken to be <code>tmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmax</code></td>
+<td>
+<p>Maximum possible time to event that could have been observed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame to find <code>t</code> and <code>rtrunc</code> in.  If not
+supplied, these should be in the working environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Small number that is added to <code>t</code> before implementing the
+time-reversed estimator, to ensure the risk set is consistent between
+forward and reverse time scales. It should be just large enough that
+<code>t+eps</code> is not <code>==t</code>. This should not need changing from the
+default of 0.001, unless <code>t</code> are extremely large or small and the
+data are rounded to integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+<p>Confidence level, defaulting to 0.95.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that this does not estimate the untruncated survivor function - instead
+it estimates the survivor function truncated above at a time defined by the
+maximum possible time that might have been observed in the data.
+</p>
+<p>Define <code class="reqn">X</code> as the time of the initial event, <code class="reqn">Y</code> as the time of the
+final event, then we wish to determine the distribution of <code class="reqn">T = Y- X</code>.
+</p>
+<p>Observations are only recorded if <code class="reqn">Y \leq t_{max}</code>.  Then the
+distribution of <code class="reqn">T</code> in the resulting sample is right-truncated by
+<code>rtrunc</code> <code class="reqn"> = t_{max} - X</code>.
+</p>
+<p>Equivalently, the distribution of <code class="reqn">t_{max} - T</code> is left-truncated, since
+it is only observed if <code class="reqn">t_{max} - T \geq X</code>.  Then the standard
+Kaplan-Meier type estimator as implemented in
+<code>survfit</code> is used (as described by Lynden-Bell, 1971)
+and the results transformed back.
+</p>
+<p>This situation might happen in a disease epidemic, where <code class="reqn">X</code> is the date
+of disease onset for an individual, <code class="reqn">Y</code> is the date of death, and we
+wish to estimate the distribution of the time <code class="reqn">T</code> from onset to death,
+given we have only observed people who have died by the date <code class="reqn">t_{max}</code>.
+</p>
+<p>If the estimated survival is unstable at the highest times, then consider
+replacing <code>tmax</code> by a slightly lower value, then if necessary, removing
+individuals with <code>t &gt; tmax</code>, so that the estimand is changed to the
+survivor function truncated over a slightly narrower interval.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<p><code>time</code> Time points where the estimated survival changes.
+</p>
+<p><code>surv</code> Estimated survival at <code>time</code>, truncated above at
+<code>tmax</code>.
+</p>
+<p><code>se.surv</code> Standard error of survival.
+</p>
+<p><code>std.err</code> Standard error of -log(survival). Named this way for consistency with <code>survfit</code>.
+</p>
+<p><code>lower</code> Lower confidence limits for survival.
+</p>
+<p><code>upper</code> Upper confidence limits for survival.
+</p>
+
+
+<h3>References</h3>
+
+<p>D. Lynden-Bell (1971)  A method of allowing for known observational
+selection in small samples applied to 3CR quasars. Monthly Notices of the
+Royal Astronomical Society, 155:95–118.
+</p>
+<p>Seaman, S., Presanis, A. and Jackson, C. (2020) Review of methods for
+estimating distribution of time to event from right-truncated data.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## simulate some event time data
+set.seed(1)
+X &lt;- rweibull(100, 2, 10)
+T &lt;- rweibull(100, 2, 10)
+
+## truncate above
+tmax &lt;- 20
+obs &lt;- X + T &lt; tmax
+rtrunc &lt;- tmax - X
+dat &lt;- data.frame(X, T, rtrunc)[obs,]
+sf &lt;-    survrtrunc(T, rtrunc, data=dat, tmax=tmax)
+plot(sf, conf.int=TRUE)
+## Kaplan-Meier estimate ignoring truncation is biased
+sfnaive &lt;- survfit(Surv(T) ~ 1, data=dat)
+lines(sfnaive, conf.int=TRUE, lty=2, col="red")
+
+## truncate above the maximum observed time
+tmax &lt;- max(X + T) + 10
+obs &lt;- X + T &lt; tmax
+rtrunc &lt;- tmax - X
+dat &lt;- data.frame(X, T, rtrunc)[obs,]
+sf &lt;-    survrtrunc(T, rtrunc, data=dat, tmax=tmax)
+plot(sf, conf.int=TRUE)
+## estimates identical to the standard Kaplan-Meier
+sfnaive &lt;- survfit(Surv(T) ~ 1, data=dat)
+lines(sfnaive, conf.int=TRUE, lty=2, col="red")
+
+
+</code></pre>
+
+
+</div>

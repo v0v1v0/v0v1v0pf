@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mcws</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Marker-Controlled Watershed Segmentation</h2>
+
+<h3>Description</h3>
+
+<p>This function implements the watershed function to segment (i.e.: outline) crowns from a CHM (canopy height model).
+Segmentation is guided by the point locations of treetops, typically detected using the vwf function.
+See Meyer &amp; Beucher (1990) for details on watershed segmentation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mcws(
+  treetops,
+  CHM,
+  minHeight = 0,
+  format = "raster",
+  OSGeoPath = NULL,
+  IDfield = "treeID"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>treetops</code></td>
+<td>
+<p>sf. The point locations of treetops in <code>sf</code> format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CHM</code></td>
+<td>
+<p>SpatRaster. Canopy height model in <code>SpatRaster</code> format. This should be the same CHM that was used to the detect the <code>treetops</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minHeight</code></td>
+<td>
+<p>numeric. The minimum height value for a <code>CHM</code> pixel to be considered as part of a crown segment.
+All <code>CHM</code> pixels beneath this value will be masked out. Note that this value should be lower than the minimum
+height of <code>treetops</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>string. Format of the function's output. Can be set to either 'raster' or 'polygons'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OSGeoPath</code></td>
+<td>
+<p>character. Obsolete. Will be removed next version</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IDfield</code></td>
+<td>
+<p>character. Name of the field for storing the unique tree identifier</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Crown segments are returned as either a <code>SpatRaster</code> or a <code>sf</code> (Simple Feature) class object,
+as defined using the <code>format</code> argument. For many analytic purposes, it is preferable to have
+crown outlines as polygons. However, polygonal crown maps take up significantly more disk space, and take
+longer to process. It is advisable to run this function using a raster output first to review
+results and adjust parameters.
+</p>
+<p>NOTE: when setting <code>format</code> to 'polygons', orphaned segments (i.e.: outlines without an associated treetop) will be removed.
+This will NOT occur using 'raster' format. This issue will be resolved eventually but requires the watershed function to
+be rewritten.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Depending on the setting for <code>format</code>, this function will return a map of outlined
+crowns as either a <code>SpatRaster</code> class object, in which distinct crowns are given a unique cell value, or a <code>sf</code> class object, in which each crown
+is represented by a polygon.
+</p>
+
+
+<h3>References</h3>
+
+<p>Meyer, F., &amp; Beucher, S. (1990). Morphological segmentation. <em>Journal of visual communication and
+image representation, 1</em>(1), 21-46.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vwf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(terra)
+library(ForestTools)
+
+chm &lt;- rast(kootenayCHM)
+
+# Use variable window filter to detect treetops
+ttops &lt;- vwf(chm, winFun = function(x){x * 0.06 + 0.5}, minHeight = 2)
+
+# Segment tree crowns
+segs &lt;- mcws(ttops, chm, minHeight = 1)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

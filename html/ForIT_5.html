@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ForIT_DataBase</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>'ForIT'-package Database - Ver.2</h2>
+
+<h3>Description</h3>
+
+<p>The package exposes 5 tightly interconnected tibbles:
+</p>
+<p><code>INFCspecies</code>, <code>INFCcatalog</code>, <code>Quantities</code>, <code>INFCparam</code>, <code>INFCf_domains</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">INFCspecies
+
+INFCcatalog
+
+Quantities
+
+INFCparam
+
+INFCf_domains
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>An object of class <code>tbl_df</code> (inherits from <code>tbl</code>, <code>data.frame</code>) with 44 rows and 3 columns.
+</p>
+<p>An object of class <code>tbl_df</code> (inherits from <code>tbl</code>, <code>data.frame</code>) with 26 rows and 4 columns.
+</p>
+<p>An object of class <code>tbl_df</code> (inherits from <code>tbl</code>, <code>data.frame</code>) with 5 rows and 2 columns.
+</p>
+<p>An object of class <code>tbl_df</code> (inherits from <code>tbl</code>, <code>data.frame</code>) with 130 rows and 5 columns.
+</p>
+<p>An object of class <code>tbl_df</code> (inherits from <code>tbl</code>, <code>data.frame</code>) with 617 rows and 4 columns.
+</p>
+
+
+<h3>Details</h3>
+
+<p><img src="../help/figures/ForITDBschema.png" width="50%" alt="Figure: ForIT-DBschema"></p>
+<p><strong>Tables columns</strong>
+</p>
+<p><code>INFCspecies</code>
+</p>
+
+<ul>
+<li> <p><code>EPPOcode [PK]</code>: species code, adopting <a href="https://gd.eppo.int/search">EPPO</a> database
+</p>
+</li>
+<li> <p><code>pag</code>: section page number in the original reference (Tabacchi et al., 2011a)
+</p>
+</li>
+<li> <p><code>PrefName</code>: EPPO preferred name for the species
+</p>
+</li>
+</ul>
+<p><code>INFCcatalog</code>
+</p>
+
+<ul>
+<li> <p><code>pag [PK]</code>: section page number in the original reference (Tabacchi et al., 2011a)
+</p>
+</li>
+<li> <p><code>n_oss</code>: number of sample trees for the section
+</p>
+</li>
+<li> <p><code>n_par</code>: number of parameters in the equations for the section
+</p>
+</li>
+<li> <p><code>section</code>: section name (species or species group)
+</p>
+</li>
+</ul>
+<p><code>Quantities</code>
+</p>
+
+<ul>
+<li> <p><code>quantity [PK]</code>: code of the estimated quantity
+</p>
+</li>
+<li> <p><code>quantity_definition</code>: estimated quantity definition and measurement units
+</p>
+</li>
+</ul>
+<p><code>INFCparam</code>
+</p>
+
+<ul>
+<li> <p><code>pag [PK]</code>: section page number in the original reference (Tabacchi et al., 2011a)
+</p>
+</li>
+<li> <p><code>quantity [PK]</code>: code of the estimated quantity (see Quantities)
+</p>
+</li>
+<li> <p><code>wrv</code>: weighted residual variance
+</p>
+</li>
+<li> <p><code>bm</code>: functions coefficients (a list of arrays)
+</p>
+</li>
+<li> <p><code>vcm</code>: variance-covariance matrices (a list of 'dspMatrix')
+</p>
+</li>
+</ul>
+<p><code>INFCf_domains</code>
+</p>
+
+<ul>
+<li> <p><code>pag [PK]</code>: section page number in the original reference (Tabacchi et al., 2011a)
+</p>
+</li>
+<li> <p><code>htot.m [PK]</code>: tree height class [m] (class width 1 m)
+</p>
+</li>
+<li> <p><code>dbh.min</code>: minimum tree diameter class [cm] (class width 1 cm)
+</p>
+</li>
+<li> <p><code>dbh.max</code>: maximum tree diameter class [cm] (class width 1 cm)
+</p>
+</li>
+</ul>
+<p>Columns <code>bm</code> and <code>vcm</code> are lists, the dimensions of the arrays and
+matrices they store vary depending on <code>n_par</code>.<br>
+Matrices in <code>vcm</code> are symmetric, stored as "dspMatrix" class objects.<br>
+Database schema is defined, verified and illustrated using package <code>dm</code>
+</p>
+<div class="sourceCode"><pre>library(dm)
+ForIT_DB &lt;- dm(INFCcatalog,
+               INFCspecies,
+               Quantities,
+               INFCparam,
+               INFCf_domains) %&gt;%
+  dm_add_pk(INFCcatalog, pag, check = TRUE) %&gt;%
+
+  dm_add_pk(INFCspecies, EPPOcode, check = TRUE) %&gt;%
+  dm_add_fk(INFCspecies, pag, INFCcatalog, check = TRUE) %&gt;%
+
+  dm_add_pk(Quantities, quantity, check = TRUE) %&gt;%
+
+  dm_add_pk(INFCparam, c(pag, quantity), check = TRUE) %&gt;%
+  dm_add_fk(INFCparam, pag, INFCcatalog, check = TRUE) %&gt;%
+  dm_add_fk(INFCparam, quantity, Quantities, check = TRUE) %&gt;%
+
+  dm_add_pk(INFCf_domains, c(pag, htot.m), check = TRUE) %&gt;%
+  dm_add_fk(INFCf_domains, pag, INFCcatalog, check = TRUE)
+
+dm_examine_constraints(ForIT_DB)
+
+dm_draw(ForIT_DB, rankdir = "BT", view_type = "all", column_types = T)
+</pre></div>
+
+
+</div>

@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>foreca.EM-aux</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ForeCA EM auxiliary functions</h2>
+
+<h3>Description</h3>
+
+<p><code>foreca.EM.one_weightvector</code> relies on several auxiliary functions:
+</p>
+<p><code>foreca.EM.E_step</code> computes the spectral density of 
+<code class="reqn">y_t=\mathbf{U}_t \mathbf{w}</code> given the weightvector <code class="reqn">\mathbf{w}</code> 
+and the normalized spectrum estimate <code class="reqn">f_{\mathbf{U}}</code>.
+A wrapper around <code>spectrum_of_linear_combination</code>.
+</p>
+<p><code>foreca.EM.M_step</code> computes the minimizing eigenvector 
+(<code class="reqn">\rightarrow \widehat{\mathbf{w}}_{i+1}</code>) of the weighted
+covariance matrix, where the weights equal the negative logarithm of the 
+spectral density at the current <code class="reqn">\widehat{\mathbf{w}}_i</code>.
+</p>
+<p><code>foreca.EM.E_and_M_step</code> is a wrapper around <code>foreca.EM.E_step</code>
+followed by <code>foreca.EM.M_step</code>.
+</p>
+<p><code>foreca.EM.h</code> evaluates (an upper bound of) the entropy of the spectral density as a function
+of <code class="reqn">\mathbf{w}_i</code> (or <code class="reqn">\mathbf{w}_{i+1}</code>). This is the objective funcion that should be 
+<code>minimize</code>d.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">foreca.EM.E_step(f.U, weightvector)
+
+foreca.EM.M_step(f.U, f.current, minimize = TRUE, entropy.control = list())
+
+foreca.EM.E_and_M_step(
+  weightvector,
+  f.U,
+  minimize = TRUE,
+  entropy.control = list()
+)
+
+foreca.EM.h(
+  weightvector.new,
+  f.U,
+  weightvector.current = weightvector.new,
+  f.current = NULL,
+  entropy.control = list(),
+  return.negative = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f.U</code></td>
+<td>
+<p>multivariate spectrum of class <code>'mvspectrum'</code> with 
+<code>normalize = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightvector</code></td>
+<td>
+<p>numeric; weights <code class="reqn">\mathbf{w}</code> for 
+<code class="reqn">y_t = \mathbf{U}_t \mathbf{w}</code>. Must have unit norm in <code class="reqn">\ell^2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.current</code></td>
+<td>
+<p>numeric; spectral density estimate of 
+<code class="reqn">y_t=\mathbf{U}_t \mathbf{w}</code> for the current estimate 
+<code class="reqn">\widehat{\mathbf{w}}_i</code> (required for 
+<code>foreca.EM.M_step</code>; optional for <code>foreca.EM.h</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimize</code></td>
+<td>
+<p>logical; if <code>TRUE</code> (default) it returns the eigenvector
+corresponding to the smallest eigenvalue; otherwise to the largest eigenvalue.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy.control</code></td>
+<td>
+<p>list; control settings for entropy estimation.
+See <code>complete_entropy_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightvector.new</code></td>
+<td>
+<p>weightvector <code class="reqn">\widehat{\mathbf{w}}_{i+1}</code> of the new 
+iteration (i+1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightvector.current</code></td>
+<td>
+<p>weightvector <code class="reqn">\widehat{\mathbf{w}}_{i}</code> of the 
+current iteration (i).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.negative</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it returns the negative 
+spectral entropy. This is useful when maximizing forecastibility which is 
+equivalent (up to an additive constant) to maximizing negative entropy. 
+Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>foreca.EM.E_step</code> returns the normalized univariate spectral 
+density (normalized such that its <code>sum</code> equals <code class="reqn">0.5</code>).
+</p>
+<p><code>foreca.EM.M_step</code> returns a list with three elements:
+</p>
+
+<ul>
+<li> <p><code>matrix</code>: weighted covariance matrix, where the weights are 
+the negative log of the spectral density.  If density is estimated 
+by discrete probabilities, 
+then this <code>matrix</code> is positive semi-definite, since 
+<code class="reqn">-\log(p) \geq 0</code> for <code class="reqn">p \in [0, 1]</code>. 
+See <code>weightvector2entropy_wcov</code>.
+</p>
+</li>
+<li> <p><code>vector</code>: minimizing (or maximizing if 
+<code>minimize = FALSE</code>) eigenvector of <code>matrix</code>,
+</p>
+</li>
+<li> <p><code>value</code>: corresponding eigenvalue.
+</p>
+</li>
+</ul>
+<p>Contrary to <code>foreca.EM.M_step</code>, <code>foreca.EM.E_and_M_step</code> only returns the optimal 
+weightvector as a numeric.
+</p>
+<p><code>foreca.EM.h</code> returns non-negative real value (see References for details):
+</p>
+
+<ul>
+<li>
+<p> entropy, if <code>weightvector.new = weightvector.current</code>,
+</p>
+</li>
+<li>
+<p> an upper bound of that entropy for <code>weightvector.new</code>,
+otherwise.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>weightvector2entropy_wcov</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+XX &lt;- diff(log(EuStockMarkets)) * 100
+UU &lt;- whiten(XX)$U
+ff &lt;- mvspectrum(UU, 'mvspec', normalize = TRUE)
+
+ww0 &lt;- initialize_weightvector(num.series = ncol(XX), method = 'rnorm')
+
+f.ww0 &lt;- foreca.EM.E_step(ff, ww0)
+plot(f.ww0, type = "l")
+
+## End(Not run)
+## Not run: 
+one.step &lt;- foreca.EM.M_step(ff, f.ww0, 
+                             entropy.control = list(prior.weight = 0.1))
+image(one.step$matrix)
+
+requireNamespace(LICORS)
+# if you have the 'LICORS' package use
+LICORS::image2(one.step$matrix)
+
+ww1 &lt;- one.step$vector
+f.ww1 &lt;- foreca.EM.E_step(ff, ww1)
+
+layout(matrix(1:2, ncol = 2))
+matplot(seq(0, pi, length = length(f.ww0)), cbind(f.ww0, f.ww1), 
+        type = "l", lwd =2, xlab = "omega_j", ylab = "f(omega_j)")
+plot(f.ww0, f.ww1, pch = ".", cex = 3, xlab = "iteration 0", 
+     ylab = "iteration 1", main = "Spectral density")
+abline(0, 1, col = 'blue', lty = 2, lwd = 2)
+
+Omega(mvspectrum.output = f.ww0) # start
+Omega(mvspectrum.output = f.ww1) # improved after one iteration
+
+## End(Not run)
+## Not run: 
+ww0 &lt;- initialize_weightvector(NULL, ff, method = "rnorm")
+ww1 &lt;- foreca.EM.E_and_M_step(ww0, ff)
+ww0
+ww1
+barplot(rbind(ww0, ww1), beside = TRUE)
+abline(h = 0, col = "blue", lty = 2)
+
+## End(Not run)
+## Not run: 
+foreca.EM.h(ww0, ff)       # iteration 0
+foreca.EM.h(ww1, ff, ww0)  # min eigenvalue inequality
+foreca.EM.h(ww1, ff)       # KL divergence inequality
+one.step$value
+
+# by definition of Omega, they should equal 1 (modulo rounding errors)
+Omega(mvspectrum.output = f.ww0) / 100 + foreca.EM.h(ww0, ff)
+Omega(mvspectrum.output = f.ww1) / 100 + foreca.EM.h(ww1, ff)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

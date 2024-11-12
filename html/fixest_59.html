@@ -1,0 +1,257 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitstat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes fit statistics of fixest objects</h2>
+
+<h3>Description</h3>
+
+<p>Computes various fit statistics for <code>fixest</code> estimations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitstat(
+  x,
+  type,
+  simplify = FALSE,
+  verbose = TRUE,
+  show_types = FALSE,
+  frame = parent.frame(),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>fixest</code> estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Character vector or one sided formula. The type of fit statistic to be computed.
+The classic ones are: n, rmse, r2, pr2, f, wald, ivf, ivwald. You have the full list in
+the details section or use <code>show_types = TRUE</code>. Further, you can register your own types
+with <code>fitstat_register</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. By default a list is returned whose names are
+the selected types. If <code>simplify = TRUE</code> and only one type is selected, then the element
+is directly returned (ie will not be nested in a list).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical, default is <code>TRUE</code>. If <code>TRUE</code>, an object of class <code>fixest_fitstat</code>
+is returned (so its associated print method will be triggered). If <code>FALSE</code> a simple list
+is returned instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_types</code></td>
+<td>
+<p>Logical, default is <code>FALSE</code>. If <code>TRUE</code>, only prompts all available types.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frame</code></td>
+<td>
+<p>An environment in which to evaluate variables, default is <code>parent.frame()</code>.
+Only used if the argument <code>type</code> is a formula and some values in the formula have to be
+extended with the dot square bracket operator. Mostly for internal use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other elements to be passed to other methods and may be used to compute
+the statistics (for example you can pass on arguments to compute the VCOV when using
+<code>type = "g"</code> or <code>type = "wald"</code>.).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>By default an object of class <code>fixest_fitstat</code> is returned. Using <code>verbose = FALSE</code>
+returns a simple a list. Finally, if only one type is selected, <code>simplify = TRUE</code>
+leads to the selected type to be returned.
+</p>
+
+
+<h3>Registering your own types</h3>
+
+<p>You can register custom fit statistics with the function <code>fitstat_register</code>.
+</p>
+
+
+<h3>Available types</h3>
+
+<p>The types are case sensitive, please use lower case only. The types available are:
+</p>
+
+<dl>
+<dt>
+<code>n</code>, <code>ll</code>, <code>aic</code>, <code>bic</code>, <code>rmse</code>: </dt>
+<dd>
+<p>The number of observations, the log-likelihood,
+the AIC, the BIC and the root mean squared error, respectively.</p>
+</dd>
+<dt>
+<code>my</code>: </dt>
+<dd>
+<p>Mean of the dependent variable.</p>
+</dd>
+<dt>
+<code>g</code>: </dt>
+<dd>
+<p>The degrees of freedom used to compute the t-test (it influences the p-values
+of the coefficients). When the VCOV is clustered, this value is equal to the minimum
+cluster size, otherwise, it is equal to the sample size minus the number of variables.</p>
+</dd>
+<dt>
+<code>r2</code>, <code>ar2</code>, <code>wr2</code>, <code>awr2</code>, <code>pr2</code>, <code>apr2</code>, <code>wpr2</code>, <code>awpr2</code>: </dt>
+<dd>
+<p>All r2 that can be
+obtained with the function <code>r2</code>. The <code>a</code> stands for 'adjusted', the <code>w</code> for 'within' and
+the <code>p</code> for 'pseudo'. Note that the order of the letters <code>a</code>, <code>w</code> and <code>p</code> does not matter.
+The pseudo R2s are McFadden's R2s (ratios of log-likelihoods).</p>
+</dd>
+<dt>
+<code>theta</code>: </dt>
+<dd>
+<p>The over-dispersion parameter in Negative Binomial models. Low values mean
+high overdispersion.</p>
+</dd>
+<dt>
+<code>f</code>, <code>wf</code>: </dt>
+<dd>
+<p>The F-tests of nullity of the coefficients. The <code>w</code> stands for
+'within'. These types return the following values: <code>stat</code>, <code>p</code>, <code>df1</code> and <code>df2</code>.
+If you want to display only one of these, use their name after a dot: e.g. <code>f.stat</code>
+will give the statistic of the F-test, or <code>wf.p</code> will give the p-values of the F-test
+on the projected model (i.e. projected onto the fixed-effects).</p>
+</dd>
+<dt>
+<code>wald</code>: </dt>
+<dd>
+<p>Wald test of joint nullity of the coefficients. This test always excludes
+the intercept and the fixed-effects. These type returns the following values:
+<code>stat</code>, <code>p</code>, <code>df1</code>, <code>df2</code> and <code>vcov</code>. The element <code>vcov</code> reports the way the VCOV
+matrix was computed since it directly influences this statistic.</p>
+</dd>
+<dt>
+<code>ivf</code>, <code>ivf1</code>, <code>ivf2</code>, <code>ivfall</code>: </dt>
+<dd>
+<p>These statistics are specific to IV estimations.
+They report either the IV F-test (namely the Cragg-Donald F statistic in the presence
+of only one endogenous regressor) of the first stage (<code>ivf</code> or <code>ivf1</code>), of the
+second stage (<code>ivf2</code>) or of both (<code>ivfall</code>). The F-test of the first stage is
+commonly named weak instrument test. The value of <code>ivfall</code> is only useful in <code>etable</code>
+when both the 1st and 2nd stages are displayed (it leads to the 1st stage F-test(s)
+to be displayed on the 1st stage estimation(s), and the 2nd stage one on the
+2nd stage estimation – otherwise, <code>ivf1</code> would also be displayed on the 2nd stage
+estimation). These types return the following values: <code>stat</code>, <code>p</code>, <code>df1</code> and <code>df2</code>.</p>
+</dd>
+<dt>
+<code>ivwald</code>, <code>ivwald1</code>, <code>ivwald2</code>, <code>ivwaldall</code>: </dt>
+<dd>
+<p>These statistics are specific to IV
+estimations. They report either the IV Wald-test of the first stage (<code>ivwald</code> or <code>ivwald1</code>),
+of the second stage (<code>ivwald2</code>) or of both (<code>ivwaldall</code>). The Wald-test of the first stage
+is commonly named weak instrument test. Note that if the estimation was done with a robust
+VCOV and there is only one endogenous regressor, this is equivalent to the
+Kleibergen-Paap statistic. The value of <code>ivwaldall</code> is only useful in <code>etable</code> when both
+the 1st and 2nd stages are displayed (it leads to the 1st stage Wald-test(s) to be displayed
+on the 1st stage estimation(s), and the 2nd stage one on the 2nd stage estimation –
+otherwise, <code>ivwald1</code> would also be displayed on the 2nd stage estimation). These types
+return the following values: <code>stat</code>, <code>p</code>, <code>df1</code>, <code>df2</code>, and <code>vcov</code>.</p>
+</dd>
+<dt>
+<code>cd</code>: </dt>
+<dd>
+<p>The Cragg-Donald test for weak instruments.</p>
+</dd>
+<dt>
+<code>kpr</code>: </dt>
+<dd>
+<p>The Kleibergen-Paap test for weak instruments.</p>
+</dd>
+<dt>
+<code>wh</code>: </dt>
+<dd>
+<p>This statistic is specific to IV estimations. Wu-Hausman endogeneity test.
+H0 is the absence of endogeneity of the instrumented variables. It returns the following
+values: <code>stat</code>, <code>p</code>, <code>df1</code>, <code>df2</code>.</p>
+</dd>
+<dt>
+<code>sargan</code>: </dt>
+<dd>
+<p>Sargan test of overidentifying restrictions. H0: the instruments are
+not correlated with the second stage residuals. It returns the
+following values: <code>stat</code>, <code>p</code>, <code>df</code>.</p>
+</dd>
+<dt>
+<code>lr</code>, <code>wlr</code>: </dt>
+<dd>
+<p>Likelihood ratio and within likelihood ratio tests. It returns
+the following elements: <code>stat</code>, <code>p</code>, <code>df</code>. Concerning the within-LR test, note that,
+contrary to estimations with <code>femlm</code> or <code>feNmlm</code>, estimations with <code>feglm</code>/<code>fepois</code>
+need to estimate the model with fixed-effects only which may prove time-consuming
+(depending on your model). Bottom line, if you really need the within-LR and estimate a
+Poisson model, use <code>femlm</code> instead of <code>fepois</code> (the former uses direct ML maximization for
+which the only FEs model is a by product).</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(trade)
+gravity = feols(log(Euros) ~ log(dist_km) | Destination + Origin, trade)
+
+# Extracting the 'working' number of observations used to compute the pvalues
+fitstat(gravity, "g", simplify = TRUE)
+
+# Some fit statistics
+fitstat(gravity, ~ rmse + r2 + wald + wf)
+
+# You can use them in etable
+etable(gravity, fitstat = ~ rmse + r2 + wald + wf)
+
+# For wald and wf, you could show the pvalue instead:
+etable(gravity, fitstat = ~ rmse + r2 + wald.p + wf.p)
+
+# Now let's display some statistics that are not built-in
+# =&gt; we use fitstat_register to create them
+
+# We need: a) type name, b) the function to be applied
+#          c) (optional) an alias
+
+fitstat_register("tstand", function(x) tstat(x, se = "stand")[1], "t-stat (regular)")
+fitstat_register("thc", function(x) tstat(x, se = "heter")[1], "t-stat (HC1)")
+fitstat_register("t1w", function(x) tstat(x, se = "clus")[1], "t-stat (clustered)")
+fitstat_register("t2w", function(x) tstat(x, se = "twow")[1], "t-stat (2-way)")
+
+# Now we can use these keywords in fitstat:
+etable(gravity, fitstat = ~ . + tstand + thc + t1w + t2w)
+
+# Note that the custom stats we created are can easily lead
+# to errors, but that's another story!
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,229 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fail</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a file abstraction interface layer (FAIL) object.</h2>
+
+<h3>Description</h3>
+
+<p>The general idea is to not bother about file path joining or file extensions.
+Instead, FAIL offers a key-value like interface to RData files in a specified directory.
+The filename (without extension) acts as the key while the stored R objects are the values.
+Fail provides an interface to the basic file system actions: listing, reading / loading,
+writing / saving, removing and applying functions on files.
+An implemented cache mechanism can be used to avoid repeated disk reads.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fail(path = getwd(), extension = "RData", all.files = FALSE,
+  use.cache = FALSE, simplify = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+Path to work in, will be created if it does not exists.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extension</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+File extension to work with.
+Default is “RData”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all.files</code></td>
+<td>
+<p>[<code>logical(1)</code>]<br>
+Also include hidden files, i.e. files whose name start with a dot (“.”).
+Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.cache</code></td>
+<td>
+<p>[<code>logical(1)</code>]<br>
+Use a memory cache per global default.
+Global option which can locally be overwritten in most functions.
+Default is <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+If only one object is stored in a R data file,
+should the return value be simplified?
+If set to <code>TRUE</code>,
+instead of a list containing one element the object itself will be returned.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a quick introduction on the usage, see <a href="https://github.com/mllg/fail">https://github.com/mllg/fail</a>.
+</p>
+<p>An object with the following functions is returned by <code>fail</code>:
+</p>
+
+<dl>
+<dt><code>ls(pattern=NULL)</code></dt>
+<dd>
+<p>Function to list keys in directory <code>path</code> matching a regular expression pattern <code>pattern</code>.
+Returns a character vector of keys.
+</p>
+</dd>
+<dt><code>get(key, use.cache)</code></dt>
+<dd>
+<p>Function to load a file identified by <code>key</code> from directory <code>path</code>.
+To load many objects at once, use <code>as.list</code>, <code>assign</code> or <code>get</code> together with <code>lapply</code>.
+Argument <code>use.cache</code> can be set to temporarily overwrite the global <code>use.cache</code> flag.
+</p>
+</dd>
+<dt><code>put(..., li, keys, use.cache)</code></dt>
+<dd>
+<p>Function to save objects to directory <code>path</code>.
+Names for objects provided via <code>...</code> will be looked up or can be provided using a <code>key = value</code> syntax.
+More objects can be passed as a named list using the argument <code>li</code>: Each list item will be saved to a separate file.
+If you provide <code>keys</code> as a character vector, these names will be taken for the arguments passed via <code>...</code>.
+Argument <code>use.cache</code> temporarily overwrites the global <code>use.cache</code> flag.
+Returns a character vector of stored keys.
+</p>
+</dd>
+<dt><code>remove(keys)</code></dt>
+<dd>
+<p>Function to remove files identified by <code>keys</code> from directory <code>path</code>.
+Returns a character vector of deleted keys.
+</p>
+</dd>
+<dt><code>apply(FUN, ..., keys, use.cache, simplify=FALSE, use.names=TRUE)</code></dt>
+<dd>
+<p>Apply function <code>FUN</code> on files identified by <code>keys</code>.
+<code>keys</code> defaults to all keys available and will be used to name the returned list.
+The loaded R objects will be past unnamed as first argument.
+Use <code>...</code> for additional function arguments.
+Argument <code>use.cache</code> can be set to temporarily overwrite the global <code>use.cache</code> flag.
+For arguments <code>simplify</code> and <code>use.names</code>, see <code>lapply</code>.
+</p>
+</dd>
+<dt><code>mapply(FUN, ..., keys, use.cache, moreArgs = NULL, simplify=FALSE, use.names=TRUE)</code></dt>
+<dd>
+<p>Apply function <code>FUN</code> on files identified by <code>keys</code>.
+<code>keys</code> defaults to all keys available and will be used to name the returned list.
+The function <code>FUN</code> must have the formal arguments “key” and “value”.
+Both key and value will be passed named.
+Use <code>...</code> and/or <code>moreArgs</code> for additional function arguments.
+Argument <code>use.cache</code> can be set to temporarily overwrite the global <code>use.cache</code> flag.
+For arguments <code>moreArgs</code>, <code>simplify</code> and <code>use.names</code>, see <code>mapply</code>.
+</p>
+</dd>
+<dt><code>as.list(keys, use.cache)</code></dt>
+<dd>
+<p>Return a named list of objects identified by <code>keys</code>. <code>keys</code> defaults to all keys available.
+Argument <code>use.cache</code> can be set to temporarily overwrite the global <code>use.cache</code> flag.
+</p>
+</dd>
+<dt><code>assign(keys, envir=parent.frame(), use.cache)</code></dt>
+<dd>
+<p>Assigns all objects identified by the character vector <code>keys</code> in the environment <code>envir</code>.
+Argument <code>use.cache</code> can be set to temporarily overwrite the global <code>use.cache</code> flag.
+Returns a character vector of assigned keys.
+</p>
+</dd>
+<dt><code>clear(keys)</code></dt>
+<dd>
+<p>Clear the cache to free memory. <code>keys</code> defaults to all keys available.
+Returns a character vector of cleared keys.
+</p>
+</dd>
+<dt><code>cached()</code></dt>
+<dd>
+<p>Returns a character vector of keys of cached objects.
+</p>
+</dd>
+<dt><code>size(keys, unit="b")</code></dt>
+<dd>
+<p>Get the file size in Bytes of the files identified by <code>keys</code>. <code>keys</code> defaults to all keys available.
+Argument <code>unit</code> accepts “b”, “Kb”, “Mb” and “Gb” and can be used to convert Bytes to KiloBytes, MegaBytes or GigaBytes, respectively.
+</p>
+</dd>
+<dt><code>info()</code></dt>
+<dd>
+<p>Returns a named list with <code>path</code>, <code>extension</code> and <code>use.cache</code>.
+Internally used for the <code>print</code> method with a much nicer summary of the FAIL object.
+</p>
+</dd>
+</dl>
+<p>Furthermore, the package provides S3 methods for <code>print</code> and <code>as.list</code>.
+</p>
+<p>Be aware of the following restriction regarding file names and keys:
+The package performs some basic checks for illegal characters on the key names.
+In principle all characters matching the pattern “[a-zA-Z0-9._-]” are allowed and should work on most or all file systems.
+But be careful with key names which are not compatible with R's variable naming restrictions, e.g. using the minus character or
+key names starting with a number: these provoke unwanted side effects and will result in errors if used with <code>assign</code>.
+</p>
+<p>If two files would collide on case-insensitive file systems like Windows' NTFS, the package will throw warnings. Best practice
+is to not rely on case sensitivity.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of class <code>fail</code>. See details.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># initialize a FAIL in a temporary directory
+path &lt;- tempfile("")
+files &lt;- fail(path)
+
+# save x and y, vectors of random numbers
+x &lt;- runif(100)
+files$put(x, y = runif(100))
+
+# save columns of the iris data set as separate files
+files$put(li = as.list(iris))
+
+# load all RData files in a named list as a one-liner
+as.list(fail(path))
+
+# load a single object from the file system
+files$get("Species")
+files$as.list(c("x", "y"))
+
+# remove an object (and related file)
+files$remove("Species")
+
+# apply a function over files
+files$apply(mean)
+files$mapply(function(key, value) sprintf("%s -&gt; %f", key, mean(value)), simplify = TRUE)
+
+# show file size informations
+files$size(unit = "Mb")
+
+# get an object and cache it
+files$get("x", use.cache = TRUE)
+files$cached()
+files$clear()
+files$cached()
+
+# assign variables in the current environment
+files$assign("y")
+mean(y)
+</code></pre>
+
+
+</div>

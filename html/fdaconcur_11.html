@@ -1,0 +1,75 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>smPtFCRegCoef</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Smooth the concurrent effects functions in a <code>ptFCReg</code> object using local linear regression.
+The local linear regression is implemented using the function <code>Lwls1D</code>.</h2>
+
+<h3>Description</h3>
+
+<p>Smooth the concurrent effects functions in a <code>ptFCReg</code> object using local linear regression.
+The local linear regression is implemented using the function <code>Lwls1D</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">smPtFCRegCoef(object, bw, kernel_type)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class <code>ptFCReg</code> returned by the function <code>ptFCReg</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>Scalar holding the bandwidth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel_type</code></td>
+<td>
+<p>Character holding the kernel type (see <code>Lwls1D</code> for supported kernels).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>ptFCReg</code>, where the fields <code>beta0</code> and <code>beta</code> 
+hold the smoothed intercept functions and concurrent effects functions, respectively. 
+See <code>ptFCReg</code> for a complete list of the fields.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 50
+nGridIn &lt;- 101
+tGrid &lt;- seq(0, 1, length.out=nGridIn) # Functional data support
+muX1 &lt;- tGrid * 2 # mean function for X_1
+sigma &lt;- 1
+beta0 &lt;- 0
+beta &lt;- rbind(cos(tGrid), 1.5 + sin(tGrid))
+Z &lt;- MASS::mvrnorm(n, rep(0, 2), diag(2))
+X_1 &lt;- Z[, 1, drop=FALSE] %*% matrix(1, 1, nGridIn) + matrix(muX1, n, nGridIn, byrow=TRUE)
+epsilon &lt;- rnorm(n, sd=sigma)
+Y &lt;- t(sapply(seq_len(n), function(i) {
+  beta0 + beta[1,] * X_1[i, ] + beta[2,] * Z[i, 2] + epsilon[i]
+}))
+dat &lt;- list(X1=X_1, Z1=Z[, 2], Y=Y)
+res &lt;- ptFCReg(tGrid = tGrid, dat = dat)
+smres &lt;- smPtFCRegCoef(res, bw = 2.5 / (nGridIn-1), kernel_type = 'epan')
+</code></pre>
+
+
+</div>

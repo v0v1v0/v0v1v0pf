@@ -1,0 +1,247 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pred.forestRK</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Make predictions on the test data based on the forestRK model
+constructed from the training data
+</h2>
+
+<h3>Description</h3>
+
+<p>Makes predictions on the test dataset based on the <code>forestRK</code> model
+constructed from the training dataset.
+</p>
+<p>Please be aware that, the test data points in <code>test.prediction.df.list</code>
+, <code>pred.for.obs.forest.rk</code>, and <code>num.pred.for.obs.forest.rk</code> are
+re-ordered by the increasing original index number (the original rownames) of
+those test observations. So if you shuffled the data before seperating them
+into a training and a test set, the order of the data points in which they are
+presented under the attribute <code>test.prediction.df.list</code>,
+<code>pred.for.obs.forest.rk</code>, and <code>num.pred.for.obs.forest.rk</code> may not be
+same as the shuffled order of your original test set.
+</p>
+<p>Calling of this function internally loads the package <code>rapportools</code>; this
+is to allow the use of <code>is.boolean</code> method to check one of the stopping
+criteria in the beginning.
+</p>
+<p>The basic mechanism behind <code>pred.forestRK</code> function is the following:
+</p>
+<p>When the function is called, it calls <code>forestRK</code> function after passing
+the user-specified training data as an argument, in order to first generate the
+<code>forestRK</code> object. After that, the function uses <code>pred.treeRK</code>
+function to make predictions on the test observations based on each individual
+tree in the <code>forestRK</code> object. Once the individual prediction from each
+tree are obtained for all of the test observations, the function stores those
+individual predictions under a big dataframe. Once that data frame is complete,
+then the function collapses the results by the rule of the majority votes.
+For example, for the m-th observation from the test set, if the most frequently
+predicted class type for that m-th test observation by all of the rkTrees in
+the forest is class type 'A', then by the rule of the majority votes, the
+<code>pred.forestRK</code> function will assign class 'A' as the predicted class type
+for that m-th test observation based on the <code>forestRK</code> model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  pred.forestRK(x.test = data.frame(), x.training = data.frame(),
+                y.training = c(), y.factor.levels,
+                min.num.obs.end.node.tree = 5,
+                nbags, samp.size, entropy = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x.test</code></td>
+<td>
+
+<p>a numericized data frame of covariates of the data points on which we want
+to make our predictions (typically the test observations); <code>x.test</code> can
+be obtained by applying the <code>x.organizer()</code> function. <code>x.test</code>
+should contain no <code>NA</code> or <code>NaN</code>'s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.training</code></td>
+<td>
+
+<p>a numericized data frame of covariates of data points from which we build our
+<code>forestRK</code> model (typically the training observations); <code>x.training</code>
+can be obtained by applying the <code>x.organizer()</code> function.
+<code>x.training</code>should contain no <code>NA</code> or <code>NaN</code>'s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.training</code></td>
+<td>
+
+<p>a vector that stores numericized class types of the training
+data points; <code>y.training</code> should contain no <code>NA</code> or <code>NaN</code>'s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.num.obs.end.node.tree</code></td>
+<td>
+
+<p>the minimum number of observations that we want each end node of
+our <code>rktree</code> to contain. Default is set to 5.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbags</code></td>
+<td>
+
+<p>the number of bootstrap samples that we want to generate to form a
+<code>forest-RK</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp.size</code></td>
+<td>
+
+<p>the number of data points that we want each of our bootstrap sample to
+contain.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.factor.levels</code></td>
+<td>
+
+<p>a vector of original names of all class types that the user considers in his
+or her study (can be obtained via <code>y.organizer()$y.factor.levels</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy</code></td>
+<td>
+
+<p><code>TRUE</code> if we use Entropy as the splitting criteria;
+<code>FALSE</code> if we use the Gini Index for the splitting criteria.
+Default is set to <code>TRUE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x.test</code></td>
+<td>
+
+<p>the original test dataset that we used to make predictions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df.of.predictions.for.all.observations</code></td>
+<td>
+
+<p>a data frame storing predicted class types for all test observations from
+each tree in the forest; each row of this data frame pertains to individual
+test observation, and each column pertain to a specific tree from the
+<code>forestRK</code> model.
+This data frame stores predicted (numericized) class type of each test
+observation from each tree in the <code>forestRK</code> model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forest.rk</code></td>
+<td>
+
+<p>a <code>forestRK</code> object that was generated in the beginning of the function
+call.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.prediction.df.list</code></td>
+<td>
+
+<p>a list of data frames storing the <code>prediction.df</code>'s
+(the data frame that can be obtained via <code>pred.treeRK()$prediction.df</code>)
+of the test observations that were generated from each tree in the
+<code>forestRK</code> model. Note that the test data points in
+<code>test.prediction.df.list</code> are re-ordered by the increasing original
+observation index number.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred.for.obs.forest.rk</code></td>
+<td>
+
+<p>a vector that stores the actual predicted class labels of the
+test observations instead of their numericized (integer) class types.
+Note that the test data points in <code>pred.for.obs.forest.rk</code> are
+re-ordered by the increasing original observation index number.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.pred.for.obs.forest.rk</code></td>
+<td>
+
+<p>the numericized version of <code>pred.for.obs.forest.rk</code>.
+Note that the test data points in <code>num.pred.for.obs.forest.rk</code> are
+re-ordered by the increasing original observation index number.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Hyunjin Cho, <a href="mailto:h56cho@uwaterloo.ca">h56cho@uwaterloo.ca</a>
+Rebecca Su, <a href="mailto:y57su@uwaterloo.ca">y57su@uwaterloo.ca</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pred.treeRK</code>
+<code>forestRK</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## example: iris dataset
+  ## load the forestRK package
+  library(forestRK)
+
+  ## numericize the data
+  x.train &lt;- x.organizer(iris[,1:4], encoding = "num")[c(1:25,51:75,101:125),]
+  x.test &lt;- x.organizer(iris[,1:4], encoding = "num")[c(26:50,76:100,126:150),]
+  y.train &lt;- y.organizer(iris[c(1:25,51:75,101:125),5])$y.new
+
+  y.factor.levels &lt;- y.organizer(iris[c(1:25,51:75,101:125),5])$y.factor.levels
+
+  ## make prediction from a random forest RK model
+  ## typically the nbags and samp.size has to be much larger than 30 and 50
+  pred.forest.rk &lt;- pred.forestRK(x.test = x.test, x.training = x.train,
+                                  y.training = y.train,
+                                  y.factor.levels,
+                                  min.num.obs.end.node.tree = 6,
+                                  nbags = 30, samp.size = 50, entropy = FALSE)
+  pred.forest.rk$test.prediction.df.list[[10]]
+  pred.forest.rk$pred.for.obs.forest.rk # etc....
+</code></pre>
+
+
+</div>

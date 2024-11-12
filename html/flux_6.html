@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculate the area under a line(curve).
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the <strong>a</strong>rea <strong>u</strong>nder a <strong>c</strong>urve (integral) following the trapezoid rule. With <code>auc.mc</code> several Monte Carlo methods can be applied to obtain error terms for estimating the interpolation error for the integration.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auc(x, y, thresh = NULL, dens = 100, sort.x = TRUE)
+
+auc.mc(x, y, method = "leave out", lo = 2, it = 100, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x </code></td>
+<td>
+<p> Numerical vector giving the x cordinates of the points of the line (curve). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y </code></td>
+<td>
+<p> Numerical vector giving the y cordinates of the points of the line (curve). One can calculate the integral of a fitted line through giving a vector to <code>x</code> that spans <code>xlim</code> with small intervals and predicting the y coordinates with <code>predict</code> and that <code>x</code>-vector as <code>newdata</code>. See example. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh </code></td>
+<td>
+<p> Threshold below which area is not calculated. Can be used to deal with unrealistically low flux data. By default <code>thresh</code> is set to <code>NULL</code> and therefore the complete area below the zero line is subtracted from the area above the zero line to integrate the area under the curve. When data below a certain value make no sense for your question, you are able to set <code>thresh</code>. Then, all y-values below <code>thresh</code> are set to the value of <code>thresh</code> and the regarding areas below <code>thresh</code> are not subtracted from the total area. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dens </code></td>
+<td>
+<p> By default the data density is artificially increased by adding 100 data points between given adjacent data points. These additional data points are calculated by linear interpolation along x and y. When a threshold is set, this procedure increases the accuracy of the result. Setting <code>dens</code> has no effect on the result when <code>thresh</code> is set to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort.x </code></td>
+<td>
+<p> By default the vectors in <code>x</code> and <code>y</code> are ordered along increasing <code>x</code> because integration makes no sense with unordered data. You can override this by setting <code>sort.x</code> = <code>FALSE</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method </code></td>
+<td>
+
+<p>Specify how interpolation error should be estimated. Available methods include <code>"leave out"</code>, <code>"bootstrap"</code>, <code>"sorted bootstrap"</code>, <code>"constrained bootstrap"</code>, <code>"jackknife"</code>, <code>"jack-validate"</code>. True bootstrap is only effective when <code>sort.x</code> = <code>FALSE</code>. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lo </code></td>
+<td>
+
+<p>When estimating interpolation error with <code>"leave out"</code> or <code>"jack-validate"</code>, how many data points should be left out randomly? Defaults to 2. See <code>method</code> and details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>it </code></td>
+<td>
+
+<p>How many iterations should be run when using <code>auc.mc</code> to estimate the interpolation error. Defaults to 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>... </code></td>
+<td>
+
+<p>Any arguments passed through to <code>auc</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>During integration the underlying assumption is that values can be interpolated linearly between adjacent data points. In many cases this is questionable. For estimating the linear interpolation error from the data at hand one may use Monte Carlo resampling methods. In <code>auc.mc</code> the following approaches are available:
+</p>
+
+<ul>
+<li> <p><code>leave out</code>: In each run <code>lo</code> data points are randomly omitted. This is quite straightforward, but the number of data points left out (<code>lo</code>) is arbitrary and thus the error terms estimated with this approach may be hardly defensible.
+</p>
+</li>
+<li> <p><code>bootstrap</code>: Data are bootstrapped (sampling with replacement). Thus, some data points may repeat whereas others may be omitted. Due to the random sampling the order of data points is changed which may be unwanted with times series and may produce largely exaggerated error terms. This is only effective if <code>sort.x = FALSE</code>.
+</p>
+</li>
+<li> <p><code>sorted bootstrap</code>: Same as before but ordering along <code>x</code> after bootstrapping may cure some problems of changed order. However, due to repeated data points time series spreading seasons but having data showing distinct seasonality may still be misrepresented.
+</p>
+</li>
+<li> <p><code>constrained bootstrap</code>: Same as before but after ordering repeated data points are omitted. Thus, this equals leaving some measurements out at each run with a random number of leave outs. Numbers of leave outs typically show normal distribution around 3/4n.
+</p>
+</li>
+<li> <p><code>jackknife</code>: <code>auc</code> is calculated for all possible combinations of <code>length(x)-1</code> data points. Depending on <code>length(x)</code> the number of combinations can be quite low.
+</p>
+</li>
+<li> <p><code>jack-validate</code>: <code>auc</code> is calculated for all possible combinations of <code>(length(x)-lo)</code> : <code>(length(x)-1)</code> data points. Partly cures the "arbitrarity" problem of the <code>leave out</code> approach and produces stable summary statistics.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>auc</code> returns a numeric value that expresses the area under the curve. The unit depends from the input.
+</p>
+<p><code>auc.mc</code> returns a numeric vector containing the <code>auc</code> values of the <code>it</code> permutations. Just calculate summary statistics from this as you like. Due to the sampling approaches means and medians are not stable for most of the methods. <code>jackknife</code> and  <code>jack-validate</code> produce repeatable results, in the case of <code>leave out</code> it depends on n (<code>length(x)</code>) and <code>it</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gerald Jurasinski, <a href="mailto:gerald.jurasinski@uni-rostock.de">gerald.jurasinski@uni-rostock.de</a>
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>trapz</code>, <code>integrate</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Construct a data set (Imagine 2-hourly ghg emission data
+## (methane) measured during a day).
+## The emission vector (data in mg CH4 / m2*h) as a time series.
+ghg &lt;- ts(c(12.3, 14.7, 17.3, 13.2, 8.5, 7.7, 6.4, 3.2, 19.8, 
+22.3, 24.7, 15.6, 17.4), start=0, end=24, frequency=0.5)
+## Have a look at the emission development.
+plot(ghg)
+## Calculate what has been emitted that day
+## Assuming that emissions develop linearly between
+## measurements
+auc(time(ghg), ghg)
+
+## Test some of the auc.mc approaches
+## "leave out" as default
+auc.rep &lt;- auc.mc(time(ghg), ghg)
+## mean and median are well below the original value
+summary(auc.rep)
+## results for "bootstrap" are unstable (run several times)
+auc.rep &lt;- auc.mc(time(ghg), ghg, "boot")
+summary(auc.rep)
+## results for "jack-validate" are stable (run several times)
+auc.rep &lt;- auc.mc(time(ghg), ghg, "jack-val", lo=3)
+summary(auc.rep)
+
+## The effect of below.zero:
+## Shift data, so that we have negative emissions (immissions)
+ghg &lt;- ghg-10
+## See the difference
+plot(ghg)
+abline(h=0)
+## With thresh = NULL the negative emissions are subtracted
+## from the positive emissions
+auc(time(ghg), ghg)
+## With thresh = -0.5 the negative emissions are set to -0.5
+## and only the emissions &gt;= -0.5 count.
+auc(time(ghg), ghg, thresh = -0.5)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,250 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>notrend_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sieve Bootstrap Based Test for the Null Hypothesis of no Trend</h2>
+
+<h3>Description</h3>
+
+<p>A combination of time series trend tests for testing the null hypothesis of no trend,
+versus the alternative hypothesis of a linear trend (Student's t-test),
+or monotonic trend (Mann–Kendall test), or more general,
+possibly non-monotonic trend (WAVK test).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">notrend_test(
+  x,
+  B = 1000,
+  test = c("t", "MK", "WAVK"),
+  ar.method = "HVK",
+  ar.order = NULL,
+  ic = "BIC",
+  factor.length = c("user.defined", "adaptive.selection"),
+  Window = NULL,
+  q = 3/4,
+  j = c(8:11)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a vector containing a univariate time series. Missing values are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap simulations to obtain empirical critical values.
+Default is 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>trend test to implement: Student's t-test (<code>"t"</code>, default),
+Mann–Kendall test (<code>"MK"</code>), or
+WAVK test (<code>"WAVK"</code>, see <code>WAVK</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ar.method</code></td>
+<td>
+<p>method of estimating autoregression coefficients.
+Default <code>"HVK"</code> delivers robust difference-based estimates by
+Hall and Van Keilegom (2003). Alternatively,
+options of <code>ar</code> function can be used, such as <code>"burg"</code>,
+<code>"ols"</code>, <code>"mle"</code>, and <code>"yw"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ar.order</code></td>
+<td>
+<p>order of the autoregressive model when <code>ic = "none"</code>, or
+the maximal order for IC-based filtering. Default is
+<code>round(10*log10(length(x)))</code>, where <code>x</code> is the time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>information criterion used to select the order of autoregressive filter (AIC of BIC),
+considering models of orders <code class="reqn">p=</code> 0,1,...,<code>ar.order</code>.
+If <code>ic = "none"</code>, the AR(<code class="reqn">p</code>) model with <code class="reqn">p=</code> <code>ar.order</code> is used,
+without order selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.length</code></td>
+<td>
+<p>method to define the length of local windows (factors).
+Used only if <code>test = "WAVK"</code>. Default option <code>"user.defined"</code> allows
+to set only one value of the argument <code>Window</code>. The option
+<code>"adaptive.selection"</code> sets <code>method = "boot"</code> and employs
+heuristic <code class="reqn">m</code>-out-of-<code class="reqn">n</code> subsampling algorithm
+(Bickel and Sakov 2008) to select an optimal window from the set
+of possible windows <code>length(x)*q^j</code> whose values are mapped to the largest
+previous integer and greater than 2. Vector <code>x</code> is the time series tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Window</code></td>
+<td>
+<p>length of the local window (factor), default is
+<code>round(0.1*length(x))</code>. Used only if <code>test = "WAVK"</code>.
+This argument is ignored if<br><code>factor.length = "adaptive.selection"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>scalar from 0 to 1 to define the set of possible windows when
+<code>factor.length =</code> <code>"adaptive.selection"</code>.
+Used only if <code>test = "WAVK"</code>. Default is <code class="reqn">3/4</code>.
+This argument is ignored if <code>factor.length =</code> <code>"user.defined"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>numeric vector to define the set of possible windows when
+<code>factor.length =</code> <code>"adaptive.selection"</code>.
+Used only if <code>test = "WAVK"</code>. Default is <code>c(8:11)</code>.
+This argument is ignored if <code>factor.length =</code> <code>"user.defined"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function tests the null hypothesis of no trend
+versus different alternatives.
+To set some other shape of trend as the null hypothesis, use <code>wavk_test</code>.
+Note that <code>wavk_test</code> employs hybrid bootstrap, which is an alternative
+to the sieve bootstrap employed by the current function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with class <code>"htest"</code> containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>name of the method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>name of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>value of the test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p><code class="reqn">p</code>-value of the test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>list with the following elements: employed AR order and estimated
+AR coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>window that was used in WAVK test, included in the output only
+if <code>test = "WAVK"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Vyacheslav Lyubchich
+</p>
+
+
+<h3>References</h3>
+
+<p>Bickel PJ, Sakov A (2008).
+“On the choice of <code class="reqn">m</code> in the <code class="reqn">m</code> out of <code class="reqn">n</code> bootstrap and confidence bounds for extrema.”
+<em>Statistica Sinica</em>, <b>18</b>(3), 967–985.<br><br> Hall P, Van Keilegom I (2003).
+“Using difference-based methods for inference in nonparametric regression with time series errors.”
+<em>Journal of the Royal Statistical Society, Series B (Statistical Methodology)</em>, <b>65</b>(2), 443–456.
+<a href="https://doi.org/10.1111/1467-9868.00395">doi:10.1111/1467-9868.00395</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ar</code>, <code>HVK</code>, <code>WAVK</code>,
+<code>wavk_test</code>, <code>vignette("trendtests", package = "funtimes")</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Fix seed for reproducible simulations:
+set.seed(1)
+
+#Simulate autoregressive time series of length n with smooth linear trend:
+n &lt;- 200
+tsTrend &lt;- 1 + 2*(1:n/n)
+tsNoise &lt;- arima.sim(n = n, list(order = c(2, 0, 0), ar = c(0.5, -0.1)))
+U &lt;- tsTrend + tsNoise
+plot.ts(U)
+
+#Use t-test
+notrend_test(U)
+
+#Use Mann--Kendall test and Yule-Walker estimates of the AR parameters
+notrend_test(U, test = "MK", ar.method = "yw")
+
+#Use WAVK test for the H0 of no trend, with m-out-of-n selection of the local window:
+notrend_test(U, test = "WAVK", factor.length = "adaptive.selection")
+# Sample output:
+##	Sieve-bootstrap WAVK trend test
+##
+##data:  U
+##WAVK test statistic = 21.654, moving window = 15, p-value &lt; 2.2e-16
+##alternative hypothesis: (non-)monotonic trend.
+##sample estimates:
+##$AR_order
+##[1] 1
+##
+##$AR_coefficients
+##    phi_1
+##0.4041848
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,405 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>promaxQ</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conduct an Oblique Promax Rotation</h2>
+
+<h3>Description</h3>
+
+<p>This function is an extension of the <code>promax</code> function. 
+This function will extract the unrotated factor loadings (with three algorithm 
+options, see <code>faX</code>) if they are not provided. The factor 
+intercorrelations (Phi) are also computed within this function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">promaxQ(
+  R = NULL,
+  urLoadings = NULL,
+  facMethod = "fals",
+  numFactors = NULL,
+  power = 4,
+  standardize = "Kaiser",
+  epsilon = 1e-04,
+  maxItr = 15000,
+  faControl = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>(Matrix) A correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>urLoadings</code></td>
+<td>
+<p>(Matrix) An unrotated factor-structure matrix to be rotated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facMethod</code></td>
+<td>
+<p>(Character) The method used for factor extraction 
+(<code>faX</code>). The supported options are "fals" for unweighted least 
+squares, "faml" for maximum likelihood, "fapa" for iterated principal axis 
+factoring, "faregLS" for regularized least squares,
+"faregML" for regularized maximum likelihood, and "pca" for principal components 
+analysis. The default method  is "fals". 
+</p>
+
+<ul>
+<li> <p><strong>"fals"</strong>: Factors are extracted using the unweighted least 
+squares estimation procedure using the <code>fals</code> function.
+</p>
+</li>
+<li> <p><strong>"faml"</strong>: Factors are extracted using the maximum likelihood 
+estimation procedure using the <code>factanal</code> function.
+</p>
+</li>
+<li> <p><strong>"fapa"</strong>: Factors are extracted using the iterated principal 
+axis factoring estimation procedure using the <code>fapa</code> function.
+</p>
+</li>
+<li> <p><strong>"faregLS"</strong>: Factors are extracted using regularized 
+least squares factor analysis using the <code>fareg</code> function. 
+</p>
+</li>
+<li> <p><strong>"faregML"</strong>: Factors are extracted using regularized 
+maximum likelihood factor using the <code>fareg</code> function. 
+</p>
+</li>
+<li> <p><strong>"pca"</strong>: Principal components are extracted. 
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFactors</code></td>
+<td>
+<p>(Scalar) The number of factors to extract if the lambda 
+matrix is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>(Scalar) The power with which to raise factor loadings for 
+minimizing trivial loadings. The default value is 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>(Character) Which standardization routine is applied to the 
+unrotated factor structure. The three options are "none", "Kaiser", and "CM". 
+The default option is "Kaiser" as is recommended by Kaiser and others. See 
+<code>faStandardize</code> for more details. 
+</p>
+
+<ul>
+<li> <p><strong>"none"</strong>: Do <em>not</em> rotate the normalized factor structure 
+matrix.
+</p>
+</li>
+<li> <p><strong>"Kaiser"</strong>: Use a factor structure matrix that has been normed 
+by Kaiser's method (i.e., normalize all rows to have a unit length).
+</p>
+</li>
+<li> <p><strong>"CM"</strong>: Use a factor structure matrix that has been normed by 
+the Cureton-Mulaik method.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>(Scalar) The convergence criterion used for evaluating the 
+varimax rotation. The default value is 1e-4 (i.e., .0001).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxItr</code></td>
+<td>
+<p>(Scalar) The maximum number of iterations allowed for computing 
+the varimax rotation. The default value is 15,000 iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>faControl</code></td>
+<td>
+<p>(List) A list of optional parameters passed to the factor 
+extraction (<code>faX</code>) function.
+</p>
+
+<ul>
+<li> <p><strong>treatHeywood</strong>: (Logical) In <code>fals</code>, if treatHeywood is 
+true, a penalized least squares function is used to bound the communality 
+estimates below 1.0. Defaults to treatHeywood = TRUE.
+</p>
+</li>
+<li> <p><strong>nStart</strong>: (Numeric) The number of starting values to be tried 
+in <code>faml</code>. Defaults to nStart = 10.
+</p>
+</li>
+<li> <p><strong>start</strong>: (Matrix) NULL or a matrix of starting values, each column 
+giving an initial set of uniquenesses. Defaults to start = NULL. 
+</p>
+</li>
+<li> <p><strong>maxCommunality</strong>: (Numeric) In <code>faml</code>, set the maximum 
+communality value for the estimated solution. Defaults to maxCommunality = .995.
+</p>
+</li>
+<li> <p><strong>epsilon</strong>: (Numeric) In <code>fapa</code>, the numeric threshold 
+designating when the algorithm has converged. Defaults to epsilon = 1e-4.
+</p>
+</li>
+<li> <p><strong>communality</strong>: (Character) The method used to estimate the 
+initial communality values in <code>fapa</code>. Defaults to communality = 'SMC'.
+</p>
+
+<ul>
+<li> <p><strong>"SMC"</strong>: Initial communalities are estimated by taking the 
+squared multiple correlations of each indicator after regressing the 
+indicator on the remaining variables.
+</p>
+</li>
+<li> <p><strong>"maxr"</strong>: Initial communalities equal the largest 
+(absolute value) correlation in each column of the correlation matrix.
+</p>
+</li>
+<li> <p><strong>"unity"</strong>: Initial communalities equal 1.0 for all variables.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong>maxItr</strong>: (Numeric) In <code>fapa</code>, the maximum number of 
+iterations to reach convergence. Defaults to maxItr = 15,000.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li> <p><strong>Varimax Standardization</strong>: When conducting the varimax 
+rotation, it is recommended to standardize the factor loadings using 
+Kaiser's normalization (i.e., rescaling the factor indicators [rows] so 
+that the vectors have unit length). The standardization/normalization 
+occurs by pre-multiplying the unrotated factor structure, <strong>A</strong>, by 
+the inverse of <strong>H</strong>, where <strong>H</strong>^2 is a diagonal matrix with the 
+communality estimates on the diagonal. A varimax rotation is then applied 
+to the normalized, unrotated factor structure. Then, the varimax-rotated 
+factor structure is rescaled to its original metric by pre-multiplying the 
+varimax factor structure by <strong>H</strong>. For details, see Mulaik (2009).
+</p>
+</li>
+<li> <p><strong>Oblique Procrustes Rotation of the Varimax Solution</strong>: 
+According to Hendrickson &amp; White (1964), an unrestricted (i.e., oblique) 
+Procrustes rotation is applied to the orthogonal varimax solution. 
+Specifically, a target matrix is generated by raising the varimax factor 
+loadings to the user-specified power (typically, power = 4) (must retain 
+the signs of the original factor loadings). This should quickly diminish 
+trivial factor loadings while retaining larger factor loadings. The 
+Procrustes rotation takes the varimax solution and rotates it toward the 
+promax-generated target matrix. For a modern description of this approach, 
+see Mulaik (2009, ch. 12, p. 342-343).
+</p>
+</li>
+<li> <p><strong>Choice of a Power</strong>: Changing the power in which varimax factor 
+loadings are raised will change the target matrix in the oblique Procrustes 
+rotation. After raising factor loadings to some power, there will be a 
+larger discrepancy between high and low loadings than before (e.g., squaring 
+factor loadings of .6 and .7 yields loadings of .36 and .49 and cubing 
+yields loadings of .216 and .343). Furthermore, increasing the power will 
+increase the number of near-zero loadings, resulting in larger factor 
+intercorrelations. Many (cf. Gorsuch, 1983; Hendrickson &amp; White, 1964; 
+Mulaik, 2009) advocate for raising varimax loadings to the fourth power 
+(the default) but some (e.g., Gorsuch) advocate for trying power = 2 and 
+power = 6 to see if there is an improvement in the simple structure without 
+overly inflating factor correlations.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list of the following elements are produced:
+</p>
+
+<ul>
+<li> <p><strong>loadings</strong>: (Matrix) The oblique, promax-rotated, 
+factor-pattern matrix.
+</p>
+</li>
+<li> <p><strong>vmaxLoadings</strong>: (Matrix) The orthogonal, varimax-rotated, 
+factor-structure matrix used as the input matrix for the promax rotation.
+</p>
+</li>
+<li> <p><strong>rotMatrix</strong>: (Matrix) The (rescaled) transformation matrix 
+used in an attempt to minimize the Euclidean distance between the varimax 
+loadings and the generated promax target matrix (cf. Hendrickson &amp; White, 
+1964; Mulaik, 2009, p. 342-343, eqn. 12.44).
+</p>
+</li>
+<li> <p><strong>Phi</strong>: (Matrix) The factor correlation matrix associated with 
+the promax solution. Phi is found by taking the inverse of the inner 
+product of the (rescaled) rotation matrix (rotMatrix) with itself (i.e., 
+<code class="reqn">solve(T' T)</code>, where T is the (rescaled) rotation matrix).
+</p>
+</li>
+<li> <p><strong>vmaxDiscrepancy</strong>: (Scalar) The value of the minimized varimax 
+discrepancy function. promax does not have a rotational criterion but the 
+varimax rotation does.
+</p>
+</li>
+<li> <p><strong>convergence</strong>: (Logical) Whether the varimax rotation
+congerged.
+</p>
+</li>
+<li> <p><strong>Table</strong>: (Matrix) The table returned from <code>GPForth</code> 
+from the <code>GPArotation</code> package.
+</p>
+</li>
+<li> <p><strong>rotateControl</strong>: (List) A list containing (a) the power 
+parameter used, (b) whether the varimax rotation used Kaiser normalization, 
+(c) the varimax epsilon convergence criterion, and (d) the maximum number 
+of iterations specified.
+</p>
+
+<ul>
+<li> <p><strong>power</strong>: The power in which the varimax-rotated factor 
+loadings are raised.
+</p>
+</li>
+<li> <p><strong>standardize</strong>: Which standardization routine was used.
+</p>
+</li>
+<li> <p><strong>epsilon</strong>: The convergence criterion set for the varimax rotation.
+</p>
+</li>
+<li> <p><strong>maxItr</strong>: The maximum number of iterations allowed for 
+reaching convergence in the varimax rotation.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+
+<ul>
+<li>
+<p> Casey Giordano (Giord023@umn.edu)
+</p>
+</li>
+<li>
+<p> Niels G. Waller (nwaller@umn.edu)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Gorsuch, R. L. (1983). <em>Factor Analysis</em>, 2nd. Hillsdale, 
+NJ: LEA.
+</p>
+<p>Hendrickson, A. E., &amp; White, P. O. (1964). Promax: A quick 
+method for rotation to oblique simple structure. <em>British Journal of 
+Statistical Psychology, 17</em>(1), 65-70.
+</p>
+<p>Mulaik, S. A. (2009). <em>Foundations of Factor Analysis</em>. 
+Chapman and Hall/CRC.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate an orthgonal factor model
+lambda &lt;- matrix(c(.41, .00, .00,
+                   .45, .00, .00,
+                   .53, .00, .00,
+                   .00, .66, .00,
+                   .00, .38, .00,
+                   .00, .66, .00,
+                   .00, .00, .68,
+                   .00, .00, .56,
+                   .00, .00, .55),
+                 nrow = 9, ncol = 3, byrow = TRUE)
+
+## Model-implied correlation (covariance) matrix
+R &lt;- lambda %*% t(lambda)
+
+## Unit diagonal elements
+diag(R) &lt;- 1
+
+## Start from just a correlation matrix
+Out1 &lt;- promaxQ(R           = R,
+                facMethod   = "fals",
+                numFactors  = 3,
+                power       = 4,
+                standardize = "Kaiser")$loadings
+
+## Iterate the promaxQ rotation using the rotate function
+Out2 &lt;- faMain(R             = R,
+               facMethod     = "fals",
+               numFactors    = 3,
+               rotate        = "promaxQ",
+               rotateControl = list(power       = 4,
+                                    standardize = "Kaiser"))$loadings
+
+## Align the factors to have the same orientation
+Out1 &lt;- faAlign(F1 = Out2,
+                F2 = Out1)$F2
+
+## Show the equivalence of factor solutions from promaxQ and rotate
+all.equal(Out1, Out2, check.attributes = FALSE)
+
+</code></pre>
+
+
+</div>

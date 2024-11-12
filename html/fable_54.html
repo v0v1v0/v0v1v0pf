@@ -1,0 +1,236 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>VARIMA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a VARIMA model</h2>
+
+<h3>Description</h3>
+
+<p>Estimates a VARIMA model of a given order.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">VARIMA(formula, identification = c("kronecker_indices", "none"), ...)
+
+## S3 method for class 'VARIMA'
+forecast(
+  object,
+  new_data = NULL,
+  specials = NULL,
+  bootstrap = FALSE,
+  times = 5000,
+  ...
+)
+
+## S3 method for class 'VARIMA'
+fitted(object, ...)
+
+## S3 method for class 'VARIMA'
+residuals(object, ...)
+
+## S3 method for class 'VARIMA'
+tidy(x, ...)
+
+## S3 method for class 'VARIMA'
+glance(x, ...)
+
+## S3 method for class 'VARIMA'
+report(object, ...)
+
+## S3 method for class 'VARIMA'
+generate(x, new_data, specials, ...)
+
+## S3 method for class 'VARIMA'
+IRF(x, new_data, specials, impulse = NULL, orthogonal = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification (see "Specials" section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>identification</code></td>
+<td>
+<p>The identification technique used to estimate the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments for arima</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A model for which forecasts are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_data</code></td>
+<td>
+<p>A tsibble containing the time points and exogenous regressors to produce forecasts for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>specials</code></td>
+<td>
+<p>(passed by <code>fabletools::forecast.mdl_df()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>If <code>TRUE</code>, then forecast distributions are computed using simulation with resampled errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>The number of sample paths to use in estimating the forecast distribution when <code>bootstrap = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>impulse</code></td>
+<td>
+<p>A character string specifying the name of the variable that is shocked (the impulse variable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orthogonal</code></td>
+<td>
+<p>If TRUE, orthogonalised impulse responses will be computed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Exogenous regressors and <code>common_xregs</code> can be specified in the model
+formula.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A model specification.
+</p>
+<p>A one row tibble summarising the model's fit.
+</p>
+
+
+<h3>Specials</h3>
+
+
+
+<h4>pdq</h4>
+
+<p>The <code>pdq</code> special is used to specify non-seasonal components of the model.
+</p>
+<pre>
+pdq(p = 0:5, d = 0:2, q = 0:5)
+</pre>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>p</code>      </td>
+<td style="text-align: left;"> The order of the non-seasonal auto-regressive (AR) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>d</code>      </td>
+<td style="text-align: left;"> The order of integration for non-seasonal differencing. If multiple values are provided, one of the values will be selected via repeated KPSS tests. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>q</code>      </td>
+<td style="text-align: left;"> The order of the non-seasonal moving average (MA) terms. If multiple values are provided, the one which minimises <code>ic</code> will be chosen. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h4>xreg</h4>
+
+<p>Exogenous regressors can be included in an VARIMA model without explicitly using the <code>xreg()</code> special. Common exogenous regressor specials as specified in <code>common_xregs</code> can also be used. These regressors are handled using <code>stats::model.frame()</code>, and so interactions and other functionality behaves similarly to <code>stats::lm()</code>.
+</p>
+<p>The inclusion of a constant in the model follows the similar rules to <code>stats::lm()</code>, where including <code>1</code> will add a constant and <code>0</code> or <code>-1</code> will remove the constant. If left out, the inclusion of a constant will be determined by minimising <code>ic</code>.
+</p>
+<pre>
+xreg(...)
+</pre>
+
+<table><tr>
+<td style="text-align: left;">
+<code>...</code>      </td>
+<td style="text-align: left;"> Bare expressions for the exogenous regressors (such as <code>log(x)</code>)
+</td>
+</tr></table>
+<h3>See Also</h3>
+
+<p><code>MTS::VARMA()</code>, <code>MTS::Kronfit()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(tsibbledata)
+
+aus_production %&gt;% 
+  autoplot(vars(Beer, Cement))
+
+fit &lt;- aus_production %&gt;%
+  model(VARIMA(vars(Beer, Cement) ~ pdq(4,1,1), identification = "none"))
+
+fit
+
+
+
+fit %&gt;%
+  forecast(h = 50) %&gt;%
+  autoplot(tail(aus_production, 100))
+
+
+
+fitted(fit)
+
+
+residuals(fit)
+
+
+tidy(fit)
+
+
+glance(fit)
+
+
+report(fit)
+
+
+generate(fit, h = 10)
+
+
+IRF(fit, h = 10, impulse = "Beer")
+
+</code></pre>
+
+
+</div>

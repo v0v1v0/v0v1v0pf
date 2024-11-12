@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_rolling_means</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add rolling n-day average column(s) to daily flows</h2>
+
+<h3>Description</h3>
+
+<p>Adds selected n-day rolling means to a daily streamflow data set. Based on selected n-days and alignment, the rolling 
+mean for a given day is obtained by averaging the adjacent dates of daily mean values. For example, rolling days of <code>'7'</code> 
+and <code>'right'</code> alignment would obtain a mean of the given and previous 6 days of daily mean flow.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_rolling_means(
+  data,
+  dates = Date,
+  values = Value,
+  groups = STATION_NUMBER,
+  station_number,
+  roll_days = c(3, 7, 30),
+  roll_align = "right"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame of daily data that contains columns of dates, flow values, and (optional) groups (e.g. station numbers).
+Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains dates formatted YYYY-MM-DD. Only required if dates column name is not 
+'Date' (default). Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains numeric flow values, in units of cubic metres per second.
+Only required if values column name is not 'Value' (default). Leave blank if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains unique identifiers for different data sets, if applicable. Only required 
+if groups column name is not 'STATION_NUMBER'. Function will automatically group by a column named 'STATION_NUMBER' if 
+present. Remove the 'STATION_NUMBER' column beforehand to remove this grouping. Leave blank if using <code>station_number</code> 
+argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>station_number</code></td>
+<td>
+<p>Character string vector of seven digit Water Survey of Canada station numbers (e.g. <code>"08NM116"</code>) of
+which to extract daily streamflow data from a HYDAT database. Requires <code>tidyhydat</code> package and a HYDAT database.
+Leave blank if using <code>data</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_days</code></td>
+<td>
+<p>Numeric values of the number of days to apply a rolling mean. Default <code>c(3,7,30)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_align</code></td>
+<td>
+<p>Character string identifying the direction of the rolling mean from the specified date, either by the first 
+(<code>'left'</code>), last (<code>'right'</code>), or middle (<code>'center'</code>) day of the rolling n-day group of observations. 
+Default <code>'right'</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame of the source data with an additional column(s):
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>QnDay</code></td>
+<td>
+<p>rolling means of the n-day flow values of the designated date and adjacent dates, direction of mean specified by roll_align</p>
+</td>
+</tr></table>
+<p>Default additional columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Q3Day</code></td>
+<td>
+<p>rolling means of the 3-day flow values of the designated date and previous 2 days (roll_align = "right")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q7Day</code></td>
+<td>
+<p>rolling means of the 7-day flow values of the designated date and previous 6 days (roll_align = "right")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q30Day</code></td>
+<td>
+<p>rolling means of the 30-day flow values of the designated date and previous 29 days (roll_align = "right")</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Run if HYDAT database has been downloaded (using tidyhydat::download_hydat())
+if (file.exists(tidyhydat::hy_downloaded_db())) {
+
+# Add default 3, 7, and 30-day rolling mean columns, with "right" alignment
+add_rolling_means(station_number = "08NM116")
+
+# Add custom 5 and 10-day rolling mean columns
+add_rolling_means(station_number = "08NM116",
+                  roll_days = c(5,10))
+                  
+# Add default 3, 7, and 30-day rolling mean columns, with "left" alignment
+add_rolling_means(station_number = "08NM116",
+                  roll_align = "left")                
+                  
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multivariate_BinEnsemble</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multivariate Filters</h2>
+
+<h3>Description</h3>
+
+<p>Returns the top set of features that are associated with the outcome based on Multivariate logistic models: LASSO and BSWiMS
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multivariate_BinEnsemble(data,Outcome,limit=-1,adjustMethod="BH",...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The data frame
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The outcome feature
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjustMethod</code></td>
+<td>
+
+<p>The method used by the p.adjust method
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+
+<p>The samples-wise fraction of features to return. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Parameters to be passed to the correlated_Remove function
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Named vector with the adjusted p-values of the associted features
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    ## Not run: 
+
+        library("FRESA.CAD")
+
+        ### Univariate Filter Examples ####
+
+        # Get the stage C prostate cancer data from the rpart package
+        data(stagec,package = "rpart")
+
+        # Prepare the data. Create a model matrix without the event time and interactions
+        stagec$pgtime &lt;- NULL
+        stagec$eet &lt;- as.factor(stagec$eet)
+        options(na.action = 'na.pass')
+        stagec_mat &lt;- cbind(pgstat = stagec$pgstat,
+                            as.data.frame(model.matrix(pgstat ~ .*.,stagec))[-1])
+        fnames &lt;- colnames(stagec_mat)
+        fnames &lt;- str_replace_all(fnames,":","__")
+        colnames(stagec_mat) &lt;- fnames
+
+        # Impute the missing data
+        dataCancerImputed &lt;- nearestNeighborImpute(stagec_mat)
+        dataCancerImputed[,1:ncol(dataCancerImputed)] &lt;- sapply(dataCancerImputed,as.numeric)
+
+        # Get the top Features associated to pgstat
+
+        q_values &lt;- multivariate_BinEnsemble(data=dataCancerImputed, 
+                                    Outcome="pgstat")
+
+
+
+    
+## End(Not run)
+</code></pre>
+
+
+</div>

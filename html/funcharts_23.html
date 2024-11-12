@@ -1,0 +1,70 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_ooc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get out of control observations from control charts</h2>
+
+<h3>Description</h3>
+
+<p>Get out of control observations from control charts
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_ooc(cclist)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>cclist</code></td>
+<td>
+<p>A <code>data.frame</code> produced by
+<code>control_charts_pca</code>, <code>control_charts_sof_pc</code>,
+<code>regr_cc_fof</code>, or <code>regr_cc_sof</code>.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with the same number of rows as cclist,
+and the same number of columns
+apart from the columns indicating control chart limits.
+Each value is TRUE if the corresponding observation is in control
+and FALSE otherwise.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air &lt;- lapply(air, function(x) x[201:300, , drop = FALSE])
+fun_covariates &lt;- c("CO", "temperature")
+mfdobj_x &lt;- get_mfd_list(air[fun_covariates],
+                         n_basis = 15,
+                         lambda = 1e-2)
+y &lt;- rowMeans(air$NO2)
+y1 &lt;- y[1:60]
+y_tuning &lt;- y[61:90]
+y2 &lt;- y[91:100]
+mfdobj_x1 &lt;- mfdobj_x[1:60]
+mfdobj_x_tuning &lt;- mfdobj_x[61:90]
+mfdobj_x2 &lt;- mfdobj_x[91:100]
+mod &lt;- sof_pc(y1, mfdobj_x1)
+cclist &lt;- regr_cc_sof(object = mod,
+                      y_new = y2,
+                      mfdobj_x_new = mfdobj_x2,
+                      y_tuning = y_tuning,
+                      mfdobj_x_tuning = mfdobj_x_tuning,
+                      include_covariates = TRUE)
+get_ooc(cclist)
+
+
+</code></pre>
+
+
+</div>

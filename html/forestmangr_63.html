@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>strs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Stratified Random Sampling</h2>
+
+<h3>Description</h3>
+
+<p>Function for processing forest inventory data using stratified random sampling.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">strs(
+  df,
+  Yi,
+  plot_area,
+  strata_area,
+  strata,
+  m3ha = FALSE,
+  .groups = NA,
+  age = NA,
+  alpha = 0.05,
+  error = 10,
+  dec_places = 4,
+  pop = "inf",
+  tidy = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>a data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Yi</code></td>
+<td>
+<p>Quoted name of the volume variable, or other variable one desires to evaluate, in quotes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_area</code></td>
+<td>
+<p>Quoted name of the plot area variable, or a numeric vector with the plot area value. The plot area value must be in square meters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata_area</code></td>
+<td>
+<p>Quoted name of the strata area variable, or a numeric vector with the plot strata values. If there are more than 1 area values, it's possible to use a vector with all area values, like so:<code>c(14.4, 16.4, 14.2)</code>. The strata area values must be in hectares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>Quoted name of the subdivision variable(s), also known as strata. If this argument is not supplied, the defined groups in the data frame will be used, if they exist.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m3ha</code></td>
+<td>
+<p>Boolean value. If <code>TRUE</code> Yi variable is treated in m3/ha, else, in m3. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.groups</code></td>
+<td>
+<p>Optional argument. Quoted name(s) of additional grouping variable(s) that, if supplied, will be used to run multiple surveys, one for each level. 
+If this argument is <code>NA</code>, the defined groups in the data frame will be used, if they exist. Default: <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>Optional parameter. Quoted name of the age variable. Calculates the average age supplied. <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Numeric value for the significance value used in the t-student estimation. Default: <code>0.05</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error</code></td>
+<td>
+<p>Numeric value for the minimum admitted error value in the survey, in percentage. Default: <code>10</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dec_places</code></td>
+<td>
+<p>Numeric value for the number of decimal places to be used in the output tables. Default: <code>4</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop</code></td>
+<td>
+<p>Character value for the type of population considered in the calculations. This can be either infinite (<code>"inf"</code>) or finite (<code>"fin"</code>). Default: <code>"inf"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tidy</code></td>
+<td>
+<p>Boolean value that defines if the output tables should be tidied up or not. Default: <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function allows the user to processes inventory data using stratified random sampling for n forest subdivisions (strata),
+for finite or infinite populations. It's possible to run multiple sampling analysis using a factor variable indicated in the
+<code>.groups</code>() parameter.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing two data frames, one with information for each strata, and one with the stratified sampling results.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sollano Rabelo Braga <a href="mailto:sollanorb@gmail.com">sollanorb@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Campos, J. C. C. and Leite, H. G. (2017) Mensuracao Florestal: Perguntas e Respostas. 5a. Vicosa: UFV.
+</p>
+<p>Soares, C. P. B., Paula Neto, F. and Souza, A. L. (2012) Dendrometria e Inventario Florestal. 2nd ed. Vicosa: UFV.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>other sampling functions: 
+<code>sprs</code> for Simple Random Sampling, and
+<code>ss_diffs</code> for Systematic Sampling.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(forestmangr)
+data("exfm1")
+data("exfm2")
+data("exfm6")
+
+# The objective is to sample an area, with an error of 5%.
+# First we run a pilot inventory, considering a 5% error and a finite population:
+head(exfm1)
+
+strs(exfm1, "VWB", "PLOT_AREA", "STRATA_AREA", strata = "STRATA", error = 5, pop = "fin")
+
+# With these results, in order to meet the desired error of 5%, we'll need to sample 24 more plots,
+# 4 in stratum 1, 8 in stratum 2, and 12 in stratum 3.
+# After sampling the necessary plots, we now run a definitive inventory,
+# considering an 5% error and a finite population:
+exfm2
+
+strs(exfm2, "VWB", "PLOT_AREA", "STRATA_AREA", strata = "STRATA", error = 5, pop = "fin")
+
+# The desired error value was met.
+
+# Area values can be numeric:
+strs(exfm2, "VWB", 1000, c(14.4, 16.4,14.2), strata = "STRATA", error = 5, pop = "fin")
+
+# Optional variable age, and one stratified sampled inventory for each map:
+exfm6
+
+strs(exfm6, "VWB", "PLOT_AREA", "STRATA_AREA", strata ="STRATA", .groups = "MAP", age = "AGE")
+
+</code></pre>
+
+
+</div>

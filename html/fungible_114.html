@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tetcor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute ML Tetrachoric Correlations</h2>
+
+<h3>Description</h3>
+
+<p>Compute ML tetrachoric correlations with optional bias correction and
+smoothing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tetcor(
+  X,
+  y = NULL,
+  BiasCorrect = TRUE,
+  stderror = FALSE,
+  Smooth = TRUE,
+  max.iter = 5000,
+  PRINT = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Either a matrix or vector of (0/1) binary data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>An optional(if X is a matrix) vector of (0/1) binary data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BiasCorrect</code></td>
+<td>
+<p>A logical that determines whether bias correction (Brown
+&amp; Benedetti, 1977) is performed. Default = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stderror</code></td>
+<td>
+<p>A logical that determines whether standard errors are
+calulated.  Default = FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Smooth</code></td>
+<td>
+<p>A logical which determines whether the tetrachoric correlation
+matrix should be smoothed.  A smoothed matrix is always positive definite.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+<p>Maximum number of iterations. Default = 50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PRINT</code></td>
+<td>
+<p>A logical that determines whether to print progress updates
+during calculations. Default = TRUE</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If stderror = FALSE, <code>tetcor</code> returns a matrix of tetrachoric
+correlations. If <code>stderror</code> = TRUE then <code>tetcor</code> returns a list
+the first component of which is a matrix of tetrachoric correlations and the
+second component is a matrix of standard errors (see Hamdan, 1970).
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>The tetrachoric correlation matrix</p>
+</td>
+</tr></table>
+<p>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>A matrix of standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>(logical) The convergence status of the algorithm. A value of 
+TRUE denotes that the algorithm converged. A value of FALSE denotes that the 
+algorithm did not converge and the returned correlations 
+are Pearson product moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Warnings</code></td>
+<td>
+<p>A list of warnings.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Niels Waller
+</p>
+
+
+<h3>References</h3>
+
+<p>Brown, M. B. &amp; Benedetti, J. K. (1977). On the mean and variance
+of the tetrachoric correlation coefficient. <em>Psychometrika, 42</em>,
+347–355.
+</p>
+<p>Divgi, D. R. (1979) Calculation of the tetrachoric correlation coefficient.
+<em>Psychometrika, 44</em>, 169-172.
+</p>
+<p>Hamdan, M. A. (1970). The equivalence of tetrachoric and maximum likelihood
+estimates of rho in 2 by 2 tables. <em>Biometrika, 57</em>, 212-215.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## generate bivariate normal data
+library(MASS)
+set.seed(123)
+rho &lt;- .85
+xy &lt;- mvrnorm(100000, mu = c(0,0), Sigma = matrix(c(1, rho, rho, 1), ncol = 2))
+
+# dichotomize at difficulty values
+p1 &lt;- .7
+p2 &lt;- .1
+xy[,1] &lt;- xy[,1] &lt; qnorm(p1) 
+xy[,2] &lt;- xy[,2] &lt; qnorm(p2)
+
+print( apply(xy,2,mean), digits = 2)
+#[1] 0.700 0.099
+
+tetcor(X = xy, BiasCorrect = TRUE, 
+       stderror = TRUE, Smooth = TRUE, max.iter = 5000)
+
+# $r
+# [,1]      [,2]
+# [1,] 1.0000000 0.8552535
+# [2,] 0.8552535 1.0000000
+# 
+# $se
+# [,1]           [,2]
+# [1,] NA         0.01458171
+# [2,] 0.01458171 NA
+# 
+# $Warnings
+# list()
+
+
+
+</code></pre>
+
+
+</div>

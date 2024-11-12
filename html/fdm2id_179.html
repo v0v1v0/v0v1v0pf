@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vectorize.docs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Document vectorization</h2>
+
+<h3>Description</h3>
+
+<p>Vectorize a corpus of documents.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vectorize.docs(
+  vectorizer = NULL,
+  corpus = NULL,
+  lang = "en",
+  stopwords = lang,
+  ngram = 1,
+  mincount = 10,
+  minphrasecount = NULL,
+  transform = c("tfidf", "lsa", "l1", "none"),
+  latentdim = 50,
+  returndata = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vectorizer</code></td>
+<td>
+<p>The document vectorizer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corpus</code></td>
+<td>
+<p>The corpus of documents (a vector of characters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lang</code></td>
+<td>
+<p>The language of the documents (NULL if no stemming).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stopwords</code></td>
+<td>
+<p>Stopwords, or the language of the documents. NULL if stop words should not be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ngram</code></td>
+<td>
+<p>maximum size of n-grams.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mincount</code></td>
+<td>
+<p>Minimum word count to be considered as frequent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minphrasecount</code></td>
+<td>
+<p>Minimum collocation of words count to be considered as frequent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform</code></td>
+<td>
+<p>Transformation (TF-IDF, LSA, L1 normanization, or nothing).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>latentdim</code></td>
+<td>
+<p>Number of latent dimensions if LSA transformation is performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returndata</code></td>
+<td>
+<p>If true, the vectorized documents are returned. If false, a "vectorizer" is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The vectorized documents.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>query.docs</code>, <code>stopwords</code>, <code>vectorizers</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+require (text2vec)
+data ("movie_review")
+# Clustering
+docs = vectorize.docs (corpus = movie_review$review, transform = "tfidf")
+km = KMEANS (docs [sample (nrow (docs), 100), ], k = 10)
+# Classification
+d = movie_review [, 2:3]
+d [, 1] = factor (d [, 1])
+d = splitdata (d, 1)
+vectorizer = vectorize.docs (corpus = d$train.x,
+                             returndata = FALSE, mincount = 50)
+train = vectorize.docs (corpus = d$train.x, vectorizer = vectorizer)
+test = vectorize.docs (corpus = d$test.x, vectorizer = vectorizer)
+model = NB (as.matrix (train), d$train.y)
+pred = predict (model, as.matrix (test))
+evaluation (pred, d$test.y)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

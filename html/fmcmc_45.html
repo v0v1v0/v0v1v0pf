@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kernel_ram</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Robust Adaptive Metropolis (RAM) Transition Kernel</h2>
+
+<h3>Description</h3>
+
+<p>Implementation of Vihola (2012)'s Robust Adaptive Metropolis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kernel_ram(
+  mu = 0,
+  eta = function(i, k) min(c(1, i^(-2/3) * k)),
+  qfun = function(k) stats::rt(k, k),
+  arate = 0.234,
+  freq = 1L,
+  warmup = 0L,
+  Sigma = NULL,
+  eps = 1e-04,
+  lb = -.Machine$double.xmax,
+  ub = .Machine$double.xmax,
+  fixed = FALSE,
+  until = Inf,
+  constr = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>Either a numeric vector or a scalar. Proposal mean.
+If scalar, values are recycled to match the number of parameters in the
+objective function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>A function that receives the MCMC environment. This is to calculate
+the scaling factor for the adaptation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qfun</code></td>
+<td>
+<p>Function. As described in Vihola (2012)'s, the <code>qfun</code> function is
+a symmetric function used to generate random numbers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arate</code></td>
+<td>
+<p>Numeric scalar. Objective acceptance rate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>Integer scalar. Frequency of updates. How often the
+variance-covariance matrix is updated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warmup</code></td>
+<td>
+<p>Integer scalar. The number of iterations that the algorithm has
+to wait before starting to do the updates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma</code></td>
+<td>
+<p>The variance-covariance matrix. By default this will be an
+identity matrix during the warmup period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Double scalar. Default size of the initial step (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb, ub</code></td>
+<td>
+<p>Either a numeric vector or a scalar. Lower and upper bounds for
+bounded kernels. When of length 1, the values are recycled to match the number
+of parameters in the objective function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>Logical scalar or vector of length <code>k</code>. Indicates which parameters
+will be treated as fixed or not. Single values are recycled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>until</code></td>
+<td>
+<p>Integer scalar. Last step at which adaptation takes place (see
+details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constr</code></td>
+<td>
+<p>Logical lower-diagonal square matrix of size <code>k</code>. <strong>Not</strong> in the
+original paper, but rather a tweak that imposes a constraint on the <code>S_n</code>
+matrix. If different from <code>NULL</code>, the kernel multiplates <code>S_n</code> by this
+constraint so that zero elements are pre-imposed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>While it has been shown that under regular conditions this transition kernel
+generates ergodic chains even when the adaptation does not stop, some
+practitioners may want to stop adaptation at some point.
+</p>
+<p>The idea is similar to that of the Adaptive Metropolis algorithm (AM implemented
+as <code>kernel_adapt()</code> here) with the difference that it takes into account a
+target acceptance rate.
+</p>
+<p>The <code>eta</code> function regulates the rate of adaptation. The default implementation
+will decrease the rate of adaptation exponentially as a function of the iteration
+number.
+</p>
+<p style="text-align: center;"><code class="reqn">%latex
+Y_n\equiv X_{n-1} + S_{n-1}U_n,\quad\mbox{where }U_n\sim q\mbox{ (the \texttt{qfun})}%
+</code>
+</p>
+
+<p>And the <code class="reqn">S_n</code> matrix is updated according to the following equation:
+</p>
+<p style="text-align: center;"><code class="reqn">% latex
+S_nS_n^T = S_{n-1}\left(I + \eta_n(\alpha_n - \alpha_*)\frac{U_nU_n^T}{\|U_n\|^2}\right)S_{n-1}^T%
+</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>An object of class fmcmc_kernel.
+</p>
+
+
+<h3>References</h3>
+
+<p>Vihola, M. (2012). Robust adaptive Metropolis algorithm with coerced acceptance
+rate. Statistics and Computing, 22(5), 997–1008.
+<a href="https://doi.org/10.1007/s11222-011-9269-5">doi:10.1007/s11222-011-9269-5</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other kernels: 
+<code>kernel_adapt()</code>,
+<code>kernel_mirror</code>,
+<code>kernel_new()</code>,
+<code>kernel_normal()</code>,
+<code>kernel_unif()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Setting the acceptance rate to 30 % and deferring the updates until
+# after 1000 steps
+kern &lt;- kernel_ram(arate = .3, warmup = 1000)
+</code></pre>
+
+
+</div>

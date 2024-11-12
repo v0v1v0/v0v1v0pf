@@ -1,0 +1,400 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>depth.fdata</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computation of depth measures for functional data</h2>
+
+<h3>Description</h3>
+
+<p>Several depth measures can be computed for functional data for descriptive
+or classification purposes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">depth.mode(
+  fdataobj,
+  fdataori = fdataobj,
+  trim = 0.25,
+  metric = metric.lp,
+  h = NULL,
+  scale = FALSE,
+  draw = FALSE,
+  ...
+)
+
+depth.RP(
+  fdataobj,
+  fdataori = fdataobj,
+  trim = 0.25,
+  nproj = 50,
+  proj = "vexponential",
+  dfunc = "TD1",
+  par.dfunc = list(),
+  scale = FALSE,
+  draw = FALSE,
+  ...
+)
+
+depth.RPD(
+  fdataobj,
+  fdataori = fdataobj,
+  nproj = 20,
+  proj = 1,
+  deriv = c(0, 1),
+  trim = 0.25,
+  dfunc2 = mdepth.LD,
+  method = "fmm",
+  draw = FALSE,
+  ...
+)
+
+depth.RT(
+  fdataobj,
+  fdataori = fdataobj,
+  trim = 0.25,
+  nproj = 10,
+  proj = 1,
+  xeps = 1e-07,
+  draw = FALSE,
+  ...
+)
+
+depth.KFSD(
+  fdataobj,
+  fdataori = fdataobj,
+  trim = 0.25,
+  h = NULL,
+  scale = FALSE,
+  draw = FALSE
+)
+
+depth.FSD(
+  fdataobj,
+  fdataori = fdataobj,
+  trim = 0.25,
+  scale = FALSE,
+  draw = FALSE
+)
+
+depth.FM(
+  fdataobj,
+  fdataori = fdataobj,
+  trim = 0.25,
+  scale = FALSE,
+  dfunc = "FM1",
+  par.dfunc = list(scale = TRUE),
+  draw = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdataobj</code></td>
+<td>
+<p>The set of new curves to evaluate the depth.
+<code>fdata</code> class object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdataori</code></td>
+<td>
+<p>The set of reference curves respect to which the depth is
+computed.  <code>fdata</code> class object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>The alpha of the trimming.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>Metric function, by default <code>metric.lp</code>. Distance
+matrix between <code>fdataobj</code> and <code>fdataori</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Bandwidth parameter. 
+</p>
+ 
+<ul>
+<li>
+<p> If <code>h</code> is a numerical value, the procedure considers the argument
+value as the bandwidth.  
+</p>
+</li>
+<li>
+<p> If is <code>NULL</code> (by default) the bandwidth is provided as the 
+15%–quantile of the distance among curves of
+<code>fdataori</code>.
+</p>
+</li>
+<li>
+<p> If <code>h</code> is a character string (like <code>"0.15"</code>), the procedure
+reads the numeric value and consider it as the quantile of the distance in
+<code>fdataori</code> (as in the second case).  
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>=TRUE, the depth is scaled respect to depths in
+<code>fdataori</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>draw</code></td>
+<td>
+<p>=TRUE, draw the curves, the sample median and trimmed mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods. For
+<code>depth.mode</code> parameters for <code>metric</code>. For random projection
+depths, parameters to be included in <code>rproc2fdata</code> not included before.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nproj</code></td>
+<td>
+<p>The number of projections. Ignored if a <code>fdata</code> class
+object is provided in <code>proj</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proj</code></td>
+<td>
+<p>if a <code>fdata</code> class, projections provided by the user.
+Otherwise, it is the <code>sigma</code> parameter of <code>rproc2fdata</code>
+function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfunc</code></td>
+<td>
+<p>type of univariate depth function used inside depth function:
+"FM1" refers to the original Fraiman and Muniz univariate depth (default),
+"TD1" Tukey (Halfspace),"Liu1" for simplical depth, "LD1" for Likelihood
+depth and "MhD1" for Mahalanobis 1D depth. Also, any user function
+fulfilling the following pattern <code>FUN.USER(x,xx,...)</code> and returning a
+<code>dep</code> component can be included.f</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.dfunc</code></td>
+<td>
+<p>List of parameters for <em>dfunc</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>Number of derivatives described in integer vector <code>deriv</code>.
+<code>=0</code> means no derivative.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfunc2</code></td>
+<td>
+<p>Multivariate depth function (second step depth function) in
+RPD depth, by default <code>mdepth.LD</code>. Any user function with the
+pattern <code>FUN.USER(x,xx,...)</code> can be employed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Type of derivative method. See <code>fdata.deriv</code> for
+more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xeps</code></td>
+<td>
+<p>Accuracy. The left limit of the empirical distribution function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Type of depth functions: Fraiman and Muniz (FM)
+depth, modal depth, random Tukey (RT), random projection (RP) depth and
+double random projection depth (RPD).
+</p>
+ 
+<ul>
+<li> <p><code>depth.FM</code> computes the integration of an univariate depth
+along the axis x (see Fraiman and Muniz 2001). It is also known as
+Integrated Depth.
+</p>
+</li>
+<li> <p><code>depth.mode</code> implements the modal depth (see Cuevas et al
+2007).
+</p>
+</li>
+<li> <p><code>depth.RT</code> implements the Random Tukey depth (see
+Cuesta–Albertos and Nieto–Reyes 2008).
+</p>
+</li>
+<li> <p><code>depth.RP</code> computes the Random Projection depth (see
+Cuevas et al. 2007).
+</p>
+</li>
+<li> <p><code>depth.RPD</code> implements a depth measure based on random
+projections possibly using several derivatives (see Cuevas et al. 2007).
+</p>
+</li>
+<li> <p><code>depth.FSD</code> computes the Functional Spatial Depth (see
+Sguera et al. 2014).
+</p>
+</li>
+<li> <p><code>depth.KFSD</code> implements the Kernelized Functional Spatial
+Depth (see Sguera et al. 2014).  
+</p>
+</li>
+</ul>
+<ul>
+<li>
+<p> The <code>depth.mode</code> function calculates the depth of a datum
+accounting the number of curves in its neighbourhood. By default, the
+distance is calculated using <code>metric.lp</code> function although any
+other distance could be employed through argument <code>metric</code> (with the
+general pattern <code>USER.DIST(fdataobj,fdataori)</code>).
+</p>
+</li>
+<li>
+<p> The <code>depth.RP</code> function summarizes the random projections
+through averages whereas the <code>depth.RT</code> function uses the
+minimum of all projections.
+</p>
+</li>
+<li>
+<p> The <code>depth.RPD</code> function involves the original
+trajectories and the derivatives of each curve in two steps. It builds
+random projections for the function and their derivatives (indicated in the
+parameter <code>deriv</code>) and then applies a depth function (by default
+<code>depth.mode</code>) to this set of random projections (by default the
+Tukey one).
+</p>
+</li>
+<li>
+<p> The <code>depth.FSD</code> and <code>depth.KFSD</code> are the
+implementations of the default versions of the functional spatial depths
+proposed in Sguera et al 2014. At this moment, it is not possible to change
+the kernel in the second one.#' 
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>Return a list with:
+</p>
+
+<ul>
+<li> <p>median Deepest curve. 
+</p>
+</li>
+<li> <p>lmed Index deepest element <code>median</code>.
+</p>
+</li>
+<li> <p>mtrim <code>fdata</code> class object with the average from the <code>(1-trim)%</code> deepest curves. 
+</p>
+</li>
+<li> <p>ltrim Indexes of curves that conform the trimmed mean <code>mtrim</code>. 
+</p>
+</li>
+<li> <p>dep Depth of each curve of fdataobj w.r.t. fdataori.
+</p>
+</li>
+<li> <p>dep.ori Depth of each curve of fdataori w.r.t. fdataori.
+</p>
+</li>
+<li> <p>proj The projection value of each point on the curves.  
+</p>
+</li>
+<li> <p>dist Distance matrix between curves or functional data.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Cuevas, A., Febrero-Bande, M., Fraiman, R. (2007). Robust
+estimation and classification for functional data via projection-based depth
+notions. <em>Computational Statistics</em> 22, 3, 481-496.
+</p>
+<p>Fraiman R, Muniz G. (2001). Trimmed means for functional data. <em>Test</em>
+10: 419-440.
+</p>
+<p>Cuesta–Albertos, JA, Nieto–Reyes, A. (2008) The Random Tukey Depth.
+<em>Computational Statistics and Data Analysis</em> Vol. 52, Issue 11,
+4979-4988.
+</p>
+<p>Febrero-Bande, M, Oviedo de la Fuente, M. (2012).  Statistical Computing in
+Functional Data Analysis: The R Package fda.usc. <em>Journal of
+Statistical Software</em>, 51(4), 1-28. <a href="https://www.jstatsoft.org/v51/i04/">https://www.jstatsoft.org/v51/i04/</a>
+</p>
+<p>Sguera C, Galeano P, Lillo R (2014). Spatial depth based classification for
+functional data. <em>TEST</em> 23(4):725–750.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also as <code>Descriptive</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#Ex: CanadianWeather data
+tt=1:365
+fdataobj&lt;-fdata(t(CanadianWeather$dailyAv[,,1]),tt)
+# Fraiman-Muniz Depth
+out.FM=depth.FM(fdataobj,trim=0.1,draw=TRUE)
+#Modal Depth
+out.mode=depth.mode(fdataobj,trim=0.1,draw=TRUE)
+out.RP=depth.RP(fdataobj,trim=0.1,draw=TRUE)
+out.RT=depth.RT(fdataobj,trim=0.1,draw=TRUE)
+out.FSD=depth.FSD(fdataobj,trim=0.1,draw=TRUE)
+out.KFSD=depth.KFSD(fdataobj,trim=0.1,draw=TRUE)
+## Double Random Projections
+out.RPD=depth.RPD(fdataobj,deriv=c(0,1),dfunc2=mdepth.LD,
+trim=0.1,draw=TRUE)
+out&lt;-c(out.FM$mtrim,out.mode$mtrim,out.RP$mtrim,out.RPD$mtrim)
+plot(fdataobj,col="grey")
+lines(out)
+cdep&lt;-cbind(out.FM$dep,out.mode$dep,out.RP$dep,out.RT$dep,out.FSD$dep,out.KFSD$dep)
+colnames(cdep)&lt;-c("FM","mode","RP","RT","FSD","KFSD")
+pairs(cdep)
+round(cor(cdep),2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

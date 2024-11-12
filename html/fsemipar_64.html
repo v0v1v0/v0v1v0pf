@@ -1,0 +1,463 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sfplsim.kernel.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+SFPLSIM regularised fit using kernel estimation
+</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a sparse semi-functional partial linear single-index (SFPLSIM). It employs a penalised least-squares regularisation procedure, integrated with nonparametric kernel estimation using Nadaraya-Watson weights.
+</p>
+<p>The function uses B-spline expansions to represent curves and eligible functional indexes.  It also utilises an objective criterion (<code>criterion</code>) to select both the bandwidth (<code>h.opt</code>) and the regularisation parameter (<code>lambda.opt</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sfplsim.kernel.fit(x, z, y, seed.coeff = c(-1, 0, 1), order.Bspline = 3, 
+nknot.theta = 3, min.q.h = 0.05, max.q.h = 0.5, h.seq = NULL, num.h = 10, 
+range.grid = NULL, kind.of.kernel = "quad", nknot = NULL, lambda.min = NULL,
+lambda.min.h = NULL, lambda.min.l = NULL, factor.pn = 1, nlambda = 100, 
+lambda.seq = NULL, vn = ncol(z), nfolds = 10, seed = 123, criterion = "GCV",
+penalty = "grSCAD", max.iter = 1000, n.core = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>Matrix containing the observations of the functional covariate (functional single-index component), collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+
+<p>Matrix containing the observations of the scalar covariates (linear component), collected by row.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>Vector containing the scalar response.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed.coeff</code></td>
+<td>
+
+<p>Vector of initial values used to  build the set <code class="reqn">\Theta_n</code> (see section <code>Details</code>). The coefficients for the B-spline representation of each eligible functional index <code class="reqn">\theta \in \Theta_n</code> are obtained from <code>seed.coeff</code>.  The default is <code>c(-1,0,1)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order.Bspline</code></td>
+<td>
+
+<p>Positive integer giving the order of the B-spline basis functions. This is the number of coefficients in each piecewise polynomial segment. The default is 3.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot.theta</code></td>
+<td>
+
+<p>Positive integer indicating the number of regularly spaced interior knots in the B-spline expansion of <code class="reqn">\theta_0</code>. The default is 3.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.q.h</code></td>
+<td>
+<p>Minimum quantile order of the distances between curves, which are computed using the projection semi-metric. This value determines the lower endpoint of the range from which the bandwidth is selected. The default is 0.05.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.q.h</code></td>
+<td>
+
+<p>Maximum quantile order of the distances between curves, which are computed using the projection semi-metric. This value determines the upper endpoint of the range from which the bandwidth is selected. The default is 0.5.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h.seq</code></td>
+<td>
+<p>Vector containing the sequence of bandwidths. The default is a sequence of <code>num.h</code> equispaced bandwidths in the range constructed using <code>min.q.h</code> and <code>max.q.h</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.h</code></td>
+<td>
+<p>Positive integer indicating the number of bandwidths in the grid. The default is 10.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.grid</code></td>
+<td>
+
+<p>Vector of length 2 containing the endpoints of the grid at which the observations of the functional covariate <code>x</code> are evaluated (i.e. the range of the discretisation). If <code>range.grid=NULL</code>, then <code>range.grid=c(1,p)</code> is considered, where <code>p</code> is the discretisation size of <code>x</code> (i.e. <code>ncol(x))</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kind.of.kernel</code></td>
+<td>
+
+<p>The type of kernel function used. Currently, only Epanechnikov kernel (<code>"quad"</code>) is available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot</code></td>
+<td>
+
+<p>Positive integer indicating the number of interior knots for the B-spline expansion of the functional covariate. The default value is <code>(p - order.Bspline - 1)%/%2</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min</code></td>
+<td>
+
+<p>The smallest value for lambda (i. e., the lower endpoint  of the sequence in which <code>lambda.opt</code> is selected), as fraction of <code>lambda.max</code>.
+The defaults is <code>lambda.min.l</code> if the sample size is larger than <code>factor.pn</code> times the number of linear covariates and <code>lambda.min.h</code> otherwise.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.h</code></td>
+<td>
+
+<p>The lower endpoint of the sequence in which <code>lambda.opt</code> is selected if the sample size is smaller than <code>factor.pn</code> times the number of linear covariates. The default is 0.05. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.l</code></td>
+<td>
+
+<p>The lower endpoint of the sequence in which <code>lambda.opt</code> is selected if the sample size is larger than <code>factor.pn</code> times the number of linear covariates. The default is 0.0001.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.pn</code></td>
+<td>
+
+<p>Positive integer used to set <code>lambda.min</code>. The default value is 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+
+<p>Positive integer indicating the number of values in the sequence from which <code>lambda.opt</code> is selected. The default is 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.seq</code></td>
+<td>
+
+<p>Sequence of values in which <code>lambda.opt</code> is selected. If <code>lambda.seq=NULL</code>, then the programme builds the sequence automatically using <code>lambda.min</code> and <code>nlambda</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vn</code></td>
+<td>
+
+<p>Positive integer or vector of positive integers indicating the number of groups of consecutive variables to be penalised together. The default value is <code>vn=ncol(z)</code>, resulting in the individual penalization of each scalar covariate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+
+<p>Number of cross-validation folds (used when <code>criterion="k-fold-CV"</code>). Default is 10.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>You may set the seed for the random number generator to ensure reproducible results (applicable when <code>criterion="k-fold-CV"</code> is used). The default seed value is 123.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+
+<p>The criterion used to select the tuning and regularisation parameter: <code>h.opt</code> and <code>lambda.opt</code>  (also <code>vn.opt</code> if needed). Options include <code>"GCV"</code>, <code>"BIC"</code>, <code>"AIC"</code>, or <code>"k-fold-CV"</code>. The default setting is <code>"GCV"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+
+<p>The penalty function applied in the penalised least-squares procedure. Currently, only "grLasso" and "grSCAD" are implemented. The default is "grSCAD".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+
+<p>Maximum number of iterations allowed across the entire path. The default value is 1000.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.core</code></td>
+<td>
+
+<p>Number of CPU cores designated for parallel execution. The default is <code>n.core&lt;-availableCores(omit=1)</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The sparse semi-functional partial linear single-index model (SFPLSIM) is given by the expression:
+</p>
+<p style="text-align: center;"><code class="reqn">
+Y_i=Z_{i1}\beta_{01}+\dots+Z_{ip_n}\beta_{0p_n}+r(\left&lt;\theta_0,X_i\right&gt;)+\varepsilon_i\ \ \ i=1,\dots,n,
+</code>
+</p>
+
+<p>where <code class="reqn">Y_i</code> denotes a scalar response, <code class="reqn">Z_{i1},\dots,Z_{ip_n}</code> are real random covariates and <code class="reqn">X_i</code> is a functional random covariate valued in a separable Hilbert space <code class="reqn">\mathcal{H}</code> with inner product <code class="reqn">\left\langle \cdot, \cdot \right\rangle</code>. In this equation,
+<code class="reqn">\mathbf{\beta}_0=(\beta_{01},\dots,\beta_{0p_n})^{\top}</code>, <code class="reqn">\theta_0\in\mathcal{H}</code> and <code class="reqn">r(\cdot)</code> are a vector of unknown real parameters, an unknown functional direction and an unknown smooth real-valued function, respectively. In addition, <code class="reqn">\varepsilon_i</code> is the random error.
+</p>
+<p>The sparse SFPLSIM is fitted using the penalised least-squares approach. The first step is to transform the SSFPLSIM into a linear model by extracting from <code class="reqn">Y_i</code> and <code class="reqn">Z_{ij}</code> (<code class="reqn">j=1,\ldots,p_n</code>) the effect of the functional covariate <code class="reqn">X_i</code> using functional single-index regression.  This transformation is achieved using nonparametric kernel estimation (see, for details, the documentation of the function <code>fsim.kernel.fit</code>).
+</p>
+<p>An approximate linear model is then obtained:
+</p>
+<p style="text-align: center;"><code class="reqn">\widetilde{\mathbf{Y}}_{\theta_0}\approx\widetilde{\mathbf{Z}}_{\theta_0}\mathbf{\beta}_0+\mathbf{\varepsilon},</code>
+</p>
+
+<p>and the penalised least-squares procedure is applied to this model by minimising over the pair <code class="reqn">(\mathbf{\beta},\theta)</code>
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathcal{Q}\left(\mathbf{\beta},\theta\right)=\frac{1}{2}\left(\widetilde{\mathbf{Y}}_{\theta}-\widetilde{\mathbf{Z}}_{\theta}\mathbf{\beta}\right)^{\top}\left(\widetilde{\mathbf{Y}}_{\theta}-\widetilde{\mathbf{Z}}_{\theta}\mathbf{\beta}\right)+n\sum_{j=1}^{p_n}\mathcal{P}_{\lambda_{j_n}}\left(|\beta_j|\right), \quad (1)
+</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{\beta}=(\beta_1,\ldots,\beta_{p_n})^{\top}, \ \mathcal{P}_{\lambda_{j_n}}\left(\cdot\right)</code> is a penalty function (specified in the argument <code>penalty</code>) and <code class="reqn">\lambda_{j_n} &gt; 0</code> is a tuning parameter.
+To reduce  the quantity of tuning parameters, <code class="reqn">\lambda_j</code>, to be selected for each sample, we consider <code class="reqn">\lambda_j = \lambda \widehat{\sigma}_{\beta_{0,j,OLS}}</code>, where <code class="reqn">\beta_{0,j,OLS}</code> denotes the OLS estimate of <code class="reqn">\beta_{0,j}</code> and <code class="reqn">\widehat{\sigma}_{\beta_{0,j,OLS}}</code> is the estimated standard deviation. Both <code class="reqn">\lambda</code> and <code class="reqn">h</code> (in the kernel estimation) are selected using the objetive criterion specified in the argument <code>criterion</code>.
+</p>
+<p>In addition, the function uses a B-spline representation to construct a set  <code class="reqn">\Theta_n</code> of eligible functional indexes <code class="reqn">\theta</code>. The dimension of the B-spline basis is <code>order.Bspline</code>+<code>nknot.theta</code> and the set of eligible coefficients is obtained by calibrating (to ensure the identifiability of the model) the set of initial coefficients given in <code>seed.coeff</code>. The larger this set, the greater the size of <code class="reqn">\Theta_n</code>. ue to the intensive computation required by our approach, a balance between the size of <code class="reqn">\Theta_n</code> and the performance of the estimator is necessary. For that, Ait-Saidi et al. (2008) suggested considering <code>order.Bspline=3</code> and <code>seed.coeff=c(-1,0,1)</code>. For details on the construction of <code class="reqn">\Theta_n</code> see Novo et al. (2019).
+</p>
+<p>Finally, after estimating <code class="reqn">\mathbf{\beta}_0</code> and <code class="reqn">\theta_0</code> by minimising (1), we proceed to estimate the nonlinear function <code class="reqn">r_{\theta_0}(\cdot)\equiv r\left(\left&lt;\theta_0,\cdot\right&gt;\right)</code>.
+For this purporse, we again apply the kernel procedure with Nadaraya-Watson weights to smooth the partial residuals <code class="reqn">Y_i-\mathbf{Z}_i^{\top}\widehat{\mathbf{\beta}}</code>.
+</p>
+<p>For further details on the estimation procedure of the SSFPLSIM, see Novo et al. (2021).
+</p>
+<p><b>Remark</b>: It should be noted that if we set <code>lambda.seq</code> to <code class="reqn">0</code>, we can obtain the non-penalised estimation of the model, i.e. the OLS estimation. Using <code>lambda.seq</code> with a value <code class="reqn">\not= 0</code> is advisable when suspecting the presence of irrelevant variables.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>Estimated scalar response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Differences between <code>y</code> and the <code>fitted.values</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.est</code></td>
+<td>
+<p>Estimate of <code class="reqn">\beta_0</code> when the optimal tuning parameters <code>lambda.opt</code>, <code>h.opt</code> and <code>vn.opt</code> are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.est</code></td>
+<td>
+<p>Coefficients of <code class="reqn">\hat{\theta}</code> in the B-spline basis (when the optimal tuning parameters <code>lambda.opt</code>, <code>h.opt</code> and <code>vn.opt</code> are used): a vector of <code>length(order.Bspline+nknot.theta)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indexes.beta.nonnull</code></td>
+<td>
+<p>Indexes of the non-zero <code class="reqn">\hat{\beta_{j}}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h.opt</code></td>
+<td>
+<p>Selected bandwidth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.opt</code></td>
+<td>
+<p>Selected value of the penalisation parameter <code class="reqn">\lambda</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IC</code></td>
+<td>
+<p>Value of the criterion function considered to select <code>lambda.opt</code>, <code>h.opt</code> and <code>vn.opt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q.opt</code></td>
+<td>
+<p>Minimum value of the penalized criterion used to estimate <code class="reqn">\beta_0</code> and <code class="reqn">\theta_0</code>. That is, the value obtained using <code>theta.est</code> and <code>beta.est</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+<p>Vector of dimension equal to the cardinal of <code class="reqn">\Theta_n</code>, containing the values of the penalized criterion for each functional index in <code class="reqn">\Theta_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m.opt</code></td>
+<td>
+<p>Index of <code class="reqn">\hat{\theta}</code> in the set <code class="reqn">\Theta_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.opt.max.mopt</code></td>
+<td>
+<p>A grid of values in [<code>lambda.min.opt.max.mopt[1], lambda.min.opt.max.mopt[3]</code>] is considered to seek for the <code>lambda.opt</code> (<code>lambda.opt=lambda.min.opt.max.mopt[2]</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.opt.max.m</code></td>
+<td>
+<p>A grid of values in [<code>lambda.min.opt.max.m[m,1], lambda.min.opt.max.m[m,3]</code>] is considered to seek for the optimal <code class="reqn">\lambda</code> (<code>lambda.min.opt.max.m[m,2]</code>)
+used by the optimal <code class="reqn">\beta</code> for each <code class="reqn">\theta</code> in <code class="reqn">\Theta_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h.min.opt.max.mopt</code></td>
+<td>
+<p><code>h.opt=h.min.opt.max.mopt[2]</code> (used by <code>theta.est</code> and <code>beta.est</code>) was seeked between <code>h.min.opt.max.mopt[1]</code> and <code>h.min.opt.max.mopt[3]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h.min.opt.max.m</code></td>
+<td>
+<p>For each <code class="reqn">\theta</code> in <code class="reqn">\Theta_n</code>, the optimal <code class="reqn">h</code> (<code>h.min.opt.max.m[m,2]</code>) used by the optimal <code class="reqn">\beta</code> for this <code class="reqn">\theta</code> was seeked between <code>h.min.opt.max.m[m,1]</code> and <code>h.min.opt.max.m[m,3]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h.seq.opt</code></td>
+<td>
+<p>Sequence of eligible values for <code class="reqn">h</code> considered to seek for <code>h.opt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.seq.norm</code></td>
+<td>
+<p>The vector <code>theta.seq.norm[j,]</code> contains the coefficientes in the B-spline basis of the jth functional index in <code class="reqn">\Theta_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vn.opt</code></td>
+<td>
+<p>Selected value of <code>vn</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>German Aneiros Perez <a href="mailto:german.aneiros@udc.es">german.aneiros@udc.es</a> 
+</p>
+<p>Silvia Novo Diaz  <a href="mailto:snovo@est-econ.uc3m.es">snovo@est-econ.uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Ait-Saidi, A., Ferraty, F., Kassa, R., and Vieu, P. (2008) Cross-validated estimations in the single-functional index model. <em>Statistics</em>, <b>42(6)</b>, 475–494, <a href="https://doi.org/10.1080/02331880801980377">doi:10.1080/02331880801980377</a>.
+</p>
+<p>Novo S., Aneiros, G., and Vieu, P., (2019) Automatic and location-adaptive estimation in functional single-index regression. <em>Journal of Nonparametric Statistics</em>, <b>31(2)</b>, 364–392, <a href="https://doi.org/10.1080/10485252.2019.1567726">doi:10.1080/10485252.2019.1567726</a>.
+</p>
+<p>Novo, S., Aneiros, G., and Vieu, P., (2021) Sparse semiparametric regression
+when predictors are mixture of functional and high-dimensional variables. <em>TEST</em>,
+<b>30</b>, 481–504, <a href="https://doi.org/10.1007/s11749-020-00728-w">doi:10.1007/s11749-020-00728-w</a>.
+</p>
+<p>Novo, S., Aneiros, G., and Vieu, P., (2021) A kNN procedure in semiparametric
+functional data analysis. <em>Statistics and Probability Letters</em>, <b>171</b>, 109028, <a href="https://doi.org/10.1016/j.spl.2020.109028">doi:10.1016/j.spl.2020.109028</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>fsim.kernel.fit</code>, <code>predict.sfplsim.kernel</code> and  <code>plot.sfplsim.kernel</code>
+</p>
+<p>Alternative procedure <code>sfplsim.kNN.fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("Tecator")
+y&lt;-Tecator$fat
+X&lt;-Tecator$absor.spectra2
+z1&lt;-Tecator$protein       
+z2&lt;-Tecator$moisture
+
+#Quadratic, cubic and interaction effects of the scalar covariates.
+z.com&lt;-cbind(z1,z2,z1^2,z2^2,z1^3,z2^3,z1*z2)
+train&lt;-1:160
+
+#SSFPLSIM fit. Convergence errors for some theta are obtained.
+ptm=proc.time()
+fit&lt;-sfplsim.kernel.fit(x=X[train,], z=z.com[train,], y=y[train],
+      max.q.h=0.35,lambda.min.l=0.01,
+      max.iter=5000, nknot.theta=4,criterion="BIC",nknot=20)
+proc.time()-ptm
+
+#Results
+fit
+names(fit)
+
+</code></pre>
+
+
+</div>

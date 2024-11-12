@@ -1,0 +1,271 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flipMix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The main function for testing mixed models under a permutation (and
+rotation) framework</h2>
+
+<h3>Description</h3>
+
+<p>It allows to test fixed effect in mixed models. You can test within-unit
+effects, between-unit and interactions of the two. The response can be uni-
+or multi-variate. See also examples below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flipMix(modelWithin, X = NULL, Z = NULL, units, perms = 1000,
+  data = NULL, tail = 0, statTest = NULL, flipReturn,
+  testType = "permutation", Su = NULL, equal.se = FALSE, se = NA,
+  replaceNA.coeffWithin = "coeffMeans",
+  replaceNA.coeffWithin.se = replaceNA.coeffWithin, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>modelWithin</code></td>
+<td>
+<p>When it is a <code>formula</code> object,
+a (possibly multivariate) multiple linear model is fitted.  Responses are on
+the left, while the right part contains ONLY within-unit variables.  In this
+case <code>data</code> must be supplied.  Alternatively, it can be a <code>glm</code>, a
+<code>lm</code> or <code>vgam</code> (<code>library(VGAM)</code>) (i.e. <code>vglm</code>) object.
+The <code>modelWithin</code> have to be performed using only variables
+within-unit, without using <code>units</code> indicator (in this case the argument
+<code>data</code> is not used).  It can be also a list of models. It can be null
+if data is provided in the right format (see below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The part of the design matrix corresponding to the between-unit
+effect that are not null under the alternative hypothesis. If it is a matrix
+or a data.frame it must have a number of rows equal to the number of units
+or equal to the total number of observations (in the latest case all
+elements of the same units must have the same values since they are
+between-unit effects). The non-null between-unit covariates of null model
+are defined in <code>Z</code> (see argument below) and do not have to be supplied
+again here. See also the function <code>flip</code>
+</p>
+<p>NOTE: When called from <code>flipMixWithin</code>, <code>W</code> is used only if
+<code>statTest="TBTWest"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>The part of the design matrix corresponding to the non-null
+between-unit covariates of the model under the null hypothesis. May be given
+as a design matrix or as a half <code>formula</code> object
+(e.g. <code>~a+b</code>). See also the function <code>flip</code>.  If it is a
+matrix or a data.frame it must have a number of rows equal to the number of
+units or equal to the total number of observations (in the latest case all
+elements of the same units must have the same values since they are
+between-unit effects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units</code></td>
+<td>
+<p>Vector of units IDs. May be given as a vector or as a half
+<code>formula</code> object (e.g. <code>~subj</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perms</code></td>
+<td>
+<p>The number of permutations to use. The default is <code>perms =
+1000</code>. Alternatively it can be a matrix (i.e. the permutation space) or a
+list with elements <code>number</code> and <code>seed</code>. See also the function
+<code>flip</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Same as in the function <code>flip</code>. If can also be the
+results of <code>obs2coeffWithin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tail</code></td>
+<td>
+<p>Same as in the function <code>flip</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statTest</code></td>
+<td>
+<p>For function <code>flipMix</code> choose among <code>"t"</code> and
+<code>"F"</code> (very similar to <code>statTest</code> in function <code>flip</code>.\ For
+function <code>flipMixWithin</code> choose among <code>"Tnaive"</code> (i.e. no estimate
+of the variance), <code>"TH0est"</code> (Default, i.e. estimate of the variance
+under H0), <code>"TH1est"</code> (i.e. estimate of the variance under H1 for each
+permutation. Slower but some time more powerful) and <code>"TBTWest"</code> (i.e.
+estimate of the variance using ILS algorithm at each permutation; it allows
+for <code>Z</code> different from a constant term. This is the same algorithm used
+for <code>flipMix</code>. MUCH slower but some time even more powerful).
+</p>
+<p>Both functions allow for vector arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flipReturn</code></td>
+<td>
+<p>Same as in the function <code>flip</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testType</code></td>
+<td>
+<p>See also the function <code>flip</code>. Note that this
+option used only with function <code>flipMix</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Su</code></td>
+<td>
+<p>Usually <code>NULL</code>. It is the covariance matrix of the random
+effects. If not supplied, it is estimated by iterative least square
+algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equal.se</code></td>
+<td>
+<p>Logical. If <code>TRUE</code> it force the unit to have the same
+variance of errors (like it is usually assumed in the lmer methods).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Usually <code>NULL</code>. It is a matrix of unit-specific standard
+errors. If not supplied it is estimated by the algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replaceNA.coeffWithin</code></td>
+<td>
+<p>deafult is <code>NA</code> i.e. no replacement. You
+can provide a specific value (or a vector of values). You can also choose
+among "coeffMeans" and "unitMeans" (i.e. mean along columns or along rows of
+Y).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replaceNA.coeffWithin.se</code></td>
+<td>
+<p>deafult is <code>Inf</code>. Use the same options
+of <code>replaceNA.coeffWithin</code> (but means are over the variances and then
+rooted).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further parameters.  <code>test.coeffWithin</code> Vector of names or
+IDs of within-unit variables that have to be tested (and reported). Note
+that variables not in the list are used in the model (i.e. the they play the
+role of nuisance parameters). <code>fastSumCombination</code>,<code>onlyMANOVA</code>
+and <code>linComb</code> are used in <code>flipMix</code> to deal with combination of
+variables/coefficents.
+</p>
+<p>See also the function <code>flip</code> for other parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>flipMix</code> and <code>flipMixWithin</code> return an object of class
+<code>flip.object</code>.  Several operations and plots can be made from this
+object. See also <code>flip.object-class</code>.
+</p>
+<p>Note that function <code>flipMix</code> with <code>statTest="t"</code> or <code>"F"</code>
+provides tests for each effect between (and interaction) and also provides
+the overall test <code>PC1</code> and <code>sum</code> (i.e. all effects ar null, same
+as <code>npc</code> does).
+</p>
+<p>Use <code>npc</code> with any
+<code>comb.funct=c("data.sum","data.linComb","data.pc","data.trace")</code> to
+combine results.
+</p>
+<p><code>obs2coeffWithin</code> return a list of objects that can be used as argument
+of <code>data</code> in the function <code>flipMix</code> and <code>flipMixWithin</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Livio Finos and Dario Basso
+</p>
+
+
+<h3>References</h3>
+
+<p>L. Finos and D. Basso (2013) Permutation Tests for Between-Unit
+Fixed Effects in Multivariate Generalized Linear Mixed Models. Statistics
+and Computing.
+</p>
+<p>D. Basso, L. Finos (2011) Exact Multivariate Permutation Tests for Fixed
+Effects in Mixed-Models. Communications in Statistics - Theory and Methods.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flip</code>, <code>npc</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+N=10
+toyData= data.frame(subj=rep(1:N,rep(4,N)), Within=rep(1:2,N*2),
+          XBetween= rep(1:2,rep(N/2*4,2)),ZBetween= rep(rnorm(N/2),rep(8,N/2)))
+toyData= cbind(Y1=rnorm(n=N*4,mean=toyData$subj+toyData$ZBetween+toyData$XBetween),
+               Y2=rnorm(n=N*4,mean=toyData$subj+toyData$ZBetween+toyData$Within*2),toyData)
+(toyData)
+
+#####################
+###Testing Between-unit effects
+(res=flipMix(modelWithin=as.matrix(toyData[,c("Y1","Y2")])~Within,data=toyData, 
+      X=~XBetween,Z=~ZBetween,units=~subj,perms=1000,testType="permutation",statTest="t"))
+#same as:
+modelWithin &lt;- lm(as.matrix(toyData[,c("Y1","Y2")])~Within,data=toyData)
+(flipMix(modelWithin=modelWithin,data=toyData, X=~XBetween,Z=~ZBetween,units= ~subj, 
+        perms=1000,testType="permutation",statTest="t"))
+
+### Note that this is different from:
+modelWithin &lt;- list(Y1=lm(Y1~Within,data=toyData),Y2=lm(Y2~Within,data=toyData))
+(flipMix(modelWithin=modelWithin,data=toyData, X=~XBetween,Z=~ZBetween,units= ~subj,
+        perms=1000,testType="permutation",statTest="t"))
+
+### combining results
+(npc(res,"data.pc"))
+(npc(res,"data.trace"))
+################################
+###Testing Within-unit effects
+## The resulting test is approximated. The estimate of the variance within units 
+## takes in account the presence of effects between units.
+(flipMix(modelWithin=as.matrix(toyData[,c("Y1","Y2")])~Within,data=toyData, 
+        units= ~subj, perms=1000,testType="permutation",statTest="t"))
+
+###The resulting tests are exact. If effects between are presents, 
+## statTest="Tnaive" or "TBTWest" are more suitable:
+(res=flipMixWithin(modelWithin=as.matrix(toyData[,c("Y1","Y2")])~Within,data=toyData, 
+        units= ~subj, perms=1000,statTest=c("TH1est")))
+npc(res)
+
+</code></pre>
+
+
+</div>

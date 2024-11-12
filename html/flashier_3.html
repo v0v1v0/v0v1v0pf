@@ -1,0 +1,359 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Empirical Bayes matrix factorization</h2>
+
+<h3>Description</h3>
+
+<p>Fits an empirical Bayes matrix factorization (see <strong>Details</strong> for a
+description of the model). The resulting fit is referred to as a "flash"
+object (short for Factors and Loadings using Adaptive SHrinkage). Two
+interfaces are provided. The <code>flash</code> function provides a simple
+interface that allows a flash object to be fit in a single pass, while
+<code>flash_xxx</code> functions are pipeable functions that allow for more
+complex flash objects to be fit incrementally (available functions are
+listed below under <strong>See Also</strong>). See the vignettes and
+<strong>Examples</strong> for usage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash(
+  data,
+  S = NULL,
+  ebnm_fn = ebnm_point_normal,
+  var_type = 0L,
+  greedy_Kmax = 50L,
+  backfit = FALSE,
+  nullcheck = TRUE,
+  verbose = 1L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The observations. Usually a matrix, but can also be a sparse
+matrix of class <code>Matrix</code> or a low-rank matrix
+representation as returned by, for example, <code>svd</code>,
+<code>irlba</code>, <code>rsvd</code>, or
+<code>softImpute</code> (in general, any list that
+includes fields <code>u</code>, <code>d</code>, and <code>v</code> will be interpreted
+as a low-rank matrix representation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>The standard errors. Can be <code>NULL</code> (in which case all residual
+variance will be estimated) or a matrix, vector, or scalar. <code>S</code>
+should be a scalar if standard errors are identical across observations. It
+should be a vector if standard errors either vary across columns but are
+constant within any given row, or vary across rows but are constant within
+any given column (<code>flash</code> will use the length of the vector
+to determine whether the supplied values correspond to rows or columns; if the
+data matrix is square, then the sense must be specified using parameter
+<code>S_dim</code> in function <code>flash_init</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ebnm_fn</code></td>
+<td>
+<p>The function or functions used to solve the empirical Bayes
+normal means (EBNM) subproblems. Most importantly, these functions specify
+the families of distributions <code class="reqn">G_\ell^{(k)}</code> and <code class="reqn">G_f^{(k)}</code> to which the
+priors on loadings and factors <code class="reqn">g_\ell^{(k)}</code> and <code class="reqn">g_f^{(k)}</code> are
+assumed to belong. If the same function is to be used for both loadings
+<code class="reqn">L</code> and factors <code class="reqn">F</code>, then <code>ebnm_fn</code> can be a single function.
+If one function is to be used for loadings and a second for factors,
+then <code>ebnm_fn</code> should be a list of length two, with the first
+element giving the function for loadings and the second the function
+for factors. If different functions are to be used for different values of
+<code class="reqn">k</code>, then factor/loadings pairs must be added successively using
+multiple calls to either <code>flash_greedy</code> or
+<code>flash_factors_init</code>.
+</p>
+<p>Any EBNM function provided by package <code>ebnm</code> can be
+used as input. Non-default arguments to parameters can be supplied using
+the helper function <code>flash_ebnm</code>. Custom EBNM functions can
+also be used: for details, see <code>flash_ebnm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_type</code></td>
+<td>
+<p>Describes the structure of the estimated residual variance.
+Can be <code>NULL</code>, <code>0</code>, <code>1</code>, <code>2</code>, or <code>c(1, 2)</code>. If
+<code>NULL</code>, then <code>S</code> accounts for all residual variance. If
+<code>var_type = 0</code>, then the estimated residual variance (which is added
+to any variance given by <code>S</code>) is assumed to be constant
+across all observations. Setting <code>var_type = 1</code> estimates a single
+variance parameter for each row; <code>var_type = 2</code> estimates one
+parameter for each column; and <code>var_type = c(1, 2)</code> optimizes over
+all rank-one matrices (that is, it assumes that the residual variance
+parameter <code class="reqn">s_{ij}</code> can be written <code class="reqn">s_{ij} = a_i b_j</code>, where the
+<code class="reqn">n</code>-vector <code class="reqn">a</code> and the <code class="reqn">p</code>-vector <code class="reqn">b</code> are to be
+estimated).
+</p>
+<p>Note that if any portion of the residual variance is to be estimated, then
+it is usually faster to set <code>S = NULL</code> and to let <code>flash</code>
+estimate all of the residual variance. Further, <code>var_type = c(1, 2)</code>
+is typically much slower than other options, so it should be used with
+care.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>greedy_Kmax</code></td>
+<td>
+<p>The maximum number of factors to be added. This will not
+necessarily be the total number of factors added by <code>flash</code>, since
+factors are only added as long as they increase the variational lower
+bound on the log likelihood for the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backfit</code></td>
+<td>
+<p>A "greedy" fit is performed by adding up to
+<code>greedy_Kmax</code> factors, optimizing each newly added factor in one go
+without returning to optimize previously added factors. When
+<code>backfit = TRUE</code>, <code>flash</code> will additionally perform a final
+"backfit" where all factors are cyclically updated until convergence.
+The backfitting procedure typically takes much longer than the greedy
+algorithm, but it also usually improves the final fit to a significant
+degree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nullcheck</code></td>
+<td>
+<p>If <code>nullcheck = TRUE</code>, then <code>flash</code> will check
+that each factor in the final flash object improves the overall fit. Any
+factor that fails the check will be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>When and how to display progress updates. Set to
+<code>0</code> for none, <code>1</code> for updates after a factor is added or a
+backfit is completed, <code>2</code> for additional notifications about the
+variational lower bound, and <code>3</code> for updates after every iteration.
+It is also possible to output a single tab-delimited table of values
+using function <code>flash_set_verbose</code> with <code>verbose = -1</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code class="reqn">Y</code> is an <code class="reqn">n \times p</code> data matrix, then the rank-one
+empirical Bayes matrix factorization model is:
+</p>
+<p style="text-align: center;"><code class="reqn">Y = \ell f' + E,</code>
+</p>
+<p> where <code class="reqn">\ell</code> is an
+<code class="reqn">n</code>-vector of <strong>loadings</strong>, <code class="reqn">f</code> is a
+<code class="reqn">p</code>-vector of <strong>factors</strong>, and <code class="reqn">E</code> is an
+<code class="reqn">n \times p</code> matrix of <strong>residuals</strong> (or "errors").
+Additionally:
+</p>
+<p style="text-align: center;"><code class="reqn">e_{ij} \sim N(0, s_{ij}^2): i = 1, ..., n; j = 1, ..., p</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\ell \sim g_\ell \in G_\ell</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">f \sim g_f \in G_f.</code>
+</p>
+
+<p>The residual variance parameters <code class="reqn">s_{ij}^2</code> are constrained to have
+a simple structure and are fit via maximum likelihood. (For example, one
+might assume that all standard errors are identical: <code class="reqn">s_{ij}^2 = s^2</code>
+for some <code class="reqn">s^2</code> and for all <code class="reqn">i</code>, <code class="reqn">j</code>).
+The functions <code class="reqn">g_\ell</code> and <code class="reqn">g_f</code> are assumed to belong to
+some families of priors <code class="reqn">G_\ell</code> and <code class="reqn">G_f</code> that are
+specified in advance, and are estimated via variational approximation.
+</p>
+<p>The general rank-<code class="reqn">K</code> empirical Bayes matrix factorization model is:
+</p>
+<p style="text-align: center;"><code class="reqn">Y = LF' + E</code>
+</p>
+<p> or
+</p>
+<p style="text-align: center;"><code class="reqn">y_{ij} = \sum_k \ell_{ik} f_{jk} + e_{ij}: i = 1, ..., n; j = 1, ..., p,</code>
+</p>
+
+<p>where <code class="reqn">L</code> is now a matrix of loadings and <code class="reqn">F</code> is a matrix of
+factors.
+</p>
+<p>Separate priors <code class="reqn">g_\ell^{(k)}</code> and <code class="reqn">g_f^{(k)}</code> are estimated via
+empirical Bayes, and different prior families may be used for different
+values of <code class="reqn">k</code>. In general, then:
+</p>
+<p style="text-align: center;"><code class="reqn">e_{ij} \sim N(0, s_{ij}^2): i = 1, ..., n; j = 1, ..., p</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\ell_{ik} \sim g_\ell^{(k)} \in G_\ell^{(k)}: i = 1, ..., n; k = 1, ..., K</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">f_{ik} \sim g_f^{(k)} \in G_f^{(k)}: j = 1, ..., p; k = 1, ..., K.</code>
+</p>
+
+<p>Typically, <code class="reqn">G_\ell^{(k)}</code> and <code class="reqn">G_f^{(k)}</code> will be closed under
+scaling, in which case <code class="reqn">\ell_k</code> and <code class="reqn">f_k</code> are only identifiable
+up to a <strong>scaling factor</strong> <code class="reqn">d_k</code>. In other words, we can write:
+</p>
+<p style="text-align: center;"><code class="reqn">Y = LDF' + E,</code>
+</p>
+
+<p>where <code class="reqn">D</code> is a diagonal matrix with diagonal entries <code class="reqn">d_1, ..., d_K</code>.
+The model can then be made identifiable by constraining the scale of
+<code class="reqn">\ell_k</code> and <code class="reqn">f_k</code> for <code class="reqn">k = 1, ..., K</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>flash</code> object. Contains elements:
+</p>
+
+<dl>
+<dt><code>n_factors</code></dt>
+<dd>
+<p>The total number of factor/loadings pairs <code class="reqn">K</code>
+in the fitted model.</p>
+</dd>
+<dt><code>pve</code></dt>
+<dd>
+<p>The proportion of variance explained by each
+factor/loadings pair. Since factors and loadings are not required to be
+orthogonal, this should be interpreted loosely: for example, the total
+proportion of variance explained could be larger than 1.</p>
+</dd>
+<dt><code>elbo</code></dt>
+<dd>
+<p>The variational lower bound achieved by the
+fitted model.</p>
+</dd>
+<dt><code>residuals_sd</code></dt>
+<dd>
+<p>Estimated residual standard deviations (these
+include any variance component given as an argument to <code>S</code>).</p>
+</dd>
+<dt><code>L_pm, L_psd, L_lfsr</code></dt>
+<dd>
+<p>Posterior means,
+standard deviations, and local false sign rates for loadings <code class="reqn">L</code>.</p>
+</dd>
+<dt><code>F_pm, F_psd, F_lfsr</code></dt>
+<dd>
+<p>Posterior means,
+standard deviations, and local false sign rates for factors <code class="reqn">F</code>.</p>
+</dd>
+<dt><code>L_ghat</code></dt>
+<dd>
+<p>The fitted priors on loadings
+<code class="reqn">\hat{g}_\ell^{(k)}</code>.</p>
+</dd>
+<dt><code>F_ghat</code></dt>
+<dd>
+<p>The fitted priors on factors
+<code class="reqn">\hat{g}_f^{(k)}</code>.</p>
+</dd>
+<dt><code>sampler</code></dt>
+<dd>
+<p>A function that takes a single argument
+<code>nsamp</code> and returns <code>nsamp</code> samples from the posterior
+distributions for factors <code class="reqn">F</code> and loadings <code class="reqn">L</code>.</p>
+</dd>
+<dt><code>flash_fit</code></dt>
+<dd>
+<p>A <code>flash_fit</code> object. Used by
+<code>flash</code> when fitting is not performed all at once, but
+incrementally via calls to various <code>flash_xxx</code> functions.</p>
+</dd>
+</dl>
+<p>The following methods are available:
+</p>
+
+<dl>
+<dt><code>fitted.flash</code></dt>
+<dd>
+<p>Returns the "fitted values"
+<code class="reqn">E(LF') = E(L) E(F)'</code>.</p>
+</dd>
+<dt><code>residuals.flash</code></dt>
+<dd>
+<p>Returns the expected residuals
+<code class="reqn">Y - E(LF') = Y - E(L) E(F)'</code>.</p>
+</dd>
+<dt><code>ldf.flash</code></dt>
+<dd>
+<p>Returns an <code class="reqn">LDF</code> decomposition (see
+<strong>Details</strong> above), with columns of <code class="reqn">L</code> and <code class="reqn">F</code> scaled
+as specified by the user.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Wei Wang and Matthew Stephens (2021).
+"Empirical Bayes matrix factorization." <em>Journal of Machine Learning
+Research</em> 22, 1–40.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flash_init</code>, <code>flash_greedy</code>,
+<code>flash_backfit</code>, and <code>flash_nullcheck</code>. For more
+advanced functionality, see <code>flash_factors_init</code>,
+<code>flash_factors_fix</code>, <code>flash_factors_set_to_zero</code>,
+<code>flash_factors_remove</code>, <code>flash_set_verbose</code>, and
+<code>flash_set_conv_crit</code>.
+For extracting useful data from <code>flash</code> objects, see
+<code>fitted.flash</code>, <code>residuals.flash</code>, and
+<code>ldf.flash</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(gtex)
+
+# Fit up to 3 factors and backfit.
+fl &lt;- flash(gtex, greedy_Kmax = 3L, backfit = TRUE)
+
+# This is equivalent to the series of calls:
+fl &lt;- flash_init(gtex) %&gt;%
+  flash_greedy(Kmax = 3L) %&gt;%
+  flash_backfit() %&gt;%
+  flash_nullcheck()
+
+# Fit a unimodal distribution with mean zero to each set of loadings
+#   and a scale mixture of normals with mean zero to each factor.
+fl &lt;- flash(gtex,
+            ebnm_fn = c(ebnm_unimodal,
+                        ebnm_normal_scale_mixture),
+            greedy_Kmax = 3)
+
+# Fit point-laplace priors using a non-default optimization method.
+fl &lt;- flash(gtex,
+            ebnm_fn = flash_ebnm(prior_family = "point_laplace",
+                                 optmethod = "trust"),
+            greedy_Kmax = 3)
+
+# Fit a "Kronecker" (rank-one) variance structure (this can be slow).
+fl &lt;- flash(gtex, var_type = c(1, 2), greedy_Kmax = 3L)
+
+</code></pre>
+
+
+</div>

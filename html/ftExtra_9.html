@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>footnote_options</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Options for footnotes</h2>
+
+<h3>Description</h3>
+
+<p>Configure options for footnotes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">footnote_options(
+  ref = c("1", "a", "A", "i", "I", "*"),
+  prefix = "",
+  suffix = "",
+  start = 1L,
+  max = 26L,
+  inline = FALSE,
+  sep = "; "
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ref</code></td>
+<td>
+<p>A string or a function that defines symbols of footnote references.
+If the value is string, it must be one of the "1", "a", "A", "i", "I", or
+"*". If a function, keep in mind this is an experimental feature. It
+receives 3 parameters (<code>n</code>, <code>part</code>, and <code>footer</code>) and returns character
+vectors which will further be processed as markdown. See examples for the
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix, suffix</code></td>
+<td>
+<p>Pre- and suf-fixes for <code>ref</code> (default: <code>""</code>). These parameters are used
+if and only if ref is a character.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>A starting number of footnotes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max</code></td>
+<td>
+<p>A max number of footnotes used only when <code>ref</code> is "a" or "A".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inline</code></td>
+<td>
+<p>whether to add footnote on same line as previous footnote or not</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>used only when inline = TRUE, character string to use as
+a separator between footnotes.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An environment
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A examole flextable with unprocessed markdown footnotes
+ft &lt;- flextable(tibble::tibble(
+  "header1^[note a]" = c("x^[note 1]", "y"),
+  "header2" = c("a", "b^[note 2]")
+))
+
+# Render all footnotes in the same format.
+if (rmarkdown::pandoc_available("2.0.6")) {
+  ft %&gt;%
+    colformat_md(
+      part = "all",
+      .footnote_options = footnote_options("1", start = 1L)
+    )
+}
+
+# Use a user-defined function to format footnote symbols
+# Skipped to reduce build time
+if (FALSE) {
+  # a function to format symbols of footnote references
+  ref &lt;- function(n, part, footer) {
+    # Change symbols by context
+    # - header: letters (a, b, c, ...)
+    # - body: integers (1, 2, 3, ...)
+    s &lt;- if (part == "header") {
+      letters[n]
+    } else {
+      as.character(n)
+    }
+
+    # Suffix symbols with ": " (a colon and a space) in the footer
+    if (footer) {
+      return(paste0(s, ":\\ "))
+    }
+
+    # Use superscript in the header and the body
+    return(paste0("^", s, "^"))
+  }
+
+  # apply custom format of symbols
+  ft %&gt;%
+    # process header first
+    colformat_md(
+      part = "header", .footnote_options = footnote_options(ref = ref)
+    ) %&gt;%
+    # process body next
+    colformat_md(
+      part = "body", .footnote_options = footnote_options(ref = ref)
+    ) %&gt;%
+    # tweak width for visibility
+    flextable::autofit(add_w = 0.2)
+}
+</code></pre>
+
+
+</div>

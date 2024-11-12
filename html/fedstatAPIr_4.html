@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fedstat_data_ids_filter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Filters <code>data_ids</code> based on <code>filters</code> that are given in JSON format</h2>
+
+<h3>Description</h3>
+
+<p>Filters indicator <code>data_ids</code> with given <code>filters</code>
+taking into account possible <code>filters</code> specification errors and default filters.
+</p>
+<p><code>filters</code> should use <code>filter_field_title</code> in names and <code>filter_value_title</code> in values as
+they are presented on fedstat.ru. If for some reason the specified filters
+do not return the expected result, it is worth inspecting possible
+filter values in <code>data_ids</code> to see if the strings are defined correctly
+(e.g. encoding issues, mixing latin and cyrillic symbols)
+</p>
+<p><code>filter_value_title</code> currently supports the following special values:
+</p>
+
+<ol><li>
+<p> asterix (*), it's alias for "select all possible filter values for this filter field"
+</p>
+</li></ol>
+<p>Unspecified filters use asterix as a default
+(i.e. all possible filter values are selected and a warning is given)
+</p>
+<p>Internally normalized <code>filter_field_title</code> and <code>filter_value_title</code> are
+used (all lowercase, removed extra whitespaces)
+to compare the equality of <code>data_ids</code> and <code>filters</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fedstat_data_ids_filter(data_ids, filters = list(), disable_warnings = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_ids</code></td>
+<td>
+<p>data.frame, result of <code>fedstat_get_data_ids</code>
+with or without conjunction with <code>fedstat_get_data_ids_special_cases_handle</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filters</code></td>
+<td>
+<p>JSON in R list form. The structure should be like this:
+</p>
+<pre>
+{
+ "filter_field_title1": ["filter_value_title1", "filter_value_title2"],
+ "filter_field_title2": ["filter_value_title1", "filter_value_title2"],
+ ...
+}
+</pre>
+<p>Where for example <code>filter_field_title1</code> could be a string "Year" with
+<code>filter_value_title1</code> equal to 2020 and <code>filter_field_title2</code>
+could be a string "OKATO" with <code>filter_value_title1</code>
+equal to "Russian Federation"
+Not actual filter field titles and filter values titles
+because of ASCII requirement for CRAN</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disable_warnings</code></td>
+<td>
+<p>bool, enables or disables following warnings:
+</p>
+
+<ol>
+<li>
+<p> About non matched <code>filter_value_title</code> in <code>filters</code> and <code>filter_value_title</code> from <code>data_ids</code>;
+</p>
+</li>
+<li>
+<p> About unspecified <code>filter_filed_title</code> in filters.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>data.frame, filtered <code>data_ids</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fedstat_get_data_ids,
+  fedstat_post_data_ids_filtered</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Get data filters identificators for CPI
+# filter the data_ids to get data for january of 2023
+# for all goods and services for Russian Federation
+data_ids_filtered &lt;- fedstat_get_data_ids("31074") %&gt;%
+  fedstat_data_ids_filter(
+    filters = list(
+      "Territory" = "Russian Federation",
+      "Year" = "2023",
+      "Period" = "January",
+      "Types of goods and services" = "*"
+    )
+  )
+
+# Not actual filter field titles and filter values titles because of ASCII requirement for CRAN
+
+## End(Not run)
+</code></pre>
+
+
+</div>

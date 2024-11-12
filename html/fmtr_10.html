@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as.flist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert to a formatting list</h2>
+
+<h3>Description</h3>
+
+<p>Converts an object to a formatting list.  All
+other parameters are the same as the <code>flist</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as.flist(x, type = "column", lookup = NULL, simplify = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object to convert.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of formatting list.  Valid values are 'row' or 'column'.
+The default value is 'column'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lookup</code></td>
+<td>
+<p>A lookup vector.  Used for looking up the format from 
+the formatting list.  This parameter is only used for 'row' type 
+formatting lists.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>Whether to simplify the results to a vector.  Valid values 
+are TRUE or FALSE.  Default is TRUE.  If the value is set to FALSE, the 
+return type will be a list.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To apply more than one formatting object to a vector, use a formatting
+list.  There are two types of formatting list: column and row.  The column
+type formatting lists applies all formats to all values in the
+vector.  The row type formatting list can apply a different format to 
+each value in the vector.  
+</p>
+<p>Further, there are two styles of row type list: ordered and lookup.  The
+ordered style applies each format in the list to the vector values
+in the order specified.  The
+ordered style will recycle the formats as needed.  The lookup style 
+formatting list uses a lookup to determine which format from the list to
+apply to a particular value of the vector.  The lookup column values should
+correspond to names on the formatting list.  
+</p>
+<p>Examples of column type and row type formatting lists are given below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A formatting list object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other flist: 
+<code>as.data.frame.fmt_lst()</code>,
+<code>as.flist.data.frame()</code>,
+<code>as.flist.fcat()</code>,
+<code>as.flist.list()</code>,
+<code>as.flist.tbl_df()</code>,
+<code>flist()</code>,
+<code>is.flist()</code>,
+<code>print.fmt_lst()</code>,
+<code>read.flist()</code>,
+<code>write.flist()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: Formatting List - Column Type ##
+# Set up data
+v1 &lt;- c(Sys.Date(), Sys.Date() + 30, Sys.Date() + 60)
+
+# Create formatting list
+fl1 &lt;- flist("%B", "The month is: %s")
+
+# Apply formatting list to vector
+fapply(v1, fl1)
+# [1] "The month is: October"  "The month is: November" "The month is: December"
+
+## Example 2: Formatting List - Row Type ordered ##
+# Set up data
+# Notice each row has a different data type
+l1 &lt;- list("A", 1.263, as.Date("2020-07-21"), 
+          "B", 5.8732, as.Date("2020-10-17"))
+          
+# These formats will be recycled in the order specified           
+fl2 &lt;- flist(type = "row",
+             c(A = "Label A", B = "Label B"),
+             "%.1f",
+             "%d%b%Y")
+
+fapply(l1, fl2)
+# [1] "Label A"   "1.3"       "21Jul2020" "Label B"   "5.9"       "17Oct2020"
+
+
+## Example 3: Formatting List - Row Type with lookup ##
+
+#' # Create formatting list
+fl3 &lt;- flist(type = "row", 
+             DEC1 = "%.1f",
+             DEC2 = "%.2f", 
+             PCT1 = "%.1f%%")
+             
+# Set up data
+df &lt;- data.frame(CODE = c("DEC1", "DEC2", "PCT1", "DEC2", "PCT1"),
+                 VAL = c(41.258, 62.948, 12.125, 65.294, 15.825))
+
+# Assign lookup
+fl3$lookup &lt;- df$CODE
+
+# Apply Formatting List
+fapply(df$VAL, fl3)
+# [1] "41.3"  "62.95" "12.1%" "65.29" "15.8%"
+
+## Example 4: Formatting List - Values with Units ##
+
+#' # Create formatting list
+fl4 &lt;- flist(type = "row", 
+             BASO = "%.2f x10(9)/L",
+             EOS  = "%.2f x10(9)/L",
+             HCT = "%.1f%%", 
+             HGB = "%.1f g/dL")
+             
+# Set up data
+df &lt;- data.frame(CODE = c("BASO", "EOS", "HCT", "HGB"),
+                 VAL = c(0.02384, 0.14683, 40.68374, 15.6345))
+
+# Assign lookup
+fl4$lookup &lt;- df$CODE
+
+# Apply Formatting List
+df$VALC &lt;- fapply(df$VAL, fl4)
+
+# View results
+df
+#   CODE      VAL          VALC
+# 1 BASO  0.02384 0.02 x10(9)/L
+# 2  EOS  0.14683 0.15 x10(9)/L
+# 3  HCT 40.68374         40.7%
+# 4  HGB 15.63450     15.6 g/dL
+</code></pre>
+
+
+</div>

@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sensitivity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>sensitivity analysis</h2>
+
+<h3>Description</h3>
+
+<p>Assesses how sensitive the results from argument function are to variability of input parameter through coefficient of variation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sensitivity(fun.name, param.name, var, n, full.output = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fun.name</code></td>
+<td>
+<p>Function to analyse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param.name</code></td>
+<td>
+<p>Parameter from <code>...</code> on which variation is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>Define the interval of uncertainty for the uniform law around <code>x</code> as <code>[x - x*var, x + x*var]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Number of replicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full.output</code></td>
+<td>
+<p>Logical, if <code>TRUE</code> all of <code>n</code> estimations of <code>fun.name</code> are returned. Only their mean otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments to be passed to <code>fun.name</code>. Argument names must exactly match those of fun.name.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>At each replicate, a coefficient of variation is computed (relative to results obtained form <code>fun.name</code> without random variation).
+if <code>full.output</code> is <code>FALSE</code> (default) a list of two objects of the same type as the one produced by <code>fun.name</code> is returned, 
+first element contains the mean coefficient of variation in comparison to non randomised inputs among all the replicates, 
+second element contains the standard deviation of these coefficients of variation
+If <code>full.output</code> is <code>TRUE</code>, a list of size <code>n</code> with of objects containing the coefficients of variation  is returned.
+</p>
+<p>Argument for <code>...</code> should be passed with their names.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list of two elements of the same type as <code>param.name</code>: 
+first element contains the mean coefficient of variation in comparison to non randomised inputs among all the replicates, 
+second element contains the standard deviation of these coefficient of variation
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# first compute species per unit biomass metabolic rates using the metabolic theory:
+losses = 0.1 * species.level$bodymasses^(-0.25)
+
+
+res = sensitivity(fluxing, "mat", 0.1, 5, full.output = TRUE, 
+                 mat = species.level$mat, 
+                 biomasses = species.level$biomasses, 
+                 losses = losses, 
+                 efficiencies = species.level$efficiencies)
+res = sensitivity(fluxing, "efficiencies", 0.01, 50, 
+                 mat = species.level$mat, 
+                 biomasses = species.level$biomasses, 
+                 losses = losses, 
+                 efficiencies = species.level$efficiencies)
+
+# growth rates of basal species
+growth.rates = rep(NA, dim(species.level$mat)[1])
+growth.rates[colSums(species.level$mat) == 0] = 0.5
+
+val.mat = fluxing(species.level$mat, species.level$biomasses, losses, species.level$efficiencies)
+
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>train</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Training function for binary predictors
+</h2>
+
+<h3>Description</h3>
+
+<p>This function build a model from data to predict class in <code>classify</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  train(peakMatrix, group, filter.p = 0.05, groupColors = c("red", "blue"),
+    threshold = 0.9)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>peakMatrix</code></td>
+<td>
+
+<p>Numeric matrix of normalized peak heights with samples in rows and peaks in columns.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+
+<p>Two-level factor defining the group of every samples in <code>peaks</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter.p</code></td>
+<td>
+
+<p>Single numeric value, if not <code>NA</code> only genes for which the t-test p is lower than this will be used in the model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groupColors</code></td>
+<td>
+
+<p>Vector of length two, defining the colors to use to represent the two groups in future plots.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>Single numeric value, the likelihood threshold above which make a call when classifying (classification will return <code>NA</code> is this threshold is met for none of the two groups).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an S3 object of class <code>fsaModel</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sylvain Mareschal
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>add.model</code>, <code>classify</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Underlying truth for pseudo-data (10 genes)
+  geneNames &lt;- paste("gene", LETTERS[1:10], sep=".")
+  geneMean &lt;- abs(rnorm(10))
+  groupShift &lt;- rnorm(10, sd=0.1)
+  
+  # Generate pseudo-data for 50 samples
+  mtx &lt;- NULL
+  for(g in 1:10) {
+    x &lt;- rnorm(n=50, mean=geneMean[g], sd=0.1)
+    x[1:25] &lt;- x[1:25] + groupShift[g]
+    x[26:50] &lt;- x[26:50] - groupShift[g]
+    mtx &lt;- cbind(mtx, x)
+  }
+  colnames(mtx) &lt;- geneNames
+  rownames(mtx) &lt;- c(
+    paste("group1", 1:25, sep="."),
+    paste("group2", 26:50, sep=".")
+  )
+  
+  # Train model
+  group &lt;- c(
+    rep("group1", 25),
+    rep("group2", 25)
+  )
+  model &lt;- train(mtx, group)
+  plot(model)
+  
+  # Compare model to truth
+  i &lt;- match(geneNames, model$geneNames)
+  out &lt;- data.frame(
+    gene = geneNames,
+    true.M = geneMean,
+    model.M = model$geneMs[i],
+    true.shift = groupShift,
+    model.T = model$geneTs[i]
+  )
+  print(out)
+</code></pre>
+
+
+</div>

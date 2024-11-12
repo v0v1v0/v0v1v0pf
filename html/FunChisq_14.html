@@ -1,0 +1,350 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simulate_tables</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate Noisy Contingency Tables to Represent Diverse Discrete Patterns
+</h2>
+
+<h3>Description</h3>
+
+<p>Generate random contingency tables representing various functional, non-functional, dependent, or independent patterns, without specifying a parametric model for the patterns.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simulate_tables(
+  n = 100, nrow = 3, ncol = 3,
+  type = c("functional", "many.to.one",
+           "discontinuous", "independent",
+           "dependent.non.functional"),
+  n.tables = 1,
+  row.marginal = NULL,
+  col.marginal = NULL,
+  noise = 0.0, noise.model = c("house", "candle"),
+  margin = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+
+<p>a positive integer specifying the sample size to be distributed in each table. For <code>"functional"</code>,  <code>"many.to.one"</code>, and <code>"discontinuous"</code> tables, <code>n</code> must be no less than <code>nrow</code>. For <code>"dependent.non.functional"</code> tables, <code>n</code> must be no less than <code>nrow</code>*<code>ncol</code>. For <code>"independent"</code> tables, <code>n</code> must be a positive integer.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrow</code></td>
+<td>
+
+<p>a positive integer specifying the number of rows in each table. The value must be no less than 2. For <code>"many.to.one"</code> tables, <code>nrow</code> must be no less than 3.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncol</code></td>
+<td>
+
+<p>a positive integer specifying the number of columns in output table. <code>ncol</code> must be no less than 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>a character string to specify the type of pattern underlying the table. The options are <code>"functional"</code> (default),  <code>"many.to.one"</code>, <code>"discontinuous"</code>, <code>"independent"</code>, and <code>"dependent.non.functional"</code>. See Details.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.tables</code></td>
+<td>
+
+<p>a positive integer value specifying the number of tables to be generated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.marginal</code></td>
+<td>
+
+<p>a non-negative numeric vector of length <code>nrow</code> specifying row marginal probabilities. The vector is linearly scaled so that the sum is 1. The default is a uniform distribution.
+
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.marginal</code></td>
+<td>
+
+<p>a non-negative numeric vector of length <code>ncol</code> specifying column marginal probabilities. The vector is linearly scaled so that the sum is 1.
+This argument is ignored by <code>"dependent.non.functional"</code> tables.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise</code></td>
+<td>
+
+<p>a numeric value between 0 and 1 specifying the noise level to be added to a table using function <code>add.noise</code>. The noise can be applied along row, column, or both, which can be specified by the <code>margin</code> argument. See <code>add.noise</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise.model</code></td>
+<td>
+
+<p>a character string indicating the noise model of either <code>"house"</code> for ordinal variables (Zhang et al. 2015) or <code>"candle"</code> for categorical variables. See <code>add.noise</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margin</code></td>
+<td>
+
+<p>a numeric value of either 0, 1 or 2. Default is 0.
+0: noise is applied along both rows and columns.
+1: noise is applied along each row.
+2: noise is applied along each column.
+See <code>add.noise</code> for details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function generates five types of table representing different interaction patterns between row and column discrete random variables <code class="reqn">X</code> and <code class="reqn">Y</code>. Three of the five types are non-constant functional patterns (<code class="reqn">Y</code> is a non-constant function of <code class="reqn">X</code>):
+</p>
+<p><code>type="functional"</code>: <code class="reqn">Y</code> is a function of <code class="reqn">X</code> but <code class="reqn">X</code> may or may not be a function of <code class="reqn">Y</code>.
+</p>
+<p><code>type="many.to.one"</code>: <code class="reqn">Y</code> is a many-to-one function of <code class="reqn">X</code> but <code class="reqn">X</code> is not a function of <code class="reqn">Y</code>.
+</p>
+<p><code>type="discontinuous"</code>: <code class="reqn">Y</code> is a function of <code class="reqn">X</code>, where the function value of X must differ from its neighbors. <code class="reqn">X</code> may or may not be a function of <code class="reqn">Y</code>. A discontinuous function forms a contrast with those that are close to constant functions.
+</p>
+<p>The fourth <code>type</code> <code>"dependent.non.functional"</code> is non-functional patterns where <code class="reqn">X</code> and <code class="reqn">Y</code> are statistically dependent but not function of each other. The samples are distributed according to <code>row.marginal</code> probabilities.
+</p>
+<p>The fifth <code>type</code> <code>"independent"</code> represents patterns where <code class="reqn">X</code> and <code class="reqn">Y</code> are statistically independent whose joint probability mass function is the product of their marginal probability mass functions.
+</p>
+<p>For all functional tables (<code>type="functional"</code>, <code>type="many.to.one"</code>, <code>type="discontinuous"</code>), the samples are distributed using either the given row or column marginal probabilities. Theoretically, it is not always possible to enforce both marginals in a functional pattern. If both marginals are provided, one will be randomly selected to generate a table; about half of the time each equested marginal is used. If neither is provided, either row or column uniform marginal will be randomly selected to generate a table; half of the time a table will have a uniform row marginal and the other half a uniform column marginal.
+</p>
+<p>Random noise can be optionally applied to the tables using either the house or the candle noise model. See <code>add.noise</code> for details.
+
+</p>
+<p>Sharma et al. (2017) provide full mathematical and statistical details of the simulation strategies for the above table types except the <code>"discontinuous"</code> type which was introduced after the publication.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pattern.list</code></td>
+<td>
+<p>a list of tables containing binary patterns in 0's and 1's. Each table is created by setting all non-zero entries in the corresponding sampled contingency table from <code>sample.list</code> to 1. Each table strictly satisfies the  mathematical relationship required for a given pattern <code>type</code> requested, but it does not meet the statistical requirements. As each table represents the truth regarding the mathematical relationship between the row and column variables, they can be used as the ground truth or gold standard for benchmarking.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample.list</code></td>
+<td>
+<p>a list of tables satisfying both the mathematical and statistical requirements. These tables are noise free.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise.list</code></td>
+<td>
+<p>a list of tables after applying noise to the corresponding tables in <code>sample.list</code>. Each table is the noisy version of the corresponding sampled contingency table. Due to the added noise, each table may no longer strictly satisfy the required mathematical or statistical relationships. These tables are the main output to be used for the evaluation of a discrete pattern discovery algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue.list</code></td>
+<td>
+<p>a list of p-values reporting the statistical significance of the generated tables for the required type. When the pattern type specifies a functional relationship, the p-values are computed by the functional chi-square test (Zhang and Song 2013); otherwise, the Pearson's chi-square test of independence is used to calculate the p-value.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ruby Sharma, Sajal Kumar, Hua Zhong, and Joe Song
+</p>
+
+
+<h3>References</h3>
+
+<p>Sharma R, Kumar S, Zhong H, Song M (2017).
+“Simulating noisy, nonparametric, and multivariate discrete patterns.”
+<em>The R Journal</em>, <b>9</b>(2), 366–377.
+<a href="https://doi.org/10.32614/RJ-2017-053">doi:10.32614/RJ-2017-053</a>.<br><br> Zhang Y, Liu ZL, Song M (2015).
+“ChiNet uncovers rewired transcription subnetworks in tolerant yeast for advanced biofuels conversion.”
+<em>Nucleic Acids Research</em>, <b>43</b>(9), 4393–4407.
+<a href="https://doi.org/10.1093/nar/gkv358">doi:10.1093/nar/gkv358</a>.<br><br> Zhang Y, Song M (2013).
+“Deciphering interactions in causal networks without parametric assumptions.”
+<em>arXiv Molecular Networks</em>, arXiv:1311.2707.
+<a href="https://arxiv.org/abs/1311.2707">https://arxiv.org/abs/1311.2707</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p><code>add.noise</code> for details of the noise model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# In all examples, x is the row variable and y is the column
+#    variable of a table.
+
+# Example 1. Simulating a noisy function where y=f(x),
+#            x may or may not be g(y) with given row.marginal.
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=5, type="functional",
+                noise=0.2, n.tables = 1,
+                row.marginal = c(0.3,0.2,0.3,0.2))
+
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 1. Functional pattern")
+plot_table(tbls$sample.list[[1]], main="Ex 1. Sampled pattern (noise free)")
+plot_table(tbls$noise.list[[1]], main="Ex 1. Sampled pattern with 0.2 noise")
+plot.new()
+
+# Example 2. Simulating a noisy functional pattern where
+#            y=f(x), x may or may not be g(y) with given row.marginal.
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=5, type="functional",
+                noise=0.5, n.tables = 1,
+                row.marginal = c(0.3,0.2,0.3,0.2))
+
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 2. Functioal pattern", col="seagreen2")
+plot_table(tbls$sample.list[[1]], main="Ex 2. Sampled pattern (noise free)", col="seagreen2")
+plot_table(tbls$noise.list[[1]], main="Ex 2. Sampled pattern with 0.5 noise", col="seagreen2")
+plot.new()
+
+
+# Example 3. Simulating a noisy many.to.one function where
+#            y=f(x), x!=f(y) with given row.marginal.
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=5, type="many.to.one",
+                noise=0.2, n.tables = 1,
+                row.marginal = c(0.4,0.3,0.1,0.2))
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 3. Many-to-one pattern", col="limegreen")
+plot_table(tbls$sample.list[[1]], main="Ex 3. Sampled pattern (noise free)", col="limegreen")
+plot_table(tbls$noise.list[[1]], main="Ex 3. Sampled pattern with 0.2 noise", col="limegreen")
+plot.new()
+
+# Example 4. Simulating noisy discontinuous
+#   pattern where y=f(x), x may or may not be g(y) with given row.marginal.
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=5,
+                type="discontinuous", noise=0.2,
+                n.tables = 1, row.marginal = c(0.2,0.4,0.2,0.2))
+
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 4. Discontinuous pattern", col="springgreen3")
+plot_table(tbls$sample.list[[1]], main="Ex 4. Sampled pattern (noise free)", col="springgreen3")
+plot_table(tbls$noise.list[[1]], main="Ex 4. Sampled pattern with 0.2 noise", col="springgreen3")
+plot.new()
+
+
+# Example 5. Simulating noisy dependent.non.functional
+#            pattern where y!=f(x) and x and y are statistically
+#            dependent.
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=5,
+                type="dependent.non.functional", noise=0.3,
+                n.tables = 1, row.marginal = c(0.2,0.4,0.2,0.2))
+
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 5. Dependent.non.functional pattern",
+col="sienna2", highlight="none")
+plot_table(tbls$sample.list[[1]], main="Ex 5. Sampled pattern (noise free)",
+col="sienna2", highlight="none")
+plot_table(tbls$noise.list[[1]], main="Ex 5. Sampled pattern with 0.3 noise",
+col="sienna2", highlight="none")
+plot.new()
+
+# Example 6. Simulating a pattern where x and y are
+#            statistically independent.
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=5, type="independent",
+                noise=0.3, n.tables = 1,
+                row.marginal = c(0.4,0.3,0.1,0.2),
+                col.marginal = c(0.1,0.2,0.4,0.2,0.1))
+
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 6. Independent pattern",
+col="cornflowerblue", highlight="none")
+plot_table(tbls$sample.list[[1]], main="Ex 6. Sampled pattern (noise free)",
+col="cornflowerblue", highlight="none")
+plot_table(tbls$noise.list[[1]], main="Ex 6. Sampled pattern with 0.3 noise",
+col="cornflowerblue", highlight="none")
+plot.new()
+
+
+# Example 7. Simulating a noisy function where y=f(x),
+#            x may or may not be g(y), with given column marginal
+
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=5, type="functional",
+                noise=0.2, n.tables = 1,
+                col.marginal = c(0.2,0.1,0.4,0.2,0.1))
+
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 7. Functional pattern")
+plot_table(tbls$sample.list[[1]], main="Ex 7. Sampled pattern (noise free)")
+plot_table(tbls$noise.list[[1]], main="Ex 7. Sampled pattern with 0.2 noise")
+plot.new()
+
+
+# Example 8. Simulating a noisy many.to.one function where
+#            y=f(x), x!=f(y) with given column marginal.
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=4, type="many.to.one",
+                noise=0.2, n.tables = 1,
+                col.marginal = c(0.4,0.3,0.1,0.2))
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 8. Many-to-one pattern", col="limegreen")
+plot_table(tbls$sample.list[[1]], main="Ex 8. Sampled pattern (noise free)", col="limegreen")
+plot_table(tbls$noise.list[[1]], main="Ex 8. Sampled pattern with 0.2 noise", col="limegreen")
+plot.new()
+
+
+# Example 9. Simulating noisy discontinuous
+#   pattern where y=f(x), x may or may not be g(y) with given column marginal
+
+tbls &lt;- simulate_tables(n=100, nrow=4, ncol=4,
+                type="discontinuous", noise=0.2,
+                n.tables = 1, col.marginal = c(0.1,0.4,0.2,0.3))
+
+par(mfrow=c(2,2))
+plot_table(tbls$pattern.list[[1]], main="Ex 9. Discontinuous pattern", col="springgreen3")
+plot_table(tbls$sample.list[[1]], main="Ex 9. Sampled pattern (noise free)", col="springgreen3")
+plot_table(tbls$noise.list[[1]], main="Ex 9. Sampled pattern with 0.2 noise", col="springgreen3")
+plot.new()
+
+
+
+
+
+
+</code></pre>
+
+
+</div>

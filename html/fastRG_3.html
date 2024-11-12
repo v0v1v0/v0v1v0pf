@@ -1,0 +1,374 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>directed_dcsbm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a directed degree corrected stochastic blockmodel object</h2>
+
+<h3>Description</h3>
+
+<p>To specify a degree-corrected stochastic blockmodel, you must specify
+the degree-heterogeneity parameters (via <code>n</code> or <code>theta_out</code> and
+<code>theta_in</code>), the mixing matrix
+(via <code>k_out</code> and <code>k_in</code>, or <code>B</code>), and the relative block
+probabilities (optional, via <code>p_out</code> and <code>pi_in</code>).
+We provide defaults for most of these
+options to enable rapid exploration, or you can invest the effort
+for more control over the model parameters. We <strong>strongly recommend</strong>
+setting the <code>expected_out_degree</code>, <code>expected_in_degree</code>,
+or <code>expected_density</code> argument
+to avoid large memory allocations associated with
+sampling large, dense graphs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">directed_dcsbm(
+  n = NULL,
+  theta_out = NULL,
+  theta_in = NULL,
+  k_out = NULL,
+  k_in = NULL,
+  B = NULL,
+  ...,
+  pi_out = rep(1/k_out, k_out),
+  pi_in = rep(1/k_in, k_in),
+  sort_nodes = TRUE,
+  force_identifiability = TRUE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>(degree heterogeneity) The number of nodes in the blockmodel.
+Use when you don't want to specify the degree-heterogeneity
+parameters <code>theta_out</code> and <code>theta_in</code> by hand. When <code>n</code> is specified,
+<code>theta_out</code> and <code>theta_in</code> are randomly generated from
+a <code>LogNormal(2, 1)</code> distribution.
+This is subject to change, and may not be reproducible.
+<code>n</code> defaults to <code>NULL</code>. You must specify either <code>n</code>
+or <code>theta_out</code> and <code>theta_in</code> together, but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_out</code></td>
+<td>
+<p>(degree heterogeneity) A numeric vector
+explicitly specifying the degree heterogeneity
+parameters. This implicitly determines the number of nodes
+in the resulting graph, i.e. it will have <code>length(theta_out)</code> nodes.
+Must be positive. Setting to a vector of ones recovers
+a stochastic blockmodel without degree correction.
+Defaults to <code>NULL</code>. You must specify either <code>n</code>
+or <code>theta_out</code> and <code>theta_in</code> together, but not both. <code>theta_out</code>
+controls outgoing degree propensity, or, equivalently,
+row sums of the adjacency matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_in</code></td>
+<td>
+<p>(degree heterogeneity) A numeric vector
+explicitly specifying the degree heterogeneity
+parameters. This implicitly determines the number of nodes
+in the resulting graph, i.e. it will have <code>length(theta)</code> nodes.
+Must be positive. Setting to a vector of ones recovers
+a stochastic blockmodel without degree correction.
+Defaults to <code>NULL</code>. You must specify either <code>n</code>
+or <code>theta_out</code> and <code>theta_in</code> together, but not both. <code>theta_in</code>
+controls incoming degree propensity, or, equivalently, column
+sums of the adjacency matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k_out</code></td>
+<td>
+<p>(mixing matrix) The number of outgoing blocks in the blockmodel.
+Use when you don't want to specify the mixing-matrix by hand.
+When <code>k_out</code> is specified, the elements of <code>B</code> are drawn
+randomly from a <code>Uniform(0, 1)</code> distribution.
+This is subject to change, and may not be reproducible.
+<code>k_out</code> defaults to <code>NULL</code>. You must specify either <code>k_out</code> and
+<code>k_in</code> together, or <code>B</code>. You may specify all three at once, in which
+case <code>k_out</code> is only used to set <code>pi_out</code> (when <code>pi_out</code> is
+left at its default argument value).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k_in</code></td>
+<td>
+<p>(mixing matrix) The number of incoming blocks in the blockmodel.
+Use when you don't want to specify the mixing-matrix by hand.
+When <code>k_in</code> is specified, the elements of <code>B</code> are drawn
+randomly from a <code>Uniform(0, 1)</code> distribution.
+This is subject to change, and may not be reproducible.
+<code>k_in</code> defaults to <code>NULL</code>. You may specify all three at once, in which
+case <code>k_in</code> is only used to set <code>pi_in</code> (when <code>pi_in</code> is
+left at its default argument value).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>(mixing matrix) A <code>k_out</code> by <code>k_in</code> matrix of block connection
+probabilities. The probability that a node in block <code>i</code> connects
+to a node in community <code>j</code> is <code>Poisson(B[i, j])</code>.
+<code>matrix</code> and <code>Matrix</code> objects are both acceptable.
+Defaults to <code>NULL</code>. You must specify either <code>k_out</code> and
+<code>k_in</code> together, or <code>B</code>, but not both.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>directed_factor_model</code>
+</p>
+
+<dl>
+<dt><code>expected_in_degree</code></dt>
+<dd>
+<p>If specified, the desired expected in degree
+of the graph. Specifying <code>expected_in_degree</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Specify only one of
+<code>expected_in_degree</code>, <code>expected_out_degree</code>, and <code>expected_density</code>.</p>
+</dd>
+<dt><code>expected_out_degree</code></dt>
+<dd>
+<p>If specified, the desired expected out degree
+of the graph. Specifying <code>expected_out_degree</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Specify only one of
+<code>expected_in_degree</code>, <code>expected_out_degree</code>, and <code>expected_density</code>.</p>
+</dd>
+<dt><code>expected_density</code></dt>
+<dd>
+<p>If specified, the desired expected density
+of the graph. Specifying <code>expected_density</code> simply rescales <code>S</code>
+to achieve this. Defaults to <code>NULL</code>. Specify only one of
+<code>expected_in_degree</code>, <code>expected_out_degree</code>, and <code>expected_density</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi_out</code></td>
+<td>
+<p>(relative block probabilities) Relative block
+probabilities. Must be positive, but do not need to sum
+to one, as they will be normalized internally.
+Must match the rows of <code>B</code>, or <code>k_out</code>. Defaults to
+<code>rep(1 / k_out, k_out)</code>, or a balanced outgoing blocks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi_in</code></td>
+<td>
+<p>(relative block probabilities) Relative block
+probabilities. Must be positive, but do not need to sum
+to one, as they will be normalized internally.
+Must match the columns of <code>B</code>, or <code>k_in</code>. Defaults to
+<code>rep(1 / k_in, k_in)</code>, or a balanced incoming blocks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort_nodes</code></td>
+<td>
+<p>Logical indicating whether or not to sort the nodes
+so that they are grouped by block. Useful for plotting.
+Defaults to <code>TRUE</code>. When <code>TRUE</code>, rows of the expected adjacency matrix
+are first sorted by outgoing block membership, and then by
+incoming degree-correction parameters within each incoming block.
+A similar sorting procedure occurs independently from the columns,
+according to the incoming blocks.
+Additionally, <code>pi_out</code> and <code>pi_in</code> are sorted in increasing order,
+and the columns of the <code>B</code> matrix are permuted to match the
+new orderings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force_identifiability</code></td>
+<td>
+<p>Logical indicating whether or not to
+normalize <code>theta_out</code> such that it sums to one within each incoming
+block and <code>theta_in</code> such that it sums to one within each outgoing
+block. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poisson_edges</code></td>
+<td>
+<p>Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when <code>FALSE</code>, we assume that <code>S</code> specifies a desired between-factor
+connection probability, and back-transform this <code>S</code> to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_self_loops</code></td>
+<td>
+<p>Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to <code>TRUE</code>. When <code>FALSE</code>, sampling proceeds allowing
+self-loops, and these are then removed after the fact.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>directed_dcsbm</code> S3 object, a subclass of the
+<code>directed_factor_model()</code> with the following additional
+fields:
+</p>
+
+<ul>
+<li> <p><code>theta_out</code>: A numeric vector of incoming community
+degree-heterogeneity parameters.
+</p>
+</li>
+<li> <p><code>theta_in</code>: A numeric vector of outgoing community
+degree-heterogeneity parameters.
+</p>
+</li>
+<li> <p><code>z_out</code>: The incoming community memberships of each node,
+as a <code>factor()</code>. The factor will have <code>k_out</code> levels,
+where <code>k_out</code> is the number of incoming
+communities in the stochastic blockmodel. There will not
+always necessarily be observed nodes in each community.
+</p>
+</li>
+<li> <p><code>z_in</code>: The outgoing community memberships of each node,
+as a <code>factor()</code>. The factor will have <code>k_in</code> levels,
+where <code>k_in</code> is the number of outgoing
+communities in the stochastic blockmodel. There will not
+always necessarily be observed nodes in each community.
+</p>
+</li>
+<li> <p><code>pi_out</code>: Sampling probabilities for each incoming
+community.
+</p>
+</li>
+<li> <p><code>pi_in</code>: Sampling probabilities for each outgoing
+community.
+</p>
+</li>
+<li> <p><code>sorted</code>: Logical indicating where nodes are arranged by
+block (and additionally by degree heterogeneity parameter)
+within each block.
+</p>
+</li>
+</ul>
+<h3>Generative Model</h3>
+
+<p>There are two levels of randomness in a directed degree-corrected
+stochastic blockmodel. First, we randomly chose a incoming
+block membership and an outgoing block membership
+for each node in the blockmodel. This is
+handled by <code>directed_dcsbm()</code>. Then, given these block memberships,
+we randomly sample edges between nodes. This second
+operation is handled by <code>sample_edgelist()</code>,
+<code>sample_sparse()</code>, <code>sample_igraph()</code> and
+<code>sample_tidygraph()</code>, depending on your desired
+graph representation.
+</p>
+
+
+<h4>Block memberships</h4>
+
+<p>Let <code class="reqn">x</code> represent the incoming block membership of a node
+and <code class="reqn">y</code> represent the outgoing block membership of a node.
+To generate <code class="reqn">x</code> we sample from a categorical
+distribution with parameter <code class="reqn">\pi_out</code>.
+To generate <code class="reqn">y</code> we sample from a categorical
+distribution with parameter <code class="reqn">\pi_in</code>.
+Block memberships are independent across nodes. Incoming and outgoing
+block memberships of the same node are also independent.
+</p>
+
+
+
+<h4>Degree heterogeneity</h4>
+
+<p>In addition to block membership, the DCSBM also
+nodes to have different propensities for incoming and
+outgoing edge formation.
+We represent the propensity to form incoming edges for a
+given node by a positive number <code class="reqn">\theta_out</code>.
+We represent the propensity to form outgoing edges for a
+given node by a positive number <code class="reqn">\theta_in</code>.
+Typically the <code class="reqn">\theta_out</code> (and <code class="reqn">theta_in</code>) across all nodes are
+constrained to sum to one for identifiability purposes,
+but this doesn't really matter during sampling.
+</p>
+
+
+
+<h4>Edge formulation</h4>
+
+<p>Once we know the block memberships <code class="reqn">x</code> and <code class="reqn">y</code>
+and the degree  heterogeneity parameters <code class="reqn">\theta_{in}</code> and
+<code class="reqn">\theta_{out}</code>, we need one more
+ingredient, which is the baseline intensity of connections
+between nodes in block <code>i</code> and block <code>j</code>. Then each edge forms
+independently according to a Poisson distribution with
+parameters
+</p>
+<p style="text-align: center;"><code class="reqn">
+  \lambda = \theta_{in} * B_{x, y} * \theta_{out}.
+</code>
+</p>
+
+
+
+
+<h3>See Also</h3>
+
+<p>Other stochastic block models: 
+<code>dcsbm()</code>,
+<code>mmsbm()</code>,
+<code>overlapping_sbm()</code>,
+<code>planted_partition()</code>,
+<code>sbm()</code>
+</p>
+<p>Other directed graphs: 
+<code>directed_erdos_renyi()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(27)
+
+B &lt;- matrix(0.2, nrow = 5, ncol = 8)
+diag(B) &lt;- 0.9
+
+ddcsbm &lt;- directed_dcsbm(
+  n = 1000,
+  B = B,
+  k_out = 5,
+  k_in = 8,
+  expected_density = 0.01
+)
+
+ddcsbm
+
+population_svd &lt;- svds(ddcsbm)
+
+</code></pre>
+
+
+</div>

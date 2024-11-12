@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spa_flatten</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flatten a plateau collection object</h2>
+
+<h3>Description</h3>
+
+<p><code>spa_flatten()</code> gathers all the objects of a plateau collection object and
+reorganizes them into a single flattened spatial plateau object containing a quadruple
+(<code>PLATEAUPOINT</code>, <code>PLATEAULINE</code>, <code>PLATEAUREGION</code>, <code>PLATEAUCOMPOSITION</code>) that preserves the identity of sub-objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spa_flatten(pcol)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>pcol</code></td>
+<td>
+<p>A <code>pcollection</code> object.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The <code>spa_flatten()</code> function yields a single flattened spatial plateau object, aggregating all spatial plateau objects by their types.
+In the case of a two-level hierarchy, i.e., a plateau collection inside another one,
+the function is applied recursively in the lower levels until the quadruple is built. Hence, it simplifies the representation of complex plateau collection objects.
+The t-conorm considered in the aggregation is the <code>max</code> operator.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>pcollection</code> object consisting of a quadruple (<code>PLATEAUPOINT</code>, <code>PLATEAULINE</code>, <code>PLATEAUREGION</code>, <code>PLATEAUCOMPOSITION</code>).
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://ieeexplore.ieee.org/document/9177620">Carniel, A. C.; Schneider, M. Spatial Data Types for Heterogeneously Structured Fuzzy Spatial Collections and Compositions. In Proceedings of the 2020 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2020), pp. 1-8, 2020.</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Point components
+pcp1 &lt;- create_component("POINT(0 0)", 0.3)
+pcp2 &lt;- create_component("MULTIPOINT((2 2), (2 4), (2 0))", 0.5)
+pcp3 &lt;- create_component("MULTIPOINT((1 1), (3 1), (1 3), (3 3))", 0.9)
+pcp4 &lt;- create_component("MULTIPOINT((10 10), (9 8), (7 7))", 1)
+pcp5 &lt;- create_component("MULTIPOINT((0 0), (2 3))", 0.7)
+pcp6 &lt;- create_component("MULTIPOINT((0 1), (3 3))", 0.85)
+pcp7 &lt;- create_component("MULTIPOINT((1 0), (2 3))", 0.4)
+# Line components
+lcp1 &lt;- create_component("LINESTRING(0 0, 1 1.5)", 0.2)
+lcp2 &lt;- create_component("LINESTRING(1 3, 1 2, 2 0.5)", 0.5)
+lcp3 &lt;- create_component("LINESTRING(2 1.2, 3 1.6, 4 4)", 0.7)
+lcp4 &lt;- create_component("LINESTRING(1 1.5, 2 1.2)", 1.0)
+lcp5 &lt;- create_component("LINESTRING(-1 1, 2 2)", 0.9)
+# Polygon components
+rcp1 &lt;- create_component("POLYGON((0 0, 1 4, 2 2, 0 0))", 0.4)
+rcp2 &lt;- create_component("POLYGON((2 0.5, 4 1, 4 0, 2 0.5))", 0.8)
+
+# Creating plateau point objects
+ppoint1 &lt;- create_pgeometry(list(pcp1, pcp2, pcp3), "PLATEAUPOINT")
+ppoint2 &lt;- create_pgeometry(list(pcp4, pcp5), "PLATEAUPOINT")
+ppoint3 &lt;- create_pgeometry(list(pcp4, pcp5), "PLATEAUPOINT")
+ppoint4 &lt;- create_pgeometry(list(pcp6, pcp7), "PLATEAUPOINT")
+# Creating plateau line objects
+pline1 &lt;- create_pgeometry(list(lcp1, lcp3), "PLATEAULINE")
+pline2 &lt;- create_pgeometry(list(lcp2, lcp4), "PLATEAULINE")
+pline3 &lt;- create_pgeometry(list(lcp5), "PLATEAULINE")
+# Creating a plateau region objects
+pregion &lt;- create_pgeometry(list(rcp1, rcp2), "PLATEAUREGION")
+# Creating a plateau composition object
+pcomposition &lt;- create_pgeometry(list(ppoint4, pline3), "PLATEAUCOMPOSITION")
+# Creating plateau collection objects
+pcol1 &lt;- create_pgeometry(list(ppoint1, ppoint2, ppoint3, pline1), "PLATEAUCOLLECTION")
+pcol2 &lt;- create_pgeometry(list(pline2, pregion, pcomposition, pcol1), "PLATEAUCOLLECTION")
+## Not run: 
+pcol2
+plot(pcol2)
+
+flatten_col &lt;- spa_flatten(pcol2)
+flatten_col
+plot(flatten_col)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

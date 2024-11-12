@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_experimental_setup</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parse experimental design</h2>
+
+<h3>Description</h3>
+
+<p>Parse experimental design
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_experimental_setup(
+  experimental_design,
+  file_dir,
+  message_indent = 0L,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>experimental_design</code></td>
+<td>
+<p>(<strong>required</strong>) Defines what the experiment looks
+like, e.g. <code>cv(bt(fs,20)+mb,3,2)+ev</code> for 2 times repeated 3-fold
+cross-validation with nested feature selection on 20 bootstraps and
+model-building, and external validation. The basic workflow components are:
+</p>
+
+<ul>
+<li> <p><code>fs</code>: (required) feature selection step.
+</p>
+</li>
+<li> <p><code>mb</code>: (required) model building step.
+</p>
+</li>
+<li> <p><code>ev</code>: (optional) external validation. Note that internal validation due
+to subsampling will always be conducted if the subsampling methods create
+any validation data sets.
+</p>
+</li>
+</ul>
+<p>The different components are linked using <code>+</code>.
+</p>
+<p>Different subsampling methods can be used in conjunction with the basic
+workflow components:
+</p>
+
+<ul>
+<li> <p><code>bs(x,n)</code>: (stratified) .632 bootstrap, with <code>n</code> the number of
+bootstraps. In contrast to <code>bt</code>, feature pre-processing parameters and
+hyperparameter optimisation are conducted on individual bootstraps.
+</p>
+</li>
+<li> <p><code>bt(x,n)</code>: (stratified) .632 bootstrap, with <code>n</code> the number of
+bootstraps. Unlike <code>bs</code> and other subsampling methods, no separate
+pre-processing parameters or optimised hyperparameters will be determined
+for each bootstrap.
+</p>
+</li>
+<li> <p><code>cv(x,n,p)</code>: (stratified) <code>n</code>-fold cross-validation, repeated <code>p</code> times.
+Pre-processing parameters are determined for each iteration.
+</p>
+</li>
+<li> <p><code>lv(x)</code>: leave-one-out-cross-validation. Pre-processing parameters are
+determined for each iteration.
+</p>
+</li>
+<li> <p><code>ip(x)</code>: imbalance partitioning for addressing class imbalances on the
+data set. Pre-processing parameters are determined for each partition. The
+number of partitions generated depends on the imbalance correction method
+(see the <code>imbalance_correction_method</code> parameter). Imbalance partitioning
+does not generate validation sets.
+</p>
+</li>
+</ul>
+<p>As shown in the example above, sampling algorithms can be nested.
+</p>
+<p>The simplest valid experimental design is <code>fs+mb</code>, which corresponds to a
+TRIPOD type 1a analysis. Type 1b analyses are only possible using
+bootstraps, e.g. <code>bt(fs+mb,100)</code>. Type 2a analyses can be conducted using
+cross-validation, e.g. <code>cv(bt(fs,100)+mb,10,1)</code>. Depending on the origin of
+the external validation data, designs such as <code>fs+mb+ev</code> or
+<code>cv(bt(fs,100)+mb,10,1)+ev</code> constitute type 2b or type 3 analyses. Type 4
+analyses can be done by obtaining one or more <code>familiarModel</code> objects from
+others and applying them to your own data set.
+</p>
+<p>Alternatively, the <code>experimental_design</code> parameter may be used to provide a
+path to a file containing iterations, which is named <code style="white-space: pre;">⁠####_iterations.RDS⁠</code>
+by convention. This path can be relative to the directory of the current
+experiment (<code>experiment_dir</code>), or an absolute path. The absolute path may
+thus also point to a file from a different experiment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message_indent</code></td>
+<td>
+<p>Spacing inserted before messages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Sets verbosity.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function converts the experimental_design string
+</p>
+
+
+<h3>Value</h3>
+
+<p>data.table with subsampler information at different levels of the
+experimental design.
+</p>
+
+
+</div>

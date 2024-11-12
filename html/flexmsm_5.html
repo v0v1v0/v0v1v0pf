@@ -1,0 +1,305 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmsm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flexible transition intensity based models for univariate multistate processes</h2>
+
+<h3>Description</h3>
+
+<p>Fits a flexible multistate survival model. Any type of process is supported,
+including both forward and backward transitions, and must be specified by providing a list
+of equations, one for each transition intensity allowed. Any type of observation scheme is
+allowed: the process can be observed in continuous time, intermittently at fixed times, there
+can be an absorbing state as well as censored states.
+Virtually any type of covariate
+effects are supported and can be specified by means of splines, with the same syntax used
+to specify Generalised Additive Models (GAMs) in <code>R</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmsm(formula, data, id, state, death, pmethod = 'eigendecomp',
+       aggregate = TRUE, params.0 = NULL, sp.0 = NULL,
+       constraint = NULL, sp.method = 'perf', iterlimsp = 50,
+       Q.diagnostics = TRUE, fit = TRUE, iterlim = 100,
+       tolsp = 1e-7, tolsp.EFS = 0.1, parallel = FALSE, no_cores = 2,
+       cens.state = NULL, living.exact = NULL, verbose = FALSE,
+       justComp = NULL, approxHess = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model specification for the transition intensities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Name of the variable in the dataset representing the unique code associated with each patient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state</code></td>
+<td>
+<p>Name of the variable in the dataset representing the state occupied by the patient at the given time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>death</code></td>
+<td>
+<p><code>TRUE</code> if the last state is an absorbing state, <code>FALSE</code> otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pmethod</code></td>
+<td>
+<p>Which method should be used for the computation of the transition probability matrix. Available options are
+</p>
+
+<ul>
+<li> <p><code>'eigendecomp'</code> (default): this method is based on the eigendecomposition of the transition intensity matrix (from Kalbfleisch &amp; Lawless 1985);
+</p>
+</li>
+<li> <p><code>'analytic'</code>: uses analytic expressions of the transition probabilities, obtained by solving the Kolmogorov forward differential equation, only implemented for IDMs for now;
+</p>
+</li>
+<li> <p><code>'scaling&amp;squaring'</code>: this is the scaling and squaring method implemented as proposed in Fung (2004).This is inefficient, so its use is not recommended. Can be used to investigate convergence errors.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregate</code></td>
+<td>
+<p>Whether or not data should be aggregated (this slightly improves efficiency as redundancies in the data are eliminated). The default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params.0</code></td>
+<td>
+<p>Starting values for the model parameters. Defaults to <code>NULL</code>, i.e. they are computed internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sp.0</code></td>
+<td>
+<p>Starting values for the smoothing parameters. Defaults to <code>NULL</code>, i.e. they are computed internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constraint</code></td>
+<td>
+<p>A list containing the constraints to be applied to the model parameters. For example, assuming a process with three transitions, <code>constraint = list(x1 = c(1,1,1), x2 = c(1,2,2))</code>  means that the effect of covariate <code>x1</code> is constrained to be equal across the tree transitions and that the effects of <code>x2</code> on the second and third transitions are constrained to be equal, but the effect on the first transition is left unconstrained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sp.method</code></td>
+<td>
+<p>Method to be used for smoothing parameter estimation. The default is <code>magic</code>, the automatic multiple smoothing parameter selection algorithm. Alternatively, <code>efs</code> can be used for the Fellner-Schall method. To suppress the smoothing parameter estimation set this to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterlimsp</code></td>
+<td>
+<p>Maximum allowed iterations for smoothing parameter estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q.diagnostics</code></td>
+<td>
+<p>If <code>TRUE</code>, diagnostics information on the Q matrix are saved. The default <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>If <code>FALSE</code>, fitting is not carried. May be useful to extract model setup quantities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterlim</code></td>
+<td>
+<p>Maximum allowed iterations for trust region algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolsp</code></td>
+<td>
+<p>Convergence criterion used in <code>magic</code> based smoothing parameter estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolsp.EFS</code></td>
+<td>
+<p>Convergence criterion used in <code>efs</code> based smoothing parameter estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>If <code>TRUE</code> parallel computing is used during estimation. This can only be used by Windows users for now.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no_cores</code></td>
+<td>
+<p>Number of cores used if parallel computing chosen. The default is 2. If <code>NULL</code>, all available cores are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cens.state</code></td>
+<td>
+<p>Code used in the dataset to indicate the censored states.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>living.exact</code></td>
+<td>
+<p>Name of the variable in the dataset indicating whether an observation is exactly observed or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code>, prints the convergence criterion obtained at each iteration of the full algorithm. The default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>justComp</code></td>
+<td>
+<p>Can be <code>c('lik', 'grad', 'hess')</code> (or a subvector of this) to compute the log-likelihood, gradient and Hessian at the starting parameter value, without carrying out fitting. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approxHess</code></td>
+<td>
+<p>If <code>TRUE</code> an approximation of the Hessian based on the outer product of the gradient vector is computed. The default is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function returns an object of class <code>fmsm</code> as described in <code>fmsmObject</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+##################################################
+# MULTISTATE SURVIVAL MODELLING with CAV DATA ####
+##################################################
+
+library(flexmsm)
+
+# Import data
+Data &lt;- IDM_cav
+
+# MODEL SPECIFICATION ####
+formula &lt;- list(years ~ s(years, bs = 'cr', k = 10) + dage + pdiag, # 1-2
+                years ~ s(years, bs = 'cr', k = 10) + dage + pdiag, # 1-3
+                0,                                                  # 2-1
+                years ~ s(years, bs = 'cr', k = 10) + dage + pdiag, # 2-3
+                0,                                                  # 3-1
+                0                                                   # 3-2
+)
+
+# Counts of pairs of consecutive states observed (C = counts, T = times)
+counts.CT &lt;- state.pairs.CT(formula = formula, data = Data, time = 'years',
+                            state = 'state', id = 'PTNUM')
+counts.CT$counts
+
+
+# MODEL FITTING ###
+
+# NOTE ***
+# Takes about 18 minutes on a machine with Windows 10,
+# Intel 2.20 GHz core, 16 GB of RAM and 8 cores, using all cores.
+# The default is to use 2 cores, this takes about 26 minutes.
+# To use all available cores on your device input no_cores = NULL.
+# ****
+
+fmsm.out &lt;- fmsm(formula = formula, data = Data,
+                 id = 'PTNUM', state = 'state', death = TRUE,
+                 fit = TRUE, parallel = TRUE, no_cores = 2,
+                 pmethod = 'analytic')
+
+print(fmsm.out)
+
+AIC(fmsm.out)
+BIC(fmsm.out)
+
+# FITTING SUMMARY ####
+summary(fmsm.out)
+conv.check(fmsm.out)
+
+####################
+# VISUALISATION ####
+####################
+
+# PLOT THE SMOOTHS OF TIME FOR EACH TRANSITION ####
+# par(mfrow = c(1,3))
+plot(fmsm.out)
+
+
+# Consider a patient with:
+dage.pred &lt;- 16      # - 16 year old donor
+pdiag.pred &lt;- 0      # - IDC as principal diagnosis
+start.pred &lt;- 0      # - start observation at time t = 0
+stop.pred &lt;- 15      # - t = 15 years for time horizon
+n.pred &lt;- 21         # - 21 time points
+no.state.pred &lt;- -13 # - (because we don't need this, so anything is fine)
+
+newdata &lt;- data.frame(PTNUM = rep(1, n.pred),
+                      years = seq(start.pred, stop.pred, length.out = n.pred),
+                      state = rep(no.state.pred, n.pred),
+                      dage = rep(dage.pred, n.pred), pdiag = rep(pdiag.pred, n.pred))
+
+
+
+# ESTMATED TRANSITION INTENSITIES ####
+
+# Plot of estimated transition intensities
+# par(mfrow = c(1,3))
+Q.hat &lt;- Q.pred(fmsm.out, newdata = newdata, get.CI = TRUE, plot.Q = TRUE, rug = TRUE,
+                ylim = c(0, 1.5))
+
+# Estimated transition intensity matrix at, e.g., t = 0
+round(Q.hat$Q.hist[,,1], 3)
+
+
+
+# ESTMATED TRANSITION PROBABILITIES ####
+
+# Plot of estimated transition probabilities
+# par(mfrow = c(2,3))
+P.hat &lt;- P.pred(fmsm.out, newdata = newdata, get.CI = TRUE, plot.P = TRUE, rug = TRUE)
+
+# Estimated 15 year transition probability matrix
+round(P.hat$P.pred, 3)
+# e.g., there is a 6.2% chance of observing CAV onset 15 years after transplant
+
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

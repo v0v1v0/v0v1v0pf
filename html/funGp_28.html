@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.predict.fgpm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot method for the predictions of a <code>fgpm</code> model</h2>
+
+<h3>Description</h3>
+
+<p>This method displays the predicted output values
+delivered by a funGp Gaussian process model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'predict.fgpm'
+plot(x, y = NULL, sOut.pr = NULL, calib = TRUE, sortp = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object with S3 class <code>"predict.fgpm"</code>. This is a
+list containing the predictions and confidence bands as
+created by predict,fgpm-method for the S3 class
+<code>"fgpm"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>An optional vector (or 1-column matrix) containing
+the true values of the scalar output at the prediction
+points. If provided, the method will display two figures: (i) a
+calibration plot with true vs predicted output values, and (ii)
+a plot including the true and predicted output along with the
+confidence bands, sorted according to the increasing order of
+the true output. If not provided, only the second plot will be
+made, and the predictions will be arranged according to the
+increasing order of the predicted output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sOut.pr</code></td>
+<td>
+<p>Alias of <code>y</code>, used for compatibility reasons.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calib</code></td>
+<td>
+<p>An optional boolean indicating if the calibration
+plot should be displayed. Ignored if <code>sOut.pr</code> is not
+provided. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortp</code></td>
+<td>
+<p>An optional boolean indicating if the plot of sorted
+output should be displayed. Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments affecting the display. Since this
+method allows to generate two plots from a single function
+call, the extra arguments for each plot should be included in a
+list. For the calibration plot, the list should be called
+<em>calib.gpars</em>. For the plot of the output in increasing
+order, the list should be called <em>sortp.gpars</em>. The
+following typical graphics parameters are valid entries of both
+lists: <em>xlim</em>, <em>ylim</em>, <em>xlab</em>, <em>ylab</em>,
+<em>main</em>. The boolean argument <em>legends</em> can also be
+included in any of the two lists in order to control the
+display of legends in the corresponding plot.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>José Betancourt, François Bachoc and Thierry Klein
+</p>
+
+
+<h3>See Also</h3>
+
+<p><strong>*</strong> fgpm for the construction of funGp models;
+</p>
+<p><strong>*</strong> plot,fgpm-method for model diagnostic plots;
+</p>
+<p><strong>*</strong> simulate,fgpm-method for simulations based on a funGp model;
+</p>
+<p><strong>*</strong> plot.simulate.fgpm for simulation plots.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># plotting predictions without the true output values_______________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0, 1, length = sqrt(n.tr)),
+                   x2 = seq(0, 1, length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr * 10), ncol = 10),
+            f2 = matrix(runif(n.tr * 22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# making predictions
+n.pr &lt;- 100
+sIn.pr &lt;- as.matrix(expand.grid(x1 = seq(0,1,length = sqrt(n.pr)),
+                                x2 = seq(0,1,length = sqrt(n.pr))))
+fIn.pr &lt;- list(f1 = matrix(runif(n.pr * 10), ncol = 10),
+               f2 = matrix(runif(n.pr * 22), ncol = 22))
+m1.preds &lt;- predict(m1, sIn.pr = sIn.pr, fIn.pr = fIn.pr)
+
+# plotting predictions
+plot(m1.preds)
+
+# plotting predictions and true output values_______________________________
+# building the model
+set.seed(100)
+n.tr &lt;- 25
+sIn &lt;- expand.grid(x1 = seq(0, 1, length = sqrt(n.tr)),
+                   x2 = seq(0, 1, length = sqrt(n.tr)))
+fIn &lt;- list(f1 = matrix(runif(n.tr * 10), ncol = 10),
+            f2 = matrix(runif(n.tr * 22), ncol = 22))
+sOut &lt;- fgp_BB3(sIn, fIn, n.tr)
+m1 &lt;- fgpm(sIn = sIn, fIn = fIn, sOut = sOut)
+
+# making predictions
+n.pr &lt;- 100
+sIn.pr &lt;- as.matrix(expand.grid(x1 = seq(0,1,length = sqrt(n.pr)),
+                                x2 = seq(0,1,length = sqrt(n.pr))))
+fIn.pr &lt;- list(f1 = matrix(runif(n.pr*10), ncol = 10),
+               f2 = matrix(runif(n.pr*22), ncol = 22))
+m1.preds &lt;- predict(m1, sIn.pr = sIn.pr, fIn.pr = fIn.pr)
+
+# generating output data for validation
+sOut.pr &lt;- fgp_BB3(sIn.pr, fIn.pr, n.pr)
+
+# plotting predictions. Note that the 2-nd argument is the output, 'y'
+plot(m1.preds, sOut.pr)
+
+# only calibration plot
+plot(m1.preds, sOut.pr = sOut.pr, sortp = FALSE)
+
+# only sorted output plot
+plot(m1.preds, sOut.pr = sOut.pr, calib = FALSE)
+
+</code></pre>
+
+
+</div>

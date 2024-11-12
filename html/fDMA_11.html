@@ -1,0 +1,384 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fDMA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes Dynamic Model Averaging.</h2>
+
+<h3>Description</h3>
+
+<p>The function estimates Dynamic Model Averaging (and some of its variations). The method is described in Raftery et al. (2010).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fDMA(y,x,alpha,lambda,initvar,W=NULL,initial.period=NULL,V.meth=NULL,kappa=NULL,
+gprob=NULL,omega=NULL,model=NULL,parallel=NULL,m.prior=NULL,mods.incl=NULL,
+DOW=NULL,DOW.nmods=NULL,DOW.type=NULL,DOW.limit.nmods=NULL,progress.info=NULL,
+forced.models=NULL,forbidden.models=NULL,forced.variables=NULL,bm=NULL,
+small.c=NULL,fcores=NULL,mods.check=NULL,red.size=NULL,av=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code>numeric</code> or a column <code>matrix</code> of a dependent variable, if <code>y</code> is <code>xts</code> object, then plots will have time index on the x axis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>matrix</code> of independent variables, different columns correspond to different variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p><code>numeric</code>, a forgetting factor <code class="reqn">\alpha</code> between 0 and 1 used in probabilities estimations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p><code>numeric</code>, a forgetting factor <code class="reqn">\lambda</code> between 0 and 1 used in variance approximations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initvar</code></td>
+<td>
+<p><code>numeric</code>, initial variance in the state space equation, i.e., the number by which the unit matrix is multiplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>optional, a method for setting the initial values of variance for the models equations, <code>W="reg"</code> corresponds to the method based on the linear regression as in the paper by Raftery et al. (2010), alternatively an arbitrary positive number (<code>numeric</code>) can be specified, by default the method of Raftery et al. (2010) is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.period</code></td>
+<td>
+<p>optional, <code>numeric</code>, a number of observation since which MSE (Mean Squared Error) and MAE (Mean Absolute Error) are computed, by default the whole sample is used, i.e., <code>initial.period=1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V.meth</code></td>
+<td>
+<p>optional, a method for the state space equation variance updating, <code>V.meth="rec"</code> corresponds to the recursive moment estimator, as in the paper by Raftery et al. (2010), <code>V.meth = "ewma"</code> corresponds to the exponentially weighted moving average as in, for example, Koop and Korobilis (2012), by default <code>V.meth = "rec"</code> is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>optional, <code>numeric</code>, a parameter in the exponentially weighted moving average, between 0 and 1, used if <code>V.meth = "ewma"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gprob</code></td>
+<td>
+<p>optional, <code>matrix</code> of Google probabilities as in Koop and Onorante (2014), columns should correspond to columns of x</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>optional, <code>numeric</code>, a parameter between 0 and 1 used in probabilities estimations, used if <code>gprob</code> is specified</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>optional, <code>model="dma"</code> for Dynamic Model Averaging, <code>model="dms"</code> for Dynamic Model Selection, or <code>model="med"</code> for Median Probability Model as in Barbieri and Berger (2004), by default <code>model="dma"</code> is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>optional, <code>logical</code>, indicate whether parallel computations should be used, by default <code>parallel=FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m.prior</code></td>
+<td>
+<p>optional, <code>numeric</code>, a parameter for general model prior (Mitchell and Beauchamp, 1988), by default <code>m.prior=0.5</code>, which corresponds to the uniform distribution, i.e., non-informative priors, see also Eicher et al. (2011)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mods.incl</code></td>
+<td>
+<p>optional, <code>matrix</code> indicating which models should be used for estimation, the first column indicates inclusion of a constant, by default all possible models with a constant are used, inclusion of a variable is indicated by 1, omitting by 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DOW</code></td>
+<td>
+<p>optional, <code>numeric</code>, a threshold for Dynamic Occam's Window (Onorante and Raftery, 2016), should be a number between 0 and 1, if <code>DOW=0</code>, then no Dynamic Occam's Window is applied, by default <code>DOW=0</code>, Dynamic Occam's Window can be applied only to Dynamic Model Averaging, i.e., when <code>model="dma"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DOW.nmods</code></td>
+<td>
+<p>optional, <code>numeric</code>, initial number of models for Dynamic Occam's Window, should be less than the number of all possible models and larger than or equal to 2, they are randomly chosen, if <code>DOW.nmods=0</code>, then initially models with exactly one variable are taken, by default <code>DOW.nmods=0</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DOW.type</code></td>
+<td>
+<p>optional, <code>DOW.type="r"</code> corresponds to DMA-R from Onorante and Raftery (2016), <code>DOW.type="e"</code> to DMA-E, by default <code>DOW.type="r"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DOW.limit.nmods</code></td>
+<td>
+<p>optional, <code>numeric</code>, maximum number of models selected by Dynamic Occam's Window, an additional limitation to the threshold given by <code>DOW</code>, by default no limit is set</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress.info</code></td>
+<td>
+<p>optional, <code>logical</code>, applicable only if Dynamic Occam's Window is used, otherwise ignored, if <code>progress.info=TRUE</code> number of the current recursive DMA computation round and number of models selected for this round are printed, by default <code>progress.info=FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forced.models</code></td>
+<td>
+<p>optional, <code>matrix</code>, applicable only if Dynamic Occam's Window is used, otherwise ignored, indicates models that have to be always included in the set of expanded models, similar as <code>mods.incl</code>, by default <code>forced.models=NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forbidden.models</code></td>
+<td>
+<p>optional, <code>matrix</code>, applicable only if Dynamic Occam's Window is used, otherwise ignored, indicates models that cannot be used in the set of expanded models, similar as <code>mods.incl</code>, by default <code>forbidden.models=NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forced.variables</code></td>
+<td>
+<p>optional, <code>vector</code>, applicable only if Dynamic Occam's Window is used, otherwise ignored, indicates variables that have to be always included in models constituting the set of expanded models, similar as <code>mods.incl</code>, first slot indicates inclusion of constant, by default <code>forced.variables=NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bm</code></td>
+<td>
+<p>optional, <code>logical</code>, indicate whether benchmark forecast should be computed, these benchmarks are naive forecast (all forecasts are set to be the value of the last observation) and Auto Arima <code>auto.arima</code>, by default <code>bm=FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>small.c</code></td>
+<td>
+<p>optional, <code>numeric</code>, small constant added to posterior model proabilities as in Raftery et al. (2010) to prevent potential reduction them to 0 due to the computational issues, if not specified the value computed as in Raftery et al. (2010) is taken</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fcores</code></td>
+<td>
+<p>optional, <code>numeric</code>, used only if <code>parallel=TRUE</code>, otherwise ignored, indicates the number of cores that should not be used, by default <code>fcores=1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mods.check</code></td>
+<td>
+<p>optional, <code>logical</code>, indicates if <code>mods.incl</code> should be checked for duplicated entries, etc., by default <code>mods.check=FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>red.size</code></td>
+<td>
+<p>optional, <code>logical</code>, indicates if outcomes should be reduced to save memory, by default <code>red.size=FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>av</code></td>
+<td>
+<p>optional, <code>av="dma"</code> corresponds to the original DMA averaging scheme, <code>av="mse"</code> corresponds to averaging based on Mean Squared Error, <code>av="hr1"</code> corresponds to averaging based on Hit Ratio, assuming time-series are in levels, <code>av="hr2"</code> corresponds to averaging based on Hit Ratio, assuming time-series represent changes, by default <code>av="dma"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is possible to use <code>numeric</code> <code>vector</code> for <code>lambda</code>. Its values are automatically ordered in descending order and if numbers are not unique they are reduced to become unique. If more than one value is given for <code>lambda</code>, then model state space, i.e., <code>mods.incl</code>, is expanded by considering all these models with given values of <code>lambda</code>. The outcomes are then ordered by columns in a way that first outcomes from models with first value of <code>lambda</code> are presented, then from models with second value of <code>lambda</code>, etc. (Raftery et al., 2010).
+</p>
+<p>If <code>nrow(gprob)&lt;length(y)</code>, then the method by Koop and Onorante (2014) is used for the last <code>nrow(gprob)</code> observations. For the preceding ones the original method by Raftery et al. (2010) is used. In such case a <code>warning</code> is generated.
+</p>
+
+
+<h3>Value</h3>
+
+<p>class <code>dma</code> object, <code>list</code> of
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$y.hat</code></td>
+<td>
+<p>forecasted values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$post.incl</code></td>
+<td>
+<p>posterior inclusion probabilities for independent variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$MSE</code></td>
+<td>
+<p>Mean Squared Error of forecast</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$MAE</code></td>
+<td>
+<p>Mean Absolute Error of forecast</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$models</code></td>
+<td>
+<p>models included in estimations, or models used in the last step of Dynamic Occam's Window method (if this method has been selected)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$post.mod</code></td>
+<td>
+<p>posterior probabilities of all used models, or NA if Dynamic Occam's Window method has been selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$exp.var</code></td>
+<td>
+<p>expected number of variables (incl. constant)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$exp.coef.</code></td>
+<td>
+<p>expected values of regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$parameters</code></td>
+<td>
+<p>parameters of the estimated model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$yhat.all.mods</code></td>
+<td>
+<p>predictions from every sub-model used in estimations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$y</code></td>
+<td>
+<p><code>y</code>, dependent variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$benchmarks</code></td>
+<td>
+<p>Root Mean Squared Error and Mean Absolute Error of naive and auto ARIMA forecast</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$DOW.init.mods</code></td>
+<td>
+<p>models initially selected to Dynamic Occam's Window, if this method has been selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$DOW.n.mods.t</code></td>
+<td>
+<p>number of models used in Dynamic Model Averaging at time <code class="reqn">t</code>, if Dynamic Occam's Window method has been selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$p.dens.</code></td>
+<td>
+<p>predicitive densities from the last period of all sub-models used in estimations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$exp.lambda</code></td>
+<td>
+<p>expected values of <code>lambda</code> parameter</p>
+</td>
+</tr>
+</table>
+<h3>Source</h3>
+
+<p>Raftery, A. E., Karny, M., Ettler, P., 2010. Online prediction under model uncertainty via Dynamic Model Averaging: Application to a cold rolling mill. <em>Technometrics</em> <b>52</b>, 52–66.
+</p>
+
+
+<h3>References</h3>
+
+<p>Barbieri, M. M., Berger, J. O., 2004. Optimal predictive model selection. <em>The Annals of Statistics</em> <b>32</b>, 870–897.
+</p>
+<p>Eicher, T. S., Papageorgiou, C., Raftery, A. E., 2011. Default priors and predictive performance in Bayesian Model Averaging, with application to growth determinants. <em>Journal of Applied Econometrics</em> <b>26</b>, 30–55.
+</p>
+<p>Koop, G., Korobilis, D., 2012. Forecasting inflation using Dynamic Model Averaging. <em>International Economic Review</em> <b>53</b>, 867–886.
+</p>
+<p>Koop, G., Korobilis, D., 2018. Variational Bayes inference in high-dimensional time-varying parameter models. <a href="https://arxiv.org/pdf/1809.03031">https://arxiv.org/pdf/1809.03031</a>
+</p>
+<p>Koop, G., Onorante, L., 2014. Macroeconomic nowcasting using Google probabilities. <a href="https://goo.gl/ATsBN9">https://goo.gl/ATsBN9</a>
+</p>
+<p>Mitchell, T. J., Beauchamp, J. J., 1988. Bayesian variable selection in linear regression (with discussion). <em>Journal of the American Statistical Association</em> <b>83</b>, 1023–1036.
+</p>
+<p>Onorante, L., Raftery, A. E., 2016. Dynamic model averaging in large model spaces using dynamic Occam's window. <em>European Economic Review</em> <b>81</b>, 2–14.
+</p>
+<p>Yin, X., Peng, J., Tang, T., 2018. Improving the forecasting accuracy of crude oil prices. <em>Sustainability</em> <b>10</b>, 454. doi: <a href="https://doi.org/10.3390/su10020454">10.3390/su10020454</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>grid.DMA</code>, <code>print.dma</code>, <code>summary.dma</code>, <code>plot.dma</code>, <code>hit.ratio</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">wti &lt;- crudeoil[-1,1]
+drivers &lt;- (lag(crudeoil[,-1],k=1))[-1,]
+ld.wti &lt;- (diff(log(wti)))[-1,]
+ld.drivers &lt;- (diff(log(drivers)))[-1,]
+
+m1 &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=0.90,initvar=10)
+m2 &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=0.90,initvar=10,model="dms")
+m3 &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=0.90,initvar=10,V.meth="ewma",kappa=0.9)
+m4 &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=0.90,initvar=10,DOW=0.7)
+
+
+# Google trends are available since 2004
+
+gp &lt;- trends/100
+s &lt;- ld.drivers['2004-01-01/']
+m5 &lt;- fDMA(y=ld.wti['2004-01-01/'],x=s,alpha=0.99,lambda=0.90,initvar=10,gprob=gp,omega=0.5)
+
+
+# models just with one independent variable and a constant will be averaged
+mds &lt;- diag(1,ncol(ld.drivers),ncol(ld.drivers))
+mds &lt;- cbind(rep(1,ncol(ld.drivers)),mds)
+
+m6 &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=0.90,initvar=10,mods.incl=mds)
+
+
+# models just with one independent variable (without a constant) will be averaged
+mds.nc &lt;- diag(1,ncol(ld.drivers),ncol(ld.drivers))
+mds.nc &lt;- cbind(rep(0,ncol(ld.drivers)),mds.nc)
+
+m7 &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=0.90,initvar=10,mods.incl=mds.nc)
+
+# model with multiple lambda
+
+m8 &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=c(0.99,0.95,0.90),initvar=10)
+
+</code></pre>
+
+
+</div>

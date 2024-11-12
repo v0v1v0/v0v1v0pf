@@ -1,0 +1,736 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Fig</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fig for Your Config</h2>
+
+<h3>Description</h3>
+
+<p><code>Fig</code> class is a main driver of this package. For usage details
+refer to <code>Fig</code> class methods documentation.
+</p>
+<p>Fig provides a set of exported functions. This makes <code>Fig</code> class instance
+creation optional, and makes the package itself mimic being a class instance.
+Those functions are wrappers on an internal <code>Fig</code> object.
+</p>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-new"><code>Fig$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-configure"><code>Fig$configure()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-delete"><code>Fig$delete()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-delete_all"><code>Fig$delete_all()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-get"><code>Fig$get()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-get_many"><code>Fig$get_many()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-get_all"><code>Fig$get_all()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-store"><code>Fig$store()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-store_list"><code>Fig$store_list()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-store_many"><code>Fig$store_many()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-clone"><code>Fig$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Create a New Fig Instance
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$new(env_prefix = "", split_on = ".")</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>env_prefix</code></dt>
+<dd>
+<p>(character) A prefix to be prepended to a key before
+system environment lookup.</p>
+</dd>
+<dt><code>split_on</code></dt>
+<dd>
+<p>(character) A value to split keys on. See Details
+section. Providing an empty string disables this behavior.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Details</h5>
+
+<p>Fig treats character provided in <code>split_on</code> as key nest level
+delimiter. Therefore, <code>split_on</code> set to <code>"."</code> (default value)
+<code>fig$get("foo.bar")</code> is equivalent to <code>fig$get("foo")$bar</code>. Similarly
+fig$set("foo.bar", 1) is equivalent to <code>fig$set("foo", list(bar = 1))</code>.
+This behavior can be disabled either by passing an empty string either to
+<code>new()</code> during <code>Fig</code> instance creation or to <code>configure()</code> function to
+modify an existing instance.
+</p>
+
+
+
+<h5>Returns</h5>
+
+<p>New instance of <code>Fig</code>.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig &lt;- Fig$new(env_prefix = "RCONNECT_")
+</pre>
+</div>
+
+
+<hr>
+<a id="method-configure"></a>
+
+
+
+<h4>Method <code>configure()</code>
+</h4>
+
+<p>Configure a Fig Instance
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$configure(env_prefix, split_on)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>env_prefix</code></dt>
+<dd>
+<p>(character) A prefix to be prepended to a key before
+system environment lookup. Pass an empty string to reset.</p>
+</dd>
+<dt><code>split_on</code></dt>
+<dd>
+<p>(character) A value to split keys on. See Details
+section in <code>new()</code>. Providing an empty string disables this behavior.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Details</h5>
+
+<p>Unset arguments do not change configuration.
+</p>
+
+
+
+<h5>Returns</h5>
+
+<p>Reference to self. Other methods can be chained after this one.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new(env_prefix = "RCONNECT_")
+fig$configure(env_prefix = "foo_")
+fig$configure(split_on = "")
+fig$configure() # has no effect
+</pre>
+</div>
+
+
+<hr>
+<a id="method-delete"></a>
+
+
+
+<h4>Method <code>delete()</code>
+</h4>
+
+<p>Delete Stored Values
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$delete(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>Keys to be deleted.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>Reference to self. Other methods can be chained after this one.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store_many("foo" = 1, "bar" = 2, "baz" = 3)
+fig$delete("foo")
+fig$delete("bar", "baz")
+fig$get_many("foo", "bar", "baz") # == list(NULL, NULL, NULL)
+</pre>
+</div>
+
+
+<hr>
+<a id="method-delete_all"></a>
+
+
+
+<h4>Method <code>delete_all()</code>
+</h4>
+
+<p>Delete All Stored Values
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$delete_all()</pre></div>
+
+
+
+<h5>Returns</h5>
+
+<p>Reference to self. Other methods can be chained after this one.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store_many("foo" = 1, "bar" = 2, "baz" = 3)
+fig$delete_all()
+fig$get_many("foo", "bar", "baz") # == list(NULL, NULL, NULL)
+</pre>
+</div>
+
+
+<hr>
+<a id="method-get"></a>
+
+
+
+<h4>Method <code>get()</code>
+</h4>
+
+<p>Retrieve a Stored Value
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$get(key)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>key</code></dt>
+<dd>
+<p>A key to retrieve a value for.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Details</h5>
+
+<p>This function returns values based on a following priority
+(highest to lowest). If value is not found, then it looks up next level
+in the precedence.
+</p>
+
+<ol>
+<li>
+<p> System environment variable (case sensitive)
+</p>
+</li>
+<li>
+<p> Value manually set
+</p>
+</li>
+</ol>
+<p>For system environment lookup dots are replaced by underscores, e.g.
+<code>fig$get("foo.bar")</code> will look up <strong>foo_bar</strong>.
+</p>
+
+
+
+<h5>Returns</h5>
+
+<p>A value associated with provided <code>key</code>.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store("foo", 1)
+fig$get("foo")
+
+fig$store("bar", list(baz = 2))
+fig$get("bar.baz")
+
+fig$configure(split_on = "")
+fig$get("bar.baz") # == NULL
+</pre>
+</div>
+
+
+<hr>
+<a id="method-get_many"></a>
+
+
+
+<h4>Method <code>get_many()</code>
+</h4>
+
+<p>Retrieve Any Number of Stored Values
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$get_many(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>Keys to retrieve values for.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Details</h5>
+
+<p>See <code>get()</code> Details section.
+</p>
+
+
+
+<h5>Returns</h5>
+
+<p>An unnamed list of values associated with keys provided in <code>...</code>.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store_many(foo =  1, bar = 2, baz = 3)
+fig$get_many("foo", "bar")
+</pre>
+</div>
+
+
+<hr>
+<a id="method-get_all"></a>
+
+
+
+<h4>Method <code>get_all()</code>
+</h4>
+
+<p>Retrieve All Stored Values
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$get_all()</pre></div>
+
+
+
+<h5>Details</h5>
+
+<p>See <code>get()</code> Details section.
+</p>
+
+
+
+<h5>Returns</h5>
+
+<p>An unnamed list of all stored values.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store_many(foo =  1, bar = 2, baz = 3)
+fig$get_all()
+</pre>
+</div>
+
+
+<hr>
+<a id="method-store"></a>
+
+
+
+<h4>Method <code>store()</code>
+</h4>
+
+<p>Store a Value
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$store(key, value)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>key</code></dt>
+<dd>
+<p>A key to store a value for.</p>
+</dd>
+<dt><code>value</code></dt>
+<dd>
+<p>A value to be stored.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>Reference to self. Other methods can be chained after this one.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store("foo", 1)
+fig$store("bar", 123)$store("baz", list(1, 2, 3))
+fig$store("x.y", "a")
+</pre>
+</div>
+
+
+<hr>
+<a id="method-store_list"></a>
+
+
+
+<h4>Method <code>store_list()</code>
+</h4>
+
+<p>Store a List's Contents
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$store_list(l)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>l</code></dt>
+<dd>
+<p>(named list) Names are used as keys for storing their values.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>Reference to self. Other methods can be chained after this one.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store_list(list(foo = 123, bar = "abc"))
+</pre>
+</div>
+
+
+<hr>
+<a id="method-store_many"></a>
+
+
+
+<h4>Method <code>store_many()</code>
+</h4>
+
+<p>Set Any Number of Values
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$store_many(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>Named arguments. Names are used as keys for storing argument
+values.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>Reference to self. Other methods can be chained after this one.
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>fig &lt;- Fig$new()
+fig$store_many("foo" = 1, "bar" = 2)
+fig$store_many("foo.bar.baz" = 1)
+fig$store_many("foo" = "a", "baz" = 123)
+</pre>
+</div>
+
+
+<hr>
+<a id="method-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fig$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## ------------------------------------------------
+## Method `Fig$new`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig &lt;- Fig$new(env_prefix = "RCONNECT_")
+
+## ------------------------------------------------
+## Method `Fig$configure`
+## ------------------------------------------------
+
+fig &lt;- Fig$new(env_prefix = "RCONNECT_")
+fig$configure(env_prefix = "foo_")
+fig$configure(split_on = "")
+fig$configure() # has no effect
+
+## ------------------------------------------------
+## Method `Fig$delete`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store_many("foo" = 1, "bar" = 2, "baz" = 3)
+fig$delete("foo")
+fig$delete("bar", "baz")
+fig$get_many("foo", "bar", "baz") # == list(NULL, NULL, NULL)
+
+## ------------------------------------------------
+## Method `Fig$delete_all`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store_many("foo" = 1, "bar" = 2, "baz" = 3)
+fig$delete_all()
+fig$get_many("foo", "bar", "baz") # == list(NULL, NULL, NULL)
+
+## ------------------------------------------------
+## Method `Fig$get`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store("foo", 1)
+fig$get("foo")
+
+fig$store("bar", list(baz = 2))
+fig$get("bar.baz")
+
+fig$configure(split_on = "")
+fig$get("bar.baz") # == NULL
+
+## ------------------------------------------------
+## Method `Fig$get_many`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store_many(foo =  1, bar = 2, baz = 3)
+fig$get_many("foo", "bar")
+
+## ------------------------------------------------
+## Method `Fig$get_all`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store_many(foo =  1, bar = 2, baz = 3)
+fig$get_all()
+
+## ------------------------------------------------
+## Method `Fig$store`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store("foo", 1)
+fig$store("bar", 123)$store("baz", list(1, 2, 3))
+fig$store("x.y", "a")
+
+## ------------------------------------------------
+## Method `Fig$store_list`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store_list(list(foo = 123, bar = "abc"))
+
+## ------------------------------------------------
+## Method `Fig$store_many`
+## ------------------------------------------------
+
+fig &lt;- Fig$new()
+fig$store_many("foo" = 1, "bar" = 2)
+fig$store_many("foo.bar.baz" = 1)
+fig$store_many("foo" = "a", "baz" = 123)
+</code></pre>
+
+
+</div>

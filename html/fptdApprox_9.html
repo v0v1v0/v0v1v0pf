@@ -1,0 +1,376 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Integration.Steps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Subintervals and Integration Steps To Approximate First-Passage-Time Densities</h2>
+
+<h3>Description</h3>
+
+<p>According to the First-Passage-Time Location (FPTL) function and the arguments in the function call, this function  
+calculates suitable subintervals and integration steps in order to approximate the first-passage-time (f.p.t.) density. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Integration.Steps(sfptl, variableStep = TRUE, from.t0 = FALSE,
+                  to.T = FALSE, n = 250, p = 0.2, alpha = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sfptl</code></td>
+<td>
+<p>an object of class “summary.fptl”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variableStep</code></td>
+<td>
+<p>a logical value indicating whether a variable integration step is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from.t0</code></td>
+<td>
+<p>a logical value indicating whether the approximation should be calculated from the lower end of the
+interval considered, <code class="reqn">t_0</code>, specified in the object used as <code>sfptl</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to.T</code></td>
+<td>
+<p>a logical value indicating whether the approximation should be calculated to the upper end of the
+interval considered, <code class="reqn">T</code>, specified in the object used as <code>sfptl</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Number of points used to determine the integration step in subintervals <code class="reqn">[t_i^*, t_{max,i}^+]</code>, 
+<code class="reqn">i=1, \ldots, m</code>, from interesting instants provided by the FPTL function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Ratio of n used to determine the integration step in subintervals <code class="reqn">[t_{max,i}^+, t_{i+1}^*]</code>, 
+<code class="reqn">i=1, \ldots, m</code>, <code class="reqn">[t_0, t_1^*]</code> and <code class="reqn">[t_{max,m}^{+}, T]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Parameter used to determine the integration step in subintervals 
+<code class="reqn">[t_{max,i}^+, t_{i+1}^*]</code>, <code class="reqn">i=1, \ldots, m</code>, <code class="reqn">[t_0, t_1^*]</code> and 
+<code class="reqn">[t_{max,m}^{+}, T]</code>, in order to reduce the computational cost of approximating the f.p.t. density function 
+in those cases where <code class="reqn">t_{i+1}^* - t_{max,i}^+ &gt;&gt; t_{max,i}^{-} - \, t_i^*</code>, 
+for some <code class="reqn">i</code>, <code class="reqn">t_1^* - t_0 &gt;&gt; t_{max,1}^{-} - \thinspace t_1^*</code> or 
+<code class="reqn">T - t_{max,m}^+ &gt;&gt; t_{max,m}^{-} - \, t_m^*</code>, respectively.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Based on the information provided by the FPTL function contained in the <code>sfptl</code> object, this function computes and returns 
+suitable subintervals and integration steps in order to approximate the density 
+function of the f.p.t. variable according to the other arguments in the function call. <br></p>
+<p>When the <code>sfptl</code> object is of length greater than 1, it comes from an unconditioned f.p.t. problem. Each component is associated with 
+the same f.p.t. problem conditioned on different values of the initial distribution
+(equally spaced in the range of the distribution). Let <code class="reqn">x_{0,j}</code>, <code class="reqn">j=1, \ldots, N</code>, these values. For each initial value
+<code class="reqn">x_{0,j}</code> let <code class="reqn">t_{i,j}^*</code>, <code class="reqn">t_{max,i,j}^-</code> and <code class="reqn">t_{max,i,j}^+</code>, <code class="reqn">i=1,\ldots \ m_j</code>, 
+the interesting time instants provided by the FPTL function and stored in the <code>instants</code> component of the j-th list in the <code>sfptl</code> object.
+Then, the time instants <code class="reqn">\{t_{i,j}, i=1, 2, \ldots, 2m_j \}</code>, where 
+</p>
+<p style="text-align: center;"><code class="reqn">t_{i,j} = \left\{ \begin{array}{ll} t_{(i+1)/2, \, j}^* &amp; for \ i \ odd \\[7pt] t_{max, \, i/2, \thinspace j}^+ &amp; for \ i \ even \end{array} 
+\right. ,</code>
+</p>
+
+<p>provide a suitable partition of interval <code class="reqn">[t_0, T]</code> to approximate the f.p.t density
+for the fixed value <code class="reqn">x_{0,j}</code> of the initial distribution. <br></p>
+<p>If the <code>sfptl</code> object is of length 1, it comes from a conditioned f.p.t. problem. In this case we denote the interesting time 
+instants provided by the FPTL function and stored in the <code>sfptl</code> object by <code class="reqn">t_{i,1}^*</code>, <code class="reqn">t_{max,i,1}^-</code> 
+and <code class="reqn">t_{max,i,1}^+</code>. <br></p>
+<p>In what follows, <code class="reqn">\lceil x \rceil</code> is the integer part of <code class="reqn">x</code>.
+</p>
+<p>For each list in the <code>sfptl</code> object the function computes
+</p>
+<p style="text-align: center;"><code class="reqn">h_{i,j} = \displaystyle{\frac{t_{max,i,j}^{+} - \, t_{i,j}^*}{n_{i,j}}} , i=1, \ldots, m_j,</code>
+</p>
+ 
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">n_{i,j} = \lceil n \, k_{i,j} \rceil</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">k_{i,j} = \displaystyle{\frac{t_{max,i,j}^+ - t_{i,j}^{*}}{t_{max,i,j}^{-} - \, t_{i,j}^*}} \ .</code>
+</p>
+ <p><br></p>
+<p>If <code>variableStep = TRUE</code>, for <code class="reqn">0 &lt; p</code> and <code class="reqn">\alpha \leq 1</code>, also computes
+</p>
+
+<ul>
+<li> <p><code class="reqn">h_{i,j}^* = \displaystyle{\frac{t_{i+1,j}^* - t_{max,i,j}^+}{n_{i,j}^*}} , i=1, \ldots, m_j-1,</code>
+where
+</p>
+<p style="text-align: center;"><code class="reqn">n_{i,j}^* = \left\{ \begin{array}{cc}
+          \lceil n \, p \, k_{i,j}^* \rceil &amp; if \ k_{i,j}^* \leq 1 \\[7pt]
+          \lceil n \, p \, {k_{i,j}^{*}}^{\alpha} \rceil &amp; if \ k_{i,j}^* &gt; 1
+        \end{array}
+\right.</code>
+</p>
+
+<p>with
+</p>
+<p style="text-align: center;"><code class="reqn">k_{i,j}^* = \displaystyle{\frac{t_{i+1,j}^* - \, t_{max,i,j}^+}{t_{max,i,j}^{-} - \, t_{i,j}^*}} \ .</code>
+</p>
+
+<p>If <code class="reqn">h_{i,j}^* &lt; h_{i,j}</code>, we then set <code class="reqn">t_{max,i,j}^+</code> equal to <code class="reqn">t_{i+1,j}^*</code> and <code class="reqn">h_{i,j}</code> is recalculated.
+</p>
+</li>
+<li> <p><code class="reqn">h_{0,j}^* = \displaystyle{\frac{t_{1,j}^* - t_0}{n_{0,j}^*}} , </code>
+where
+</p>
+<p style="text-align: center;"><code class="reqn">n_{0,j}^* = \left\{ \begin{array}{cc}
+          \lceil n \, p \, k_{0,j}^* \rceil &amp;  if \ k_{0,j}^* \leq 1 \\[7pt]
+          \lceil n \, p \, {k_{0,j}^{*}}^{\alpha} \rceil &amp; if \ k_{0,j}^* &gt; 1
+        \end{array}
+ \right.</code>
+</p>
+
+<p>with
+</p>
+<p style="text-align: center;"><code class="reqn">k_{0,j}^* = \displaystyle{\frac{t_{1,j}^* - \, t_0}{t_{max,1,j}^{-} - \, t_{1,j}^*}} \ ,</code>
+</p>
+ 
+<p>when the <code>sfptl</code> object is of length 1 and <code>from.t0 = TRUE</code>, or the <code>sfptl</code> object is of length greater than 1.
+</p>
+<p>If <code class="reqn">h_{0,j}^* &lt; h_{1,j}</code>, we then set <code class="reqn">t_{1,j}^*</code> equal to  <code class="reqn">t_0</code>  and <code class="reqn">h_{1,j}</code> is recalculated.
+</p>
+</li>
+<li> <p><code class="reqn">h_{m_j,j}^* = \displaystyle{\frac{T - \, t_{max,m_j,j}^+}{n_{m_j,j}^*}} , </code>
+where
+</p>
+<p style="text-align: center;"><code class="reqn">n_{m_j,j}^* = \left\{ \begin{array}{cc}
+          \lceil n \, p \, k_{m_j,j}^* \rceil &amp; if \ k_{m_j,j}^* \leq 1 \\[7pt]
+          \lceil n \, p \, {k_{m_j,j}^{*}}^{\alpha} \rceil &amp; if \ k_{m_j,j}^* &gt; 1
+        \end{array}
+ \right.</code>
+</p>
+
+<p>with
+</p>
+<p style="text-align: center;"><code class="reqn">k_{m_j,j}^* = \displaystyle{\frac{T - \, t_{max,m_j,j}^+}{t_{max,m_j,j}^{-} - \, t_{m_j,j}^*}} \ ,</code>
+</p>
+ 
+<p>when the <code>sfptl</code> object is of length 1 and <code>to.T = TRUE</code>, or the <code>sfptl</code> object is of length greater than 1.
+</p>
+<p>If <code class="reqn">h_{m_j,j}^* &lt; h_{m_j,j}</code>, we then set <code class="reqn">t_{max,m_j,j}^+</code> equal to <code class="reqn">T</code> and <code class="reqn">h_{m_j,j}</code> is recalculated. <br></p>
+</li>
+</ul>
+<p><code class="reqn">p \geq 0.1</code> and <code class="reqn">0.75 \leq \alpha \leq 1</code> are recommended; otherwise, some integration steps can be excessively large. <br></p>
+<p>If the <code>sfptl</code> object is of length 1 (conditioned f.p.t. problem), the suitable subintervals and integration steps that the function provides are:
+</p>
+
+<ul>
+<li>
+<p> If <code>variableStep = TRUE</code>,
+</p>
+
+<ul>
+<li> <p><code class="reqn">h_{i,1}</code> in subintervals <code class="reqn">[t_{i,1}^*, t_{max,i,1}^+]</code>, <code class="reqn">i=1, \ldots, m_1</code>.
+</p>
+</li>
+<li> <p><code class="reqn">h_{i,1}^*</code> in subintervals <code class="reqn">[t_{max,i,1}^+, t_{i+1,1}^*]</code>, 
+<code class="reqn">i=1, \ldots, m_1-1</code>. 
+In these subintervals is possible to avoid applying the numerical algorithm to approximate the f.p.t. density provided that the
+value of the approximate density at the time instant <code class="reqn">t_{max,i,1}^+</code> is almost 0.
+</p>
+</li>
+<li> <p><code class="reqn">h_{0,1}^*</code> in subinterval <code class="reqn">[t_0, t_{1,1}^*]</code>, if <code>from.t0 = TRUE</code>.
+</p>
+</li>
+<li> <p><code class="reqn">h_{m_1,1}^*</code> in subinterval <code class="reqn">[t_{max,m_1,1}^{+}, T]</code>, if <code>to.T = TRUE</code>. <br></p>
+</li>
+</ul>
+</li>
+<li>
+<p> If <code>variableStep = FALSE</code> the function computes 
+</p>
+<p style="text-align: center;"><code class="reqn">h = min \left\{ h_{i,1} \ , \ i=1, \ldots, m_1 \right\} \thinspace .</code>
+</p>
+
+<p>Then
+</p>
+
+<ul>
+<li>
+<p> If <code>from.t0 = FALSE</code> and <code>to.T = FALSE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_{1,1}^*, t_{max,m_1,1}^+]</code>.
+</p>
+</li>
+<li>
+<p> If <code>from.t0 = TRUE</code> and <code>to.T = FALSE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_0, t_{max,m_1,1}^+]</code>.
+</p>
+</li>
+<li>
+<p> If <code>from.t0 = FALSE</code> and <code>to.T = TRUE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_{1,1}^*, T]</code>.
+</p>
+</li>
+<li>
+<p> If <code>from.t0 = TRUE</code> and <code>to.T = TRUE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_0, T]</code>.
+</p>
+</li>
+</ul>
+<p><code class="reqn">h</code> is a suitable fixed integration step in subintervals <code class="reqn">[t_{i,1}^*, t_{max,i,1}^+]</code>, <code class="reqn">i=1, \ldots, m_1</code>, and 
+<code class="reqn">[t_{max,i,1}^+,</code> <code class="reqn">t_{i+1,1}^*]</code>, <code class="reqn">i=1, \ldots, m_1-1</code>; 
+in subintervals <code class="reqn">[t_0, t_{1,1}^*]</code> if <code>from.t0 = TRUE</code>, and in
+<code class="reqn">[t_{max,m_1,1}^{+}, T]</code> if <code>to.T = TRUE</code>. The endpoints of such subintervals 
+are readjusted according to this integration step. <br></p>
+</li>
+</ul>
+<p>If the <code>sfptl</code> object is a list of length greater than 1 (unconditioned f.p.t problem), a common partition of 
+the interval <code class="reqn">[t_0, T]</code> is calculated from the suitable partitions of this interval for each 
+fixed value of the initial distribution. <br></p>
+<p>Let, in unified form, <code class="reqn">H_{r,j}</code>, <code class="reqn">r=1, \ldots, 2m_j+1</code>, the suitable integration steps
+(calculated for each <code class="reqn">j</code> in similar manner to the case of the <code>sfptl</code> object is of length 1) in 
+subintervals <code class="reqn">I_{r,j} = [t_{r-1,j}, t_{r,j}]</code>, with <code class="reqn">t_{0,j}=t_0</code> and 
+<code class="reqn">t_{2m_j+1,j} = T</code>, <code class="reqn">j=1, \ldots, N</code>. 
+Then, the ordered values of all time instants in the suitable partitions,
+<code class="reqn">t_{(1)}, \ldots, t_{(M)}</code>, provide a common suitable partition of the interval <code class="reqn">[t_0, T]</code> 
+in subintervals <code class="reqn">[t_{(i-1)}, t_{(i)}]</code>, <code class="reqn">i=1, \ldots, M \negthinspace + \negthinspace 1</code>,
+where <code class="reqn">t_{(0)} = t_0</code> and <code class="reqn">t_{(M \negthinspace + \negthinspace 1)} = T</code>. <br></p>
+<p>For this partition, the function computes
+</p>
+ 
+<ul>
+<li> <p><code class="reqn">H_{i} = min \, \{ H_{r,j} : j=1, \ldots, N, \ and \ [t_{(i-1)}, t_{(i)}] \subseteq I_{r,j} \} , \ i=2, \ldots, M.</code>
+</p>
+</li>
+<li> <p><code class="reqn">H_{1} = min \, \{ H_{r,j} : j=1, \ldots, N, \ and \ [t_0, t_{(1)}] \subseteq I_{r,j} \}</code>, if <code>from.t0 = TRUE</code>.
+</p>
+</li>
+<li> <p><code class="reqn">H_{M \negthinspace + \negthinspace 1} = min \, \{ H_{r,j} : j=1, \ldots, N, \ and \ [t_{(M)}, T] \subseteq I_{r,j} \}</code>, if <code>to.T = TRUE</code>. <br></p>
+</li>
+</ul>
+<p>Thus, 
+</p>
+
+<ul>
+<li>
+<p> If <code>variableStep = TRUE</code>, the suitable subintervals and integrations steps that the function provides are
+</p>
+
+<ul>
+<li> <p><code class="reqn">H_i</code> in subintervals <code class="reqn">[t_{(i-1)}, t_{(i)}]</code>, <code class="reqn">i=2, \ldots, M</code>. 
+</p>
+</li>
+<li> <p><code class="reqn">H_1</code> in subinterval <code class="reqn">[t_0, t_{(1)}]</code>, if <code>from.t0 = TRUE</code>.
+</p>
+</li>
+<li> <p><code class="reqn">H_{M \negthinspace + \negthinspace 1}</code> in subinterval <code class="reqn">[t_{(M)}, T]</code>, if <code>to.T = TRUE</code>.
+</p>
+</li>
+</ul>
+<p>Each integration step is readjusted to exactly split the corresponding subinterval. <br></p>
+</li>
+<li>
+<p> If <code>variableStep = FALSE</code>, a suitable fixed integration step for any subinterval <code class="reqn">[t_{(i-1)}, t_{(i)}]</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">h = min \left\{ H_{i} : i=1, \ldots, M \negthinspace + \negthinspace 1 \right\}.</code>
+</p>
+ 
+<p>In this case it is not possible to avoid applying the approximation algorithm in <code class="reqn">[t_{(i-1)}, t_{(i)}] \ \forall \ i=1, \ldots, M \negthinspace + \negthinspace 1 </code>. <br></p>
+<p>Then
+</p>
+
+<ul>
+<li>
+<p> If <code>from.t0 = FALSE</code> and <code>to.T = FALSE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_{(1)}, t_{(M)}]</code>.
+</p>
+</li>
+<li>
+<p> If <code>from.t0 = TRUE</code> and <code>to.T = FALSE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_0, t_{(M)}]</code>.
+</p>
+</li>
+<li>
+<p> If <code>from.t0 = FALSE</code> and <code>to.T = TRUE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_{(1)}, T]</code>.
+</p>
+</li>
+<li>
+<p> If <code>from.t0 = TRUE</code> and <code>to.T = TRUE</code>, <code class="reqn">h</code> is readjusted to exactly split the interval <code class="reqn">[t_0, T]</code>.
+</p>
+</li>
+</ul>
+<p><code class="reqn">h</code> is a suitable fixed integration step in subintervals <code class="reqn">[t_{(i-1)}, t_{(i)}]</code>, <code class="reqn">i=2, \ldots, M</code>,  
+in subintervals <code class="reqn">[t_0, t_{(1)}]</code> if <code>from.t0 = TRUE</code>, and in
+<code class="reqn">[t_{(M)}, T]</code> if <code>to.T = TRUE</code>. The endpoints of such subintervals 
+are readjusted according to this integration step. <br></p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A two-component list:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>A matrix of subintervals and integrations steps that we must consider in order to approximate the f.p.t. 
+density according to the information contained in the <code>sfptl</code> object and the arguments in the function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>A list of logical vectors indicating, for each subinterval, the values of the initial distribution for which 
+we must check whether it is possible to avoid applying the numerical algorithm.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Patricia Román-Román, Juan J. Serrano-Pérez and Francisco Torres-Ruiz.</p>
+
+
+<h3>References</h3>
+
+<p>Román, P., Serrano, J. J., Torres, F. (2008) First-passage-time location function: Application to determine first-passage-time densities in diffusion processes. <em>Comput. Stat. Data Anal.</em>, <b>52</b>, 4132–4146.
+</p>
+<p>P. Román-Román, J.J. Serrano-Pérez, F. Torres-Ruiz. (2012) An R package for an efficient approximation of first-passage-time densities for diffusion processes based on the FPTL function. <em>Applied Mathematics and Computation</em>, <b>218</b>, 8408–8428.
+</p>
+<p>P. Román-Román, J.J. Serrano-Pérez, F. Torres-Ruiz. (2014) More general problems on first-passage times for diffusion processes: A new version of the fptdApprox R package. <em>Applied Mathematics and Computation</em>, <b>244</b>, 432–446.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Approx.fpt.density</code> to approximate f.p.t. densities from objects of class “summary.fptl” and create objects of class “fpt.density”.
+</p>
+<p><code>summary.fptl</code> to locate the f.p.t. variable and create objects of class “summary.fptl” from objects of class 
+“fptl”.
+</p>
+<p><code>FPTL</code> to evaluate the FPTL function and create objects of class “fptl”.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Continuing the summary.fptl(.) example:
+
+Integration.Steps(yy)
+Integration.Steps(yy, from.t0 = TRUE)
+Integration.Steps(yy, to.T = TRUE, n = 100, p = 0.25)
+
+Integration.Steps(zz)
+</code></pre>
+
+
+</div>

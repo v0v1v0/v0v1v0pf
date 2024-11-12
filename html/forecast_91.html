@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fourier</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fourier terms for modelling seasonality</h2>
+
+<h3>Description</h3>
+
+<p><code>fourier</code> returns a matrix containing terms from a Fourier series, up
+to order <code>K</code>, suitable for use in <code>Arima</code>,
+<code>auto.arima</code>, or <code>tslm</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fourier(x, K, h = NULL)
+
+fourierf(x, K, h)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Seasonal time series: a <code>ts</code> or a <code>msts</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>Maximum order(s) of Fourier terms</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Number of periods ahead to forecast (optional)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fourierf</code> is deprecated, instead use the <code>h</code> argument in
+<code>fourier</code>.
+</p>
+<p>The period of the Fourier terms is determined from the time series
+characteristics of <code>x</code>. When <code>h</code> is missing, the length of
+<code>x</code> also determines the number of rows for the matrix returned by
+<code>fourier</code>. Otherwise, the value of <code>h</code> determines the number of
+rows for the matrix returned by <code>fourier</code>, typically used for
+forecasting. The values within <code>x</code> are not used.
+</p>
+<p>Typical use would omit <code>h</code> when generating Fourier terms for training a model
+and include <code>h</code> when generating Fourier terms for forecasting.
+</p>
+<p>When <code>x</code> is a <code>ts</code> object, the value of <code>K</code> should be an
+integer and specifies the number of sine and cosine terms to return. Thus,
+the matrix returned has <code>2*K</code> columns.
+</p>
+<p>When <code>x</code> is a <code>msts</code> object, then <code>K</code> should be a vector of
+integers specifying the number of sine and cosine terms for each of the
+seasonal periods. Then the matrix returned will have <code>2*sum(K)</code>
+columns.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Numerical matrix.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rob J Hyndman
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>seasonaldummy</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(ggplot2)
+
+# Using Fourier series for a "ts" object
+# K is chosen to minimize the AICc
+deaths.model  &lt;- auto.arima(USAccDeaths, xreg=fourier(USAccDeaths,K=5), seasonal=FALSE)
+deaths.fcast &lt;- forecast(deaths.model, xreg=fourier(USAccDeaths, K=5, h=36))
+autoplot(deaths.fcast) + xlab("Year")
+
+# Using Fourier series for a "msts" object
+taylor.lm &lt;- tslm(taylor ~ fourier(taylor, K = c(3, 3)))
+taylor.fcast &lt;- forecast(taylor.lm,
+    data.frame(fourier(taylor, K = c(3, 3), h = 270)))
+autoplot(taylor.fcast)
+
+</code></pre>
+
+
+</div>

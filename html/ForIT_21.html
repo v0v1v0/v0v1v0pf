@@ -1,0 +1,88 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>INFC_CVgrid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>'ForIT'-package Auxiliary pre-computed data - Ver.2</h2>
+
+<h3>Description</h3>
+
+<p>A large dataset used by 'INFCaccuracyPlot0()' to speed the production of a
+fine resolution CV surface for the plots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">INFC_CVgrid
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 167560 rows and 7 variables:
+</p>
+
+<dl>
+<dt>pag</dt>
+<dd>
+<p>see 'INFCcatalog' primary key</p>
+</dd>
+<dt>quantity</dt>
+<dd>
+<p>see 'Quantities'</p>
+</dd>
+<dt>dbh</dt>
+<dd>
+<p>trunk diameter at breast height (dbh), in cm</p>
+</dd>
+<dt>h_tot</dt>
+<dd>
+<p>tree height, in m</p>
+</dd>
+<dt>cv_ie</dt>
+<dd>
+<p>coefficient of variation for an individual estimate</p>
+</dd>
+<dt>cv_ea</dt>
+<dd>
+<p>coefficient of variation for the estimate of an average</p>
+</dd>
+<dt>est</dt>
+<dd>
+<p>estimated value for the selected 'quantity'.
+See 'INFCvpe()' for more details</p>
+</dd>
+<dt>n_par</dt>
+<dd>
+<p>number of parameters that the function requires</p>
+</dd>
+<dt>inD</dt>
+<dd>
+<p>is the (dbh, htot) point within the function domain?</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>The dataset is produced by the following code.
+</p>
+<div class="sourceCode"><pre> Populate_INFC_CVgrid &lt;- function() {
+ INFCcatalog %&gt;%
+   select(pag) %&gt;%
+   inner_join(INFCspecies %&gt;%
+                select(pag, EPPOcode),
+              by = "pag") %&gt;%
+   group_by(pag) %&gt;%
+   summarise(EPPOcode = first(EPPOcode),
+             .groups = "drop") %&gt;%
+   inner_join(Quantities %&gt;% select(quantity), by = character()) %&gt;%
+   mutate(grid.k = pmap(list(pag, EPPOcode, quantity), compute_grid0)) %&gt;%
+   select(-EPPOcode) %&gt;%
+   unnest(cols = c(grid.k)) %&gt;%
+   return()
+ }
+</pre></div>
+
+
+</div>

@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_capability_statement</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get capability statement</h2>
+
+<h3>Description</h3>
+
+<p>Get the capability statement of a FHIR server.
+</p>
+<p>This function downloads a capability statement and creates three data.frames from it:
+</p>
+
+<ul>
+<li> <p><code>Meta</code> contains general information on the server
+</p>
+</li>
+<li> <p><code>Rest</code> contains information on the Rest operations the server supports
+</p>
+</li>
+<li> <p><code>Resources</code> contains information on the supported resource types
+</p>
+</li>
+</ul>
+<p>When there is more than one piece of information regarding a variable in these data.frames,
+they are divided by the string specified in <code>sep</code>. If <code>brackets</code> is not NULL, those entries
+will also be assigned indices so you can melt them using <code>fhir_melt()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_capability_statement(
+  url = "https://hapi.fhir.org/baseR4",
+  username = NULL,
+  password = NULL,
+  token = NULL,
+  add_headers = NULL,
+  brackets = NULL,
+  sep = " ::: ",
+  log_errors = NULL,
+  verbose = deprecated()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>url</code></td>
+<td>
+<p>The base URL of the FHIR server.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>username</code></td>
+<td>
+<p>A character vector of length one containing the username for basic authentication. Defaults to NULL, meaning no authentication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>password</code></td>
+<td>
+<p>A character vector of length one containing the password for basic authentication. Defaults to NULL, meaning no authentication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>A character vector of length one or object of class httr::Token, for bearer token authentication (e.g. OAuth2). See <code>fhir_authenticate()</code>
+for how to create this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_headers</code></td>
+<td>
+<p>A named character vector of custom headers to add to the HTTP request, e.g. <code>c(myHeader = "somevalue")</code> or
+<code>c(firstHeader = "value1", secondHeader = "value2")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brackets</code></td>
+<td>
+<p>A character vector of length two defining the brackets surrounding indices for multiple entries, e.g. <code>c( "[", "]")</code>. Defaults to <code>NULL</code>.
+If <code>NULL</code>, no indices will be added to multiple entries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>A character vector of length one to separate pasted multiple entries</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_errors</code></td>
+<td>
+<p>Either <code>NULL</code> or a character vector of length one indicating the name of a file in which to save the http errors.
+<code>NULL</code> means no error logging. When a file name is provided, the errors are saved in the specified file. Defaults to <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of data frames containing the information from the statement
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#without indices
+cap &lt;- fhir_capability_statement(url = "https://server.fire.ly")
+
+#with indices
+cap &lt;- fhir_capability_statement(url = "https://server.fire.ly",
+                                 brackets = c("[","]"),
+                                 sep = " || ")
+
+#melt searchInclude variable
+resources &lt;- fhir_melt(cap$Resources,
+                       columns = "searchInclude",
+                       brackets = c("[", "]"),
+                       sep = " || ",
+                       all_columns = FALSE)
+
+#remove indices
+resources &lt;- fhir_rm_indices(resources, brackets = c("[", "]"))
+
+head(resources)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

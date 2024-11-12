@@ -1,0 +1,267 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Linear Models</h2>
+
+<h3>Description</h3>
+
+<p>Functional linear models for scalar or functional responses and scalar and/or functional predictors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLM(Y, X, XTest = NULL, optnsListY = NULL, optnsListX = NULL, nPerm = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Either an <em>n</em>-dimensional vector whose elements consist of scalar responses, or a list which contains functional responses in the form of a list LY and the time points LT at which they are observed (i.e., list(Ly = LY,Lt = LT)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A list of either (1) lists which contains the observed functional predictors list Lxj and the time points list Ltj at which they are observed. It needs to be of the form <code>list(list(Ly = Lx1,Lt = Lxt1),list(Ly = Lx2,Lt = Lxt2),...)</code>; (2) a matrix containing one or more scalar covariates; or (3) a mix of (1) and (2), in which case the scalar covariates must come after the functional ones.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XTest</code></td>
+<td>
+<p>A list which contains the values of functional predictors for a held-out testing set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optnsListY</code></td>
+<td>
+<p>A list of options control parameters for the response specified by <code>list(name=value)</code>. See ‘Details’ in  <code>FPCA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optnsListX</code></td>
+<td>
+<p>Either (1) A list of options control parameters for the predictors specified by <code>list(name=value)</code>; or (2) A list of list of options, e.g. <code>list(list(name1=value1), list(name2=value2))</code>. See ‘Details’ in  <code>FPCA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nPerm</code></td>
+<td>
+<p>If this argument is specified, perform a permutation test to obtain the (global) p-value for the test of regression relationship between X and Y. Recommend to set to 1000 or larger if specified.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of the following:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>A length-one numeric if the response Y is scalar. Or a vector of <code>length(workGridY)</code> of the fitted constant alpha(t) in the linear model if Y is functional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betaList</code></td>
+<td>
+<p>A list of fitted beta(s) vectors, one entry per functional predictor and one entry for all scalar predictors, if Y is scalar. Each of dimension <code>length(workGridX[[j]])</code>.
+</p>
+<p>Or a list of fitted beta(s,t) matrices, one per predictor, if Y is functional. Each of dimension <code>length(workGridX[[j]])</code> times <code>length(workGridY)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2</code></td>
+<td>
+<p>The functional R2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pv</code></td>
+<td>
+<p>Permutation p-value based on the functional R2. NA if <code>nPerm</code> is <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yHat</code></td>
+<td>
+<p>A length n vector if Y is scalar. 
+</p>
+<p>Or an n by <code>length(workGridY)</code> matrix of fitted Y's from the model if Y is functional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yPred</code></td>
+<td>
+<p>Same as YHat if XTest is not provided. 
+</p>
+<p>Or a length <code>length(XTest[[1]]$Ly)</code> vector of predicted Y's if Y is scalar.
+</p>
+<p>Or a <code>length(XTest[[1]]$Ly)</code> by <code>length(workGridY)</code> matrix of predicted Y's if Y is functional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estXi</code></td>
+<td>
+<p>A list of n by k_j matrices of estimated functional principal component scores of predictors, where k_j is the number of eigenfunctions selected for each predictor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testXi</code></td>
+<td>
+<p>A list of n by k_j matrices of estimated functional principal component scores of predictors in XTest, with eigenfunctions fitted only with X.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdaX</code></td>
+<td>
+<p>A length sum_j k_j vector of estimated eigenvalues for predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>workGridX</code></td>
+<td>
+<p>A list of vectors, each is a working grid for a predictor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optnsListX</code></td>
+<td>
+<p>A list of list of options actually used by the FPCA for the predictor functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optnsListY</code></td>
+<td>
+<p>A list of options actually used by the FPCA for the response functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phiY</code></td>
+<td>
+<p>A <code>length(workGridY)</code> by k_y the estimated eigenfunctions of Y's, where k_y is number of eigenfunctions selected for Y. NULL if Y is scalar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>workGridY</code></td>
+<td>
+<p>A vector of working grid of the response Y's. NULL if Y is scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muY</code></td>
+<td>
+<p>The mean or the mean function of the response</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Yao, F., Müller, H.G., Wang, J.L. (2005). Functional linear regression analysis for longitudinal data. Annals of Statistics 33, 2873–2903.</cite>
+<cite>Hall, P., Horowitz, J.L. (2007). Methodology and convergence rates for functional linear regression. The Annals of Statistics, 35(1), 70–91.</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1000)
+
+library(MASS)
+
+### functional covariate
+phi1 &lt;- function(t,k) sqrt(2)*sin(2*pi*k*t)
+phi2 &lt;- function(t,k) sqrt(2)*cos(2*pi*k*t)
+
+lambdaX &lt;- c(1,0.7)
+
+# training set
+n &lt;- 50
+Xi &lt;- matrix(rnorm(2*n),nrow=n,ncol=2)
+
+denseLt &lt;- list(); denseLy &lt;- list()
+sparseLt &lt;- list(); sparseLy &lt;- list()
+
+t0 &lt;- seq(0,1,length.out=51)
+for (i in 1:n) {
+ denseLt[[i]] &lt;- t0
+  denseLy[[i]] &lt;- lambdaX[1]*Xi[i,1]*phi1(t0,1) + lambdaX[2]*Xi[i,2]*phi1(t0,2)
+  
+  ind &lt;- sort(sample(1:length(t0),3))
+  sparseLt[[i]] &lt;- t0[ind]
+  sparseLy[[i]] &lt;- denseLy[[i]][ind]
+}
+
+denseX &lt;- list(Ly=denseLy,Lt=denseLt)
+sparseX &lt;- list(Ly=sparseLy,Lt=sparseLt)
+
+denseX &lt;- list(X=denseX)
+sparseX &lt;- list(X=sparseX)
+
+# test set
+N &lt;- 30
+
+XiTest &lt;- matrix(rnorm(2*N),nrow=N,ncol=2)
+
+denseLtTest &lt;- list(); denseLyTest &lt;- list()
+
+sparseLtTest &lt;- list(); sparseLyTest &lt;- list()
+
+t0 &lt;- seq(0,1,length.out=51)
+for (i in 1:N) {
+  denseLtTest[[i]] &lt;- t0
+  denseLyTest[[i]] &lt;- lambdaX[1]*XiTest[i,1]*phi1(t0,1) + lambdaX[2]*XiTest[i,2]*phi1(t0,2)
+  
+  ind &lt;- sort(sample(1:length(t0),5))
+  sparseLtTest[[i]] &lt;- t0[ind]
+  sparseLyTest[[i]] &lt;- denseLyTest[[i]][ind]
+}
+
+denseXTest &lt;- list(Ly=denseLyTest,Lt=denseLtTest)
+sparseXTest &lt;- list(Ly=sparseLyTest,Lt=sparseLtTest)
+
+denseXTest &lt;- list(X=denseXTest)
+sparseXTest &lt;- list(X=sparseXTest)
+
+
+### scalar response
+beta &lt;- c(1, -1)
+Y &lt;- c(Xi%*%diag(lambdaX)%*%beta) + rnorm(n,0,0.5)
+YTest &lt;- c(XiTest%*%diag(lambdaX)%*%beta) + rnorm(N,0,0.5)
+
+## dense
+denseFLM &lt;- FLM(Y=Y,X=denseX,XTest=denseXTest,optnsListX=list(FVEthreshold=0.95))
+
+trueBetaList &lt;- list()
+trueBetaList[[1]] &lt;- cbind(phi1(denseFLM$workGridX[[1]],1),phi1(denseFLM$workGridX[[1]],2))%*%beta
+
+# coefficient function estimation error (L2-norm)
+plot(denseFLM$workGridX[[1]],denseFLM$betaList[[1]],type='l',xlab='t',ylab=paste('beta',1,sep=''))
+points(denseFLM$workGridX[[1]],trueBetaList[[1]],type='l',col=2)
+
+denseEstErr &lt;-
+  sqrt(trapzRcpp(denseFLM$workGridX[[1]],(denseFLM$betaList[[1]] - trueBetaList[[1]])^2))
+denseEstErr
+
+op &lt;- par(mfrow=c(1,2))
+plot(denseFLM$yHat,Y,xlab='fitted Y', ylab='observed Y')
+abline(coef=c(0,1),col=8)
+plot(denseFLM$yPred,YTest,xlab='predicted Y', ylab='observed Y')
+abline(coef=c(0,1),col=8)
+par(op)
+
+# prediction error
+densePredErr &lt;- sqrt(mean((YTest - denseFLM$yPred)^2))
+densePredErr
+
+</code></pre>
+
+
+</div>

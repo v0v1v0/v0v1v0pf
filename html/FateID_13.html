@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotexpressionProfile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plotting smoothed pseudo-temporal expression profiles for groups of genes</h2>
+
+<h3>Description</h3>
+
+<p>This function allows plotting loess-smoothed pseudo-temporal expression profiles for groups of genes. To display gene expression profiles on the same scale, row sums are normalized to one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotexpressionProfile(
+  x,
+  y,
+  g,
+  n,
+  logsc = FALSE,
+  col = NULL,
+  name = NULL,
+  cluster = FALSE,
+  alpha = 0.5,
+  lwd = 1,
+  ylim = NULL,
+  seed = 12345,
+  ylab = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>expression data frame with genes as rows and cells as columns. Gene IDs should be given as row names and cell IDs should be given as column names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>clustering partition. A vector with an integer cluster number for each cell. The order of the cells has to be the same as for the columns of <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>a gene ID corresponding to one of the rownames of <code>x</code>. It can also be vector of gene IDs. In this case, a separate profile is plotted for each gene in <code>g</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>ordered vector of cell IDs to be included. Cell IDs need to be column names of <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logsc</code></td>
+<td>
+<p>logical value. If <code>TRUE</code>, then log2-transformed values are plotted. Default is <code>FALSE</code> and untransformed values are plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>optional vector of valid color names used for the profiles of all genes in <code>g</code>. Default value is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>optional character string. This argument corresponds to a title for the plot. Default value is <code>NULL</code>. If not provided, and <code>g</code> is given, then <code>name</code> will equal <code>g</code> or <code>g[1]</code>, respectively, if <code>g</code> is a vector of gene IDs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>logical value. If <code>TRUE</code> then the partitioning along the x-axis is indicated be vertical lines representing the boundaries of all positions with a given value in <code>y</code>. The average position across all cells in a cluster will be indicated on the x-axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>positive real number. Pseudo-temporal expression profiles are derived by a local regression of expression values across the ordered cells using the function <code>loess</code> from the package <span class="pkg">stats</span>. This is the parameter, which controls the degree of smoothing. Larger values return smoother profiles. Default value is 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd</code></td>
+<td>
+<p>line width of profiles. Default value is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>vector of two numerical values: lower and upper limit of values shown on the y-axis. Default value is <code>NULL</code> and the whole range is shown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>integer number. Random seed for determining colour scheme. Default is 12345.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab</code></td>
+<td>
+<p>Optional label for the y-axis. Default is <code>NULL</code> and axis is labeled "norm. expression".</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>None
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+x &lt;- intestine$x
+y &lt;- intestine$y
+v &lt;- intestine$v
+fcol &lt;- intestine$col
+tar &lt;- c(6,9,13)
+fb &lt;- fateBias(x,y,tar,z=NULL,minnr=5,minnrh=10,nbfactor=5,use.dist=FALSE,seed=NULL,nbtree=NULL)
+dr &lt;- compdr(x,z=NULL,m="cmd",k=2,tsne.perplexity=30)
+pr &lt;- prcurve(y,fb,dr,k=2,m="cmd",trthr=0.4,start=NULL)
+n &lt;- pr$trc[["t6"]]
+fs  &lt;- filterset(v,n,minexpr=2,minnumber=1)
+s1d &lt;- getsom(fs,nb=1000,alpha=.5)
+ps &lt;- procsom(s1d,corthr=.85,minsom=3)
+# plot average profile of all genes of node 1 in the self-organizing map
+g &lt;- sample(names(ps$nodes)[ps$nodes == 1],5)
+plotexpressionProfile(v,y,g,n,col=fcol,name="Node 1",alpha=.2)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>find_files</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find Files on Disk</h2>
+
+<h3>Description</h3>
+
+<p>Look for files on disk, either scanning a vector of names or searching for
+files with <code>list.files</code> and throw an error if no files are found.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">find_files(
+  path = ".",
+  pattern = NULL,
+  file_names = NA,
+  all_files = TRUE,
+  recursive = FALSE,
+  ignore_case = FALSE,
+  find_all = FALSE,
+  select = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>see <code>list.files</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>see <code>list.files</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_names</code></td>
+<td>
+<p>character vector of file names (to be checked if the files
+exist).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all_files</code></td>
+<td>
+<p>see <code>list.files</code>, argument <code>all.files</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recursive</code></td>
+<td>
+<p>see <code>list.files</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_case</code></td>
+<td>
+<p>see <code>list.files</code>, argument <code>ignore.case</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>find_all</code></td>
+<td>
+<p>Throw an error if not all files (given by <em>file_names</em>)
+are found?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>A named list of numerical vectors of maximum length 2 named
+<code>min</code> and/or <code>max</code>.
+If given, file searching will be restricted to file attributes corresponding
+to the names in the list ranging between <code>min</code> and <code>max</code>. See
+<em>examples</em>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a wrapper to either <code>file.exists</code> or
+<code>list.files</code>, that ensures that (some) files exists. This may
+come handy if you want to perform some kind of file manipulation e.g. with
+one of the functions listed under <br><strong>See Also</strong> <em>Other file utilities:</em>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A character vector of file names.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This is merely a wrapper around <code>file.exists</code> or
+<code>list.files</code>, depending on whether <em>file_names</em> is
+given.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other searching functions: 
+<code>compare_vectors()</code>,
+<code>file_modified_last()</code>,
+<code>fromto()</code>,
+<code>grep_file()</code>,
+<code>missing_docs</code>,
+<code>search_files()</code>,
+<code>search_rows()</code>,
+<code>summary.filesearch()</code>
+</p>
+<p>Other file utilities: 
+<code>clipboard_path()</code>,
+<code>delete_trailing_blank_lines()</code>,
+<code>delete_trailing_whitespace()</code>,
+<code>develop_test()</code>,
+<code>file_copy()</code>,
+<code>file_modified_last()</code>,
+<code>file_save()</code>,
+<code>get_lines_between_tags()</code>,
+<code>get_mtime()</code>,
+<code>get_unique_string()</code>,
+<code>grep_file()</code>,
+<code>is_files_current()</code>,
+<code>is_path()</code>,
+<code>paths</code>,
+<code>search_files()</code>,
+<code>split_code_file()</code>,
+<code>touch()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#% create some files
+files &lt;- unname(sapply(file.path(tempdir(), paste0(sample(letters, 10),
+                                              ".", c("R", "Rnw", "txt"))),
+                       touch))
+print(files)
+print(list.files(tempdir(), full.names = TRUE)) # same as above
+#% file names given
+find_files(file_names = files[1:3])
+##% some do not exist:
+find_files(file_names = c(files[1:3], replicate(2, tempfile())))
+try(find_files(file_names = c(files[1:3], replicate(2, tempfile())),
+               find_all = TRUE))
+##% all do not exist:
+try(find_files(file_names = replicate(2, tempfile())))
+#% path given
+find_files(path = tempdir())
+##% change pattern
+find_files(path = tempdir(),
+           pattern = ".*\\.[RrSs]$|.*\\.[RrSs]nw$|.*\\.txt")
+##% find a specific file by it's basename
+find_files(path = tempdir(), pattern = paste0("^", basename(files[1]), "$"))
+#% file_names and path given: file_names beats path
+try(find_files(file_names = tempfile(), path = tempdir()))
+#% select by file size:
+write.csv(mtcars, file.path(tempdir(), "mtcars.csv"))
+find_files(path = tempdir())
+find_files(path = tempdir(),
+           select = list(size = c(min = 1000))
+           )
+</code></pre>
+
+
+</div>

@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frair_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Test for evidence of type-II or type-III functional responses</h2>
+
+<h3>Description</h3>
+
+<p>Implements the phenomenological test of type-II <em>versus</em> type-III functional responses described by Juliano (2001)</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">frair_test(formula, data)
+## S3 method for class 'frtest'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula </code></td>
+<td>
+<p>A simple formula of the form <code>y ~ x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>The dataframe containing <code>x</code> and <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x </code></td>
+<td>
+<p>Output from <code>frair_test</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>... </code></td>
+<td>
+<p>Other items passed to the print method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function wraps up an otherwise trivial test for type-II <em>versus</em> type-III functional responses in a format consistent with the FRAIR syntax. It can be considered 'phenomenological' inasmuch as it tells the user if a type-II or type-III response is preferred, but not what form that curve should take nor if it is sensible to fit such a curve via non-linear regression.  
+</p>
+<p>The test relies on the established principle that a logistic regression on the <em>proportion</em> of prey consumed is a more sensitive test of functional response shape, especially at low prey densities, when a non-linear curve may not be able to distinguish the subtle difference in curve shape. 
+</p>
+<p>The logic follows that on the proportion scale, a type-II response will show an increasing (i.e. positive and statistically different from zero) initial slope with respect to density whereas a type-III response will show a negative slope, followed by a positive higher order slope. 
+</p>
+<p>The test proceeds by fitting two models:
+</p>
+<p><code>glm(cbind(eaten,noteaten)~density, family='binomial')</code>
+</p>
+<p><code>glm(cbind(eaten,noteaten)~density+density^2, family='binomial')</code>
+</p>
+<p>where <code>eaten</code> is the left hand side of the <code>formula</code> input, <code>density</code> is the right hand side and <code>noteaten</code> is the difference between the two. The output from these models to determine which functional response is preferred using the logic above.
+</p>
+<p>Currently no consideration is given to a type-I (<em>i.e.</em> linear) response or any other potentially sensible fit other than a type-II or type-III response. It is up to the user to decide if it is appropriate to continue with fitting a mechanistic model of the functional response (<em>i.e.</em> <code>frair_fit</code>, <code>frair_compare</code> and/or <code>frair_boot</code>) on the back of the results of this test. 
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>frair_test</code> returns a list of class <code>frtest</code> with the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call </code></td>
+<td>
+<p>The original call to <code>frair_test</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x </code></td>
+<td>
+<p>The original x data supplied to <code>frair_test</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y </code></td>
+<td>
+<p>The proportion of prey eaten: <code class="reqn">y/x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xvar </code></td>
+<td>
+<p>A string. The right hand side of <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yvar </code></td>
+<td>
+<p>A string. Always <code>'Proportion'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modT2 </code></td>
+<td>
+<p>The output from the type-II glm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modT3 </code></td>
+<td>
+<p>The output form the type-III glm</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>References</h3>
+
+<p>Juliano SA (2001) <em>Nonlinear curve fitting: Predation and functional response curves</em>. In: Scheiner SM, Gurevitch J (eds). <em>Design and analysis of ecological experiments</em>. Oxford University Press, Oxford, United Kingdom. pp 178–196.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(gammarus)
+frair_test(eaten~density, data=gammarus)
+
+dat &lt;- data.frame(x=1:100, y=floor(hassIII(1:100,b=0.01,c=0.001,h=0.03,T=1)))
+frair_test(y~x, data=dat)
+</code></pre>
+
+
+</div>

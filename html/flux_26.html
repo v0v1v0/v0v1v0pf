@@ -1,0 +1,187 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.fluss</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Functions for bulk plotting of concentration change with time as kind of 
+diagnostic plots for flux rate calculations
+</h2>
+
+<h3>Description</h3>
+
+<p>Bulk plotting of concentration change with time adding color and symboling  
+for acting as a diagnostic plot for the flux rate estimation functions 
+(<code>flux</code>, <code>flux.odae</code>, <code>flux.conv</code>) in 
+this package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fluss'
+plot(x, subs, dims, folder = getwd(), xlims = NULL, ...)
+
+## S3 method for class 'flux'
+plot(x, zero.line, note = "", margin = 0.2, xlims = NULL, ...)
+
+## S3 method for class 'fluxes'
+plot(x, dims, ghg = "all", subs = NULL, folder = getwd(), 
+xlims = NULL, ask = TRUE, ...)
+
+## S3 method for class 'fluxx'
+plot(x, ...)
+
+## S3 method for class 'fluxxes'
+plot(x, dims, subs = NULL, folder = getwd(), ask = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>Object of class <code>fluss</code> that is returned by <code>flux</code> or object of class <code>flux</code> that is returned by <code>flux.conv</code>. In case of the latter, the function has to be applied to a list of flux extimation results via <code>lapply</code> or the like.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subs</code></td>
+<td>
+
+<p>Single character value or character value specifying the factors that shall be used for subsetting the plots into plates (that are stored as pdf files to a folder specified in <code>folder</code>). Must be names of columns of the original data that have been used to partition the data into chunks and that are part of the naming of the data chunks (see <code>flux</code> for details.). When there are only few chamber measurements that shall be plotted to the screen set <code>subs</code> to NULL. This is default behaviour for <code>plot.fluxes</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dims</code></td>
+<td>
+
+<p>Integer vector with two elements that specify the mfrow setting (see <code>par</code> for details) during the plotting of the single plates into pdf files. For all single plots to fit on the plate the product of the two entries has to be equal or higher the number of chamber measurements that are in the data in each partition according to <code>subs</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folder</code></td>
+<td>
+
+<p>Character string giving the path to the folder were the files have to be stored. The names of the pdf files are generated automatically.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlims</code></td>
+<td>
+
+<p>Two entry numeric vector specifying the x-axes limits for all plots. Defaults to NULL in which case it is derived from the data itself. The y-axes limits are always set according to the range of the concentration data <code class="reqn">\pm</code> 20
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>further arguments passed through to <code>plot.flux</code> (see below) or to <code>plot.default</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zero.line</code></td>
+<td>
+
+<p>The y-axes position of a horizontal line that reflects the ambient concentration of the plotted gas species. When using <code>plot.fluss</code> this is determined automatically from <code>x</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>note</code></td>
+<td>
+
+<p>A note that shall appear in the plots. Typically not a fixed value but a value that changes from plot to plot. See example.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margin</code></td>
+<td>
+
+<p>Numeric between 0 and 1. Specifies the empty space within the diagnostic plots on the y-axis. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ghg</code></td>
+<td>
+
+<p>Character value or an up to three entry vector specifying which ghg should be plotted. Note that only ghg fluxes that were estimated can be plotted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ask</code></td>
+<td>
+
+<p>Logical; if TRUE, the user is asked before starting to plot the concentration data for the next ghg, see <code>par</code>(ask=.) and examples.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Typically <code>plot.fluss</code> will be used. However, for lower level plotting the function <code>plot.flux</code> that also does the plotting within <code>plot.fluss</code> is provided as a separate function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function is invoked for its side effects and does not return anything.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gerald Jurasinski &lt;gerald.jurasinski@uni-rostock.de&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>chop</code>, <code>flux</code>, <code>flux.odae</code>, <code>flux.conv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load example data
+data(tt.pre)
+
+## extract field concentration measurements
+gcd &lt;- tt.pre[tt.pre$sampletype_a=="P",]
+
+## partition the data into data tables per chamber measurement
+# then do the partitioning
+gcd.parts &lt;- chop(gcd, factors = c("date", "spot", "veg"), 
+nmes = c("date", "veg", "spot"))
+
+## calculate flux rates for methane
+# first define CH4 range limit (alternatively use flux.calib)
+CH4.lim &lt;- 30
+# do the flux rate estimation
+vp.CH4 &lt;- list(CH4 = "CH4ppb", time = "time_min", CH4.gcq = "CH4Code", 
+volume = "cham_vol", t.air = "temp_dC", area = "cham_area", p.air = 101325)
+flux.CH4 &lt;- flux(gcd.parts, var.par = vp.CH4, co2ntrol = NULL, 
+range.lim=CH4.lim)
+
+## look at the results table
+flux.CH4
+
+## plot the concentration-change-with-time-plots as kind of diagnostic
+plot(flux.CH4, dims = c(3,6))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>growth_ex</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Example growth data frame for small example</h2>
+
+<h3>Description</h3>
+
+<p>This is an example growth data frame formed from two census data frames. In this case it is
+made by combining census_1_ex and census_2_ex. The
+individuals alive in both censuses were linked by their tree ID.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">growth_ex
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A <code>sf</code> spatial tibble
+</p>
+
+<dl>
+<dt>ID</dt>
+<dd>
+<p>Tree identification number. This identifies an individual tree and
+can be used to connect trees between the two censuses.</p>
+</dd>
+<dt>sp</dt>
+<dd>
+<p>Species of the individual</p>
+</dd>
+<dt>codes1</dt>
+<dd>
+<p>Code for additional information on the stem during the first census: M means the main stem
+of the individual tree and R means the stem was lost, but the tag was moved to another stem greater than DBH cutoff,
+this stands for resprout.</p>
+</dd>
+<dt>dbh1</dt>
+<dd>
+<p>Diameter at breast height of the tree in cm at the first census</p>
+</dd>
+<dt>dbh2</dt>
+<dd>
+<p>Diameter at breast height of the tree in cm at the second census</p>
+</dd>
+<dt>growth</dt>
+<dd>
+<p>Average annual growth between the two censuses in cm per year</p>
+</dd>
+<dt>codes2</dt>
+<dd>
+<p>Codes at the second census</p>
+</dd>
+<dt>geometry</dt>
+<dd>
+<p>Point location of the individual</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p><code>compute_growth()</code>
+</p>
+<p>Other example data objects: 
+<code>blocks_ex</code>,
+<code>census_1_ex</code>,
+<code>census_2008_bw</code>,
+<code>census_2014_bw</code>,
+<code>census_2_ex</code>,
+<code>comp_bayes_lm_ex</code>,
+<code>focal_vs_comp_ex</code>,
+<code>growth_spatial_ex</code>,
+<code>growth_toy</code>,
+<code>species_bw</code>,
+<code>study_region_bw</code>,
+<code>study_region_ex</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+library(dplyr)
+library(sf)
+library(sfheaders)
+library(blockCV)
+
+growth_ex %&gt;%
+  ggplot() +
+  geom_sf()
+
+growth_ex %&gt;%
+  group_by(sp) %&gt;%
+  summarize(mean(growth))
+
+# Add buffer
+growth_spatial_ex &lt;- growth_ex %&gt;%
+  add_buffer_variable(direction = "in", size = 1, region = study_region_ex)
+
+# Add cross-validation folds
+fold1 &lt;- rbind(c(0, 0), c(5, 0), c(5, 5), c(0, 5), c(0, 0))
+fold2 &lt;- rbind(c(5, 0), c(10, 0), c(10, 5), c(5, 5), c(5, 0))
+blocks &lt;- bind_rows(
+  sf_polygon(fold1),
+  sf_polygon(fold2)
+) %&gt;%
+  mutate(foldID = c(1, 2))
+
+SpatialBlock_ex &lt;- spatialBlock(
+  speciesData = growth_ex,
+  verbose = FALSE,
+  k = 2,
+  selection = "systematic",
+  blocks = blocks
+)
+
+# Add foldID to data
+growth_spatial_ex &lt;- growth_spatial_ex %&gt;%
+  mutate(foldID = SpatialBlock_ex$foldID %&gt;% as.factor())
+</code></pre>
+
+
+</div>

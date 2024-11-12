@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_table_description</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create fhir_table_description object</h2>
+
+<h3>Description</h3>
+
+<p>A <code>fhir_table_description</code> holds the information <code>fhir_crack()</code> needs to flatten (aka crack)
+FHIR resources from a FHIR bundle. There should be one <code>fhir_table_description</code> per resource type as
+<code>fhir_crack()</code> will create one data.frame/data.table per resource type in a bundle. See Details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_table_description(
+  resource,
+  cols = fhir_columns(),
+  sep = ":::",
+  brackets = character(),
+  rm_empty_cols = FALSE,
+  format = "compact",
+  keep_attr = FALSE,
+  style = deprecated()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>resource</code></td>
+<td>
+<p>A character vector of length one or fhir_resource_type object
+indicating which resource type should be extracted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cols</code></td>
+<td>
+<p>Optional. A fhir_columns object or something that can be coerced to one,
+like a (named) character vector, a (named) list containing xpath expressions,
+or a fhir_xpath_expression object. See <code>fhir_columns()</code> and the examples.
+If this argument is omitted, an empty fhir_columns object will be supplied.
+This means that in the call to <code>fhir_crack()</code>, all available elements are extracted in put
+in automatically named columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>A character of length one containing the separator string used for separating multiple entries in cells when <code>format = "compact"</code>.
+ignored when <code>format = "wide"</code>. Defaults to <code>":::"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brackets</code></td>
+<td>
+<p>A character of length one or two used for the indices of multiple entries. The first one is the opening bracket
+and the second one the closing bracket. Vectors of length one will be recycled.
+Defaults to <code>character(0)</code>, i.e. no brackets, meaning that multiple entries won't be indexed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm_empty_cols</code></td>
+<td>
+<p>A logical of length one indicating whether empty columns should be removed from the resulting table or not. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>A character of length one indicating whether the resulting table should be cracked to a <code>"wide"</code> or <code>"compact"</code> format.
+<code>"wide"</code> means multiple entries will be distributed over several columns with indexed names. <code>"compact"</code> means multiple entries will be pasted into one cell/column separated by <code>sep</code> .
+Defaults to <code>"compact"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_attr</code></td>
+<td>
+<p>A logical of length one indicating whether the attribute name of the respective element (<code style="white-space: pre;">⁠@value⁠</code> in most cases)
+should be attached to the name of the variable in the resulting table. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>style</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A <code>fhir_table_description</code> consists of
+the following elements:
+</p>
+
+<ul>
+<li>
+<p> The resource element: Defines the resource type (e.g. <code>Patient</code> or <code>Observation</code>). See <code>fhir_resource_type()</code>.
+</p>
+</li>
+<li>
+<p> The cols element: Contains the column names and XPath expressions defining the columns to extract.
+If this element is empty, <code>fhir_crack()</code> will extract all available elements of the resource and name the
+columns automatically. See <code>fhir_columns()</code>.
+</p>
+</li>
+<li>
+<p> The sep element: A character of length one containing the separator string used for separating multiple entries in cells.
+</p>
+</li>
+<li>
+<p> The brackets element: A character of length one or two used for the indices of multiple entries. The first one is the opening bracket
+and the second one the closing bracket. Vectors of length one will be recycled.
+Defaults to <code>character(0)</code>, i.e. no brackets, meaning that multiple entries won't be indexed.
+</p>
+</li>
+<li>
+<p> The rm_empty_cols element: A logical of length one indicating whether empty columns should be removed in the resulting table or not. Defaults to <code>FALSE</code>.
+</p>
+</li>
+<li>
+<p> The format element: A character of length one indicating whether the resulting table should be cracked to a <code>wide</code> or <code>compact</code> format.
+<code>wide</code> means multiple entries will be distributed over several columns with indexed names. <code>compact</code> means multiple entries will be pasted into one cell/column separated by <code>sep</code> .
+Defaults to <code>compact</code>.
+</p>
+</li>
+<li>
+<p> The keep_attr element: A logical of length one indicating whether the attribute name of the respective element (<code style="white-space: pre;">⁠@value⁠</code> in most cases)
+should be attached to the name of the variable in the resulting table. Defaults to <code>FALSE</code>.
+</p>
+</li>
+</ul>
+<p>A full <code>fhir_table_description</code> looks for example like this:
+</p>
+<div class="sourceCode"><pre>fhir_resource_type: Patient
+
+fhir_columns:
+column name | xpath expression
+------------------------
+name        | name/family
+gender      | gender
+id          | id
+
+sep:           ':::'
+brackets:      '[', ']'
+rm_empty_cols: FALSE
+format:        'compact'
+keep_attr:     FALSE
+</pre></div>
+
+
+<h3>Value</h3>
+
+<p>An object of class fhir_table_description.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># a minimal table description
+fhir_table_description(
+    resource = "Patient"
+)
+
+# named list for cols
+fhir_table_description(
+    resource = "Patient",
+    cols     = list(
+        id     = "id",
+        name   = "name/family",
+        gender = "gender"
+    )
+)
+
+#unnamed character for cols, colnames are generated automatically
+fhir_table_description(
+    resource = "Patient",
+    cols     = c(
+        "id",
+        "name/family",
+        "gender"
+    )
+)
+
+# named character for cols, and overwritten default for other arguments
+fhir_table_description(
+    resource = "Patient",
+    cols = c(
+        id            = "id",
+        name          = "name/family",
+        gender        = "gender"
+    ),
+    brackets      = c("[", "]"),
+    rm_empty_cols = TRUE,
+    format        = "wide"
+)
+
+# no column arguments is given -&gt; creates a column for all available elements
+fhir_table_description(
+    resource = "Patient",
+    sep           = " &lt;~&gt; ",
+    brackets      = c("&lt;&lt;&lt;", "&gt;&gt;&gt;"),
+    rm_empty_cols = FALSE,
+    format        = "wide"
+)
+
+</code></pre>
+
+
+</div>

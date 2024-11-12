@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>impCalc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+impCalc
+</h2>
+
+<h3>Description</h3>
+
+<p>impCalc function is designed to scale variable importance according to MSE and RMSE calculations.
+It also stores the raw MSE, RMSE, F-measure and developed models if saveModel=TRUE. impCalc is low-level function, it shouldn't be used alone unless
+user has trained models from caret package stored in RData files.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">impCalc(skel_outfile, xTest, yTest, lk_col, 
+          labelsFrame,with.labels,regPred,classPred,saveModel,lvlScale)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>skel_outfile</code></td>
+<td>
+
+<p>Skeleton name of output file
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xTest</code></td>
+<td>
+
+<p>Input vector of testing data set
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yTest</code></td>
+<td>
+
+<p>Output vector of testing data set
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lk_col</code></td>
+<td>
+
+<p>Number of columns of whole data set
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labelsFrame</code></td>
+<td>
+
+<p>Labels to sort variable importance
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>with.labels</code></td>
+<td>
+
+<p>Pass with.labels argument. It is advised to ALWAYS use labels as in some cases VarImp returns importance in descending values. If you insist turning with.labels FALSE, then make sure data base contains pure data and you read it (read.csv) to data.frame with option header=FALSE. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regPred</code></td>
+<td>
+
+<p>Indicating if regression predictions are computed. Logical value [TRUE/FALSE]. If regPred is set TRUE, then classPred should be set FALSE. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classPred</code></td>
+<td>
+
+<p>Indicating if classification predictions are computed. Possible values TRUE/FALSE. If classPred is set TRUE, then regPred should be set FALSE. Please be advised that importance is scaled according to F-measure. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveModel</code></td>
+<td>
+
+<p>Logical value [TRUE/FALSE] if trained model should be embedded in final model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lvlScale</code></td>
+<td>
+
+<p>Indicating if use additional scaling. The option is especially usefull when large number of features are getting NA's or are not included in feature ranking. It levels the scores of the features taking the overall number of features. Default value is FALSE. Logical value [TRUE/FALSE].
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>impCalc function lists RData files in working directory assuming there are only models derived by caret. In a loop function loads models and tries to get the variable importance.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jakub Szlek and Aleksander Mendyk
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+# 
+# Hashed to comply with new CRAN check
+# 
+library(fscaret)
+
+# Load dataset
+data(dataset.train)
+data(dataset.test)
+
+# Make objects
+trainDF &lt;- dataset.train
+testDF &lt;- dataset.test
+model &lt;- c("lm","Cubist")
+fitControl &lt;- trainControl(method = "boot", returnResamp = "all") 
+myTimeLimit &lt;- 5
+no.cores &lt;- 2
+supress.output &lt;- TRUE
+skel_outfile &lt;- paste("_default_",sep="")
+mySystem &lt;- .Platform$OS.type
+with.labels &lt;- TRUE
+redPred &lt;- TRUE
+classPred &lt;- FALSE
+saveModel &lt;- FALSE
+lvlScale &lt;- FALSE
+
+if(mySystem=="windows"){
+no.cores &lt;- 1
+}
+
+# Scan dimensions of trainDF [lk_row x lk_col]
+lk_col = ncol(trainDF)
+lk_row = nrow(trainDF)
+
+# Read labels of trainDF
+labelsFrame &lt;- as.data.frame(colnames(trainDF))
+labelsFrame &lt;-cbind(c(1:ncol(trainDF)),labelsFrame)
+# Create a train data set matrix
+trainMatryca_nr &lt;- matrix(data=NA,nrow=lk_row,ncol=lk_col)
+
+row=0
+col=0
+
+for(col in 1:(lk_col)) {
+   for(row in 1:(lk_row)) {
+     trainMatryca_nr[row,col] &lt;- (as.numeric(trainDF[row,col]))
+    }
+}
+
+# Pointing standard data set train
+xTrain &lt;- data.frame(trainMatryca_nr[,-lk_col])
+yTrain &lt;- as.vector(trainMatryca_nr[,lk_col])
+
+
+#--------Scan dimensions of trainDataFrame1 [lk_row x lk_col]
+lk_col_test = ncol(testDF)
+lk_row_test = nrow(testDF)
+
+testMatryca_nr &lt;- matrix(data=NA,nrow=lk_row_test,ncol=lk_col_test)
+
+row=0
+col=0
+
+for(col in 1:(lk_col_test)) {
+   for(row in 1:(lk_row_test)) {
+     testMatryca_nr[row,col] &lt;- (as.numeric(testDF[row,col]))
+    }
+}
+
+# Pointing standard data set test
+xTest &lt;- data.frame(testMatryca_nr[,-lk_col])
+yTest &lt;- as.vector(testMatryca_nr[,lk_col])
+
+
+# Calling low-level function to create models to calculate on
+myVarImp &lt;- regVarImp(model, xTrain, yTrain, xTest,
+	    fitControl, myTimeLimit, no.cores, lk_col,
+	    supress.output, mySystem)
+
+
+myImpCalc &lt;- impCalc(skel_outfile, xTest, yTest,
+              lk_col,labelsFrame,with.labels,redPred,classPred,saveModel,lvlScale)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

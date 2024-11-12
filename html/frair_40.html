@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fr_hassIII</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Hassell's Type III Response</h2>
+
+<h3>Description</h3>
+
+<p>Hassell's original type-III response (assuming replacement)</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    hassIII_fit(data, samp, start, fixed, boot=FALSE, windows=FALSE)
+    hassIII_nll(b, c, h, T, X, Y)
+    hassIII(X, b, c, h, T)
+    </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>A data frame containing X and Y (at least).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp </code></td>
+<td>
+<p>A vector specifying the rows of data to use in the fit. Provided by <code>boot()</code> or manually, as required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>A named list. Starting values for items to be optimised.  Usually <em>b</em>, <em>c</em> and <em>h</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed </code></td>
+<td>
+<p>A names list. 'Fixed data' (not optimised). Usually <em>T</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot </code></td>
+<td>
+<p>A logical. Is the function being called for use by <code>boot()</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows </code></td>
+<td>
+<p>A logical. Is the operating system Microsoft Windows?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b,c,h </code></td>
+<td>
+<p>Hassel's <em>b</em> and <em>c</em>, plus <em>h</em>, the handling time. Usually items to be optimised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T </code></td>
+<td>
+<p><em>T</em>, the total time available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>The X variable. Usually prey density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>The Y variable.  Usually the number of prey consumed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This implements the original Hassel's type-III functional response, assuming prey density is kept constant (i.e. a 'replacement' experimental design). In practice, constant prey density might be an unrealistic assumption, in which case users should consider the <code>hassIIIr</code> function instead. 
+</p>
+<p>In Hassel et al.'s original formulation, the capture rate <em>a</em> is assumed to vary with the prey density in the following hyperbolic relationship:
+</p>
+<p><code>a &lt;- (b*X)/(1+c*X)</code>
+</p>
+<p>where <code>b</code> and <code>c</code> are coefficients to be fitted and <em>X</em> is the initial prey density. This is the initial formulation of Hassell et al. (1977) and uses their naming conventions. The value for <em>a</em> is then used within a traditional Holling's disc equation (see <code>hollingsII</code>). 
+</p>
+<p>None of these functions are designed to be called directly, though they are all exported so that the user can do so if desired. The intention is that they are called via <code>frair_fit</code>, which calls them in the order they are specified above.
+</p>
+<p><code>hassIII_fit</code> does the heavy lifting and also pulls double duty as the <code>statistic</code> function for bootstrapping (<em>via</em> <code>boot()</code> in the boot package). The <code>windows</code> argument if required to prevent needless calls to <code>require(frair)</code> on platforms that can manage sane parallel processing.
+</p>
+<p>The core fitting is done by <code>mle2</code> from the <code>bbmle</code> package and users are directed there for more information. <code>mle2</code> uses the <code>hassIII_nll</code> function to optimise <code>hassIII</code>.
+</p>
+<p>Further references and recommended reading can be found on the help page for frair_fit.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>References</h3>
+
+<p>Hassell M, Lawton J, Beddington J (1977) Sigmoid functional responses by invertebrate predators and parasitoids. <em>Journal of Animal Ecology</em> 46: 249–262.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">datx &lt;- rep(c(1,2,3,4,6,12,24,50,100), times=10)
+daty1 &lt;- round(hassIII(X=datx, 
+            b=0.08*rnorm(length(datx), mean=1, sd=0.1), 
+            c=0.1*rnorm(length(datx), mean=1, sd=0.1), 
+            h=0.1*rnorm(length(datx), mean=1, sd=0.1), 
+            T=1),0)
+daty2 &lt;- round(hassIII(X=datx, 
+            b=0.05*rnorm(length(datx), mean=1, sd=0.1), 
+            c=0.1*rnorm(length(datx), mean=1, sd=0.1), 
+            h=0.2*rnorm(length(datx), mean=1, sd=0.1), 
+            T=1),0)
+dat &lt;- data.frame(datx,daty1,daty2)
+
+hassIII_1 &lt;- frair_fit(daty1~datx, data=dat, response='hassIII', 
+        start=list(b=0.05, c=0.1, h=0.1), fixed=list(T=1))
+hassIII_2 &lt;- frair_fit(daty2~datx, data=dat, response='hassIII', 
+        start=list(b=0.05, c=0.1, h=0.1), fixed=list(T=1))
+
+plot(c(0,100), c(0,15), type='n', xlab='Density', ylab='No. Eaten')
+points(hassIII_1)
+points(hassIII_2, col=4)
+lines(hassIII_1)
+lines(hassIII_2, col=4)
+
+frair_compare(hassIII_1, hassIII_2)
+
+</code></pre>
+
+
+</div>

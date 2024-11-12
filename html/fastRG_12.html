@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>expected_edges</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the expected edges in Poisson RDPG graph</h2>
+
+<h3>Description</h3>
+
+<p>These calculations are conditional on the latent factors
+<code>X</code> and <code>Y</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">expected_edges(factor_model, ...)
+
+expected_degree(factor_model, ...)
+
+expected_in_degree(factor_model, ...)
+
+expected_out_degree(factor_model, ...)
+
+expected_density(factor_model, ...)
+
+expected_degrees(factor_model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>factor_model</code></td>
+<td>
+<p>A <code>directed_factor_model()</code> or
+<code>undirected_factor_model()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored. Do not use.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that the runtime of the <code>fastRG</code> algorithm is proportional to
+the expected number of edges in the graph. Expected edge count will be
+an underestimate of expected number of edges for Bernoulli
+graphs. See the Rohe et al for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Expected edge counts, or graph densities.
+</p>
+
+
+<h3>References</h3>
+
+<p>Rohe, Karl, Jun Tao, Xintian Han, and Norbert Binkiewicz. 2017.
+"A Note on Quickly Sampling a Sparse Matrix with Low Rank Expectation."
+Journal of Machine Learning Research; 19(77):1-13, 2018.
+<a href="https://www.jmlr.org/papers/v19/17-128.html">https://www.jmlr.org/papers/v19/17-128.html</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+##### an undirected blockmodel example
+
+n &lt;- 1000
+pop &lt;- n / 2
+a &lt;- .1
+b &lt;- .05
+
+B &lt;- matrix(c(a,b,b,a), nrow = 2)
+
+b_model &lt;- fastRG::sbm(n = n, k = 2, B = B, poisson_edges = FALSE)
+
+b_model
+
+A &lt;- sample_sparse(b_model)
+
+# compare
+mean(rowSums(triu(A)))
+
+pop * a + pop * b  # analytical average degree
+
+##### more generic examples
+
+n &lt;- 10000
+k &lt;- 5
+
+X &lt;- matrix(rpois(n = n * k, 1), nrow = n)
+S &lt;- matrix(runif(n = k * k, 0, .1), nrow = k)
+
+ufm &lt;- undirected_factor_model(X, S)
+
+expected_edges(ufm)
+expected_degree(ufm)
+eigs_sym(ufm)
+
+n &lt;- 10000
+d &lt;- 1000
+
+k1 &lt;- 5
+k2 &lt;- 3
+
+X &lt;- matrix(rpois(n = n * k1, 1), nrow = n)
+Y &lt;- matrix(rpois(n = d * k2, 1), nrow = d)
+S &lt;- matrix(runif(n = k1 * k2, 0, .1), nrow = k1)
+
+dfm &lt;- directed_factor_model(X = X, S = S, Y = Y)
+
+expected_edges(dfm)
+expected_in_degree(dfm)
+expected_out_degree(dfm)
+
+svds(dfm)
+
+</code></pre>
+
+
+</div>

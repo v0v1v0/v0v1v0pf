@@ -1,0 +1,272 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spClipRast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spatial - Subsets a raster to a polygon extent or boundary.</h2>
+
+<h3>Description</h3>
+
+<p>Subsets a raster to the extent or masked boundary of a spatial polygon
+object or shapefile (*.shp), with option to write the new file to the
+outfolder with specified format (fmt).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spClipRast(
+  rast,
+  rastfolder = NULL,
+  clippolyv,
+  clippolyv_dsn = NULL,
+  clippolyv.filter = NULL,
+  rast.crs = NULL,
+  bands = NULL,
+  NODATA = NULL,
+  buffdist = NULL,
+  validate = FALSE,
+  maskByPolygons = TRUE,
+  showext = FALSE,
+  fmt = "GTiff",
+  compress = FALSE,
+  compressType = "DEFLATE",
+  outfolder = NULL,
+  outfn = "rastclip",
+  outfn.pre = NULL,
+  outfn.date = FALSE,
+  overwrite = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>rast</code></td>
+<td>
+<p>String or Raster. Raster name, including extension. Option to
+include full path.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rastfolder</code></td>
+<td>
+<p>String. Name of the raster folder. Optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clippolyv</code></td>
+<td>
+<p>SpatialPolygons class R object or String. Name of the
+polygon spatial layer to use for clipping.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clippolyv_dsn</code></td>
+<td>
+<p>String. The data source name (dsn; i.e., pathname or
+database name) of clippolyv. The dsn varies by driver. See gdal OGR vector
+formats (https://www.gdal.org/ogr_formats.html). Optional if polyv_layer is
+an R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clippolyv.filter</code></td>
+<td>
+<p>String. Filter to subset clippolyv spatial layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rast.crs</code></td>
+<td>
+<p>EPSG code or PROJ.4 string. Defined coordinate reference
+system if rast has no crs defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bands</code></td>
+<td>
+<p>Numeric vector. If rast is a multi-layer raster and only 1 or
+some layers are desired, specify layer number(s) in a vector format. If
+NULL, all layers are summed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NODATA</code></td>
+<td>
+<p>Number. The NODATA value for background values. If NODATA is
+NULL, and a NODATA value is defined on the input raster, the default is the
+defined NODATA value, else it is defined based on its datatype (see 
+DEFAULT_NODATA for default data values).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffdist</code></td>
+<td>
+<p>Number. The distance to buffer the polygon before clipping
+raster. Uses sf::st_buffer. The distance is based on units of the raster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>validate</code></td>
+<td>
+<p>Logical. If TRUE, validates polyv and clippolyv before 
+clipping. Uses sf::st_make_valid with default parameters 
+(geos_method='valid_structure', geos_keep_collapsed=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maskByPolygons</code></td>
+<td>
+<p>Logical. If TRUE, rast is clipped to boundary of
+polygon.  If FALSE, rast is clipped to extent of polygon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showext</code></td>
+<td>
+<p>Logical. If TRUE, layer extents are displayed in plot window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fmt</code></td>
+<td>
+<p>String. Format for exported raster. Default is format of unput
+raster.  ("raster", "ascii", "SAGA", "IDRISI", "CDF", "GTiff", "ENVI",
+"EHdr", "HFA", "VRT").  VRT is a virtual raster (See note below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>Logical. If TRUE, compress the final output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compressType</code></td>
+<td>
+<p>String. An optional compression type ('LZW', "DEFLATE',
+"PACKBITS'). Note: If format = 'HFA', a default compression type is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outfolder</code></td>
+<td>
+<p>String. The output folder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outfn</code></td>
+<td>
+<p>String. Name of output data file. If NULL, default is
+'rastclip'.  If no extension, a default is provided to match output format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outfn.pre</code></td>
+<td>
+<p>String. Add a prefix to output name (e.g., "01").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outfn.date</code></td>
+<td>
+<p>Logical. If TRUE, add date to end of outfile (e.g.,
+outfn_'date'.csv).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>Logical. If TRUE, overwrite files in outfolder.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Use spClipRast() to prompt for input.
+</p>
+<p>If the projection of polyv is different than the projection of rast, the
+polyv SpatialPolygons object is converted to the projection of rast (See
+note about on-the-fly projection conversion).
+</p>
+
+
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p> Spatial S4 object. A clipped raster file. </p>
+</td>
+</tr></table>
+<p>The clipped raster is written to outfolder with specified format or same
+format as input raster.
+</p>
+
+
+<h3>Note</h3>
+
+<p>On-the-fly projection conversion<br> 
+The spTransform (sf) method is
+used for on-the-fly map projection conversion and datum transformation using
+PROJ.4 arguments. Datum transformation only occurs if the +datum tag is
+present in the both the from and to PROJ.4 strings. The +towgs84 tag is used
+when no datum transformation is needed. PROJ.4 transformations assume NAD83
+and WGS84 are identical unless other transformation parameters are
+specified.  Be aware, providing inaccurate or incomplete CRS information may
+lead to erroneous data shifts when reprojecting. See spTransform help
+documentation for more details.
+</p>
+<p>VRT format Virtual raster format is a pointer to a temporary file, commonly
+used as an intermediate step between processes. The VRT format ignores
+option to maskByPolygons.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Get polygon vector layer from FIESTA external data
+WYbhdistfn &lt;- system.file("extdata",
+                          "sp_data/WYbighorn_districtbnd.shp", 
+                          package = "FIESTA")
+WYbhdist &lt;- FIESTA::spImportSpatial(WYbhdistfn)
+WYbhdist
+
+# Get raster layers from FIESTA external data
+demfn &lt;- system.file("extdata",
+                     "sp_data/WYbighorn_dem_250m.img",
+                     package = "FIESTA")
+
+# Clip raster to district = '03'
+dem03 &lt;- spClipRast(rast = demfn,
+                    clippolyv = WYbhdistfn,
+                    clippolyv.filter = "DISTRICTNU == '03'",
+                    overwrite = TRUE,
+                    outfolder = tempdir())
+terra::plot(terra::rast(dem03))
+
+# Clip raster to district = '06'
+dem06 &lt;- spClipRast(rast = demfn,
+                    clippolyv = WYbhdistfn,
+                    clippolyv.filter = "DISTRICTNU == '06'",
+                    overwrite = TRUE,
+                    outfolder = tempdir())
+
+# Plot extracted values of national forest district
+terra::plot(terra::rast(dem06))
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>peaks.fsa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Get maximal value in ranges
+</h2>
+
+<h3>Description</h3>
+
+<p>Look for the maximal value in one or many ranges, typically for peak detection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  peaks.fsa(x, peaks, names, size.min, size.max, channels, colors,
+    logTransform = FALSE, lowThreshold = 1000, noiseRange = c(-10, 0))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>An aligned object of class <code>fsa</code>, as returned by <code>align.fsa</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peaks</code></td>
+<td>
+
+<p>A <code>data.frame</code> with one row for each peak to consider. Can be provided instead of individual <code>names</code> (corresponding to <code>peaks</code> row names instead of a column), <code>size.min</code>, <code>size.max</code>, <code>channels</code> and <code>colors</code> argument vectors.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>names</code></td>
+<td>
+
+<p>Character vector, the names to give to the peaks (duplicated values should be avoided). If <code>peaks</code> is provided, this vector will be used instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size.min</code></td>
+<td>
+
+<p>Numeric vector, the minimal size (in base pairs) to look for the corresponding peak. If <code>peaks</code> is provided, this vector will be used instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size.max</code></td>
+<td>
+
+<p>Numeric vector, the maximal size (in base pairs) to look for the corresponding peak. If <code>peaks</code> is provided, this vector will be used instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>channels</code></td>
+<td>
+
+<p>Character vector, the name of the channel in <code>x</code> in which to look for the corresponding peak. If <code>peaks</code> is provided, this vector will be used instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colors</code></td>
+<td>
+
+<p>Vector defining the color to use in future plots to highlight the corresponding peak. If <code>peaks</code> is provided, this vector will be used instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logTransform</code></td>
+<td>
+
+<p>Single logical value, whether to apply log transformation (base 2) to normalized values (previously floored to 0 and summed with 1) or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowThreshold</code></td>
+<td>
+
+<p>Single numeric value, threshold for which "low profile" warnings are called if all peaks are lower.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noiseRange</code></td>
+<td>
+
+<p>Numeric vector of length 2, defining the range (relative to the starting range of the first peak defined in <code>ranges</code>) in which measure the noise (in bp). If the noise peak is 20 percent greater than the first peak, a warning is raised as the accuracy of the measure may be compromised.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns <code>x</code>, with a new or updated <code>peaks</code> attribute, a <code>data.frame</code> with a row for each range :
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>size.min</code></td>
+<td>
+<p>User-provided argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size.max</code></td>
+<td>
+<p>User-provided argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>channels</code></td>
+<td>
+<p>User-provided argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colors</code></td>
+<td>
+<p>User-provided argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>Size at which the maximum was found, in base pairs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height</code></td>
+<td>
+<p>Maximum found, in fluorescence units.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offScale</code></td>
+<td>
+<p>Is there any off-scale value in the range ?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalized</code></td>
+<td>
+<p>Current peak's height divided by the mean of all peak heights.</p>
+</td>
+</tr>
+</table>
+<p>A <code>normalized</code> vector attribute is also set, corresponding to the <code>normalized</code> column only.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sylvain Mareschal
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>generic.process</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Example FSA file provided
+  fsa &lt;- read.fsa(system.file("extdata/fsa_GEP/A5918.fsa", package="FSAtools"))
+  fsa &lt;- align.fsa(fsa)
+  
+  # Single custom interval
+  fsa &lt;- peaks.fsa(
+    fsa,
+    names = "IRF4",
+    size.min = 86.2,
+    size.max = 87.5,
+    channels = "6-FAM",
+    colors = "blue"
+  )
+  print(attr(fsa, "peaks"))
+  
+  # Using a design file
+  design &lt;- designFile(system.file("extdata/design_GEP.conf", package="FSAtools"))
+  fsa &lt;- peaks.fsa(fsa, peaks=design$GLOBALS$PEAKS)
+  print(attr(fsa, "peaks"))
+</code></pre>
+
+
+</div>

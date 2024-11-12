@@ -1,0 +1,91 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gene_associate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Apply gene expressions to reaction table</h2>
+
+<h3>Description</h3>
+
+<p>A convenience function that uses <code>gene_eval</code> and a custom function to apply new upper and lower bounds.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gene_associate(
+  reaction_table,
+  gene_table,
+  expression_flux_function = function(x) {     (1 + log(x)/stats::sd(x)^2)^sign(x - 1)
+    }
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>reaction_table</code></td>
+<td>
+<p>A data frame describing the metabolic model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gene_table</code></td>
+<td>
+<p>A data frame showing gene presence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expression_flux_function</code></td>
+<td>
+<p>a function to convert from gene set expression to flux</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>the reaction_table, with a new column, present, and altered upper and lower bounds
+</p>
+
+
+<h3>Warning</h3>
+
+<p>This function relies on <code>gene_eval</code>, which uses <code>eval</code> to evaluate gene expression sets. 
+This gives flexibility, but means that malicious code in the <code>gene_sets</code> argument could get evaluated.
+<code>gene_sets</code> is evaluated in a restricted environment, but there might be a way around this, so you might want to check for anything suspicious in this argument manually.
+For more information, read the code.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>gene_eval
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(iJO1366)
+library(dplyr)
+
+gene_table = tibble(name = iJO1366$geneAssociation %&gt;%
+stringr::str_split('and|or|\\s|\\(|\\)') %&gt;%
+  purrr::flatten_chr() %&gt;%
+  unique,
+presence = 1) %&gt;%
+  filter(name != '', !is.na(name))
+
+gene_associate(reaction_table = iJO1366 %&gt;%
+                 mutate(geneAssociation = geneAssociation %&gt;%
+                          stringr::str_replace_all('and', '&amp;') %&gt;%
+                          stringr::str_replace_all('or', '|')
+                 ),
+               gene_table = gene_table
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>penetrance_cmp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimating Penetrances for competing risk models and confidence intervals
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the cumulative disease risks (penetrances) and confidence intervals for the event of interest in the presence of competing event given fixed values of covariates based on the fitted competing risk model. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  penetrance_cmp(fit, event = 1, fixed, age, CI = TRUE, MC = 100)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+
+<p>An object class of <code>'penmodel_cmp'</code>, a fitted model by <code>penmodel_cmp</code> function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+
+<p>Event of interest (either 1 or 2) for penetrance estimation. Default value is 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+
+<p>list of vectors of fixed values of the covariates for both events used for penetrance calculation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+
+<p>Vector of ages used for penetrance calculation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI</code></td>
+<td>
+
+<p>Logical; if <code>TRUE</code>, the 95% confidence interval will be obtained using a Monte-Carlo method, otherwise no confidence interval will be provided. Default is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MC</code></td>
+<td>
+
+<p>Number of simulated samples used to calculate confidence intervals with a Monte-Carlo method. 
+If <code>MC=0</code>, no confidence intervals will be calculated. Default value is 100.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The cause-specific hazard for event <code class="reqn">j</code> is specified as:
+h<sub>j</sub>(t|x) = h<sub>0j</sub>(t) exp(β<sub>j</sub> *x<sub>j</sub>),
+where h<sub>0j</sub>(t) is the baseline hazards function for event <code class="reqn">j</code>, x<sub>j</sub> is the vector of covariates associated with event <code class="reqn">j</code> and β<sub>j</sub> is the vector of corresponding regression coefficients, <code class="reqn">j = 1, 2</code>. 
+</p>
+<p>The penetrance function for event <code class="reqn">j</code> in the presence of competing risks based on cause-specific hazards (with no frailties assumed) model is defined as the probability of developing an event of interest by age <code class="reqn">t</code> given fixed values of covariates <code class="reqn">x</code> in the following form: 
+ P(T &lt; t, d = j |x) = ∫<sub>t0</sub><sup>t</sup> h<sub>j</sub>(u|x<sub>j</sub>)exp(-H<sub>1</sub>(u|x<sub>1</sub>)-H<sub>2</sub>(u|x<sub>2</sub>))du,
+where t<sub>0</sub> is the minimum age of onset, <code class="reqn">d</code> is the type of event which takes <code class="reqn">(j = 1, 2)</code>.
+</p>
+<p>The shared frailty competing risks model is:
+
+h<sub>j</sub>(t|z<sub>j</sub>, x) = z<sub>j</sub>*h<sub>0j</sub>(t) exp(β<sub>j</sub> *x<sub>j</sub>),
+where z<sub>j</sub> is the shared frailty for event <code class="reqn">j</code> within families whose distribution is specified by <code>frailty.dist</code>.
+</p>
+<p>The penetrance function for event <code class="reqn">j</code> from the shared frailty competing risks model is obtained by integrating over the frailty distribution of G(z1, z2),
+
+P(T &lt; t, d = j | x) = ∫<sub>t0</sub><sup>t</sup>
+∫ ∫ h<sub>j</sub>(u|x<sub>j</sub>, z<sub>j</sub>) exp(-H<sub>1</sub>(u|x<sub>1</sub> z<sub>j</sub>)-H<sub>2</sub>(u|x<sub>2</sub>, z<sub>j</sub>)) dG(z<sub>1</sub> dz<sub>2</sub>)du, 
+where t<sub>0</sub> is the minimum age of onset, <code class="reqn">d</code> is the type of event which takes <code class="reqn">(j = 1, 2)</code>. 
+</p>
+<p>See Choi et al. (2021) for more details about the penetrance functions.
+</p>
+<p>Calculations of standard errors of the penetrance estimates and 95% confidence intervals (CIs) for the penetrance at a given age are based on Monte-Carlo simulations of the estimated penetrance model. A multivariate normal distribution is assumed for the parameter estimates, and <code>MC = n</code> sets of the parameters are generated from the multivariate normal distribution with the parameter estimates and their variance-covariance matrix.
+For each simulated set, a penetrance estimate is calculated at a given age by substituting the simulated parameters into the penetrance function.
+</p>
+<p>The standard error of the penetrance estimate at a given age is calculated by the standard deviation of penetrance estimates obtained from <code class="reqn">n</code> simulations.
+</p>
+<p>The 95% CI for the penetrance at a given age is calculated using the 2.5th and 97.5th percentiles of the penetrance estimates obtained from <code class="reqn">n</code> simulations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns the following values:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>Ages at which the penetrances are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penetrance</code></td>
+<td>
+<p>Penetrance estimates at given ages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>Lower limit of the 95% confidence interval; simulation-based 2.5th percentile of the penetrance estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>Upper limit of the 95% confidence interval; simulation-based 97.5th percentile of the penetrance estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Simulation-based standard errors of the penetrance estimates.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yun-Hee Choi
+</p>
+
+
+<h3>References</h3>
+
+<p>Choi, Y.-H., Jung, H., Buys, S., Daly, M., John, E.M., Hopper, J., Andrulis, I., Terry, M.B., Briollais, L. (2021) A Competing Risks Model with Binary Time Varying Covariates for Estimation of Breast Cancer Risks in BRCA1 Families, Statistical Methods in Medical Research 30 (9), 2165-2183. https://doi.org/10.1177/09622802211008945.
+</p>
+<p>Choi, Y.-H., Briollais, L., He, W. and Kopciuk, K. (2021) FamEvent: An R Package for Generating and Modeling Time-to-Event Data in Family Designs, Journal of Statistical Software 97 (7), 1-30. doi:10.18637/jss.v097.i07
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>simfam_cmp, penmodel_cmp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+set.seed(4321)
+fam2 &lt;- simfam_cmp(N.fam = 200, design = "pop+", variation = "frailty", competing = TRUE,
+                base.dist = "Weibull", frailty.dist = "cgamma", depend=c(2, 2, 2), 
+                base.parms = list(c(0.01, 3), c(0.01, 3)), 
+                vbeta = list(c(-1.13, 2.35), c(-1, 2)), allelefreq = 0.02)
+
+fit2 &lt;- penmodel_cmp(Surv(time, status==1) ~ gender + mgene, 
+                   Surv(time, status==2) ~ gender + mgene, 
+                   cluster = "famID", gvar = "mgene", frailty.dist = "cgamma",
+                   parms = list(c(0.01, 3, -1, 2.3), c(0.01, 3, -1, 2), c(2, 2, 2)), 
+                   data = fam2, design = "pop+", base.dist = "Weibull", 
+                   agemin = NULL, robust = TRUE)
+
+# Compute penetrance estimates for event 1 for male carriers at age 40, 50, 60, 70 and
+# their 95
+ 
+penetrance_cmp(fit2, event = 1, fixed = list(c(1,1), c(1,1)), 
+             age = c(40, 50, 60, 70), CI = TRUE, MC = 200)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

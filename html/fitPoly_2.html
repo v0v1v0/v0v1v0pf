@@ -1,0 +1,347 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CodomMarker</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to fit a multiple mixture model to a vector of signal ratios
+of a single bi-allelic marker</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a specified mixture model to a vector of
+signal ratios of multiple samples for a single bi-allelic marker.
+Returns a list with results from the fitted mixture model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CodomMarker(y, ng, pop.parents=matrix(c(NA,NA), nrow=1),
+pop=rep(1, length(y)), mutype=0, sdtype="sd.const", ptype=NA,
+clus=TRUE, mu.start=NA, sd=rep(0.075, ng), p=NA,
+maxiter=500, maxn.bin=200, nbin=200, plothist=TRUE, nbreaks=40,
+maintitle=NULL, closeScreen=TRUE, fPinfo=NA)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the vector of signal ratios (each value is from one sample,
+vector y contains the values for one marker). All values must be between
+0 and 1 (inclusive), NAs are not allowed. The minimum length of y is 10*ng.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>the number of possible genotypes (mixture components) to be fitted:
+one more than the ploidy of the samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop.parents</code></td>
+<td>
+<p>a matrix with 2 columns and 1 row per population;
+the cells contain the row numbers of the parental populations in case of an
+F1 and NA otherwise. The rows must be sorted such that all F1s occur above
+their parental populations. By default 1 row with elements NA, i.e. all
+samples belong to a single non-F1 population. If parameter pop is a factor or
+character vector, its levels or elements must correspond to the rownames of
+pop.parents.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop</code></td>
+<td>
+<p>an integer vector specifying the population to which each sample
+in y belongs. All values must index rows of pop.parents. By default a vector
+of 1's, i.e. all samples belong to a single non-F1 population. Alternatively
+pop can be a factor or character vector of which the levels or elements
+match the rownames of pop.parents</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutype</code></td>
+<td>
+<p>an integer in 0:6; default 0. Describes how to fit the means of the
+components of the mixture model: with mutype=0 the means are not constrained,
+requiring ng degrees of freedom. With mutype in 1:6 the means are constrained
+based on the ng possible allele ratios according to one of 6 models;
+see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdtype</code></td>
+<td>
+<p>one of "sd.const", "sd.free", "sd.fixed"; default "sd.const".
+Describes how to fit the standard deviations of the components of the mixture
+model: with "sd.const" all standard deviations (on the transformed scale)
+are equal (requiring 1 degree of freedom); with "sd.free" all standard
+deviations are  fitted separately (ng d.f.); with "sd.fixed" all sd's ON
+THE TRANSFORMED SCALE are equal to parameter sd (0 d.f.).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ptype</code></td>
+<td>
+<p>a character vector of length nrow(pop.parents) containing for
+each population one of "p.free", "p.fixed", "p.HW" or "p.F1". The
+default NA is interpreted as "p.F1" for F1 populations and "p.free" for all
+other populations; this is not necessarily the best choice for GWAS panels
+where "p.HW" may be more appropriate. Describes per population how to fit
+the mixing proportions of the components of the mixture model:
+with "p.free", the proportions are not constrained (and require ng-1 degrees
+of freedom per population); with "p.fixed" the proportions given in
+parameter p are fixed; with "p.HW" the proportions are calculated per
+population from an estimated allele frequency, requiring only 1 degree of
+freedom per population; with "p.F1" polysomic (auto-polyploid) F1
+segregation ratios are calculated based on the fitted dosages of the F1
+parents and require no extra d.f.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clus</code></td>
+<td>
+<p>boolean. If TRUE, the initial means and standard deviations are
+based on a kmeans clustering of all samples into ng or fewer groups. If FALSE,
+the initial means are equally spaced on the transformed scale between the
+values corresponding to 0.02 and 0.98 on the original scale and the initial
+standard deviations are 0.075 on the transformed scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.start</code></td>
+<td>
+<p>vector of ng values. If present, gives the start values of mu
+(the means of the mixture components) on the original (untransformed) scale.
+Must be strictly ascending (mu[i] &gt; mu[i-1]) between 0 and 1 (inclusive).
+Overrides the start values determined by clus TRUE or FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd</code></td>
+<td>
+<p>vector of ng values. If present, gives the initial (or fixed,
+if sd.fixed is TRUE) values of sd (the standard deviations of the mixture
+components) ON THE TRANSFORMED SCALE. Overrides the start values determined
+by clus TRUE or FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>a matrix of nrow(pop.parents) rows and ng columns, each row summing
+to 1. If present, specifies the initial (or fixed, for populations where
+ptype is "p.fixed") mixing proportions of the mixture model components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>a single integer: the maximum number of times the nls function
+is called (0 = no limit, default=500).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxn.bin</code></td>
+<td>
+<p>a single integer, default=200: if the length of y is larger
+than max.nbin the values of y (after arcsine square root transformation) are
+binned (i.e. the range of y (0 to pi/2) is divided into nbin bins of equal
+width and the number of y values in each bin is used as the weight of the
+midpoints of each bin). This results in significant speed improvement with
+large numbers of samples without noticeable effects on model fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbin</code></td>
+<td>
+<p>a single integer, default=200: the number of bins (see maxn.bin).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plothist</code></td>
+<td>
+<p>if TRUE (default) a histogram of y is plotted with the fitted
+distributions superimposed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbreaks</code></td>
+<td>
+<p>number of breaks (default 40) for plotting the histogram;
+does not have an effect on fitting the mixture model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maintitle</code></td>
+<td>
+<p>string, used as title in the plotted histogram.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>closeScreen</code></td>
+<td>
+<p>logical, only has an effect if plothist is TRUE.
+closeScreen should be TRUE (default) unless CodomMarker will plot on a
+device that is managed outside CodomMarker.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fPinfo</code></td>
+<td>
+<p>NA (default), for internal use only. Prevents unneeded checking
+and recalculation of input parameters when called from fitOneMarker.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function takes as input a vector of ratios of the signals of
+two alleles (a and b) at one genetic marker locus (ratios as b/(a+b)), one for
+each sample, and fits a mixture model with ng components (for a tetraploid
+species: ng=5 components representing the nulliplex, simplex, duplex, triplex
+and quadruplex genotypes). Ideally these signal ratios should reflect the
+possible allele ratios (for a tetraploid: 0, 0.25, 0.5, 0.75, 1) but in real
+life they show a continuous distribution with a number of more or less clearly
+defined peaks. The samples can represent multiple populations, each with
+their own segregation type (polysomic F1 ratios, Hardy-Weinberg ratios or
+free ratios). Multiple arguments specify what model to fit and with what
+values the iterative fitting process should start.<br>
+Parameter mutype determines how the means of the mixture model components are
+constrained based on the possible allele ratios, as follows
+</p>
+
+<dl>
+<dt>0</dt>
+<dd>
+<p>all means are fitted without restrictions (ng parameters)</p>
+</dd>
+<dt>1</dt>
+<dd>
+<p>a basic model assuming that both allele signals have a linear
+response to the allele dosage; one parameter for the ratio of the
+slopes of the two signal responses, and two parameters for the
+background levels (intercepts) of both signals (total 3
+parameters)</p>
+</dd>
+<dt>2</dt>
+<dd>
+<p>as 1, but with the same background level for both signals
+(2 parameters)</p>
+</dd>
+<dt>3</dt>
+<dd>
+<p>as 1, with two parameters for a quadratic effect in the signal
+responses (5 parameters)</p>
+</dd>
+<dt>4</dt>
+<dd>
+<p>as 3, but with the same background level for both signals
+(4 parameters)</p>
+</dd>
+<dt>5</dt>
+<dd>
+<p>as 3, but with the same quadratic parameter for both signal
+responses (4 parameters)</p>
+</dd>
+<dt>6</dt>
+<dd>
+<p>as 5, but with the same background level for both signals
+(3 parameters)</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list; if an error occurs the only list component is
+</p>
+
+<dl>
+<dt>message</dt>
+<dd>
+<p>the error message</p>
+</dd>
+</dl>
+<p>If no error occurs the list has the following components:
+</p>
+
+<dl>
+<dt>loglik</dt>
+<dd>
+<p>the optimized log-likelihood</p>
+</dd>
+<dt>npar</dt>
+<dd>
+<p>the number of fitted parameters</p>
+</dd>
+<dt>AIC</dt>
+<dd>
+<p>Akaike's Information Criterion</p>
+</dd>
+<dt>BIC</dt>
+<dd>
+<p>Bayesian Information Criterion</p>
+</dd>
+<dt>psi</dt>
+<dd>
+<p>a list with components mu, sigma and p: mu and sigma each
+a vector of length ng with the means and standard deviations
+of the components of the fitted mixture model ON THE TRANSFORMED
+SCALE. p a matrix with one row per population and ng columns:
+the mixing proportions of the mixture components for each
+population</p>
+</dd>
+<dt>post</dt>
+<dd>
+<p>a matrix of ng columns and length(y) rows; each row r gives the
+ng probabilities that y[r] belongs to the ng components</p>
+</dd>
+<dt>nobs</dt>
+<dd>
+<p>the number of observations in y (excluding NA's)</p>
+</dd>
+<dt>iter</dt>
+<dd>
+<p>the number of iterations</p>
+</dd>
+<dt>message</dt>
+<dd>
+<p>an error message, "" if no error</p>
+</dd>
+<dt>back</dt>
+<dd>
+<p>a list with components mu.back and sigma.back: each a vector
+of length ng with the means and standard deviations of the
+mixture model components back-transformed to the original
+scale</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(fitPoly_data)
+mrkdat &lt;- fitPoly_data$ploidy6$dat6x[fitPoly_data$ploidy6$dat6x$MarkerName == "mrk001",]
+
+# hexaploid, without specified populations
+cdm &lt;- CodomMarker(mrkdat$ratio, ng=7)
+names(cdm)
+
+# hexaploid, with specified populations (4 F1 populations and a cultivar panel)
+# first set the ptype for each population: p.F1 for F1 populations,
+# p.HW for the panel, p.free for the F1 parents
+ptype &lt;- rep("p.HW", nrow(fitPoly_data$ploidy6$pop.parents))
+ptype[!is.na(fitPoly_data$ploidy6$pop.parents[,1])] &lt;- "p.F1"
+ptype[unique(fitPoly_data$ploidy6$pop.parents)] &lt;- "p.free" #all F1 parents
+cdm &lt;- CodomMarker(y=mrkdat$ratio, ng=7,
+                   pop=fitPoly_data$ploidy6$pop,
+                   pop.parents=fitPoly_data$ploidy6$pop.parents,
+                   mutype=5, ptype=ptype)
+
+</code></pre>
+
+
+</div>

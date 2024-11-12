@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLXMCfactanal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Driver for Mixtures of Factor Analyzers</h2>
+
+<h3>Description</h3>
+
+<p>This driver for <code>flexmix</code> implements estimation of mixtures of
+factor analyzers using ML estimation of factor analysis implemented in
+<code>factanal</code> in each M-step. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLXMCfactanal(formula = . ~ ., factors = 1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula which is interpreted relative to the formula
+specified in the call to <code>flexmix</code> using
+<code>update.formula</code>. Only the left-hand side (response) of
+the formula is used. Default is to use the original
+<code>flexmix</code> model
+formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+<p>Integer specifying the number of factors in each component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed to <code>factanal</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>FLXMCfactanal</code> returns an object of class <code>FLXM</code>.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>This does not implement the AECM framework presented in McLachlan and
+Peel (2000, p.245), but uses the available functionality in R for ML
+estimation of factor analyzers. The implementation therefore is only
+experimental and has not been well tested.
+</p>
+<p>Please note that in general a good initialization is crucial for the
+EM algorithm to converge to a suitable solution for this model class.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bettina Gruen</p>
+
+
+<h3>References</h3>
+
+<p>G. McLachlan and D. Peel. <em>Finite Mixture Models</em>, 2000.
+John Wiley and Sons Inc.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flexmix</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Reproduce (partly) Table 8.1. p.255 (McLachlan and Peel, 2000)
+if (require("gclus")) {
+  data("wine", package = "gclus")
+  wine_data &lt;- as.matrix(wine[,-1])
+  set.seed(123)
+  wine_fl_diag &lt;- initFlexmix(wine_data ~ 1, k = 3, nrep = 10,
+                              model = FLXMCmvnorm(diagonal = TRUE))
+  wine_fl_fact &lt;- lapply(1:4, function(q) flexmix(wine_data ~ 1, model =
+                          FLXMCfactanal(factors = q, nstart = 3),
+                          cluster = posterior(wine_fl_diag)))
+  sapply(wine_fl_fact, logLik)
+  ## FULL
+  set.seed(123)
+  wine_full &lt;- initFlexmix(wine_data ~ 1, k = 3, nrep = 10,
+                           model = FLXMCmvnorm(diagonal = FALSE))
+  logLik(wine_full)
+  ## TRUE
+  wine_true &lt;- flexmix(wine_data ~ 1, cluster = wine$Class,
+                       model = FLXMCmvnorm(diagonal = FALSE))
+  logLik(wine_true)
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>diagnostic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Collinearity diagnostics for femlm objects</h2>
+
+<h3>Description</h3>
+
+<p>In some occasions, the optimization algorithm of <code>femlm</code> may fail to converge, or the variance-covariance matrix may not be available. The most common reason of why this happens is colllinearity among variables. This function helps to find out which variable is problematic.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">diagnostic(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>femlm</code> object obtained from function <code>femlm</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>This function tests: 1) collinearity with the cluster variables, 2) perfect multi-collinearity between the variables, and 3) identification issues when there are non-linear in parameters parts.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns a text message with the identified diagnostics.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Creating an example data base:
+cluster_1 = sample(3, 100, TRUE)
+cluster_2 = sample(20, 100, TRUE)
+x = rnorm(100, cluster_1)**2
+y = rnorm(100, cluster_2)**2
+z = rnorm(100, 3)**2
+dep = rpois(100, x*y*z)
+base = data.frame(cluster_1, cluster_2, x, y, z, dep)
+
+# creating collinearity problems:
+base$v1 = base$v2 = base$v3 = base$v4 = 0
+base$v1[base$cluster_1 == 1] = 1
+base$v2[base$cluster_1 == 2] = 1
+base$v3[base$cluster_1 == 3] = 1
+base$v4[base$cluster_2 == 1] = 1
+
+# Estimations:
+
+# Collinearity with the cluster variables:
+res_1 = femlm(dep ~ log(x) + v1 + v2 + v4 | cluster_1 + cluster_2, base)
+diagnostic(res_1)
+# =&gt; collinearity with cluster identified, we drop v1 and v2
+res_1bis = femlm(dep ~ log(x) + v4 | cluster_1 + cluster_2, base)
+diagnostic(res_1bis)
+
+# Multi-Collinearity:
+res_2 =  femlm(dep ~ log(x) + v1 + v2 + v3 + v4, base)
+diagnostic(res_2)
+
+# In non-linear part:
+res_3 = femlm(dep ~ log(z), base, NL.fml = ~log(a*x + b*y),
+              NL.start = list(a=1, b=1), lower = list(a=0, b=0))
+diagnostic(res_3)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tperm.fd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Permutation t-test for two groups of functional data objects.
+</h2>
+
+<h3>Description</h3>
+
+<p>tperm.fd creates a null distribution for a test of no difference
+between two groups of functional data objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tperm.fd(x1fd, x2fd, nperm=200, q=0.05, argvals=NULL, plotres=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x1fd</code></td>
+<td>
+
+<p>a functional data object giving the first group of functional
+observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x2fd</code></td>
+<td>
+
+<p>a functional data object giving the second group of functional
+observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nperm</code></td>
+<td>
+
+<p>number of permutations to use in creating the null distribution.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+
+<p>Critical upper-tail quantile of the null distribution to compare to
+the observed t-statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+
+<p>If <code>yfdPar</code> is a <code>fd</code> object, the points at which to
+evaluate the point-wise t-statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotres</code></td>
+<td>
+
+<p>Argument to plot a visual display of the null distribution
+displaying the <code>1-q</code>th quantile and observed t-statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Additional plotting arguments that can be used with <code>plot</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The usual t-statistic is calculated pointwise and the test based on
+the maximal value.  If <code>argvals</code> is not specified, it defaults
+to 101 equally-spaced points on the range of <code>yfdPar</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pval</code></td>
+<td>
+<p>the observed p-value of the permutation test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qval</code></td>
+<td>
+<p>the <code>q</code>th quantile of the null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tobs</code></td>
+<td>
+<p>the observed maximal t-statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tnull</code></td>
+<td>
+
+<p>a vector of length <code>nperm</code> giving the observed values of the
+permutation distribution.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tvals</code></td>
+<td>
+<p>the pointwise values of the observed t-statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tnullvals</code></td>
+<td>
+
+<p>the pointwise values of of the permutation observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvals.pts</code></td>
+<td>
+<p>pointwise p-values of the t-statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qvals.pts</code></td>
+<td>
+
+<p>pointwise <code>q</code>th quantiles of the null distribution
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+
+<p>argument values for evaluating the F-statistic if <code>yfdPar</code>is
+a functional data object.
+</p>
+</td>
+</tr>
+</table>
+<h3>Side Effects</h3>
+
+<p>a plot of the functional observations
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fRegress</code>
+<code>Fstat.fd</code>
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldpar &lt;- par(no.readonly=TRUE)
+# This tests the difference between boys and girls heights in the
+# Berkeley growth data.
+
+# First set up a basis system to hold the smooths
+
+knots    &lt;- growth$age
+norder   &lt;- 6
+nbasis   &lt;- length(knots) + norder - 2
+hgtbasis &lt;- create.bspline.basis(range(knots), nbasis, norder, knots)
+
+# Now smooth with a fourth-derivative penalty and a very small smoothing
+# parameter
+
+Lfdobj &lt;- 4
+lambda &lt;- 1e-2
+growfdPar &lt;- fdPar(fd(matrix(0,nbasis,1), hgtbasis), Lfdobj, lambda)
+
+hgtmfd &lt;- smooth.basis(growth$age, growth$hgtm, growfdPar)$fd
+hgtffd &lt;- smooth.basis(growth$age, growth$hgtf, growfdPar)$fd
+
+# Call tperm.fd
+
+tres &lt;- tperm.fd(hgtmfd,hgtffd)
+par(oldpar)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dataTrans</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Scale invariant Box-Cox transformation</h2>
+
+<h3>Description</h3>
+
+<p>Performs forward and backward Box-Cox power transformation
+including the invariance scaling based on the geometric mean.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dataTrans(y, mu, direction = "backward", geoMean = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>The numeric variable object to be transformed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>The power parameter, where zero corresponds to the
+logarithmic transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>direction</code></td>
+<td>
+<p>A character variable. If the lower case of the first
+letter equals <code>"b"</code> (default), then the backward transformation
+is performed. If the lower case of the first letter equals
+<code>"f"</code>, then the forward transformation is performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geoMean</code></td>
+<td>
+<p>If a numeric is stated, then this is taken as the
+geometric mean of the untransformed observations. If <code>NULL</code>
+(default), then the geometric mean is computed from the observation
+<code>y</code>. The latter is only available for the forward
+transformation.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The transformed variable.</p>
+
+
+<h3>Note</h3>
+
+<p>This function is intended to be used in conjunction with
+<code>fdaLm</code> to achieve estimates on the orginal scale. Thus,
+the geometric mean of the original observations should be kept in
+order to have the correct backtransformation.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bo Markussen &lt;bomar@math.ku.dk&gt;</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># ----------------------------------------------------
+# Make 3 samples with the following characteristics:
+#   1) length N=500
+#   2) sinusoid form + linear fixed effect + noise
+#   3) exponential transformed
+# ----------------------------------------------------
+
+N &lt;- 500
+sample.time &lt;- seq(0,2*pi,length.out=N)
+z &lt;- c("a","b","c")
+x0 &lt;- c(0,10,20)
+x1 &lt;- rep(x0,each=N)
+y &lt;- c(sin(sample.time),sin(sample.time),sin(sample.time))+x1+rnorm(3*N)
+
+# Make exponential-Box-Cox-backtransformation
+# Scaling with geometric mean requires that we solve the Whiteker function
+geoMean &lt;- mean(y)
+geoMean &lt;- uniroot(function(x){x*log(x)-geoMean},c(exp(-1),(1+geoMean)^2))$root
+y &lt;- dataTrans(y,0,"b",geoMean)
+
+# ----------------------------------------------------
+# Do fda's with global and marginal fixed effects
+# Also seek to find Box-Cox transformation with mu=0
+# ----------------------------------------------------
+
+est0 &lt;- fdaLm(y|z~x0,boxcox=1)
+est1 &lt;- fdaLm(y|z~x1,boxcox=1)
+
+# -----------------------------------------------------
+# Display results
+# -----------------------------------------------------
+
+# Panel 1
+plot(sample.time,dataTrans(est0$betaHat[,"(Intercept)"]+est0$betaHat[,"x0"],
+                           est0$boxcoxHat,"b",geoMean)/
+                 dataTrans(est0$betaHat[,"(Intercept)"],est0$boxcoxHat,"b",geoMean),
+     main="Effect of x (true=1.2)",xlab="time",
+     ylab="response ratio")
+abline(h=dataTrans(est1$betaHat["(Intercept)"]+est1$betaHat["x1"],
+                   est1$boxcoxHat,"b",geoMean)/
+         dataTrans(est1$betaHat["(Intercept)"],est1$boxcoxHat,"b",geoMean),col=2)
+legend("topleft",c("marginal","global"),pch=c(1,NA),lty=c(NA,1),col=1:2)
+
+# Panel 2
+plot(sample.time,dataTrans(est0$betaHat[,"(Intercept)"]+est0$betaHat[,"x0"],
+                           est0$boxcoxHat,"b",geoMean)-
+                 dataTrans(est0$betaHat[,"(Intercept)"],est0$boxcoxHat,"b",geoMean),
+     main="Effect of x (true=1)",xlab="time",
+     ylab="response difference")
+abline(h=dataTrans(est1$betaHat["(Intercept)"]+est1$betaHat["x1"],
+                   est1$boxcoxHat,"b",geoMean)-
+         dataTrans(est1$betaHat["(Intercept)"],est1$boxcoxHat,"b",geoMean),col=2)
+legend("bottomleft",c("marginal","global"),pch=c(1,NA),lty=c(NA,1),col=1:2)
+
+# Panel 3
+plot(sample.time,est0$xBLUP[,1,1],type="l",
+     main="Marginal ANOVA",xlab="time",ylab="x BLUP")
+
+# Panel 4
+plot(sample.time,est1$xBLUP[,1,1],type="l",
+     main="Global ANOVA",xlab="time",ylab="x BLUP")
+     
+</code></pre>
+
+
+</div>

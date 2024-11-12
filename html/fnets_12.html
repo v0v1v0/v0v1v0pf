@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fnets.factor.model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Factor model estimation</h2>
+
+<h3>Description</h3>
+
+<p>Performs factor modelling under either restricted (static) or unrestricted (dynamic) factor models
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fnets.factor.model(
+  x,
+  center = TRUE,
+  fm.restricted = FALSE,
+  q = c("ic", "er"),
+  ic.op = NULL,
+  kern.bw = NULL,
+  common.args = list(factor.var.order = NULL, max.var.order = NULL, trunc.lags = 20,
+    n.perm = 10)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>input time series each column representing a time series variable; it is coerced into a ts object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>whether to de-mean the input <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fm.restricted</code></td>
+<td>
+<p>whether to estimate a restricted factor model using static PCA</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>Either a string specifying the factor number selection method when <code>fm.restricted = TRUE</code>; possible values are:
+</p>
+
+<dl>
+<dt><code>"ic"</code></dt>
+<dd>
+<p> information criteria-based methods of Alessi, Barigozzi &amp; Capasso (2010) when <code>fm.restricted = TRUE</code> or Hallin and Liška (2007) when <code>fm.restricted = FALSE</code></p>
+</dd>
+<dt><code>"er"</code></dt>
+<dd>
+<p> eigenvalue ratio of Ahn and Horenstein (2013) when <code>fm.restricted = TRUE</code> or Avarucci et al. (2022) when <code>fm.restricted = FALSE</code></p>
+</dd>
+</dl>
+<p>or the number of unrestricted factors, see factor.number</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic.op</code></td>
+<td>
+<p>choice of the information criterion penalty, see hl.factor.number or abc.factor.number for further details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kern.bw</code></td>
+<td>
+<p>a positive integer specifying the kernel bandwidth for dynamic PCA;
+by default, it is set to <code>floor(4 *(dim(x)[2]/log(dim(x)[2]))^(1/3)))</code>.
+When <code>fm.restricted = TRUE</code>, it is used to compute the number of lags for which autocovariance matrices are estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>common.args</code></td>
+<td>
+<p>a list specifying the tuning parameters required for estimating the impulse response functions and common shocks. It contains:
+</p>
+
+<dl>
+<dt><code>factor.var.order</code></dt>
+<dd>
+<p> order of the blockwise VAR representation of the common component. If <code>factor.var.order = NULL</code>, it is selected blockwise by Schwarz criterion</p>
+</dd>
+<dt><code>max.var.order</code></dt>
+<dd>
+<p> maximum blockwise VAR order for the Schwarz criterion</p>
+</dd>
+<dt><code>trunc.lags</code></dt>
+<dd>
+<p> truncation lag for impulse response function estimation</p>
+</dd>
+<dt><code>n.perm</code></dt>
+<dd>
+<p> number of cross-sectional permutations involved in impulse response function estimation</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Barigozzi, Cho and Owens (2024+) for further details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an S3 object of class <code>fm</code>, which contains the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p> number of factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spec</code></td>
+<td>
+<p> if <code>fm.restricted = FALSE</code> a list containing estimates of the spectral density matrices for <code>x</code>, common and idiosyncratic components</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acv</code></td>
+<td>
+<p> a list containing estimates of the autocovariance matrices for <code>x</code>, common and idiosyncratic components</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loadings</code></td>
+<td>
+<p> if <code>fm.restricted = TRUE</code>, factor loadings; if <code>fm.restricted = FALSE</code> and <code>q &gt;= 1</code>,
+a list containing estimators of the impulse response functions (as an array of dimension <code>(p, q, trunc.lags + 2)</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+<p> if <code>fm.restricted = TRUE</code>, factor series; else, common shocks (an array of dimension <code>(q, n)</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.x</code></td>
+<td>
+<p> if <code>center = TRUE</code>, returns a vector containing row-wise sample means of <code>x</code>; if <code>center = FALSE</code>, returns a vector of zeros</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ahn, S. C. &amp; Horenstein, A. R. (2013) Eigenvalue ratio test for the number of factors. Econometrica, 81(3), 1203–1227.
+</p>
+<p>Alessi, L., Barigozzi, M.,  &amp; Capasso, M. (2010) Improved penalization for determining the number of factors in approximate factor models. Statistics &amp; Probability Letters, 80(23-24):1806–1813.
+</p>
+<p>Avarucci, M., Cavicchioli, M., Forni, M., &amp; Zaffaroni, P. (2022) The main business cycle shock(s): Frequency-band estimation of the number of dynamic factors.
+</p>
+<p>Barigozzi, M., Cho, H. &amp; Owens, D. (2024+) FNETS: Factor-adjusted network estimation and forecasting for high-dimensional time series. Journal of Business &amp; Economic Statistics (to appear).
+</p>
+<p>Hallin, M. &amp; Liška, R. (2007) Determining the number of factors in the general dynamic factor model. Journal of the American Statistical Association, 102(478), 603–617.
+</p>
+<p>Owens, D., Cho, H. &amp; Barigozzi, M. (2024+) fnets: An R Package for Network Estimation and Forecasting via Factor-Adjusted VAR Modelling. The R Journal (to appear).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>print.fm, predict.fm
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+out &lt;- fnets.factor.model(data.restricted, fm.restricted = TRUE)
+
+</code></pre>
+
+
+</div>

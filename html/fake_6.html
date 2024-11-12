@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ExpectedCommunities</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Expected community structure</h2>
+
+<h3>Description</h3>
+
+<p>Computes expected metrics related to the community structure of a graph
+simulated with given parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ExpectedCommunities(pk, nu_within = 0.1, nu_between = 0, nu_mat = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pk</code></td>
+<td>
+<p>vector of the number of variables per group in the simulated
+dataset. The number of nodes in the simulated graph is <code>sum(pk)</code>. With
+multiple groups, the simulated (partial) correlation matrix has a block
+structure, where blocks arise from the integration of the <code>length(pk)</code>
+groups. This argument is only used if <code>theta</code> is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_within</code></td>
+<td>
+<p>probability of having an edge between two nodes belonging to
+the same group, as defined in <code>pk</code>. If <code>length(pk)=1</code>, this is
+the expected density of the graph. If <code>implementation=HugeAdjacency</code>,
+this argument is only used for <code>topology="random"</code> or
+<code>topology="cluster"</code> (see argument <code>prob</code> in
+<code>huge.generator</code>). Only used if <code>nu_mat</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_between</code></td>
+<td>
+<p>probability of having an edge between two nodes belonging
+to different groups, as defined in <code>pk</code>. By default, the same density
+is used for within and between blocks (<code>nu_within</code>=<code>nu_between</code>).
+Only used if <code>length(pk)&gt;1</code>. Only used if <code>nu_mat</code> is not
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu_mat</code></td>
+<td>
+<p>matrix of probabilities of having an edge between nodes
+belonging to a given pair of node groups defined in <code>pk</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given a group of nodes, the within degree <code class="reqn">d^w_i</code> of node
+<code class="reqn">i</code> is defined as the number of nodes from the same group node <code class="reqn">i</code>
+is connected to. The between degree <code class="reqn">d^b_i</code> is the number of nodes from
+other groups node <code class="reqn">i</code> is connected to. A weak community in the network
+is defined as a group of nodes for which the total within degree (sum of
+the <code class="reqn">d^w_i</code> for all nodes in the community) is stricly greater than the
+total between degree (sum of <code class="reqn">d^b_i</code> for all nodes in the community).
+For more details, see
+<a href="http://networksciencebook.com/chapter/9#basics">Network Science</a> by
+Albert-Laszlo Barabasi.
+</p>
+<p>The expected total within and between degrees for the groups defined in
+<code>pk</code> in a network simulated using <code>SimulateAdjacency</code> can be
+computed given the group sizes (stored in <code>pk</code>) and probabilities of
+having an edge between nodes from a given group pair (defined by
+<code>nu_within</code> and <code>nu_between</code> or by <code>nu_mat</code>). The expected
+presence of weak communities can be inferred from these quantities.
+</p>
+<p>The expected modularity, measuring the difference between observed and
+expected number of within-community edges, is also returned. For more
+details on this metric, see <code>modularity</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>total_within_degree_c</code></td>
+<td>
+<p>total within degree by node
+group, i.e. sum of expected within degree over all nodes in a given group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total_between_degree</code></td>
+<td>
+<p>total between degree by node group, i.e. sum of
+expected between degree over all nodes in a given group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weak_community</code></td>
+<td>
+<p>binary indicator for a given node group to be an
+expected weak community.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total_number_edges_c</code></td>
+<td>
+<p>matrix of expected
+number of edges between nodes from a given node pair.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modularity</code></td>
+<td>
+<p>expected modularity (see
+<code>modularity</code>).</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>SimulateGraphical</code>, <code>SimulateAdjacency</code>,
+<code>MinWithinProba</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulation parameters
+pk &lt;- rep(20, 4)
+nu_within &lt;- 0.8
+nu_between &lt;- 0.1
+
+# Expected metrics
+expected &lt;- ExpectedCommunities(
+  pk = pk,
+  nu_within = nu_within,
+  nu_between = nu_between
+)
+
+# Example of simulated graph
+set.seed(1)
+theta &lt;- SimulateAdjacency(
+  pk = pk,
+  nu_within = nu_within,
+  nu_between = nu_between
+)
+
+# Comparing observed and expected numbers of edges
+bigblocks &lt;- BlockMatrix(pk)
+BlockStructure(pk)
+sum(theta[which(bigblocks == 2)]) / 2
+expected$total_number_edges_c[1, 2]
+
+# Comparing observed and expected modularity
+igraph::modularity(igraph::graph_from_adjacency_matrix(theta, mode = "undirected"),
+  membership = rep.int(1:length(pk), times = pk)
+)
+expected$modularity
+
+</code></pre>
+
+
+</div>

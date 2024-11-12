@@ -1,0 +1,247 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>eval.fd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Values of a Functional Data Object
+</h2>
+
+<h3>Description</h3>
+
+<p>Evaluate a functional data object at specified argument values, or
+evaluate a derivative or the result of applying a linear differential
+operator to the functional object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">eval.fd(evalarg, fdobj, Lfdobj=0, returnMatrix=FALSE)
+## S3 method for class 'fd'
+predict(object, newdata=NULL, Lfdobj=0, returnMatrix=FALSE,
+                     ...)
+## S3 method for class 'fdPar'
+predict(object, newdata=NULL, Lfdobj=0,
+                     returnMatrix=FALSE, ...)
+## S3 method for class 'fdSmooth'
+predict(object, newdata=NULL, Lfdobj=0,
+                     returnMatrix=FALSE, ...)
+## S3 method for class 'fdSmooth'
+fitted(object, returnMatrix=FALSE, ...)
+## S3 method for class 'fdSmooth'
+residuals(object, returnMatrix=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>evalarg, newdata</code></td>
+<td>
+
+<p>a vector or matrix of argument values at which the functional data
+object is to be evaluated.  If a matrix with more than one column,
+the number of columns must match ncol(dfobj[['coefs']]).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdobj</code></td>
+<td>
+
+<p>a functional data object to be evaluated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj</code></td>
+<td>
+
+<p>either a nonnegative integer or a linear differential operator
+object.  If present, the derivative or the value of applying the
+operator is evaluated rather than the functions themselves.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>an object of class <code>fd</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnMatrix</code></td>
+<td>
+
+<p>logical:  Should a 2-dimensional array to be returned using a
+special class from the Matrix package if appropriate?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>optional arguments for <code>predict</code>, not currently used
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>eval.fd</code> evaluates <code>Lfdobj</code> of <code>fdobj</code> at
+<code>evalarg</code>.
+</p>
+<p><code>predict.fd</code> is a convenience wrapper for
+<code>eval.fd</code>.  If <code>newdata</code> is NULL and
+<code>fdobj[['basis']][['type']]</code> is <code>bspline</code>, <code>newdata</code> =
+<code>unique(knots(fdojb,interior=FALSE))</code>;  otherwise, <code>newdata</code>
+= <code>fdobj[['basis']][['rangeval']]</code>.
+</p>
+<p><code>predict.fdSmooth</code>, <code>fitted.fdSmooth</code> and
+<code>residuals.fdSmooth</code> are other wrappers for <code>eval.fd</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an array of 2 or 3 dimensions containing the function
+values.  The first dimension corresponds to the argument values in
+<code>evalarg</code>,
+the second to replications, and the third if present to functions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Soren Hosgaard wrote an initial version of <code>predict.fdSmooth</code>,
+<code>fitted.fdSmooth</code>, and <code>residuals.fdSmooth</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>getbasismatrix</code>,
+<code>eval.bifd</code>,
+<code>eval.penalty</code>,
+<code>eval.monfd</code>,
+<code>eval.posfd</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldpar &lt;- par(no.readonly=TRUE)
+##
+## eval.fd
+##
+#    set up the fourier basis
+daybasis &lt;- create.fourier.basis(c(0, 365), nbasis=65)
+#  Make temperature fd object
+#  Temperature data are in 12 by 365 matrix tempav
+#  See analyses of weather data.
+#  Set up sampling points at mid days
+#  Convert the data to a functional data object
+tempfd &lt;- smooth.basis(day.5,  CanadianWeather$dailyAv[,,"Temperature.C"],
+                       daybasis)$fd
+#   set up the harmonic acceleration operator
+Lbasis  &lt;- create.constant.basis(c(0, 365))
+Lcoef   &lt;- matrix(c(0,(2*pi/365)^2,0),1,3)
+bfdobj  &lt;- fd(Lcoef,Lbasis)
+bwtlist &lt;- fd2list(bfdobj)
+harmaccelLfd &lt;- Lfd(3, bwtlist)
+#   evaluate the value of the harmonic acceleration
+#   operator at the sampling points
+Ltempmat &lt;- eval.fd(day.5, tempfd, harmaccelLfd)
+
+#  Confirm that it still works with
+#  evalarg = a matrix with only one column
+#  when fdobj[['coefs']] is a matrix with multiple columns
+
+Ltempmat. &lt;- eval.fd(matrix(day.5, ncol=1), tempfd, harmaccelLfd)
+#  confirm that the two answers are the same
+
+
+all.equal(Ltempmat, Ltempmat.)
+
+
+#  Plot the values of this operator
+matplot(day.5, Ltempmat, type="l")
+
+##
+## predict.fd
+##
+predict(tempfd) # end points only at 35 locations
+str(predict(tempfd, day.5)) # 365 x 35 matrix
+str(predict(tempfd, day.5, harmaccelLfd))
+
+# cublic splie with knots at 0, .5, 1
+bspl3 &lt;- create.bspline.basis(c(0, .5, 1))
+plot(bspl3) # 5 bases
+fd.bspl3 &lt;- fd(c(0, 0, 1, 0, 0), bspl3)
+pred3 &lt;- predict(fd.bspl3)
+
+pred3. &lt;- matrix(c(0, .5, 0), 3)
+dimnames(pred3.) &lt;- list(NULL, 'reps 1')
+
+all.equal(pred3, pred3.)
+
+
+pred.2 &lt;- predict(fd.bspl3, c(.2, .8))
+
+pred.2. &lt;- matrix(.176, 2, 1)
+dimnames(pred.2.) &lt;- list(NULL, 'reps 1')
+
+all.equal(pred.2, pred.2.)
+
+
+##
+## predict.fdSmooth
+##
+lipSm9 &lt;- smooth.basisPar(liptime, lip, lambda=1e-9)$fd
+plot(lipSm9)
+
+##
+## with evalarg of class Date and POSIXct
+##
+# Date
+July4.1776 &lt;- as.Date('1776-07-04')
+Apr30.1789 &lt;- as.Date('1789-04-30')
+AmRev &lt;- c(July4.1776, Apr30.1789)
+BspRevolution &lt;- create.bspline.basis(AmRev)
+
+AmRevYears &lt;- seq(July4.1776, Apr30.1789, length.out=14)
+(AmRevLinear &lt;- as.numeric(AmRevYears-July4.1776))
+fitLin &lt;- smooth.basis(AmRevYears, AmRevLinear, BspRevolution)
+AmPred &lt;- predict(fitLin, AmRevYears)
+
+# POSIXct
+AmRev.ct &lt;- as.POSIXct1970(c('1776-07-04', '1789-04-30'))
+BspRev.ct &lt;- create.bspline.basis(AmRev.ct)
+AmRevYrs.ct &lt;- seq(AmRev.ct[1], AmRev.ct[2], length.out=14)
+(AmRevLin.ct &lt;- as.numeric(AmRevYrs.ct-AmRev.ct[2]))
+fitLin.ct &lt;- smooth.basis(AmRevYrs.ct, AmRevLin.ct, BspRev.ct)
+AmPred.ct &lt;- predict(fitLin.ct, AmRevYrs.ct)
+par(oldpar)
+</code></pre>
+
+
+</div>

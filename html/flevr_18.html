@@ -1,0 +1,90 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pool_spvims</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pool SPVIM Estimates Using Rubin's Rules</h2>
+
+<h3>Description</h3>
+
+<p>If multiple imputation was used due to the presence of missing data,
+pool SPVIM estimates from individual imputed datasets using Rubin's rules.
+Results in point estimates averaged over the imputations, along with
+within-imputation variance estimates and across-imputation variance estimates;
+and test statistics and p-values for hypothesis testing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pool_spvims(spvim_ests = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>spvim_ests</code></td>
+<td>
+<p>a list of estimated SPVIMs (of class <code>vim</code>)</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>a list of results containing the following:
+</p>
+
+<ul>
+<li> <p><code>est</code>, the average SPVIM estimate over the multiply-imputed datasets
+</p>
+</li>
+<li> <p><code>se</code>, the average of the within-imputation SPVIM variance estimates
+</p>
+</li>
+<li> <p><code>test_statistics</code>, the test statistics for hypothesis tests of zero importance, using the Rubin's rules standard error estimator and average SPVIM estimate
+</p>
+</li>
+<li> <p><code>p_values</code>, p-values computed using the above test statistics
+</p>
+</li>
+<li> <p><code>tau_n</code>, the across-imputation variance estimates
+</p>
+</li>
+<li> <p><code>vcov</code>, the overall variance-covariance matrix
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("biomarkers")
+library("dplyr")
+# do multiple imputation (with a small number for illustration only)
+library("mice")
+n_imp &lt;- 2
+set.seed(20231129)
+mi_biomarkers &lt;- mice::mice(data = biomarkers, m = n_imp, printFlag = FALSE)
+imputed_biomarkers &lt;- mice::complete(mi_biomarkers, action = "long") %&gt;%
+  rename(imp = .imp, id = .id)
+# estimate SPVIMs for each imputed dataset, using simple library for illustration only
+library("SuperLearner")
+est_lst &lt;- lapply(as.list(1:n_imp), function(l) {
+  this_x &lt;- imputed_biomarkers %&gt;%
+    filter(imp == l) %&gt;%
+    select(starts_with("lab"), starts_with("cea"))
+  this_y &lt;- biomarkers$mucinous
+  suppressWarnings(
+    vimp::sp_vim(Y = this_y, X = this_x, V = 2, type = "auc", 
+                 SL.library = "SL.glm", gamma = 0.1, alpha = 0.05, delta = 0,
+                 cvControl = list(V = 2), env = environment())
+  )
+})
+# pool the SPVIMs using Rubin's rules
+pooled_spvims &lt;- pool_spvims(spvim_ests = est_lst)
+pooled_spvims
+
+</code></pre>
+
+
+</div>

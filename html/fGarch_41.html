@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict-methods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>GARCH prediction function</h2>
+
+<h3>Description</h3>
+
+<p>Predicts a time series from a fitted GARCH object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'fGARCH'
+predict(object, n.ahead = 10, trace = FALSE, mse = c("cond","uncond"),
+        plot=FALSE, nx=NULL, crit_val=NULL, conf=NULL, ..., p_loss = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n.ahead</code></td>
+<td>
+<p> an integer value, denoting the number of steps to be
+forecasted, by default 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p> an object of class <code>"fGARCH"</code> as returned by the
+function <code>garchFit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p> a logical flag. Should the prediction process be traced?
+By default <code>trace=FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mse</code></td>
+<td>
+<p> If set to <code>"cond"</code>, <code>meanError</code> is defined as
+the conditional mean errors
+<code class="reqn">\sqrt{E_t[x_{t+h}-E_t(x_{t+h})]^2}</code>. If set to <code>"uncond"</code>,
+it is defined as <code class="reqn">\sqrt{E[x_{t+h}-E_t(x_{t+h})]^2}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>If set to <code>TRUE</code>, the confidence intervals are
+computed and plotted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nx</code></td>
+<td>
+<p>The number of observations to be plotted along with the
+predictions. The default is <code>round(n*0.25)</code>, where n is the
+sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit_val</code></td>
+<td>
+<p>The critical values for the confidence intervals when
+<code>plot</code> is set to <code>TRUE</code>. The intervals are defined as
+<code class="reqn">\hat{x}_{t+h}</code> + <code>crit_val[2] * meanError</code> and
+<code class="reqn">\hat{x}_{t+h}</code> + <code>crit_val[1] * meanError</code> if two critical
+values are provided and <code class="reqn">\hat{x}_{t+h} \pm</code> <code>crit_val *
+    meanError</code> if only one is given. If you do not provide critical
+values, they will be computed automatically.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p>The confidence level for the confidence intervals if
+<code>crit_val</code> is not provided.  By default it is set to 0.95. The
+critical values are then computed using the conditional distribution
+that was chosen to create the <code>object</code> with <code>garchFit</code>
+using the same <code>shape</code> and <code>skew</code> parameters. If the
+conditionnal distribution was set to <code>"QMLE"</code>, the critical
+values are computed using the empirical distribution of the
+standardized residuals.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> additional arguments to be passed. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_loss</code></td>
+<td>
+
+<p>if not null, compute predictions for VaR and ES for loss level
+<code>p_loss</code> (typically, 0.05 or 0.01).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The predictions are returned as a data frame with columns
+<code>"meanForecast"</code>, <code>"meanError"</code>, and
+<code>"standardDeviation"</code>. Row <code>h</code> contains the predictions for
+horizon <code>h</code> (so, <code>n.ahead</code> rows in total).
+</p>
+<p>If <code>plot = TRUE</code>, the data frame contain also the prediction
+limits for each horizon in columns <code>lowerInterval</code> and
+<code>upperInterval</code>.
+</p>
+<p>If <code>p_loss</code> is not NULL, predictions of Value-at-Risk (VaR) and
+Expected Shortfall (ES) are returned in columns <code>VaR</code> and
+<code>ES</code>. The data frame has attribute <code>"p_loss"</code> containing
+<code>p_loss</code>. Typical values for <code>p_loss</code> are 0.01 and 0.05.
+</p>
+<p>These are somewhat experimental and the arguments and the returned
+values may change.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data frame containing <code>n.ahead</code> rows and 3 to 7 columns,
+see section ‘Details’
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Diethelm Wuertz for the Rmetrics <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-port
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict</code> in base R
+</p>
+<p><code>fitted</code>,
+<code>residuals</code>,
+</p>
+<p><code>plot</code>,
+<code>garchFit</code>,
+class <code>fGARCH</code>,
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Parameter Estimation of Default GARCH(1,1) Model
+set.seed(123)
+fit = garchFit(~ garch(1, 1), data = garchSim(), trace = FALSE)
+fit
+
+## predict
+predict(fit, n.ahead = 10)
+predict(fit, n.ahead = 10, mse="uncond")
+
+## predict with plotting: critical values = +/- 2
+predict(fit, n.ahead = 10, plot=TRUE, crit_val = 2)
+
+## include also VaR and ES at 5%
+predict(fit, n.ahead = 10, plot=TRUE, crit_val = 2, p_loss = 0.05)
+
+## predict with plotting: automatic critical values 
+## for different conditional distributions
+set.seed(321)
+fit2 = garchFit(~ garch(1, 1), data = garchSim(), trace=FALSE, cond.dist="sged")
+
+## 95% confidence level
+predict(fit2, n.ahead=20, plot=TRUE) 
+
+set.seed(444)
+fit3 = garchFit(~ garch(1, 1), data = garchSim(), trace=FALSE, cond.dist="QMLE")
+
+## 90% confidence level and nx=100
+predict(fit3, n.ahead=20, plot=TRUE, conf=.9, nx=100) 
+</code></pre>
+
+
+</div>

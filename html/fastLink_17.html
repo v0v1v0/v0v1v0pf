@@ -1,0 +1,299 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastLink</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>fastLink</h2>
+
+<h3>Description</h3>
+
+<p>Run the fastLink algorithm to probabilistically match
+two datasets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastLink(dfA, dfB, varnames, stringdist.match,
+stringdist.method, numeric.match, partial.match,
+cut.a, cut.p, jw.weight,
+cut.a.num, cut.p.num,
+priors.obj, w.lambda, w.pi,
+address.field, gender.field, estimate.only, em.obj,
+dedupe.matches, linprog.dedupe,
+reweight.names, firstname.field, cond.indep,
+n.cores, tol.em, threshold.match, return.all, return.df, verbose)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dfA</code></td>
+<td>
+<p>Dataset A - to be matched to Dataset B</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfB</code></td>
+<td>
+<p>Dataset B - to be matched to Dataset A</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varnames</code></td>
+<td>
+<p>A vector of variable names to use for matching.
+Must be present in both dfA and dfB</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stringdist.match</code></td>
+<td>
+<p>A vector of variable names indicating
+which variables should use string distance matching. Must be a subset of
+'varnames' and must not be present in 'numeric.match'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stringdist.method</code></td>
+<td>
+<p>String distance method for calculating similarity, options are: "jw" Jaro-Winkler (Default), "dl" Damerau-Levenshtein, "jaro" Jaro, and "lv" Edit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numeric.match</code></td>
+<td>
+<p>A vector of variable names indicating which variables should use numeric matching.
+Must be a subset of 'varnames' and must not be present in 'stringdist.match'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partial.match</code></td>
+<td>
+<p>A vector of variable names indicating whether to include
+a partial matching category for the string distances. Must be a subset of 'varnames'
+and 'stringdist.match'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cut.a</code></td>
+<td>
+<p>Lower bound for full string-distance match, ranging between 0 and 1. Default is 0.94</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cut.p</code></td>
+<td>
+<p>Lower bound for partial string-distance match, ranging between 0 and 1. Default is 0.88</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jw.weight</code></td>
+<td>
+<p>Parameter that describes the importance of the first characters of a string (only needed if stringdist.method = "jw"). Default is .10</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cut.a.num</code></td>
+<td>
+<p>Lower bound for full numeric match. Default is 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cut.p.num</code></td>
+<td>
+<p>Lower bound for partial numeric match. Default is 2.5</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priors.obj</code></td>
+<td>
+<p>A list containing priors for auxiliary movers information,
+as output from calcMoversPriors(). Default is NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w.lambda</code></td>
+<td>
+<p>How much weight to give the prior on lambda versus the data. Must range between 0 (no weight on prior) and 1 (weight fully on prior).
+Default is NULL (no prior information provided).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w.pi</code></td>
+<td>
+<p>How much weight to give the prior on pi versus the data. Must range between 0 (no weight on prior) and 1 (weight fully on prior).
+Default is NULL (no prior information provided).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>address.field</code></td>
+<td>
+<p>The name of the address field. To be used when 'pi.prior' is included in 'priors.obj'.
+Default is NULL (no matching variables should have address prior applied). Must be present in 'varnames'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gender.field</code></td>
+<td>
+<p>The name of the field indicating gender. If provided, the exact-matching gender prior is used in the EM algorithm.
+Default is NULL (do not implement exact matching on gender). Must be present in 'varnames'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate.only</code></td>
+<td>
+<p>Whether to stop running the algorithm after the EM step (omitting getting the matched indices of dataset A and dataset B).
+Only the EM object will be returned. Can be used when running the match on a random sample and applying to a larger dataset, or for out-of-sample
+prediction of matches. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>em.obj</code></td>
+<td>
+<p>An EM object from a prior run of 'fastLink' or 'emlinkMARmov'. Parameter estimates will be applied to the matching patterns
+in 'dfA' and 'dfB'. If provided. 'estimate.only' is set to FALSE. Often provided when parameters have been
+estimated on a smaller sample, and the user wants to apply them to the full dataset. Default is NULL (EM will be estimated from matching patterns in 'dfA' and 'dfB').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dedupe.matches</code></td>
+<td>
+<p>Whether to dedupe the set of matches returned by the algorithm. Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linprog.dedupe</code></td>
+<td>
+<p>If deduping matches, whether to use Winkler's linear programming solution to dedupe. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reweight.names</code></td>
+<td>
+<p>Whether to reweight the posterior match probabilities by the frequency of individual first names. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>firstname.field</code></td>
+<td>
+<p>The name of the field indicating first name. Must be provided if reweight.names = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cond.indep</code></td>
+<td>
+<p>Estimates for the parameters of interest are obtained from the Fellegi-Sunter model under conditional independence. Default is TRUE. 
+If set to FALSE parameters estimates are obtained from a model that allows for dependencies across linkage fields.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>Number of cores to parallelize over. Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol.em</code></td>
+<td>
+<p>Convergence tolerance for the EM Algorithm. Default is 1e-04.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold.match</code></td>
+<td>
+<p>A number between 0 and 1 indicating either the lower bound (if only one number provided) or the range of certainty that the
+user wants to declare a match. For instance, threshold.match = .85 will return all pairs with posterior probability greater than .85 as matches,
+while threshold.match = c(.85, .95) will return all pairs with posterior probability between .85 and .95 as matches.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.all</code></td>
+<td>
+<p>Whether to return the most likely match for each observation in dfA and dfB. Overrides user setting of <code>threshold.match</code> by setting
+<code>threshold.match</code> to 0.0001, and automatically dedupes all matches. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.df</code></td>
+<td>
+<p>Whether to return the entire dataframe of dfA and dfB instead of just the indices. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Whether to print elapsed time for each step. Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>fastLink</code> returns a list of class 'fastLink' containing the following components if calculating matches:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>matches</code></td>
+<td>
+<p>An nmatches X 2 matrix containing the indices of the successful matches in <code>dfA</code>
+in the first column, and the indices of the corresponding successful matches in <code>dfB</code> in the
+second column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EM</code></td>
+<td>
+<p>A list with the output of the EM algorithm, which contains the exact matching
+patterns and the associated posterior probabilities of a match for each matching pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patterns</code></td>
+<td>
+<p>A matrix with the observed matching patterns for each successfully matched pair.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs.a</code></td>
+<td>
+<p>The number of observations in dataset A.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs.b</code></td>
+<td>
+<p>The number of observations in dataset B.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta.name</code></td>
+<td>
+<p>If reweighting by name, the posterior probability of a match for each match in dataset A and B.</p>
+</td>
+</tr>
+</table>
+<p>If only running the EM and not returning the matched indices, <code>fastLink</code> only returns the EM object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ted Enamorado &lt;ted.enamorado@gmail.com&gt;, Ben Fifield &lt;benfifield@gmail.com&gt;, and Kosuke Imai
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+fl.out &lt;- fastLink(dfA, dfB,
+varnames = c("firstname", "lastname", "streetname", "birthyear"),
+n.cores = 1)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

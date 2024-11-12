@@ -1,0 +1,268 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MMest_multireg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>MM-Estimates for Multivariate Regression</h2>
+
+<h3>Description</h3>
+
+<p>Computes MM-Estimates of multivariate regression, using initial S-estimates 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+MMest_multireg(formula, data=NULL, ...)
+
+## Default S3 method:
+MMest_multireg(X, Y, int = TRUE, control=MMcontrol(...),
+na.action=na.omit, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p> an object of class <code>formula</code>; a symbolic description of the model to be fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p> data frame from which variables specified in formula are to be taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p> a matrix or data frame containing the explanatory variables (possibly including intercept). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p> a matrix or data frame containing the response variables. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int</code></td>
+<td>
+<p> logical: if <code>TRUE</code> an intercept term is added to the model (unless it is already present in <code>X</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list with control parameters for tuning the MM-estimate and its computing algorithm, 
+see <code>MMcontrol</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p> a function which indicates what should happen when the data contain NAs. Defaults to <code>na.omit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>allows for specifying control parameters directly instead of via <code>control</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is called by <code>FRBmultiregMM</code>.
+</p>
+<p>The MM-estimates are defined by first computing S-estimates of regression, then fixing the scale component of the error covariance
+estimate, and finally re-estimating the regression coefficients and the shape part of the error covariance by more efficient 
+M-estimates (see Tatsuoka and Tyler (2000) for MM-estimates in the special case of location/scatter estimation, and Van Aelst and 
+Willems (2005) for S-estimates of multivariate regression). Tukey's biweight is used for 
+the loss functions. By default, the first loss function (in the S-estimates) is tuned in order to obtain 50% breakdown point. 
+The default tuning of the second loss function (M-estimates) ensures 95% efficiency at the normal model for the coefficient estimates. 
+The desired efficiency can be changed via argument <code>control</code>.
+</p>
+<p>The computation of the S-estimates is performed by a call to <code>Sest_multireg</code>, which uses the fast-S algorithm. 
+See <code>MMcontrol</code>() to see or change the tuning parameters for this algorithm. The M-estimate part is computed
+through iteratively reweighted least squares (RWLS).
+</p>
+<p>Apart from the MM-estimate of the regression coefficients, the function returns both the MM-estimate of the error 
+covariance <code>Sigma</code> and the corresponding shape estimate <code>Gamma</code> (which has determinant equal to 1). 
+Additionally, the initial S-estimates are returned as well (their Gaussian efficiency is usually lower than the MM-estimates but they may 
+have a lower bias). 
+</p>
+<p>The returned object inherits from class <code>mlm</code> such that the standard <code>coef</code>, <code>residuals</code>, <code>fitted</code> and <code>predict</code> functions can be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FRBmultireg</code> which extends class <code>mlm</code> and contains at least the following components:
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p> MM-estimates of the regression coefficients</p>
+</td>
+</tr></table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p> the residuals, that is response minus fitted values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p> the fitted values.</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Sigma </code></td>
+<td>
+<p>MM-estimate of the error covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gamma </code></td>
+<td>
+<p>MM-estimate of the error shape matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p> S-estimate of the size of the multivariate errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>implicit weights corresponding to the MM-estimates (i.e. final weights in the RWLS procedure)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outFlag</code></td>
+<td>
+<p>outlier flags: 1 if the robust distance of the residual exceeds the .975 quantile of (the square root of)
+the chi-square distribution with degrees of freedom equal to the dimension of the responses; 0 otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c0,b,c1</code></td>
+<td>
+<p>tuning parameters of the loss functions (depend on control parameters <code>bdp</code> and <code>eff</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p> a list with following components: <code>est</code> = character string indicating that GS-estimates were used,<code>bdp</code> = a copy of the <code>bdp</code> argument, <code>eff</code> a copy of the <code>eff</code>  argument </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p> a copy of the <code>control</code> argument </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SBeta </code></td>
+<td>
+<p>S-estimate of the regression coefficient matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SSigma</code></td>
+<td>
+<p>S-estimate of the error covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SGamma</code></td>
+<td>
+<p>S-estimate of the error shape matrix</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Gert Willems, Stefan Van Aelst and Ella Roelant </p>
+
+
+<h3>References</h3>
+
+ 
+<ul>
+<li>
+<p> K.S. Tatsuoka and D.E. Tyler (2000), The uniqueness of S and M-functionals under non-elliptical distributions.
+<em>The Annals of Statistics</em>, <b>28</b>, 1219–1243. 
+</p>
+</li>
+<li>
+<p> S. Van Aelst and G. Willems (2005), Multivariate regression S-estimators for robust estimation and inference. 
+<em>Statistica Sinica</em>, <b>15</b>, 981–1001.
+</p>
+</li>
+<li>
+<p> S. Van Aelst and G. Willems (2013), Fast and robust bootstrap for multivariate inference: The R package FRB. 
+<em>Journal of Statistical Software</em>, <b>53</b>(3), 1–32.
+<a href="https://doi.org/10.18637/jss.v053.i03">doi:10.18637/jss.v053.i03</a>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+  <p><code>FRBmultiregMM</code>, <code>MMboot_multireg</code>,  <code>Sest_multireg</code>, <code>MMcontrol</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(schooldata)
+school.x &lt;- data.matrix(schooldata[,1:5])
+school.y &lt;- data.matrix(schooldata[,6:8])
+
+## compute 95% efficient MM-estimates
+MMres &lt;- MMest_multireg(school.x,school.y)
+
+## or using the formula interface
+
+    MMres &lt;- MMest_multireg(cbind(reading,mathematics,selfesteem)~., data=schooldata)
+
+
+## the MM-estimate of the regression coefficient matrix:
+MMres$coefficients
+
+## or alternatively 
+coef(MMres)
+
+## Do plots
+
+    n &lt;- nrow(schooldata)
+    oldpar &lt;- par(mfrow=c(2,1))
+    
+    ## the estimates can be considered as weighted least squares estimates with the 
+    ## following implicit weights
+    plot(1:n, MMres$weights)
+    
+    ## Sres$outFlag tells which points are outliers based on whether or not their 
+    ## robust distance exceeds the .975 chi-square cut-off:
+    plot(1:n, MMres$outFlag)
+    
+    ## (see also the diagnostic plot in plotDiag())
+    
+    par(oldpar)
+
+</code></pre>
+
+
+</div>

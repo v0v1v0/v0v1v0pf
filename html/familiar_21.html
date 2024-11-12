@@ -1,0 +1,378 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>.parse_initial_settings</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Internal function for parsing settings required to parse the input data and
+define the experiment</h2>
+
+<h3>Description</h3>
+
+<p>This function parses settings required to parse the data set, e.g. determine
+which columns are identfier columns, what column contains outcome data, which
+type of outcome is it?
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">.parse_initial_settings(config = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>config</code></td>
+<td>
+<p>A list of settings, e.g. from an xml file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>.parse_experiment_settings</code>
+</p>
+
+<dl>
+<dt><code>batch_id_column</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Name of the column containing batch
+or cohort identifiers. This parameter is required if more than one dataset
+is provided, or if external validation is performed.
+</p>
+<p>In familiar any row of data is organised by four identifiers:
+</p>
+
+<ul>
+<li>
+<p> The batch identifier <code>batch_id_column</code>: This denotes the group to which a
+set of samples belongs, e.g. patients from a single study, samples measured
+in a batch, etc. The batch identifier is used for batch normalisation, as
+well as selection of development and validation datasets.
+</p>
+</li>
+<li>
+<p> The sample identifier <code>sample_id_column</code>: This denotes the sample level,
+e.g. data from a single individual. Subsets of data, e.g. bootstraps or
+cross-validation folds, are created at this level.
+</p>
+</li>
+<li>
+<p> The series identifier <code>series_id_column</code>: Indicates measurements on a
+single sample that may not share the same outcome value, e.g. a time
+series, or the number of cells in a view.
+</p>
+</li>
+<li>
+<p> The repetition identifier: Indicates repeated measurements in a single
+series where any feature values may differ, but the outcome does not.
+Repetition identifiers are always implicitly set when multiple entries for
+the same series of the same sample in the same batch that share the same
+outcome are encountered.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>sample_id_column</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Name of the column containing
+sample or subject identifiers. See <code>batch_id_column</code> above for more
+details.
+</p>
+<p>If unset, every row will be identified as a single sample.</p>
+</dd>
+<dt><code>series_id_column</code></dt>
+<dd>
+<p>(<strong>optional</strong>) Name of the column containing series
+identifiers, which distinguish between measurements that are part of a
+series for a single sample. See <code>batch_id_column</code> above for more details.
+</p>
+<p>If unset, rows which share the same batch and sample identifiers but have a
+different outcome are assigned unique series identifiers.</p>
+</dd>
+<dt><code>development_batch_id</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more batch or cohort
+identifiers to constitute data sets for development. Defaults to all, or
+all minus the identifiers in <code>validation_batch_id</code> for external validation.
+Required if external validation is performed and <code>validation_batch_id</code> is
+not provided.</p>
+</dd>
+<dt><code>validation_batch_id</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more batch or cohort
+identifiers to constitute data sets for external validation. Defaults to
+all data sets except those in <code>development_batch_id</code> for external
+validation, or none if not. Required if <code>development_batch_id</code> is not
+provided.</p>
+</dd>
+<dt><code>outcome_name</code></dt>
+<dd>
+<p>(<em>optional</em>) Name of the modelled outcome. This name will
+be used in figures created by <code>familiar</code>.
+</p>
+<p>If not set, the column name in <code>outcome_column</code> will be used for
+<code>binomial</code>, <code>multinomial</code>, <code>count</code> and <code>continuous</code> outcomes. For other
+outcomes (<code>survival</code> and <code>competing_risk</code>) no default is used.</p>
+</dd>
+<dt><code>outcome_column</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Name of the column containing the
+outcome of interest. May be identified from a formula, if a formula is
+provided as an argument. Otherwise an error is raised. Note that <code>survival</code>
+and <code>competing_risk</code> outcome type outcomes require two columns that
+indicate the time-to-event or the time of last follow-up and the event
+status.</p>
+</dd>
+<dt><code>outcome_type</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Type of outcome found in the outcome
+column. The outcome type determines many aspects of the overall process,
+e.g. the available feature selection methods and learners, but also the
+type of assessments that can be conducted to evaluate the resulting models.
+Implemented outcome types are:
+</p>
+
+<ul>
+<li> <p><code>binomial</code>: categorical outcome with 2 levels.
+</p>
+</li>
+<li> <p><code>multinomial</code>: categorical outcome with 2 or more levels.
+</p>
+</li>
+<li> <p><code>count</code>: Poisson-distributed numeric outcomes.
+</p>
+</li>
+<li> <p><code>continuous</code>: general continuous numeric outcomes.
+</p>
+</li>
+<li> <p><code>survival</code>: survival outcome for time-to-event data.
+</p>
+</li>
+</ul>
+<p>If not provided, the algorithm will attempt to obtain outcome_type from
+contents of the outcome column. This may lead to unexpected results, and we
+therefore advise to provide this information manually.
+</p>
+<p>Note that <code>competing_risk</code> survival analysis are not fully supported, and
+is currently not a valid choice for <code>outcome_type</code>.</p>
+</dd>
+<dt><code>class_levels</code></dt>
+<dd>
+<p>(<em>optional</em>) Class levels for <code>binomial</code> or <code>multinomial</code>
+outcomes. This argument can be used to specify the ordering of levels for
+categorical outcomes. These class levels must exactly match the levels
+present in the outcome column.</p>
+</dd>
+<dt><code>event_indicator</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Indicator for events in <code>survival</code>
+and <code>competing_risk</code> analyses. <code>familiar</code> will automatically recognise <code>1</code>,
+<code>true</code>, <code>t</code>, <code>y</code> and <code>yes</code> as event indicators, including different
+capitalisations. If this parameter is set, it replaces the default values.</p>
+</dd>
+<dt><code>censoring_indicator</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Indicator for right-censoring in
+<code>survival</code> and <code>competing_risk</code> analyses. <code>familiar</code> will automatically
+recognise <code>0</code>, <code>false</code>, <code>f</code>, <code>n</code>, <code>no</code> as censoring indicators, including
+different capitalisations. If this parameter is set, it replaces the
+default values.</p>
+</dd>
+<dt><code>competing_risk_indicator</code></dt>
+<dd>
+<p>(<strong>recommended</strong>) Indicator for competing
+risks in <code>competing_risk</code> analyses. There are no default values, and if
+unset, all values other than those specified by the <code>event_indicator</code> and
+<code>censoring_indicator</code> parameters are considered to indicate competing
+risks.</p>
+</dd>
+<dt><code>signature</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more names of feature columns that are
+considered part of a specific signature. Features specified here will
+always be used for modelling. Ranking from feature selection has no effect
+for these features.</p>
+</dd>
+<dt><code>novelty_features</code></dt>
+<dd>
+<p>(<em>optional</em>) One or more names of feature columns
+that should be included for the purpose of novelty detection.</p>
+</dd>
+<dt><code>exclude_features</code></dt>
+<dd>
+<p>(<em>optional</em>) Feature columns that will be removed
+from the data set. Cannot overlap with features in <code>signature</code>,
+<code>novelty_features</code> or <code>include_features</code>.</p>
+</dd>
+<dt><code>include_features</code></dt>
+<dd>
+<p>(<em>optional</em>) Feature columns that are specifically
+included in the data set. By default all features are included. Cannot
+overlap with <code>exclude_features</code>, but may overlap <code>signature</code>. Features in
+<code>signature</code> and <code>novelty_features</code> are always included. If both
+<code>exclude_features</code> and <code>include_features</code> are provided, <code>include_features</code>
+takes precedence, provided that there is no overlap between the two.</p>
+</dd>
+<dt><code>reference_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Method used to set reference levels for
+categorical features. There are several options:
+</p>
+
+<ul>
+<li> <p><code>auto</code> (default): Categorical features that are not explicitly set by the
+user, i.e. columns containing boolean values or characters, use the most
+frequent level as reference. Categorical features that are explicitly set,
+i.e. as factors, are used as is.
+</p>
+</li>
+<li> <p><code>always</code>: Both automatically detected and user-specified categorical
+features have the reference level set to the most frequent level. Ordinal
+features are not altered, but are used as is.
+</p>
+</li>
+<li> <p><code>never</code>: User-specified categorical features are used as is.
+Automatically detected categorical features are simply sorted, and the
+first level is then used as the reference level. This was the behaviour
+prior to familiar version 1.3.0.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>experimental_design</code></dt>
+<dd>
+<p>(<strong>required</strong>) Defines what the experiment looks
+like, e.g. <code>cv(bt(fs,20)+mb,3,2)+ev</code> for 2 times repeated 3-fold
+cross-validation with nested feature selection on 20 bootstraps and
+model-building, and external validation. The basic workflow components are:
+</p>
+
+<ul>
+<li> <p><code>fs</code>: (required) feature selection step.
+</p>
+</li>
+<li> <p><code>mb</code>: (required) model building step.
+</p>
+</li>
+<li> <p><code>ev</code>: (optional) external validation. Note that internal validation due
+to subsampling will always be conducted if the subsampling methods create
+any validation data sets.
+</p>
+</li>
+</ul>
+<p>The different components are linked using <code>+</code>.
+</p>
+<p>Different subsampling methods can be used in conjunction with the basic
+workflow components:
+</p>
+
+<ul>
+<li> <p><code>bs(x,n)</code>: (stratified) .632 bootstrap, with <code>n</code> the number of
+bootstraps. In contrast to <code>bt</code>, feature pre-processing parameters and
+hyperparameter optimisation are conducted on individual bootstraps.
+</p>
+</li>
+<li> <p><code>bt(x,n)</code>: (stratified) .632 bootstrap, with <code>n</code> the number of
+bootstraps. Unlike <code>bs</code> and other subsampling methods, no separate
+pre-processing parameters or optimised hyperparameters will be determined
+for each bootstrap.
+</p>
+</li>
+<li> <p><code>cv(x,n,p)</code>: (stratified) <code>n</code>-fold cross-validation, repeated <code>p</code> times.
+Pre-processing parameters are determined for each iteration.
+</p>
+</li>
+<li> <p><code>lv(x)</code>: leave-one-out-cross-validation. Pre-processing parameters are
+determined for each iteration.
+</p>
+</li>
+<li> <p><code>ip(x)</code>: imbalance partitioning for addressing class imbalances on the
+data set. Pre-processing parameters are determined for each partition. The
+number of partitions generated depends on the imbalance correction method
+(see the <code>imbalance_correction_method</code> parameter). Imbalance partitioning
+does not generate validation sets.
+</p>
+</li>
+</ul>
+<p>As shown in the example above, sampling algorithms can be nested.
+</p>
+<p>The simplest valid experimental design is <code>fs+mb</code>, which corresponds to a
+TRIPOD type 1a analysis. Type 1b analyses are only possible using
+bootstraps, e.g. <code>bt(fs+mb,100)</code>. Type 2a analyses can be conducted using
+cross-validation, e.g. <code>cv(bt(fs,100)+mb,10,1)</code>. Depending on the origin of
+the external validation data, designs such as <code>fs+mb+ev</code> or
+<code>cv(bt(fs,100)+mb,10,1)+ev</code> constitute type 2b or type 3 analyses. Type 4
+analyses can be done by obtaining one or more <code>familiarModel</code> objects from
+others and applying them to your own data set.
+</p>
+<p>Alternatively, the <code>experimental_design</code> parameter may be used to provide a
+path to a file containing iterations, which is named <code style="white-space: pre;">⁠####_iterations.RDS⁠</code>
+by convention. This path can be relative to the directory of the current
+experiment (<code>experiment_dir</code>), or an absolute path. The absolute path may
+thus also point to a file from a different experiment.</p>
+</dd>
+<dt><code>imbalance_correction_method</code></dt>
+<dd>
+<p>(<em>optional</em>) Type of method used to
+address class imbalances. Available options are:
+</p>
+
+<ul>
+<li> <p><code>full_undersampling</code> (default): All data will be used in an ensemble
+fashion. The full minority class will appear in each partition, but
+majority classes are undersampled until all data have been used.
+</p>
+</li>
+<li> <p><code>random_undersampling</code>: Randomly undersamples majority classes. This is
+useful in cases where full undersampling would lead to the formation of
+many models due major overrepresentation of the largest class.
+</p>
+</li>
+</ul>
+<p>This parameter is only used in combination with imbalance partitioning in
+the experimental design, and <code>ip</code> should therefore appear in the string
+that defines the design.</p>
+</dd>
+<dt><code>imbalance_n_partitions</code></dt>
+<dd>
+<p>(<em>optional</em>) Number of times random
+undersampling should be repeated. 10 undersampled subsets with balanced
+classes are formed by default.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Three variants of parameters exist:
+</p>
+
+<ul>
+<li>
+<p> required: this parameter is required and must be set by the user.
+</p>
+</li>
+<li>
+<p> recommended: not setting this parameter might cause an error to be thrown,
+dependent on other input.
+</p>
+</li>
+<li>
+<p> optional: these parameters have default values that may be altered if
+required.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list of settings to be used for configuring the experiments.
+</p>
+
+
+</div>

@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>smoothz</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Smoothing functions.
+</h2>
+
+<h3>Description</h3>
+
+<p>Routines for k-Nearest Neighbor density and regression estimation,
+optionally using parallel computation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">smoothz(z,sf,k,checkna=TRUE,cls=NULL,nchunks=length(cls),scalefirst=FALSE)
+smoothzpred(newx,oldx,oldxregest,checkna=TRUE,cls=NULL,nchunks=length(cls))
+knnreg(data,k) 
+knndens(data,k) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>The data, in data frame or matrix form.  In the regression
+case, the response variable is assumed to be in the last column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sf</code></td>
+<td>
+<p>Smoothing function (unquoted), <code>knnreg</code> for regression or
+<code>knndens</code> for density estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of nearest neighbors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nchunks</code></td>
+<td>
+<p>Number of chunks to break the computation into.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newx</code></td>
+<td>
+<p>New X data to predict from</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oldx</code></td>
+<td>
+<p>X-variable values in the training set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oldxregest</code></td>
+<td>
+<p>Estimated regression values in the training set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkna</code></td>
+<td>
+<p>If TRUE, remove any row having at least one NA value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cls</code></td>
+<td>
+<p>Cluster to use (see the <code>parallel</code> package) for
+parallel computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data to be smoothed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scalefirst</code></td>
+<td>
+<p>Apply scale to the data before smoothing.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The smoothed values are calculated at the input data points
+(needed in this form for another application).  So, for instance, the
+i-th value of the output of <code>smoothz</code> in the regression case is the
+estimated regression function at the i-th row of <code>z</code>.
+</p>
+<p>The density estimates are not mormalized to having total
+hypervolume equal to 1.0.
+</p>
+<p>In the case of non-null <code>nchunks</code>, smoothing is done within-chunk
+only.  The smoothed value at a point will be computed only from its
+neighbors in the point's chunk.
+</p>
+<p>The <code>smoothzpred</code> function applies only to the regression case.
+It is assumed that <code>smoothz</code> has been previously called on
+<code>oldx</code>, yielding regression function estimates <code>oldxregest</code> at
+those points.  The <code>smoothzpred</code> function then finds, for each
+point <code>newx[i]</code>, the closest point <code>oldx[j]</code> in <code>oldx</code>, and
+uses the corresponding value <code>oldxregest[j]</code> as the predicted value
+at <code>newx[i]</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Vector of smoothed values, or in the case of <code>smoothzpred</code>,
+vector of predicted Y values for <code>newx</code>.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Norm Matloff &lt;matloff@cs.ucdavis.edu&gt; and Yingkang Xie
+&lt;yingkang.xie@gmail.com&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# programmers and engineers in Silicon Valley, 2000 census, age 25-65
+data(prgeng)
+pg &lt;- prgeng
+pg1 &lt;- pg[pg$age &gt;= 25 &amp; pg$age &lt;= 65,]
+estreg &lt;- smoothz(pg1[,c(1,8)],sf=knnreg,k=100)
+age &lt;- pg1[,1]
+p &lt;- ggplot(data.frame(age,estreg))
+p + geom_smooth(aes(x=age,y=estreg))
+# peak earnings appear to occur around age 45
+
+</code></pre>
+
+
+</div>

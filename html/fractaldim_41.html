@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fd.get</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Access Method for Objects of Class FractalDim</h2>
+
+<h3>Description</h3>
+
+<p>For given method it returns the corresponding estimates.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fd.get(fractaldim, method)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fractaldim</code></td>
+<td>
+<p>object of class <code>FractalDim</code> as defined in
+<code>fd.estimate</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character string specifying the method.
+For 1-d estimators, possible values are  “<code>variogram</code>”, “<code>madogram</code>”, “<code>rodogram</code>”, “<code>variation</code>”, “<code>incr1</code>”, “<code>boxcount</code>”,
+“<code>hallwood</code>”,  
+“<code>periodogram</code>”,
+“<code>wavelet</code>”, “<code>dctII</code>”, and “<code>genton</code>”. 
+For 2-d estimators, possible values are  “<code>transect.var</code>”, “<code>transect.incr1</code>”,
+“<code>isotropic</code>”, “<code>squareincr</code>”, and “<code>filter1</code>” 
+(see <code>fd.get.available.methods</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>FractalDim</code> object.  The original <code>fractaldim</code> arrays <code>fd</code> and <code>scale</code> are reduced in the last dimension into only one method, namely the given <code>method</code>. </p>
+
+
+<h3>See Also</h3>
+
+<p><code>fd.estimate</code>, <code>fd.get.available.methods</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(RandomFields)
+x &lt;- seq(0, 10000)
+# generate a random field
+truealpha &lt;- 1.5
+rf &lt;- GaussRF(x = x, model = "stable", grid = TRUE,
+    param = c(mean=0, variance=1, nugget=0, scale=100, 
+        alpha=truealpha))
+
+#compute fractal dimension using various methods
+methods &lt;- c("madogram", "variogram", "hallwood", "boxcount",
+                       "periodogram","dctII", "wavelet")
+fdts &lt;- fd.estimate (rf, methods = methods, window.size = 500, 
+    step.size = 100, nlags = 10, trim = FALSE, debuglevel = 3)
+
+# plot the variation
+cols &lt;- rainbow(length(methods))
+plot(ts(fd.get (fdts, methods[1])$fd),ylim=c(min(fdts$fd), max(fdts$fd)),
+             ylab="fd", col=cols[1])
+for (imeth in 2:length(methods)) 
+    lines(ts(fd.get (fdts, methods[imeth])$fd), col=cols[imeth])
+legend('topleft', legend=methods, col=cols, lwd=1)
+abline(h=2-truealpha/2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

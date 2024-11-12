@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>format_bibtex_entry</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Format BibTeX Entries in An Opinionated Way</h2>
+
+<h3>Description</h3>
+
+<p>This function tries to format the given BibTeX entries so that
+</p>
+
+<ul>
+<li>
+<p> The “title” field is written in the title case with
+exceptations such as common prepositions with four or fewer letters.
+Special words such as “Bayesian” and “Markov” are protected
+by curly braces from case changing by BibTeX sytle.
+</p>
+</li>
+<li>
+<p> The “author” field follows a consistent fashion: “family
+name, given name”.  A period will be added to single letter acronym.
+</p>
+</li>
+<li>
+<p> The “journal” field (if any) is written in the title case.
+</p>
+</li>
+<li>
+<p> The “pages” field should use “–” instead of “-”
+between pages.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">format_bibtex_entry(
+  entry,
+  fields = c("title", "author", "journal", "pages"),
+  protected_words = getOption("formatBibtex.protected_words"),
+  ...
+)
+
+format_bibtex_file(
+  bibtex_file,
+  output_file = bibtex_file,
+  backup = (output_file == bibtex_file),
+  dry_run = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>entry</code></td>
+<td>
+<p>A <code>bibentry</code> object (created by <code>utils::bibentry</code>)
+representing BibTeX entries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fields</code></td>
+<td>
+<p>A character vector specifying the fields to format.  The
+available options are <code>"title"</code>, <code>"author"</code>, <code>"journal"</code>,
+and <code>"pages"</code>.  Multiple choices can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>protected_words</code></td>
+<td>
+<p>Optional words that needs protection by curly braces
+from cases changing by BibTeX style.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to <code>format_bibtex_entry</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bibtex_file</code></td>
+<td>
+<p>A character string presenting the BibTeX file that needs
+formatting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output_file</code></td>
+<td>
+<p>A character string presenting the output BibTeX file.  By
+default, the input BibTeX file will be overwritten with a backup file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backup</code></td>
+<td>
+<p>A logical value.  If <code>TRUE</code>, a backup file will be
+created to check and tweak the formatting options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dry_run</code></td>
+<td>
+<p>A logical value.  If <code>TRUE</code>, the formatted BibTeX
+entries will be returned without actually (over)writing a BibTeX file to
+the disk.  The default value is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When <code>emacs</code> is available in the system, the function
+<code>format_bibtex_file()</code> will perform additional formatting with the help
+of the commands <code>bibtex-reformat</code> and <code>bibtex-sort-buffer</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>bibentry</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(formatBibtex)
+
+## example BibTeX file that needs formatting
+example_bib &lt;- system.file("examples/example.bib", package = "formatBibtex")
+print(readLines(example_bib), quote = FALSE)
+
+## needs the package bibtex
+has_bibtex &lt;- requireNamespace("bibtex", quietly = TRUE)
+
+## example of format_bibtex_entry()
+if (has_bibtex) {
+    bib &lt;- bibtex::read.bib(example_bib)
+    ## check the default words that need protection by curly braces
+    (default_words &lt;- getOption("formatBibtex.protected_words"))
+    format_bibtex_entry(bib, protected_words = c(default_words, "SMEM"))
+}
+
+## example of format_bibtex_file()
+if (has_bibtex) {
+    output_file &lt;- tempfile(fileext = ".bib")
+    format_bibtex_file(example_bib,
+                       output_file = output_file,
+                       protected_words = c(default_words, "SMEM"))
+    print(readLines(output_file), quote = FALSE)
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FuncMap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Hive Plots of R Package Function Calls
+</h2>
+
+<h3>Description</h3>
+
+<p>FuncMap analyzes the function calls in an R package and creates a hive plot of the calls, dividing them among functions that only make outgoing calls (sources), functions that have only incoming calls (sinks), and those that have both incoming calls and make outgoing calls (managers).  Function calls can be mapped by their absolute numbers, their normalized absolute numbers, or their rank.  FuncMap should be useful for comparing packages at a high level for their overall design.  Plus, it's just plain fun and makes great artwork!</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FuncMap(fwb = foodweb, pkg = "none", method = "abs",
+	sm.title = FALSE, newpage = TRUE, debug = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fwb</code></td>
+<td>
+
+<p>An object of class <code>foodweb</code> created by the function <code>foodweb</code> in package <code>mvbutils</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pkg</code></td>
+<td>
+
+<p>The name of the package being analyzed; used for the plot title.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>One of <code>c("abs", "norm", "rank")</code>.  If <code>"abs"</code>, the absolute count of incoming + outgoing calls.  If <code>"norm"</code>, the absolute count of calls is normalized to the interval 0:1.  If <code>"rank"</code>, the number of calls is ranked before plotting.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sm.title</code></td>
+<td>
+
+<p>Logical.  Defaults to <code>FALSE</code>.  Set = <code>TRUE</code> when placing several hive plots on one page, and the text annotations are kept to minimum.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newpage</code></td>
+<td>
+
+<p>Logical.  Defaults to <code>TRUE</code>.  Clears the page before plotting.  If making multiple plots on a single page, set = <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+
+<p>Logical.  Defaults to <code>FALSE</code>.  If <code>TRUE</code>, grey concentric circles are plotted to guide in troubleshooting or understanding.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The list of which functions call which other functions is in <code>fwb$funmat</code>, and is used to determine which functions are sources, managers and sinks.  In the process, the total number of outgoing calls are determined for source functions, the total of incoming and outgoing calls is calculated for managers, and the total incoming calls determined for sink functions.  Each is plotted on the appropriate axis as either the absolute numbers, the normalized absolute numbers, or by rank.  The absolute plot axis lengths give a sense of which kind of functions dominate in a package, and whether there are a few functions that do most of the work.  The normalized plot axes are the same length, which spreads out the absolute plot but is otherwise the same data.  For the absolute and norm plots, where there is more than one function making <code>n</code> calls to another function which receives <code>p</code> calls, the line width of the spline curve is set to <code>n</code>. Also, a black dot is plotted at each position along the axis where there is a function. The rank plot spreads out the functions so that each function has a unique position on the axis; each node connects to only one other node and hence the linewidths are all 1.  If there are stand alone functions that make no calls at all, these are plotted as a dot at the center of the hive. <br></p>
+<p>Some relatively simple packages that make interesting plots are <code>pcaPP</code> and <code>cluster</code>.  More complex packages are <code>survival</code>, <code>colorspace</code> and <code>rgl</code>.  Quite complex packages are <code>lattice</code>, <code>mclust</code> and <code>ggplot2</code>.  <code>colorspace</code> is quite interesting if you compare the absolute and rank plots. <code>seriation</code> and <code>mvoutlier</code> are packages that have no manager functions.<br></p>
+<p>For package <code>MASS</code> and presumably some others, only part of the hive plot is drawn before throwing an error.  This is the result of how <code>foodweb</code> reads code and determines when a function has been called (M. Bravington, personal communication).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of two data frames:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code> points </code></td>
+<td>
+<p>Coordinates of the points (nodes) to be plotted on each axis, representing the counts of calls (in absolute, normalized or ranked units).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> curves </code></td>
+<td>
+<p>Coordinates and line widths for drawing the edges, which are spline curves representing the calls.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Bryan A. Hanson &lt;hanson@depauw.edu&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>The hive plot concept was developed by Martin Krzywinski (www.hiveplot.com) and inspired this package.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Function <code>foodweb</code> in package <code>mvbutils</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(mvbutils)
+require(lattice)
+require(grid)
+# draw the foodweb using mvbutils
+fw &lt;- foodweb(where = "package:lattice", charlim = 20, cex = 0.5, lwd = 1)
+# draw the hive plot
+ans &lt;- FuncMap(fwb = fw, pkg = "lattice", method = "abs")
+</code></pre>
+
+
+</div>

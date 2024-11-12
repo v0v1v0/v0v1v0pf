@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fr_emdII</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>EMD Type II Response</h2>
+
+<h3>Description</h3>
+
+<p>The 'Ecological Models and Data in R' type-II decreasing prey function.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    emdII_fit(data, samp, start, fixed, boot=FALSE, windows=FALSE)
+    emdII_nll(a, h, P, T, X, Y)
+    emdII(X, a, h, P, T)
+    </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>A dataframe containing X and Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp </code></td>
+<td>
+<p>A vector specifying the rows of data to use in the fit. Provided by <code>boot()</code> or manually, as required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p>A named list. Starting values for items to be optimised.  Usually 'a' and 'h'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed </code></td>
+<td>
+<p>A names list. 'Fixed data' (not optimised). Usually 'P' and 'T'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot </code></td>
+<td>
+<p>A logical. Is the function being called for use by <code>boot()</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>windows </code></td>
+<td>
+<p>A logical. Is the operating system Microsoft Windows?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a, h </code></td>
+<td>
+<p>Capture rate and handling time. Usually items to be optimised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P, T </code></td>
+<td>
+<p>P: Number of predators. T: Total time available</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>The X variable. Usually prey density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>The Y variable.  Usually the number of prey consumed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This implements the type-II functional response model described in detail in Bolker (2008). With the exception of <em>P</em> these functions are identical to those used in <code>rogersII</code>. 
+</p>
+<p>The <code>emdII</code> function solves the random predator equation using the LambertW equation (using the <code>lambertW0</code> function from the <em>lamW</em> package), giving:
+</p>
+<p><code>X - lambertW0(a * h * X * exp(-a * (P * T - h * X)))/(a * h)</code>
+</p>
+<p>Note that generally speaking <em>P</em> is determined by the experimental design and is therefore usually provided as a 'fixed' variable. When <code class="reqn">P = 1</code> the results should be identical to those provided by <code>rogersII</code>.  
+</p>
+<p>This is exactly the function in Chapter 8 of Bolker (2008), which in turn presents examples from  Vonesh and Bolker (2005). Users are directed there for more information. 
+</p>
+<p>None of these functions are designed to be called directly, though they are all exported so that the user can call them directly if desired. The intention is that they are called via <code>frair_fit</code>, which calls them in the order they are specified above.
+</p>
+<p><code>emdII_fit</code> does the heavy lifting and also pulls double duty as the <code>statistic</code> function for bootstrapping (<em>via</em> <code>boot()</code> in the boot package).  The <code>windows</code> argument if required to prevent needless calls to <code>require(frair)</code> on platforms that can manage sane parallel processing.
+</p>
+<p>The core fitting is done by <code>mle2</code> from the <code>bbmle</code> package and users are directed there for more information. <code>mle2</code> uses the <code>emdII_nll</code> function to optimise <code>emdII</code>.
+</p>
+<p>Further references and recommended reading can be found on the help page for frair_fit.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Daniel Pritchard
+</p>
+
+
+<h3>References</h3>
+
+<p>Vonesh JR, Bolker BM (2005) Compensatory larval responses shift trade-offs associated with predator-induced hatching plasticity.  <em>Ecology</em> 86: 1580–1591. doi:10.1890/04-0535.
+</p>
+<p>Bolker, BM (2008) <em>Ecological Models and Data in R</em>. Princeton University Press, Princeton, NJ.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>frair_fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(gammarus)
+fitP1 &lt;- frair_fit(eaten~density, data=gammarus, 
+                response='emdII', start=list(a = 1.2, h = 0.015), 
+                fixed=list(T=40/24, P=1))
+fitP2 &lt;- frair_fit(eaten~density, data=gammarus, 
+                response='emdII', start=list(a = 1.2, h = 0.015), 
+                fixed=list(T=40/24, P=2))
+# Note that the coefficients are scaled to per prey item
+coef(fitP1)
+coef(fitP2)
+
+# Should give identical answers to rogersII when P=1
+rogII &lt;- frair_fit(eaten~density, data=gammarus, 
+                response='rogersII', start=list(a = 1.2, h = 0.015), 
+                fixed=list(T=40/24))
+coef(fitP1)
+coef(rogII)
+
+stopifnot(coef(fitP1)[1]==coef(rogII)[1])
+stopifnot(coef(fitP1)[2]==coef(rogII)[2])
+
+</code></pre>
+
+
+</div>

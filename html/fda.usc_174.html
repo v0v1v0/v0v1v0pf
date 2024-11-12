@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kmeans.center.ini</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>K-Means Clustering for functional data</h2>
+
+<h3>Description</h3>
+
+<p>Perform k-means clustering on functional data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kmeans.center.ini(
+  fdataobj,
+  ncl = 2,
+  metric = metric.lp,
+  draw = TRUE,
+  method = "sample",
+  max.iter = 100,
+  max.comb = 1e+06,
+  par.metric = NULL,
+  ...
+)
+
+kmeans.fd(
+  fdataobj,
+  ncl = 2,
+  metric = metric.lp,
+  dfunc = func.trim.FM,
+  max.iter = 100,
+  par.metric = NULL,
+  par.dfunc = list(trim = 0.05),
+  method = "sample",
+  cluster.size = 5,
+  draw = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdataobj</code></td>
+<td>
+<p><code>fdata</code> class object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncl</code></td>
+<td>
+<p>See details section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>Metric function, by default <code>metric.lp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>draw</code></td>
+<td>
+<p>=TRUE, draw the curves in the color of the centers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method for selecting initial centers. If
+<code>method</code>=<em>"Sample"</em> (by default) takes <code>n</code> times a random
+selection by the <code>ncl</code> centers. The <code>ncl</code> curves with greater
+distance are the initial centers. If <code>method</code>=<em>"Exact"</em> calculated
+all combinations (if &lt; 1e+6) of <code>ncl</code> centers. The <code>ncl</code> curves with greater
+distance are the initial centers (this method may be too slow).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+<p>Maximum number of iterations for the detection of centers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.comb</code></td>
+<td>
+<p>Maximum number of initial selection of
+centers (only used when <code>method="exact"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.metric</code></td>
+<td>
+<p>List of arguments to pass to the <code>metric</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfunc</code></td>
+<td>
+<p>Type of depth measure, by default FM depth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.dfunc</code></td>
+<td>
+<p>List of arguments to pass to the <code>dfunc</code> function .</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster.size</code></td>
+<td>
+<p>Minimum cluster size (by default is 5). If a cluster has fewer curves,
+it is eliminated and the process is continued with a less cluster.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The method searches the locations around which are grouped data (for a
+predetermined number of groups).<br></p>
+<p>If <code>ncl=NULL</code>, randomizes the initial centers, <code>ncl=2</code> using
+<code>kmeans.center.ini</code> function.<br> If <code>ncl</code> is an integer,
+indicating the number of groups to classify,<br> are selected <code>ncl</code>
+initial centers using <code>kmeans.center.ini</code> function.<br> If <code>ncl</code> is
+a vector of integers, indicating the position of the initial centers with
+<code>length(ncl)</code> equal to number of groups.<br> If <code>ncl</code> is a
+<code>fdata</code> class objecct, <code>ncl</code> are the initial centers curves with
+<code>nrow(ncl)</code> number of groups.<br></p>
+
+
+<h3>Value</h3>
+
+<p>Return:
+</p>
+
+<ul>
+<li> <p><code>cluster</code> Indexes of groups assigned.  
+</p>
+</li>
+<li> <p><code>centers</code> Curves centers.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Hartigan, J. A. and Wong, M. A. (1979). <em>A K-means
+clustering algorithm</em>. Applied Statistics 28, 100 \-108.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also generic kmeans function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(fda.usc)
+data(phoneme)
+mlearn&lt;-phoneme$learn[c(1:50,101:150,201:250),]
+# Unsupervised classification
+out.fd1=kmeans.fd(mlearn,ncl=3,draw=TRUE)
+out.fd2=kmeans.fd(mlearn,ncl=3,draw=TRUE,method="exact")
+# Different Depth function
+ind=c(17,77,126)
+out.fd3=kmeans.fd(mlearn,ncl=mlearn[ind,],draw=FALSE,
+dfunc=func.trim.FM,par.dfunc=list(trim=0.1))
+out.fd4=kmeans.fd(mlearn,ncl=mlearn[ind,],draw=FALSE,
+dfunc=func.med.FM)
+group=c(rep(1,50),rep(2,50),rep(3,50))
+table(out.fd4$cluster,group)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

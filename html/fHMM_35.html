@@ -1,0 +1,234 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ll_hmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Log-likelihood function of an (H)HMM</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the log-likelihood value of a (hierarchical) hidden
+Markov model for given observations and parameter values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ll_hmm(
+  parUncon,
+  observations,
+  controls = list(),
+  hierarchy = FALSE,
+  states = if (!hierarchy) 2 else c(2, 2),
+  sdds = if (!hierarchy) "normal" else c("normal", "normal"),
+  negative = FALSE,
+  check_controls = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parUncon</code></td>
+<td>
+<p>An object of class <code>parUncon</code>, which is a <code>numeric</code> <code>vector</code>
+with identified and unconstrained model parameters in the following order:
+</p>
+
+<ol>
+<li>
+<p> non-diagonal transition probabilities <code>gammasUncon</code>
+</p>
+</li>
+<li>
+<p> expectations <code>muUncon</code>
+</p>
+</li>
+<li>
+<p> standard deviations <code>sigmaUncon</code> (if any)
+</p>
+</li>
+<li>
+<p> degrees of freedom <code>dfUncon</code> (if any)
+</p>
+</li>
+<li>
+<p> fine-scale parameters for each coarse-scale state, in the same order (if any)
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observations</code></td>
+<td>
+<p>A <code>numeric</code> <code>vector</code> of time-series data.
+</p>
+<p>In the hierarchical case (<code>hierarchy = TRUE</code>), a <code>matrix</code> with
+coarse-scale data in the first column and corresponding fine-scale data in
+the rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controls</code></td>
+<td>
+<p>Either a <code>list</code> or an object of class <code>fHMM_controls</code>.
+</p>
+<p>The <code>list</code> can contain the following elements, which are described
+in more detail below:
+</p>
+
+<ul>
+<li> <p><code>hierarchy</code>, defines an hierarchical HMM,
+</p>
+</li>
+<li> <p><code>states</code>, defines the number of states,
+</p>
+</li>
+<li> <p><code>sdds</code>, defines the state-dependent distributions,
+</p>
+</li>
+<li> <p><code>horizon</code>, defines the time horizon,
+</p>
+</li>
+<li> <p><code>period</code>, defines a flexible, periodic fine-scale time horizon,
+</p>
+</li>
+<li> <p><code>data</code>, a <code>list</code> of controls that define the data,
+</p>
+</li>
+<li> <p><code>fit</code>, a <code>list</code> of controls that define the model fitting
+</p>
+</li>
+</ul>
+<p>Either none, all, or selected elements can be specified.
+</p>
+<p>Unspecified parameters are set to their default values.
+</p>
+<p>Important: Specifications in <code>controls</code> always override individual
+specifications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hierarchy</code></td>
+<td>
+<p>A <code>logical</code>, set to <code>TRUE</code> for an hierarchical HMM.
+</p>
+<p>If <code>hierarchy = TRUE</code>, some of the other controls must be specified for
+the coarse-scale and the fine-scale layer.
+</p>
+<p>By default, <code>hierarchy = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>states</code></td>
+<td>
+<p>An <code>integer</code>, the number of states of the underlying Markov chain.
+</p>
+<p>If <code>hierarchy = TRUE</code>, <code>states</code> must be a <code>vector</code> of length
+2. The first entry corresponds to the coarse-scale layer, while the second
+entry corresponds to the fine-scale layer.
+</p>
+<p>By default, <code>states = 2</code> if <code>hierarchy = FALSE</code> and
+<code>states = c(2, 2)</code> if <code>hierarchy = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdds</code></td>
+<td>
+<p>A <code>character</code>, specifying the state-dependent distribution. One of
+</p>
+
+<ul>
+<li> <p><code>"normal"</code> (the normal distribution),
+</p>
+</li>
+<li> <p><code>"lognormal"</code> (the log-normal distribution),
+</p>
+</li>
+<li> <p><code>"t"</code> (the t-distribution),
+</p>
+</li>
+<li> <p><code>"gamma"</code> (the gamma distribution),
+</p>
+</li>
+<li> <p><code>"poisson"</code> (the Poisson distribution).
+</p>
+</li>
+</ul>
+<p>The distribution parameters, i.e. the
+</p>
+
+<ul>
+<li>
+<p> mean <code>mu</code>,
+</p>
+</li>
+<li>
+<p> standard deviation <code>sigma</code> (not for the Poisson distribution),
+</p>
+</li>
+<li>
+<p> degrees of freedom <code>df</code> (only for the t-distribution),
+</p>
+</li>
+</ul>
+<p>can be fixed via, e.g., <code>"t(df = 1)"</code> or
+<code>"gamma(mu = 0, sigma = 1)"</code>.
+To fix different values of a parameter for different states, separate by
+"|", e.g. <code>"poisson(mu = 1|2|3)"</code>.
+</p>
+<p>If <code>hierarchy = TRUE</code>, <code>sdds</code> must be a <code>vector</code> of length 2.
+The first entry corresponds to the coarse-scale layer, while the second entry
+corresponds to the fine-scale layer.
+</p>
+<p>By default, <code>sdds = "normal"</code> if <code>hierarchy = FALSE</code> and
+<code>sdds = c("normal", "normal")</code> if <code>hierarchy = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>negative</code></td>
+<td>
+<p>Either <code>TRUE</code> to return the negative log-likelihood value (useful for
+optimization) or <code>FALSE</code> (default), else.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_controls</code></td>
+<td>
+<p>Either <code>TRUE</code> to check the defined controls or <code>FALSE</code> to not check
+them (which saves computation time), else.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The (negative) log-likelihood value.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### HMM log-likelihood 
+controls &lt;- set_controls(states = 2, sdds = "normal")
+parameters &lt;- fHMM_parameters(controls)
+parUncon &lt;- par2parUncon(parameters, controls)
+observations &lt;- 1:10
+ll_hmm(parUncon, observations, controls)
+
+### HHMM log-likelihood 
+controls &lt;- set_controls(
+  hierarchy = TRUE, states = c(2, 2), sdds = c("normal", "normal")
+)
+parameters &lt;- fHMM_parameters(controls)
+parUncon &lt;- par2parUncon(parameters, controls)
+observations &lt;- matrix(dnorm(110), ncol = 11, nrow = 10)
+ll_hmm(parUncon, observations, controls)
+
+</code></pre>
+
+
+</div>

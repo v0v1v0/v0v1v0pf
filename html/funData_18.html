@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Arith.funData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Arithmetics for functional data objects</h2>
+
+<h3>Description</h3>
+
+<p>These functions allow basic arithmetics (such as '+', '-', '*', 'sqrt') for
+functional data and numerics based on <code>Arith</code>.  The
+operations are made pointwise for each observation. See examples below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'funData,funData'
+Arith(e1, e2)
+
+## S4 method for signature 'funData,numeric'
+Arith(e1, e2)
+
+## S4 method for signature 'numeric,funData'
+Arith(e1, e2)
+
+## S4 method for signature 'multiFunData,multiFunData'
+Arith(e1, e2)
+
+## S4 method for signature 'multiFunData,numeric'
+Arith(e1, e2)
+
+## S4 method for signature 'numeric,multiFunData'
+Arith(e1, e2)
+
+## S4 method for signature 'irregFunData,numeric'
+Arith(e1, e2)
+
+## S4 method for signature 'numeric,irregFunData'
+Arith(e1, e2)
+
+## S4 method for signature 'irregFunData,irregFunData'
+Arith(e1, e2)
+
+## S4 method for signature 'irregFunData,funData'
+Arith(e1, e2)
+
+## S4 method for signature 'funData,irregFunData'
+Arith(e1, e2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>e1, e2</code></td>
+<td>
+<p>Objects of class <code>funData</code>, <code>irregFunData</code>,
+<code>multiFunData</code> or <code>numeric</code>. If two functional data objects are
+used, they must be of the same class, have the same domain and the same
+number of observations. For exceptions, see Details.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>If two objects of a functional data class (<code>funData</code>,
+<code>irregFunData</code> or <code>multiFunData</code>) are used, they normally must be
+of the same class, have the same domain and the same number of observations.
+Exceptions are accepted if </p>
+<ul>
+<li>
+<p> one object has only one
+observation. In this case, the arithmetic operations ('+', '-', '*', ...) are
+done pairwise for this single function and all functions of the other object.
+A typical example would be when subtracting the mean function from all
+observations in a <code>funData</code> object. This single function must be defined
+on the same domain as the other functions (or, in case of
+<code>irregFunData</code>, on the union of all observation grids). </p>
+</li>
+<li>
+<p> one of the
+two objects is of class <code>irregFunData</code>. Then, the other object can be of
+class <code>funData</code>, too, if it is defined on the union of all observation
+grids. The result is an <code>irregFunData</code> object which is defined on the
+same observation grid as the original <code>irregFunData</code> object.</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An object of the same functional data class as <code>e1</code> or
+<code>e2</code>, respectively.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>Note that not all combinations of operations and classes
+make sense, e.g. <code>e1 ^ e2</code> is sensible if <code>e1</code> is of class
+<code>funData</code>, <code>irregFunData</code> or <code>multiFunData</code> and <code>e2</code> is
+numeric. The reverse is not true.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>funData</code>, <code>irregFunData</code>,
+<code>multiFunData</code>, Arith
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">oldpar &lt;- par(no.readonly = TRUE)
+par(mfrow = c(3,2), mar = rep(2.1,4))
+
+argvals &lt;- seq(0, 2*pi, 0.01)
+object1 &lt;- funData(argvals, outer(seq(0.75, 1.25, by = 0.05), sin(argvals)))
+object2 &lt;- funData(argvals, outer(seq(0.75, 1.25, by = 0.05), cos(argvals)))
+
+plot(object1, main = "Object1")
+plot(object2, main = "Object2")
+
+# Only functional data objects
+plot(object1 + object2, main = "Sum")
+plot(object1 - object2, main = "Difference")
+
+# Mixed
+plot(4 * object1 + 5,  main = "4 * Object1 + 5") # Note y-axis!
+plot(object1^2 + object2^2, main = "Pythagoras")
+
+### Irregular
+ind &lt;- replicate(11, sort(sample(1:length(argvals), sample(5:10, 1))))
+i1 &lt;- irregFunData(
+   argvals = lapply(1:11, function(i, ind, x){x[ind[[i]]]}, ind = ind, x = object1@argvals[[1]]),
+   X = lapply(1:11, function(i, ind, y){y[i, ind[[i]]]}, ind = ind, y = object1@X))
+i2 &lt;- irregFunData(
+   argvals = lapply(1:11, function(i, ind, x){x[ind[[i]]]}, ind = ind, x = object2@argvals[[1]]),
+   X = lapply(1:11, function(i, ind, y){y[i, ind[[i]]]}, ind = ind, y = object2@X))
+
+plot(i1, main = "Object 1 (irregular)")
+plot(i2, main = "Object 2 (irregular)")
+
+# Irregular and regular functional data objects
+plot(i1 + i2, main = "Sum")
+plot(i1 - object2, main = "Difference")
+
+# Mixed
+plot(4 * i1 + 5,  main = "4 * i1 + 5") # Note y-axis!
+plot(i1^2 + i2^2, main = "Pythagoras")
+par(oldpar)
+</code></pre>
+
+
+</div>

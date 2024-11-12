@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ff_merge</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge a <code>summary_factorlist()</code> table with any number of model
+results tables.</h2>
+
+<h3>Description</h3>
+
+<p>A function that takes the output from <code>summary_factorlist(...,
+fit_id=TRUE)</code> and merges with any number of model dataframes, usually
+produced with a model wrapper followed by the <code>fit2df()</code> function
+(see examples).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ff_merge(
+  factorlist,
+  fit2df_df,
+  ref_symbol = "-",
+  estimate_name = NULL,
+  last_merge = FALSE
+)
+
+finalfit_merge(
+  factorlist,
+  fit2df_df,
+  ref_symbol = "-",
+  estimate_name = NULL,
+  last_merge = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>factorlist</code></td>
+<td>
+<p>Output from <code>summary_factorlist(...,
+fit_id=TRUE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit2df_df</code></td>
+<td>
+<p>Output from model wrappers followed by
+<code>fit2df()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_symbol</code></td>
+<td>
+<p>Reference symbol for model reference levels, typically "-"
+or "1.0".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate_name</code></td>
+<td>
+<p>If you have chosen a new 'estimate name' (e.g. "Odds
+ratio") when running a model wrapper (e.g. 'glmuni'), then you need to pass
+this new name to 'finalfit_merge' to generate correct table. Defaults to
+OR/HR/Coefficient</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>last_merge</code></td>
+<td>
+<p>Logical. Set to try for the final merge in a series to
+remove index and fit_id columns.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a dataframe of combined tables.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary_factorlist</code> <code>fit2df</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(finalfit)
+library(dplyr)
+
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+explanatory_multi = c("age.factor", "obstruct.factor")
+random_effect = "hospital"
+dependent = "mort_5yr"
+
+# Create separate tables
+colon_s %&gt;%
+ summary_factorlist(dependent, explanatory, fit_id=TRUE) -&gt; example.summary
+
+colon_s %&gt;%
+ glmuni(dependent, explanatory) %&gt;%
+ fit2df(estimate_suffix=" (univariable)") -&gt; example.univariable
+
+colon_s %&gt;%
+ glmmulti(dependent, explanatory) %&gt;%
+ fit2df(estimate_suffix=" (multivariable)") -&gt; example.multivariable
+
+colon_s %&gt;%
+ glmmixed(dependent, explanatory, random_effect) %&gt;%
+ fit2df(estimate_suffix=" (multilevel)") -&gt; example.multilevel
+
+# Pipe together
+example.summary %&gt;%
+ ff_merge(example.univariable) %&gt;%
+ ff_merge(example.multivariable) %&gt;%
+ ff_merge(example.multilevel, last_merge = TRUE)
+
+# Using finalfit()
+colon_s %&gt;%
+ finalfit(dependent, explanatory, keep_fit_id = TRUE) %&gt;%
+ ff_merge(example.multilevel, last_merge = TRUE)
+</code></pre>
+
+
+</div>

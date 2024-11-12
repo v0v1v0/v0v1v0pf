@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_sample_resources_by_ids</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Download a random sample of resources from a vector of resource IDs.</h2>
+
+<h3>Description</h3>
+
+<p>Download a random sample of resources from a vector of resource IDs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_sample_resources_by_ids(
+  base_url,
+  resource,
+  ids,
+  id_param = "_id",
+  username = NULL,
+  password = NULL,
+  token = NULL,
+  add_headers = NULL,
+  sample_size = 20,
+  seed = 1,
+  verbose = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base_url</code></td>
+<td>
+<p>A character vector of length one specifying the base URL of the FHIR server, e.g. <code>"http://hapi.fhir.org/baseR4"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resource</code></td>
+<td>
+<p>A character vector of length one or fhir_resource_type object with the resource type to be downloaded e.g. <code>"Patient"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>A character vector containing the IDs from which to sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id_param</code></td>
+<td>
+<p>A character vector of length one containing the FHIR Search parameter belonging to the ids in <code>ids</code>. Defaults to <code>"_id"</code> meaning <code>ids</code> is interpreted as
+containing resource (aka logical) ids. Could be changed to <code>"identifier"</code> if <code>ids</code> contains a vector of identifier values instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>username</code></td>
+<td>
+<p>A character vector of length one containing the username for basic authentication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>password</code></td>
+<td>
+<p>A character vector of length one containing the password for basic authentication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>A character vector of length one or object of class httr::Token, for bearer token authentication (e.g. OAuth2). See <code>fhir_authenticate()</code>
+for how to create this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_headers</code></td>
+<td>
+<p>A named character vector of custom headers to add to the HTTP request, e.g. <code>c(myHeader = "somevalue")</code> or
+<code>c(firstHeader = "value1", secondHeader = "value2")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_size</code></td>
+<td>
+<p>A integer of length 1 containing the number of resources to sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>A integer of length 1 containing the seed for the random generator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>An integer of length 1 containing the level of verbosity. Defaults to 1.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function takes a character vector <code>ids</code> containing logical Ids of resources of a given type (specified in <code>resource</code>) on a
+FHIR server (specified in <code>base_url</code>) and downloads a random sample of size <code>sample_size</code> of the corresponding resources from the server.
+</p>
+<p>Internally, the download of the resources is done by <code>fhir_get_resources_by_ids()</code>. This function will attempt to download the resources using a
+FHIR search request via POST where the IDs are part of the body. See <code>fhir_search()</code> for details. If this fails
+(e.g. because the server doesn't allow POST operations), the function falls back on a GET request. If the set of IDs is too long to fit
+into one GET request (i.e. if the request gets longer than 2083 characters), it will be spread across several requests.
+</p>
+<p>For more information on authentication options, please see the help page of '<code>fhir_search()</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of bundles containing sampled resources.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fhir_search()</code>, <code>fhir_sample_resources()</code>, <code>fhir_get_resources_by_ids()</code>, <code>fhir_count_resource()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+#the try({}, silent = TRUE) statement is only there to catch errors when the server is down
+#you can skip it when the server is reachable
+
+try({
+
+#find IDs of all resources representing Homer Simpson
+ids &lt;- fhir_get_resource_ids(
+  base_url   = 'https://hapi.fhir.org/baseR4',
+  resource   = "Patient",
+  parameters = "name=Homer&amp;name=Simpson")
+
+#Sample 10 of them
+bundles &lt;- fhir_sample_resources_by_ids(
+  base_url    = 'https://hapi.fhir.org/baseR4',
+  resource    = "Patient",
+  ids         = ids,
+  sample_size = 10,
+  seed        = 1)
+
+#Have a look at the samples
+fhir_crack(
+  bundles,
+  fhir_table_description(
+    resource = "Patient",
+    cols     = list(
+      ID     = "id",
+      given  = "name/given",
+      family = "name/family")))
+
+}, silent = TRUE)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,215 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>EmpiricalSurvDiff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the LR value and its associated p-values</h2>
+
+<h3>Description</h3>
+
+<p>Permutations or Bootstrapping computation of the standardized log-rank (SLR) or the Chi=SLR^2 p-values for differences in survival times 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	EmpiricalSurvDiff(times=times,
+	                  status=status,
+	                  groups=groups,
+	                  samples=1000,
+	                  type=c("SLR","Chi"),
+	                  plots=FALSE,
+	                  minAproxSamples=100,
+	                  computeDist=FALSE,
+	                  ...
+	                  )
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+
+<p>A numeric vector with he observed times to event
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+
+<p>A numeric vector indicating if the time to event is censored
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+
+<p>A numeric vector indicating the label of the two survival groups 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samples</code></td>
+<td>
+
+<p>The number of bootstrap samples
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>The type of log-rank statistics. SLR or Chi
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plots</code></td>
+<td>
+
+<p>If TRUE, the Kaplan-Meier plot will be plotted 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minAproxSamples</code></td>
+<td>
+
+<p>The number of tail samples used for the normal-distribution approximation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>computeDist</code></td>
+<td>
+
+<p>If TRUE, it will compute the bootstrapped distribution of the SLR
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Additional parameters for the plot
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It will compute the null distribution of the SRL or the square SLR (Chi) via permutations, and it will return the p-value of differences between survival times between two groups.
+It may also be used to compute the empirical distribution of the difference in SLR using bootstrapping. (computeDist=TRUE)
+The p-values will be estimated based on the sampled distribution, or normal-approximated along the tails.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+
+<p>the minimum one-tailed p-value : min[p(SRL &lt; 0),p(SRL &gt; 0)] for type="SLR" or the two tailed p-value: 1-p(|SRL| &gt; 0) for type="Chi"
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LR</code></td>
+<td>
+
+<p>A list of LR statistics: LR=Expected, VR=Variance, SLR=Standardized LR.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.equal</code></td>
+<td>
+
+<p>The two tailed p-value: 1-p(|SRL| &gt; 0)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.sup</code></td>
+<td>
+
+<p>The one tailed p-value: p(SRL &lt; 0), return NA for type="Chi"
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.inf</code></td>
+<td>
+
+<p>The one tailed p-value: p(SRL &gt; 0), return NA for type="Chi"
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nullDist</code></td>
+<td>
+
+<p>permutation derived probability density function of the null distribution
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LRDist</code></td>
+<td>
+
+<p>bootstrapped derived probability density function of the SLR (computeDist=TRUE)
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	## Not run: 
+
+      library(rpart)
+      data(stagec)
+
+      # The Log-Rank Analysis using survdiff
+
+      lrsurvdiff &lt;- survdiff(Surv(pgtime,pgstat)~grade&gt;2,data=stagec)
+      print(lrsurvdiff)
+
+      # The Log-Rank Analysis: permutations of the null Chi distribution
+      lrp &lt;- EmpiricalSurvDiff(stagec$pgtime,stagec$pgstat,stagec$grade&gt;2,
+                         type="Chi",plots=TRUE,samples=10000,
+                         main="Chi Null Distribution")
+      print(list(unlist(c(lrp$LR,lrp$pvalue))))
+
+      # The Log-Rank Analysis: permutations of the null SLR distribution
+      lrp &lt;- EmpiricalSurvDiff(stagec$pgtime,stagec$pgstat,stagec$grade&gt;2,
+                         type="SLR",plots=TRUE,samples=10000,
+                         main="SLR Null Distribution")
+      print(list(unlist(c(lrp$LR,lrp$pvalue))))
+
+      # The Log-Rank Analysis: Bootstraping the SLR distribution
+      lrp &lt;- EmpiricalSurvDiff(stagec$pgtime,stagec$pgstat,stagec$grade&gt;2,
+                         computeDist=TRUE,plots=TRUE,samples=100000,
+                         main="SLR Null and SLR bootrapped")
+      print(list(unlist(c(lrp$LR,lrp$pvalue))))
+	
+	
+## End(Not run)
+</code></pre>
+
+
+</div>

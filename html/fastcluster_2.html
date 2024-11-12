@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastcluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast hierarchical, agglomerative clustering routines for R and Python</h2>
+
+<h3>Description</h3>
+
+<p>The <span class="pkg">fastcluster</span> package provides efficient algorithms for hierarchical,
+agglomerative clustering. In addition to the R interface, there is also
+a Python interface to the underlying C++ library, to be found in the
+source distribution.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The function <code>hclust</code> provides clustering when the
+input is a dissimilarity matrix. A dissimilarity matrix can be
+computed from vector data by <code>dist</code>. The
+<code>hclust</code> function can be used as a drop-in replacement for
+existing routines: <code>stats::hclust</code> and
+<code>flashClust::hclust</code> alias
+<code>flashClust::flashClust</code>. Once the
+fastcluster library is loaded at the beginning of the code, every
+program that uses hierarchical clustering can benefit immediately and
+effortlessly from the performance gain
+</p>
+<p>When the package is loaded, it overwrites the function
+<code>hclust</code> with the new code.
+</p>
+<p>The function <code>hclust.vector</code> provides memory-saving routines
+when the input is vector data.
+</p>
+<p>Further information:
+</p>
+
+<ul>
+<li>
+<p> R documentation pages: <code>hclust</code>,
+<code>hclust.vector</code>
+</p>
+</li>
+<li>
+<p> A comprehensive User's manual:
+<a href="https://CRAN.R-project.org/package=fastcluster/vignettes/fastcluster.pdf">fastcluster.pdf</a>. Get this from the R
+command line with <code>vignette('fastcluster')</code>.
+</p>
+</li>
+<li>
+<p> JSS paper: <a href="https://doi.org/10.18637/jss.v053.i09">doi:10.18637/jss.v053.i09</a>.
+</p>
+</li>
+<li>
+<p> See the author's home page for a performance comparison:
+<a href="https://danifold.net/fastcluster.html">https://danifold.net/fastcluster.html</a>.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Daniel Müllner</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://danifold.net/fastcluster.html">https://danifold.net/fastcluster.html</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>hclust</code>, <code>hclust.vector</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Taken and modified from stats::hclust
+#
+# hclust(...)        # new method
+# hclust.vector(...) # new method
+# stats::hclust(...) # old method
+
+require(fastcluster)
+require(graphics)
+
+hc &lt;- hclust(dist(USArrests), "ave")
+plot(hc)
+plot(hc, hang = -1)
+
+## Do the same with centroid clustering and squared Euclidean distance,
+## cut the tree into ten clusters and reconstruct the upper part of the
+## tree from the cluster centers.
+hc &lt;- hclust.vector(USArrests, "cen")
+# squared Euclidean distances
+hc$height &lt;- hc$height^2
+memb &lt;- cutree(hc, k = 10)
+cent &lt;- NULL
+for(k in 1:10){
+  cent &lt;- rbind(cent, colMeans(USArrests[memb == k, , drop = FALSE]))
+}
+hc1 &lt;- hclust.vector(cent, method = "cen", members = table(memb))
+# squared Euclidean distances
+hc1$height &lt;- hc1$height^2
+opar &lt;- par(mfrow = c(1, 2))
+plot(hc,  labels = FALSE, hang = -1, main = "Original Tree")
+plot(hc1, labels = FALSE, hang = -1, main = "Re-start from 10 clusters")
+par(opar)
+</code></pre>
+
+
+</div>

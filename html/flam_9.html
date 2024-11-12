@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim.data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate Data from a Variety of Functional Scenarios
+</h2>
+
+<h3>Description</h3>
+
+<p>This function generates data according to the simulation scenarios considered in Section 5 and plotted in Figure 2 of Petersen, A., Witten, D., and Simon, N. (2014). Fused Lasso Additive Model. arXiv preprint arXiv:1409.5391. Each scenario has four covariates that have some non-linear association with the outcome. There is the option to also generate a user-specified number of covariates that have no association with the outcome.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim.data(n, scenario, zerof, noise = 1, family = "gaussian")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+
+<p>number of observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scenario</code></td>
+<td>
+
+<p>simulation scenario to use. Options are 1, 2, 3, or 4, which correspond to the simulation scenarios of Section 5 in Petersen, A., Witten, D., and Simon, N. (2014). Fused Lasso Additive Model. arXiv preprint arXiv:1409.5391. Each scenario has four covariates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zerof</code></td>
+<td>
+
+<p>number of noise covariates (those that have no relationship to the outcome) to include. This can be used to replicate the high-dimensional scenarios of Section 5 in Petersen, A., Witten, D., and Simon, N. (2014). Fused Lasso Additive Model. arXiv preprint arXiv:1409.5391. The total number of covariates will be <code>4 + zerof</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise</code></td>
+<td>
+
+<p>the variance of the errors. If <code>family = "gaussian"</code>, the errors of observations are generated using MVN(0, <code>noise</code>I) with default of 1, otherwise <code>noise</code> is not used if <code>family="binomial"</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>the error distribution of observations (must be <code>family="gaussian"</code> or <code>family="binomial"</code>). If <code>family = "gaussian"</code>, the errors of observations are generated using MVN(0, <code>noise</code>I), otherwise observations are Bernoulli if <code>family="binomial"</code>. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>n x p covariate matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>n-vector containing the outcomes for the n observations in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>n x p mean matrix used to generate <code>y</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ashley Petersen
+</p>
+
+
+<h3>References</h3>
+
+<p>Petersen, A., Witten, D., and Simon, N. (2014). Fused Lasso Additive Model. arXiv preprint arXiv:1409.5391.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#See ?'flam-package' for a full example of how to use this package
+
+#generate data to fit FLAM model with squared-error loss
+set.seed(1)
+data &lt;- sim.data(n = 50, scenario = 1, zerof = 10, noise = 1)
+flam.out &lt;- flam(x = data$x, y = data$y, family = "gaussian")
+
+#alternatively, generate data for logistic FLAM model 
+#note: 'noise' argument no longer needed
+data2 &lt;- sim.data(n = 50, scenario = 1, zerof = 0, family = "binomial")
+flam.logistic.out &lt;- flam(x = data2$x, y = data2$y, family = "binomial")
+
+
+#vary generating functions
+#choose large n because we want to plot generating functions
+data1 &lt;- sim.data(n = 500, scenario = 1, zerof = 0)
+data2 &lt;- sim.data(n = 500, scenario = 2, zerof = 0)
+data3 &lt;- sim.data(n = 500, scenario = 3, zerof = 0)
+data4 &lt;- sim.data(n = 500, scenario = 4, zerof = 0)
+#and plot to see functional forms
+par(mfrow=c(2,2))
+col.vec = c("dodgerblue1","orange","seagreen1","hotpink")
+for (i in 1:4) {
+	if (i==1) data = data1 else if (i==2) data = data2 
+		else if (i==3) data = data3 else data = data4
+	plot(1,type="n",xlim=c(-2.5,2.5),ylim=c(-3,3),xlab=expression(x[j]),
+		ylab=expression(f[j](x[j])),main=paste("Scenario ",i,sep=""))
+	sapply(1:4, function(j) points(sort(data$x[,j]), 
+		data$theta[order(data$x[,j]),j],col=col.vec[j],type="l",lwd=3))
+}
+
+#include large number of predictors that have no relationship to outcome
+data &lt;- sim.data(n = 50, scenario = 1, zerof = 100, noise = 1)
+</code></pre>
+
+
+</div>

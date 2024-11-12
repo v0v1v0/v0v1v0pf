@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ncyc2meco</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transform 'NCycDB' or 'PCycDB' metagenomic abundance to 'microtable' object.</h2>
+
+<h3>Description</h3>
+
+<p>Transform 'NCycDB' or 'PCycDB' metagenomic abundance to microtable object. 
+The function can identify the mapping database according to the gene names of input feature abundance table.
+Reference: Qichao et al. (2019) &lt;doi: 10.1093/bioinformatics/bty741&gt; and Zeng et al. (2022) &lt;doi: 10.1186/s40168-022-01292-1&gt;.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ncyc2meco(feature_table, sample_table = NULL, match_table = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>feature_table</code></td>
+<td>
+<p>'NCycDB' or 'PCycDB' output abundance table, see the example file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_table</code></td>
+<td>
+<p>default NULL; sample metadata table; If provided, must be one of the several types of formats: 
+1) comma seperated file with the suffix csv or tab seperated file with suffix tsv/txt; 
+2) Excel type file with the suffix xlsx or xls; require <code>readxl</code> package to be installed; 
+3) <code>data.frame</code> object from R.
+A file path must be tab or comma seperated file, generally, a file with suffix "tsv" or "csv".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>match_table</code></td>
+<td>
+<p>default NULL; a two column table used to replace the sample names in abundance table; Must be two columns without column names;
+The first column must be raw sample names same with those in feature table, 
+the second column must be new sample names same with the rownames in sample_table; Please also see the example files.
+A file path must be tab or comma seperated file, e.g. a file with suffix "tsv" or "csv".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>parameter passed to microtable$new function of microeco package, such as auto_tidy parameter.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>microtable object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# NCycDB
+abund_file_path &lt;- system.file("extdata", "example_Ncyc_table.tsv", package="file2meco")
+sample_file_path &lt;- system.file("extdata", "example_metagenome_sample_info.tsv", 
+  package="file2meco")
+match_file_path &lt;- system.file("extdata", "example_metagenome_match_table.tsv", package="file2meco")
+library(microeco)
+library(file2meco)
+library(magrittr)
+ncyc2meco(abund_file_path)
+test &lt;- ncyc2meco(abund_file_path, sample_table = sample_file_path, 
+  match_table = match_file_path)
+test$tidy_dataset()
+# use split_group = TRUE to calculate the pathway abundance with multipe map correspondance
+test$cal_abund(select_cols = 1, rel = TRUE, split_group = TRUE, split_column = "Pathway")
+test$taxa_abund$Pathway %&lt;&gt;% .[!grepl("unclass", rownames(.)), ]
+test1 &lt;- trans_abund$new(test, taxrank = "Pathway")
+test1$plot_bar(bar_full = FALSE)
+# for gene abundance, no splitting on the Pathway
+test$cal_abund(select_cols = 1:2, rel = TRUE, split_group = FALSE)
+test$taxa_abund$Gene %&lt;&gt;% .[!grepl("unclass", rownames(.)), ]
+test1 &lt;- trans_abund$new(test, taxrank = "Gene")
+test1$plot_bar(bar_full = FALSE)
+
+# PCycDB
+abund_file_path &lt;- system.file("extdata", "example_Pcyc_table.tsv", package="file2meco")
+test &lt;- ncyc2meco(abund_file_path)
+test$tidy_dataset()
+# show pathway abundance
+test$cal_abund(select_cols = 1, rel = TRUE, split_group = TRUE, split_by = "&amp;&amp;", 
+    split_column = "Pathway")
+test$taxa_abund$Pathway %&lt;&gt;% .[!grepl("unclass|Others", rownames(.)), ]
+test1 &lt;- trans_abund$new(test, taxrank = "Pathway")
+test1$plot_bar(bar_full = FALSE)
+# show gene abundance
+test$cal_abund(select_cols = 2, rel = TRUE, split_group = FALSE)
+test$taxa_abund$Gene %&lt;&gt;% .[!grepl("unclass", rownames(.)), ]
+test1 &lt;- trans_abund$new(test, taxrank = "Gene")
+test1$plot_bar(bar_full = FALSE)
+
+</code></pre>
+
+
+</div>

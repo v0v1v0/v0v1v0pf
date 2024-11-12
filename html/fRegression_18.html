@@ -1,0 +1,362 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regFit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Regression Modelling</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the parameters of a regression model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    
+regFit(formula, data, family = gaussian, 
+    use = c("lm", "rlm", "glm", "gam", "ppr", "nnet", "polymars"), 
+    title = NULL, description = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p><code>data</code> is the data frame containing the variables in the 
+model. By default the variables are taken from 
+<code>environment(formula)</code>, typically the environment from 
+which <code>lm</code> is called.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+
+<p>a brief description of the project of type character.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>a description of the error distribution and link function to be 
+used in <code>glm</code> and <code>gam</code> models. See <code>glm</code> 
+and <code>family</code> for more details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>a symbolic description of the model to be fit.
+<br>
+A typical <code>glm</code> predictor has the form <code>response ~ terms</code> 
+where <code>response</code> is the (numeric) response vector and <code>terms</code>
+is a series of terms which specifies a (linear) predictor for 
+<code>response</code>. For <code>binomial</code> models the response can also 
+be specified as a <code>factor</code>.
+<br>
+A <code>gam</code> formula, see also <code>gam.models</code>, allows
+that smooth terms can be added to the right hand side of the 
+formula. See <code>gam.side.conditions</code> for details and 
+examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use</code></td>
+<td>
+
+<p>denotes the regression method by a character string used to fit 
+the model.
+<code>method</code> must be one of the strings in the default argument.<br><code>"lm"</code>, for linear regression models, <br><code>"rlm"</code>, for robust linear regression models, <br><code>"glm"</code> for generalized linear modelling, <br><code>"gam"</code> for generalized additive modelling, <br><code>"ppr"</code> for projection pursuit regression, <br><code>"nnet"</code> for feedforward neural network modelling, and <br><code>"polymars"</code> for polychotomous MARS.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+
+<p>a character string which allows for a project title.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional optional arguments to be passed to the underlying 
+functions. For details we refer to inspect the following help 
+pages: <code>lm</code>, <code>glm</code>, <code>gam</code>,
+<code>ppr</code>, <code>polymars</code>, 
+or <code>nnet</code>. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>regFit</code> was created to provide a selection of
+regression models working together with Rmetrics' <code>"timeSeries"</code>
+objects and providing a common S4 object as the returned value. These
+models include linear modeling, robust linear modeling, generalized
+linear modeling, generalized additive modelling, projection pursuit
+regression, neural networks, and polychotomous MARS models.<br></p>
+
+<p><b>LM – Linear Modelling:</b>
+<br><br>  
+Univariate linear regression analysis is a statistical methodology 
+that assumes a linear relationship between some predictor variables 
+and a response variable. The goal is to estimate the coefficients 
+and to predict new data from the estimated linear relationship.
+</p>
+<p>R's base function
+</p>
+<p><code>lm(formula, data, subset, weights, na.action, method = "qr", </code><br><code> model = TRUE, x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, </code><br><code> contrasts = NULL, offset, ...) </code><br></p>
+<p>is used to fit linear models. It can be used to carry out regression, 
+single stratum analysis of variance and analysis of covariance, although 
+<code>aov</code> may provide a more convenient interface for these. 
+</p>
+<p>Rmetrics' function 
+</p>
+<p><code>regFit(formula, data, use = "lm", ...) </code><br></p>
+<p>calls R's base function <code>lm</code> but with the difference that the
+<code>data</code> argument, may be any rectangular object which can be 
+transferred by the function <code>as.data.frame</code> into a data frame
+with named columns, e.g. an object of class <code>"timeSeries"</code>. 
+The function <code>regFit</code> returns an S4 object of class <code>"fREG"</code> 
+whose slot <code>@fit</code> is the object as returned by the function 
+<code>"lm"</code>. In addition we have S4 methods <code>fitted</code> and 
+<code>residuals</code> which allow to retrieve the fitted values and the 
+residuals as objects of same class as defined by the argument 
+<code>data</code>.
+</p>
+<p>The function <code>plot.lm</code> provides four plots: a plot of residuals 
+against fitted values, a Scale-Location plot of sqrt(| residuals |) 
+against fitted values, a normal QQ plot, and a plot of Cook's 
+distances versus row labels.<br><code>[stats:lm]</code>
+<br></p>
+
+<p><b>LM – Robust Linear Modelling:</b>
+<br><br></p>
+<p>To fit a linear model by robust regression using an M estimator R
+offers the function 
+</p>
+<p><code>rlm(formula, data, weights, ..., subset, na.action, </code><br><code>  method = c("M", "MM", "model.frame"), </code><br><code>  wt.method = c("inv.var", "case"), </code><br><code>  model = TRUE, x.ret = TRUE, y.ret = FALSE, contrasts = NULL) </code><br></p>
+<p>from package <code>MASS</code>. Again we can use the Rmetrics' wrapper
+</p>
+<p><code>regFit(formula, data, use = "rlm", ...) </code><br></p>
+<p>which allows us to use for example S4 <code>timeSeries</code> objects as
+input and to get the output as an S4 object with the known slots.<br><code>[MASS::rlm]</code>
+<br></p>
+
+<p><b>GLM – Generalized Linear Models:</b>
+<br><br>
+Generalized linear modelling extends the linear model in two directions.
+(i) with a monotonic differentiable link function describing how the 
+expected values are related to the linear predictor, and (ii) with 
+response variables having a probability distribution from an exponential 
+family.<br></p>
+<p>R's base function from package <code>stats</code> comes with the function
+</p>
+<p><code>glm(formula, family = gaussian, data, weights, subset, </code><br><code>  na.action, start = NULL, etastart, mustart, offset, </code><br><code>  control = glm.control(...), model = TRUE, method = "glm.fit", </code><br><code>  x = FALSE, y = TRUE, contrasts = NULL, ...) </code><br></p>
+<p>Again we can use the Rmetrics' wrapper
+</p>
+<p><code>regFit(formula, data, use = "gam", ...) </code><br></p>
+<p><code>[stats::glm]</code>
+<br></p>
+
+<p><b>GAM – Generalized Additive Models:</b>
+<br><br>  
+An additive model generalizes a linear model by smoothing individually
+each predictor term. A generalized additive model extends the additive
+model in the same spirit as the generalized linear model extends the 
+linear model, namely for allowing a link function and for allowing 
+non-normal distributions from the exponential family.<br><code>[mgcv:gam]</code>
+<br></p>
+
+<p><b>PPR – Projection Pursuit Regression:</b>
+<br><br>  
+The basic method is given by Friedman (1984), and is essentially 
+the same code used by S-PLUS's <code>ppreg</code>. It is observed that 
+this code is extremely sensitive to the compiler used. The algorithm 
+first adds up to <code>max.terms</code>, by default <code>ppr.nterms</code>,
+ridge terms one at a time; it will use less if it is unable to find 
+a term to add that makes sufficient difference. The levels of 
+optimization, argument <code>optlevel</code>, by default 2, differ in 
+how thoroughly the models are refitted during this process.
+At level 0 the existing ridge terms are not refitted.  At level 1
+the projection directions are not refitted, but the ridge
+functions and the regression coefficients are. Levels 2 and 3 refit 
+all the terms; level 3 is more careful to re-balance the contributions
+from each regressor at each step and so is a little less likely to
+converge to a saddle point of the sum of squares criterion. The 
+<code>plot</code> method plots Ridge functions for the projection pursuit 
+regression fit.<br><code>[stats:ppr]</code>
+<br></p>
+
+<p><b>POLYMARS – Polychotomous MARS:</b>
+<br><br>
+The algorithm employed by <code>polymars</code> is different from the 
+MARS(tm) algorithm of Friedman (1991), though it has many similarities. 
+Also the name <code>polymars</code> has been used for this algorithm well 
+before MARS was trademarked.<br><code>[polyclass:polymars]</code>
+<br></p>
+
+<p><b>NNET – Feedforward Neural Network Regression:</b>
+<br><br>  
+If the response in <code>formula</code> is a factor, an appropriate 
+classification network is constructed; this has one output and 
+entropy fit if the number of levels is two, and a number of 
+outputs equal to the number of classes and a softmax output 
+stage for more levels. If the response is not a factor, it is 
+passed on unchanged to <code>nnet.default</code>. A quasi-Newton 
+optimizer is used, written in <code>C</code>. <br><code>[nnet:nnet]</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns an S4 object of class <code>"fREG"</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>The R core team for the <code>lm</code> functions from R's <code>base</code> package, <br>
+B.R. Ripley for the <code>glm</code> functions from R's <code>base</code> package, <br>
+S.N. Wood for the <code>gam</code> functions from R's <code>mgcv</code> package, <br>
+N.N. for the <code>ppr</code> functions from R's <code>modreg</code> package, <br>
+M. O' Connors for the <code>polymars</code> functions from R's <code>?</code> package, <br>
+The R core team for the <code>nnet</code> functions from R's <code>nnet</code> package, <br>
+Diethelm Wuertz for the Rmetrics <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-port.
+</p>
+
+
+<h3>References</h3>
+
+<p>Belsley D.A., Kuh E., Welsch R.E. (1980);
+<em>Regression Diagnostics</em>;
+Wiley, New York.
+</p>
+<p>Dobson, A.J. (1990);
+<em>An Introduction to Generalized Linear Models</em>;
+Chapman and Hall, London.
+</p>
+<p>Draper N.R., Smith H. (1981);
+<em>Applied Regression Analysis</em>; 
+Wiley, New York.
+</p>
+<p>Friedman, J.H. (1991); 
+<em>Multivariate Adaptive Regression Splines (with discussion)</em>,
+The Annals of Statistics 19, 1–141.
+</p>
+<p>Friedman J.H., and Stuetzle W. (1981); 
+<em>Projection Pursuit Regression</em>; 
+Journal of the American Statistical Association 76, 817-823.
+</p>
+<p>Friedman J.H. (1984);
+<em>SMART User's Guide</em>; 
+Laboratory for Computational Statistics, 
+Stanford University Technical Report No. 1.
+</p>
+<p>Green, Silverman (1994);
+<em>Nonparametric Regression and Generalized Linear Models</em>;
+Chapman and Hall.
+</p>
+<p>Gu, Wahba (1991); 
+<em>Minimizing GCV/GML Scores with Multiple
+Smoothing Parameters via the Newton Method</em>;
+SIAM J. Sci. Statist. Comput. 12, 383-398.
+</p>
+<p>Hastie T., Tibshirani R. (1990);
+<em>Generalized Additive Models</em>;
+Chapman and Hall, London.
+</p>
+<p>Kooperberg Ch., Bose S., and  Stone C.J. (1997);
+<em>Polychotomous Regression</em>,
+Journal of the American Statistical Association 92, 117–127.
+</p>
+<p>McCullagh P., Nelder, J.A. (1989);
+<em>Generalized Linear Models</em>;
+Chapman and Hall, London.
+</p>
+<p>Myers R.H. (1986);
+<em>Classical and Modern Regression with Applications</em>; 
+Duxbury, Boston.
+</p>
+<p>Rousseeuw P.J., Leroy, A. (1987);
+<em>Robust Regression and Outlier Detection</em>;
+Wiley, New York.
+</p>
+<p>Seber G.A.F. (1977);
+<em>Linear Regression Analysis</em>; 
+Wiley, New York.
+</p>
+<p>Stone C.J., Hansen M., Kooperberg Ch., and Truong Y.K. (1997);
+<em>The use of polynomial splines and their tensor products 
+in extended linear modeling (with discussion)</em>.
+</p>
+<p>Venables, W.N., Ripley, B.D. (1999);
+<em>Modern Applied Statistics with S-PLUS</em>; 
+Springer, New York.
+</p>
+<p>Wahba (1990); 
+<em>Spline Models of Observational Data</em>;
+SIAM.
+</p>
+<p>Weisberg S. (1985);
+<em>Applied Linear Regression</em>;  
+Wiley, New York.
+</p>
+<p>Wood (2000); 
+<em>Modelling and Smoothing Parameter Estimation  with
+Multiple  Quadratic Penalties</em>;
+JRSSB 62, 413-428.
+</p>
+<p>Wood (2001); 
+<em>mgcv: GAMs and Generalized Ridge Regression for <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span></em>.
+R News 1, 20-25.
+</p>
+<p>Wood (2001);
+<em>Thin Plate Regression Splines</em>.
+</p>
+<p>There exists a vast literature on regression. The references listed 
+above are just a small sample of what is available. The book by 
+Myers' is an introductory text book that covers discussions of much 
+of the recent advances in regression technology. Seber's book is 
+at a higher mathematical level and covers much of the classical theory 
+of least squares.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## regSim -
+   x &lt;- regSim(model = "LM3", n = 100)
+  
+   # LM       
+   regFit(Y ~ X1 + X2 + X3, data = x, use = "lm") 
+   # RLM      
+   regFit(Y ~ X1 + X2 + X3, data = x, use = "rlm") 
+   # AM       
+   regFit(Y ~ X1 + X2 + X3, data = x, use = "gam")                
+   # PPR      
+   regFit(Y ~ X1 + X2 + X3, data = x, use = "ppr") 
+   # NNET     
+   regFit(Y ~ X1 + X2 + X3, data = x, use = "nnet") 
+   # POLYMARS
+   regFit(Y ~ X1 + X2 + X3, data = x, use = "polymars")
+</code></pre>
+
+
+</div>

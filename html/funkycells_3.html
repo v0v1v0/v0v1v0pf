@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>funkyModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a Modified Random Forest Model with Bounds and Alignment</h2>
+
+<h3>Description</h3>
+
+<p>The function fits a modified random forest model to principal components
+of spatial interactions as well as meta-data. Additionally permutation and
+cross-validation is employed to improve understanding of the data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">funkyModel(
+  data,
+  K = 10,
+  outcome = colnames(data)[1],
+  unit = colnames(data)[2],
+  metaNames = NULL,
+  synthetics = 100,
+  alpha = 0.05,
+  silent = FALSE,
+  rGuessSims = 500,
+  subsetPlotSize = 25,
+  nTrees = 500,
+  method = "class"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data.frame of outcome and predictors. The predictors include
+groups of variables which are finite projections of a higher dimensional
+variables as well as single meta-variables.
+</p>
+<p>Any replicate data, i.e. repeated observations, should already be handled.
+The unit column is needed just to drop data (so pre-removing and giving
+NULL works). Typically use the results from getKsPCAData, potentially with
+meta-variables attached.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>(Optional) Numeric indicating the number of folds to use in K-fold
+cross-validation. The default is 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>(Optional) String indicating the outcome column name in data.
+Default is the first column of data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit</code></td>
+<td>
+<p>(Optional) String indicating the unit column name in data.
+Default is the second column of data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metaNames</code></td>
+<td>
+<p>(Optional) Vector indicating the meta-variables to be
+considered. Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>synthetics</code></td>
+<td>
+<p>(Optional) Numeric indicating the number of synthetics for
+variables (one set of sythethics for functional variables and one for each
+meta-variable). If 0 are used, the data cannot be aligned properly. Default
+is 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>(Optional) Numeric in (0,1) indicating the significance used
+throughout the analysis. Default is 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>(Optional) Boolean indicating if output should be suppressed
+when the function is running. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rGuessSims</code></td>
+<td>
+<p>(Optional) Numeric value indicating the number of
+simulations used for guessing and creating the guess estimate on the
+plot. Default is 500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subsetPlotSize</code></td>
+<td>
+<p>(Optional) Numeric indicating the number of top
+variables to include in a subset graph. If this is larger than the total
+number then no subset graph will be produced. Default is 25.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nTrees</code></td>
+<td>
+<p>(Optional) Numeric indicating the number of trees to use in the
+random forest model. Default is 500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>(Optional) Method for rpart tree to build random forest.
+Default is "class". Currently this is the only tested method. This will
+be expanded in future releases.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List with the following items:
+</p>
+
+<ol>
+<li>
+<p> model: The funkyForest Model fit on the entire given data.
+</p>
+</li>
+<li>
+<p> VariableImportance: Data.frame with the results of variable
+importance indices from the models and CV. The columns are
+var, est, sd, and cvSD.
+</p>
+</li>
+<li>
+<p> AccuracyEstimate: Data.frame with model accuracy estimates:
+out-of-bag accuracy (OOB), biased estimate (bias), and
+random guess (guess). The columns are OOB, bias, and guess.
+</p>
+</li>
+<li>
+<p> NoiseCutoff: Numeric indicating noise cutoff (vertical line).
+</p>
+</li>
+<li>
+<p> InterpolationCutoff: Vector of numerics indicating the
+interpolation cutoff (curved line).
+</p>
+</li>
+<li>
+<p> AdditionalParams: List of additional parameters for reference:
+Alpha and subsetPlotSize.
+</p>
+</li>
+<li>
+<p> viPlot: ggplot2 object for vi plot with standardized results.
+It displays ordered underlying functions and meta-variables
+with point estimates, sd, noise cutoff, and interpolation
+cutoff all based on variable importance values.
+</p>
+</li>
+<li>
+<p> subset_viPlot: (Optional) ggplot2 object for vi plot with
+standardized results and only top subsetPlotSize variables.
+It displays ordered underlying functions and meta-variables
+with point estimates, sd, noise cutoff, and interpolation
+cutoff all based on variable importance values.
+</p>
+</li>
+</ol>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Parameters are reduced beyond recommended levels for speed
+fm &lt;- funkyModel(
+  data = TNBC[, c(1:8, ncol(TNBC))],
+  outcome = "Class", unit = "Person",
+  metaNames = c("Age"),
+  nTrees = 5, synthetics = 10,
+  silent = TRUE
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>light_effects</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combination of Response, Predicted, Partial Dependence, and ALE profiles.</h2>
+
+<h3>Description</h3>
+
+<p>Calculates response- prediction-, partial dependence, and ALE profiles of a
+(multi-)flashlight with respect to a covariable <code>v</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">light_effects(x, ...)
+
+## Default S3 method:
+light_effects(x, ...)
+
+## S3 method for class 'flashlight'
+light_effects(
+  x,
+  v,
+  data = NULL,
+  by = x$by,
+  stats = c("mean", "quartiles"),
+  breaks = NULL,
+  n_bins = 11L,
+  cut_type = c("equal", "quantile"),
+  use_linkinv = TRUE,
+  counts_weighted = FALSE,
+  v_labels = TRUE,
+  pred = NULL,
+  pd_indices = NULL,
+  pd_n_max = 1000L,
+  pd_seed = NULL,
+  ale_two_sided = TRUE,
+  ...
+)
+
+## S3 method for class 'multiflashlight'
+light_effects(
+  x,
+  v,
+  data = NULL,
+  breaks = NULL,
+  n_bins = 11L,
+  cut_type = c("equal", "quantile"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "flashlight" or "multiflashlight".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>cut3()</code> in forming the
+cut breaks of the <code>v</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>The variable name to be profiled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional <code>data.frame</code>. Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>An optional vector of column names used to additionally group the results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+<p>Statistic to calculate for the response profile: "mean" or "quartiles".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breaks</code></td>
+<td>
+<p>Cut breaks for a numeric <code>v</code>. Used to overwrite automatic binning via
+<code>n_bins</code> and <code>cut_type</code>. Ignored if <code>v</code> is not numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_bins</code></td>
+<td>
+<p>Approximate number of unique values to evaluate for numeric <code>v</code>.
+Ignored if <code>v</code> is not numeric or if <code>breaks</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cut_type</code></td>
+<td>
+<p>Should a numeric <code>v</code> be cut into "equal" or "quantile" bins?
+Ignored if <code>v</code> is not numeric or if <code>breaks</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_linkinv</code></td>
+<td>
+<p>Should retransformation function be applied? Default is <code>TRUE</code>.
+Not used for type "shap".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>counts_weighted</code></td>
+<td>
+<p>Should counts be weighted by the case weights?
+If <code>TRUE</code>, the sum of <code>w</code> is returned by group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_labels</code></td>
+<td>
+<p>If <code>FALSE</code>, return group centers of <code>v</code> instead of labels.
+Only relevant if <code>v</code> is numeric with many distinct values.
+In that case useful for instance when different flashlights use different data sets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>Optional vector with predictions (after application of inverse link).
+Can be used to avoid recalculation of predictions over and over if the functions
+is to be repeatedly called for different <code>v</code> and predictions are computationally
+expensive to make. Not implemented for multiflashlight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_indices</code></td>
+<td>
+<p>A vector of row numbers to consider in calculating
+partial dependence profiles and "ale".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_n_max</code></td>
+<td>
+<p>Maximum number of ICE profiles to calculate (will be randomly
+picked from <code>data</code>) for partial dependence and ALE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_seed</code></td>
+<td>
+<p>Integer random seed used to select ICE profiles for partial dependence
+and ALE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ale_two_sided</code></td>
+<td>
+<p>If <code>TRUE</code>, <code>v</code> is continuous and <code>breaks</code>
+are passed or being calculated, then two-sided derivatives are calculated
+for ALE instead of left derivatives. More specifically: Usually, local effects
+at value x are calculated using points in <code class="reqn">[x-e, x]</code>.
+Set <code>ale_two_sided = TRUE</code> to use points in <code class="reqn">[x-e/2, x+e/2]</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that ALE profiles are being calibrated by (weighted) average predictions.
+The resulting level might be quite different from the one of the partial
+dependence profiles.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "light_effects" with the following elements:
+</p>
+
+<ul>
+<li> <p><code>response</code>: A tibble containing the response profiles.
+Column names can be controlled by <code>options(flashlight.column_name)</code>.
+</p>
+</li>
+<li> <p><code>predicted</code>: A tibble containing the prediction profiles.
+</p>
+</li>
+<li> <p><code>pd</code>: A tibble containing the partial dependence profiles.
+</p>
+</li>
+<li> <p><code>ale</code>: A tibble containing the ALE profiles.
+</p>
+</li>
+<li> <p><code>by</code>: Same as input <code>by</code>.
+</p>
+</li>
+<li> <p><code>v</code>: The variable(s) evaluated.
+</p>
+</li>
+<li> <p><code>stats</code>: Same as input <code>stats</code>.
+</p>
+</li>
+</ul>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>light_effects(default)</code>: Default method.
+</p>
+</li>
+<li> <p><code>light_effects(flashlight)</code>: Profiles for a flashlight object.
+</p>
+</li>
+<li> <p><code>light_effects(multiflashlight)</code>: Effect profiles for a multiflashlight object.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>light_profile()</code>, <code>plot.light_effects()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">fit &lt;- lm(Sepal.Length ~ ., data = iris)
+fl &lt;- flashlight(model = fit, label = "iris", data = iris, y = "Sepal.Length")
+light_effects(fl, v = "Species")
+</code></pre>
+
+
+</div>

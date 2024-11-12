@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>final_models</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Final Models</h2>
+
+<h3>Description</h3>
+
+<p>Select Best Models and Prep Final Outputs
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">final_models(
+  run_info,
+  average_models = TRUE,
+  max_model_average = 3,
+  weekly_to_daily = TRUE,
+  parallel_processing = NULL,
+  inner_parallel = FALSE,
+  num_cores = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>run_info</code></td>
+<td>
+<p>run info using the <code>set_run_info()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>average_models</code></td>
+<td>
+<p>If TRUE, create simple averages of individual models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_model_average</code></td>
+<td>
+<p>Max number of models to average together. Will
+create model averages for 2 models up until input value or max number of
+models ran.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weekly_to_daily</code></td>
+<td>
+<p>If TRUE, convert a week forecast down to day by
+evenly splitting across each day of week. Helps when aggregating
+up to higher temporal levels like month or quarter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel_processing</code></td>
+<td>
+<p>Default of NULL runs no parallel processing and
+forecasts each individual time series one after another. 'local_machine'
+leverages all cores on current machine Finn is running on. 'spark'
+runs time series in parallel on a spark cluster in Azure Databricks or
+Azure Synapse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inner_parallel</code></td>
+<td>
+<p>Run components of forecast process inside a specific
+time series in parallel. Can only be used if parallel_processing is
+set to NULL or 'spark'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_cores</code></td>
+<td>
+<p>Number of cores to run when parallel processing is set up.
+Used when running parallel computations on local machine or within Azure.
+Default of NULL uses total amount of cores on machine minus one. Can't be
+greater than number of cores on machine minus 1.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Final model outputs are written to disk.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data_tbl &lt;- timetk::m4_monthly %&gt;%
+  dplyr::rename(Date = date) %&gt;%
+  dplyr::mutate(id = as.character(id)) %&gt;%
+  dplyr::filter(
+    Date &gt;= "2013-01-01",
+    Date &lt;= "2015-06-01"
+  )
+
+run_info &lt;- set_run_info()
+
+prep_data(run_info,
+  input_data = data_tbl,
+  combo_variables = c("id"),
+  target_variable = "value",
+  date_type = "month",
+  forecast_horizon = 3
+)
+
+prep_models(run_info,
+  models_to_run = c("arima", "ets"),
+  back_test_scenarios = 3
+)
+
+train_models(run_info,
+  run_global_models = FALSE
+)
+
+final_models(run_info)
+
+</code></pre>
+
+
+</div>

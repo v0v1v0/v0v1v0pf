@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FDboostLSS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model-based Gradient Boosting for Functional GAMLSS</h2>
+
+<h3>Description</h3>
+
+<p>Function for fitting generalized additive models for location, scale and shape (GAMLSS)  
+with functional data using component-wise gradient boosting, for details see 
+Brockhaus et al. (2018).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FDboostLSS(
+  formula,
+  timeformula,
+  data = list(),
+  families = GaussianLSS(),
+  control = boost_control(),
+  weights = NULL,
+  method = c("cyclic", "noncyclic"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the model to be fit. 
+If <code>formula</code> is a single formula, the same formula is used for all distribution parameters. 
+<code>formula</code> can also be a (named) list, where each list element corresponds to one distribution 
+parameter of the GAMLSS distribution. The names must be the same as in the <code>families</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeformula</code></td>
+<td>
+<p>one-sided formula for the expansion over the index of the response. 
+For a functional response <code class="reqn">Y_i(t)</code> typically <code>~bbs(t)</code> to obtain a smooth 
+expansion of the effects along <code>t</code>. In the limiting case that <code class="reqn">Y_i</code> is a scalar response
+use <code>~bols(1)</code>, which sets up a base-learner for the scalar 1. 
+Or you can use <code>timeformula=NULL</code>, then the scalar response is treated as scalar. 
+Analogously to <code>formula</code>, <code>timeformula</code> can either be a one-sided formula or 
+a named list of one-sided formulas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame or list containing the variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>families</code></td>
+<td>
+<p>an object of class <code>families</code>. It can be either one of the pre-defined distributions 
+that come along with the package <code>gamboostLSS</code> or a new distribution specified by the user 
+(see <code>Families</code> for details). 
+Per default, the two-parametric <code>GaussianLSS</code> family is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of parameters controlling the algorithm. 
+For more details see <code>boost_control</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>does not work!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>fitting method, currently two methods are supported: 
+<code>"cyclic"</code> (see Mayr et al., 2012) and <code>"noncyclic"</code> 
+(algorithm with inner loss of Thomas et al., 2018).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>FDboost</code>, 
+including, <code>family</code> and <code>control</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For details on the theory of GAMLSS, see Rigby and Stasinopoulos (2005). 
+<code>FDboostLSS</code> calls <code>FDboost</code> to fit the distribution parameters of a GAMLSS - 
+a functional boosting model is fitted for each parameter of the response distribution.  
+In <code>mboostLSS</code>, details on boosting of GAMLSS based on 
+Mayr et al. (2012) and Thomas et al. (2018) are given.   
+In <code>FDboost</code>, details on boosting regression models with functional variables 
+are given (Brockhaus et al., 2015, Brockhaus et al., 2017).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FDboostLSS</code> that inherits from <code>mboostLSS</code>. 
+The <code>FDboostLSS</code>-object is a named list containing one list entry per distribution parameter
+and some attributes. The list is named like the parameters, e.g. mu and sigma, 
+if the parameters mu and sigma are modeled. Each list-element is an object of class <code>FDboost</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sarah Brockhaus
+</p>
+
+
+<h3>References</h3>
+
+<p>Brockhaus, S., Scheipl, F., Hothorn, T. and Greven, S. (2015). 
+The functional linear array model. Statistical Modelling, 15(3), 279-300.
+</p>
+<p>Brockhaus, S., Melcher, M., Leisch, F. and Greven, S. (2017): 
+Boosting flexible functional regression models with a high number of functional historical effects,  
+Statistics and Computing, 27(4), 913-926.
+</p>
+<p>Brockhaus, S., Fuest, A., Mayr, A. and Greven, S. (2018): 
+Signal regression models for location, scale and shape with an application to stock returns. 
+Journal of the Royal Statistical Society: Series C (Applied Statistics), 67, 665-686. 
+</p>
+<p>Mayr, A., Fenske, N., Hofner, B., Kneib, T. and Schmid, M. (2012): 
+Generalized additive models for location, scale and shape for high-dimensional 
+data - a flexible approach based on boosting. 
+Journal of the Royal Statistical Society: Series C (Applied Statistics), 61(3), 403-427. 
+</p>
+<p>Rigby, R. A. and D. M. Stasinopoulos (2005):  
+Generalized additive models for location, scale and shape (with discussion). 
+Journal of the Royal Statistical Society: Series C (Applied Statistics), 54(3), 507-554. 
+</p>
+<p>Thomas, J., Mayr, A., Bischl, B., Schmid, M., Smith, A., and Hofner, B. (2018), 
+Gradient boosting for distributional regression - faster tuning and improved 
+variable selection via noncyclical updates. 
+Statistics and Computing, 28, 673-687. 
+</p>
+<p>Stoecker, A., Brockhaus, S., Schaffer, S., von Bronk, B., Opitz, M., and Greven, S. (2019): 
+Boosting Functional Response Models for Location, Scale and Shape with an Application to Bacterial Competition. 
+<a href="https://arxiv.org/abs/1809.09881">https://arxiv.org/abs/1809.09881</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Note that <code>FDboostLSS</code> calls <code>FDboost</code> directly.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">########### simulate Gaussian scalar-on-function data
+n &lt;- 500 ## number of observations
+G &lt;- 120 ## number of observations per functional covariate
+set.seed(123) ## ensure reproducibility
+z &lt;- runif(n) ## scalar covariate
+z &lt;- z - mean(z)
+s &lt;- seq(0, 1, l=G) ## index of functional covariate
+## generate functional covariate
+if(require(splines)){
+   x &lt;- t(replicate(n, drop(bs(s, df = 5, int = TRUE) %*% runif(5, min = -1, max = 1))))
+}else{
+  x &lt;- matrix(rnorm(n*G), ncol = G, nrow = n)
+}
+x &lt;- scale(x, center = TRUE, scale = FALSE) ## center x per observation point
+
+mu &lt;- 2 + 0.5*z + (1/G*x) %*% sin(s*pi)*5 ## true functions for expectation
+sigma &lt;- exp(0.5*z - (1/G*x) %*% cos(s*pi)*2) ## for standard deviation
+
+y &lt;- rnorm(mean = mu, sd = sigma, n = n) ## draw respone y_i ~ N(mu_i, sigma_i)
+
+## save data as list containing s as well 
+dat_list &lt;- list(y = y, z = z, x = I(x), s = s)
+
+## model fit with noncyclic algorithm assuming Gaussian location scale model 
+m_boost &lt;- FDboostLSS(list(mu = y ~ bols(z, df = 2) + bsignal(x, s, df = 2, knots = 16), 
+                           sigma = y ~ bols(z, df = 2) + bsignal(x, s, df = 2, knots = 16)), 
+                           timeformula = NULL, data = dat_list, method = "noncyclic")
+summary(m_boost)
+
+
+ if(require(gamboostLSS)){
+  ## find optimal number of boosting iterations on a grid in 1:1000
+  ## using 5-fold bootstrap
+  ## takes some time, easy to parallelize on Linux
+  set.seed(123) 
+  cvr &lt;- cvrisk(m_boost, folds = cv(model.weights(m_boost[[1]]), B = 5),
+                grid = 1:1000, trace = FALSE)
+  ## use model at optimal stopping iterations 
+  m_boost &lt;- m_boost[mstop(cvr)] ## 832
+   
+  ## plot smooth effects of functional covariates for mu and sigma
+  oldpar &lt;- par(mfrow = c(1,2))
+  plot(m_boost$mu, which = 2, ylim = c(0,5))
+  lines(s, sin(s*pi)*5, col = 3, lwd = 2)
+  plot(m_boost$sigma, which = 2, ylim = c(-2.5,2.5))
+  lines(s, -cos(s*pi)*2, col = 3, lwd = 2)
+  par(oldpar)
+ }
+
+</code></pre>
+
+
+</div>

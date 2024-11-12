@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_flow_duration</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot flow duration curves</h2>
+
+<h3>Description</h3>
+
+<p>Plots flow duration curves of flow data from a daily streamflow data set. Plots the percent time flows are 
+equalled or exceeded. Calculates statistics from all values, unless specified. Data calculated using 
+<code>calc_longterm_stats()</code> function then converted for plotting. Returns a list of plots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_flow_duration(
+  data,
+  dates = Date,
+  values = Value,
+  groups = STATION_NUMBER,
+  station_number,
+  roll_days = 1,
+  roll_align = "right",
+  water_year_start = 1,
+  start_year,
+  end_year,
+  exclude_years,
+  custom_months,
+  custom_months_label,
+  complete_years = FALSE,
+  ignore_missing = FALSE,
+  months = 1:12,
+  include_longterm = TRUE,
+  log_discharge = TRUE,
+  log_ticks = ifelse(log_discharge, TRUE, FALSE),
+  include_title = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame of daily data that contains columns of dates, flow values, and (optional) groups (e.g. station numbers).
+Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains dates formatted YYYY-MM-DD. Only required if dates column name is not 
+'Date' (default). Leave blank or set to <code>NULL</code> if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains numeric flow values, in units of cubic metres per second.
+Only required if values column name is not 'Value' (default). Leave blank if using <code>station_number</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>Name of column in <code>data</code> that contains unique identifiers for different data sets, if applicable. Only required 
+if groups column name is not 'STATION_NUMBER'. Function will automatically group by a column named 'STATION_NUMBER' if 
+present. Remove the 'STATION_NUMBER' column beforehand to remove this grouping. Leave blank if using <code>station_number</code> 
+argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>station_number</code></td>
+<td>
+<p>Character string vector of seven digit Water Survey of Canada station numbers (e.g. <code>"08NM116"</code>) of
+which to extract daily streamflow data from a HYDAT database. Requires <code>tidyhydat</code> package and a HYDAT database.
+Leave blank if using <code>data</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_days</code></td>
+<td>
+<p>Numeric value of the number of days to apply a rolling mean. Default <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll_align</code></td>
+<td>
+<p>Character string identifying the direction of the rolling mean from the specified date, either by the first 
+(<code>'left'</code>), last (<code>'right'</code>), or middle (<code>'center'</code>) day of the rolling n-day group of observations. 
+Default <code>'right'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>water_year_start</code></td>
+<td>
+<p>Numeric value indicating the month (<code>1</code> through <code>12</code>) of the start of water year for
+analysis. Default <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_year</code></td>
+<td>
+<p>Numeric value of the first year to consider for analysis. Leave blank or set well before start date (i.e.
+<code>1800</code>) to use from the first year of the source data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_year</code></td>
+<td>
+<p>Numeric value of the last year to consider for analysis. Leave blank or set well after end date (i.e.
+<code>2100</code>) to use up to the last year of the source data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude_years</code></td>
+<td>
+<p>Numeric vector of years to exclude from analysis. Leave blank or set to <code>NULL</code> to include all years.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom_months</code></td>
+<td>
+<p>Numeric vector of months to combine to summarize (ex. <code>6:8</code> for Jun-Aug). Adds results to the end of table.
+If wanting months that overlap calendar years (ex. Oct-Mar), choose <code>water_year_start</code> that begins before the first 
+month listed. Leave blank for no custom month summary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom_months_label</code></td>
+<td>
+<p>Character string to label custom months. For example, if <code>months = 7:9</code> you may choose 
+<code>"Summer"</code> or <code>"Jul-Sep"</code>. Default <code>"Custom-Months"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complete_years</code></td>
+<td>
+<p>Logical values indicating whether to include only years with complete data in analysis. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_missing</code></td>
+<td>
+<p>Logical value indicating whether dates with missing values should be included in the calculation. If
+<code>TRUE</code> then a statistic will be calculated regardless of missing dates. If <code>FALSE</code> then only those statistics from
+time periods with no missing dates will be returned. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>months</code></td>
+<td>
+<p>Numeric vector of month curves to plot. <code>NA</code> if no months required. Default <code>1:12</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_longterm</code></td>
+<td>
+<p>Logical value indicating whether to include long-term curve of all data. Default <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_discharge</code></td>
+<td>
+<p>Logical value to indicate plotting the discharge axis (Y-axis) on a logarithmic scale. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_ticks</code></td>
+<td>
+<p>Logical value to indicate plotting logarithmic scale ticks when <code>log_discharge = TRUE</code>. Ticks will not
+appear when <code>log_discharge = FALSE</code>. Default to <code>TRUE</code> when <code>log_discharge = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_title</code></td>
+<td>
+<p>Logical value to indicate adding the group/station number to the plot, if provided. Default <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of ggplot2 objects with the following for each station provided:
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>Flow_Duration</code></td>
+<td>
+<p>a plot that contains flow duration curves for each month, long-term, and (option) customized months</p>
+</td>
+</tr></table>
+<h3>See Also</h3>
+
+<p><code>calc_longterm_daily_stats</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# Working examples:
+
+# Run if HYDAT database has been downloaded (using tidyhydat::download_hydat())
+if (file.exists(tidyhydat::hy_downloaded_db())) {
+
+# Plot flow durations using a data frame and data argument with defaults
+flow_data &lt;- tidyhydat::hy_daily_flows(station_number = "08NM116")
+plot_flow_duration(data = flow_data,
+                    start_year = 1980)
+
+# Plot flow durations using station_number argument with defaults
+plot_flow_duration(station_number = "08NM116",
+                   start_year = 1980)
+
+# Plot flow durations and add custom stats for July-September
+plot_flow_duration(station_number = "08NM116",
+                   start_year = 1980,
+                   custom_months = 7:9,
+                   custom_months_label = "Summer")
+                   
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ARest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of Autoregressive (AR) Parameters</h2>
+
+<h3>Description</h3>
+
+<p>Estimate parameters <code class="reqn">\phi</code> of autoregressive time series model
+</p>
+<p style="text-align: center;"><code class="reqn">X_t = \sum_{i=1}^p\phi_iX_{t-i} + e_t,</code>
+</p>
+
+<p>by default using robust difference-based estimator and Bayesian information
+criterion (BIC) to select the order <code class="reqn">p</code>. This function is employed
+for time series filtering in the functions <code>notrend_test</code>, <code>sync_test</code>,
+and <code>wavk_test</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ARest(x, ar.order = NULL, ar.method = "HVK", ic = c("BIC", "AIC", "none"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a vector containing a univariate time series. Missing values are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ar.order</code></td>
+<td>
+<p>order of the autoregressive model when <code>ic = "none"</code>, or
+the maximal order for IC-based filtering. Default is
+<code>round(10*log10(length(x)))</code>, where <code>x</code> is the time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ar.method</code></td>
+<td>
+<p>method of estimating autoregression coefficients.
+Default <code>"HVK"</code> delivers robust difference-based estimates by
+Hall and Van Keilegom (2003). Alternatively,
+options of <code>ar</code> function can be used, such as <code>"burg"</code>,
+<code>"ols"</code>, <code>"mle"</code>, and <code>"yw"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>information criterion used to select the order of autoregressive filter (AIC of BIC),
+considering models of orders <code class="reqn">p=</code> 0,1,...,<code>ar.order</code>.
+If <code>ic = "none"</code>, the AR(<code class="reqn">p</code>) model with <code class="reqn">p=</code> <code>ar.order</code> is used,
+without order selection.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The formula for information criteria used consistently for all methods:
+</p>
+<p style="text-align: center;"><code class="reqn">IC=n\ln(\hat{\sigma}^2) + (p + 1)k,</code>
+</p>
+
+<p>where <code class="reqn">n</code> = <code>length(x)</code>,
+<code class="reqn">p</code> is the autoregressive order (<code class="reqn">p + 1</code> is the number of model parameters),
+and <code class="reqn">k</code> is the penalty (<code class="reqn">k = \ln(n)</code> in BIC, and <code class="reqn">k = 2</code> in AIC).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of estimated AR coefficients. Returns <code>numeric(0)</code> if
+the final <code class="reqn">p=0</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Vyacheslav Lyubchich
+</p>
+
+
+<h3>References</h3>
+
+<p>Hall P, Van Keilegom I (2003).
+“Using difference-based methods for inference in nonparametric regression with time series errors.”
+<em>Journal of the Royal Statistical Society, Series B (Statistical Methodology)</em>, <b>65</b>(2), 443–456.
+<a href="https://doi.org/10.1111/1467-9868.00395">doi:10.1111/1467-9868.00395</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ar</code>, <code>HVK</code>,
+<code>notrend_test</code>, <code>sync_test</code>, <code>wavk_test</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate a time series Y:
+Y &lt;- arima.sim(n = 200, list(order = c(2, 0, 0), ar = c(-0.7, -0.1)))
+plot.ts(Y)
+
+# Estimate the coefficients:
+ARest(Y) # HVK, by default
+ARest(Y, ar.method = "yw") # Yule--Walker
+ARest(Y, ar.method = "burg") # Burg
+
+</code></pre>
+
+
+</div>

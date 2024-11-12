@@ -1,0 +1,1430 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Fire</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a New App Object</h2>
+
+<h3>Description</h3>
+
+<p>The Fire generator creates a new <code>Fire</code>-object, which is the class containing
+all the app logic. The class is based on the R6 OO-system and
+is thus reference-based with methods and data attached to each object, in
+contrast to the more well known S3 and S4 systems. A <code>fiery</code> server is event
+driven, which means that it is build up and manipulated by adding event
+handlers and triggering events. To learn more about the <code>fiery</code> event model,
+read the <a href="https://fiery.data-imaginist.com/articles/events.html">event vignette</a>.
+<code>fiery</code> servers can be modified directly or by attaching plugins. As with
+events, <a href="https://fiery.data-imaginist.com/articles/plugins.html">plugins has its own vignette</a>.
+</p>
+
+
+<h4>Initialization</h4>
+
+<p>A new 'Fire'-object is initialized using the <code>new()</code> method on the generator:
+</p>
+
+<table><tr>
+<td style="text-align: left;">
+<code>app &lt;- Fire$new(host = '127.0.0.1', port = 8080L)</code>
+</td>
+</tr></table>
+<h4>Copying</h4>
+
+<p>As <code>Fire</code> objects are using reference semantics new copies of an app cannot
+be made simply be assigning it to a new variable. If a true copy of a <code>Fire</code>
+object is desired, use the <code>clone()</code> method.
+</p>
+
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>host</code></dt>
+<dd>
+<p>A string giving a valid IPv4 address owned by the server, or <code>'0.0.0.0'</code> to listen on all addresses. The default is <code>'127.0.0.1'</code></p>
+</dd>
+<dt><code>port</code></dt>
+<dd>
+<p>An integer giving the port number the server should listen on (defaults to <code>8080L</code>)</p>
+</dd>
+<dt><code>refresh_rate</code></dt>
+<dd>
+<p>The interval in seconds between run cycles when running a blocking server (defaults to <code>0.001</code>)</p>
+</dd>
+<dt><code>refresh_rate_nb</code></dt>
+<dd>
+<p>The interval in seconds between run cycles when running a non-blocking server (defaults to <code>1</code>)</p>
+</dd>
+<dt><code>trigger_dir</code></dt>
+<dd>
+<p>A valid folder where trigger files can be put when running a blocking server (defaults to <code>NULL</code>). See the <a href="https://fiery.data-imaginist.com/articles/events.html"><em>The event cycle in fiery</em> vignette</a> for more information.</p>
+</dd>
+<dt><code>plugins</code></dt>
+<dd>
+<p>A named list of the already attached plugins. <strong>Read Only</strong> - can only be modified using the <code>attach()</code> method.</p>
+</dd>
+<dt><code>root</code></dt>
+<dd>
+<p>The location of the app. Setting this will remove the root value from requests (or decline them with <code>400</code> if the request does not match the root). E.g. the path of a request will be changed from <code style="white-space: pre;">⁠/demo/test⁠</code> to <code style="white-space: pre;">⁠/test⁠</code> if <code>root == '/demo'</code></p>
+</dd>
+<dt><code>access_log_format</code></dt>
+<dd>
+<p>A glue string defining how requests will be logged. For standard formats see common_log_format and combined_log_format. Defaults to the <em>Common Log Format</em></p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-Fire-new"><code>Fire$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-format"><code>Fire$format()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-ignite"><code>Fire$ignite()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-start"><code>Fire$start()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-reignite"><code>Fire$reignite()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-resume"><code>Fire$resume()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-extinguish"><code>Fire$extinguish()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-stop"><code>Fire$stop()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-on"><code>Fire$on()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-off"><code>Fire$off()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-trigger"><code>Fire$trigger()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-send"><code>Fire$send()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-close_ws_con"><code>Fire$close_ws_con()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-attach"><code>Fire$attach()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-has_plugin"><code>Fire$has_plugin()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-header"><code>Fire$header()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-set_data"><code>Fire$set_data()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-get_data"><code>Fire$get_data()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-remove_data"><code>Fire$remove_data()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-time"><code>Fire$time()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-remove_time"><code>Fire$remove_time()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-delay"><code>Fire$delay()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-remove_delay"><code>Fire$remove_delay()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-async"><code>Fire$async()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-remove_async"><code>Fire$remove_async()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-set_client_id_converter"><code>Fire$set_client_id_converter()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-set_logger"><code>Fire$set_logger()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-log"><code>Fire$log()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-is_running"><code>Fire$is_running()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-test_request"><code>Fire$test_request()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-test_header"><code>Fire$test_header()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-test_message"><code>Fire$test_message()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-test_websocket"><code>Fire$test_websocket()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Fire-clone"><code>Fire$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-Fire-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Create a new <code>Fire</code> app
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$new(host = "127.0.0.1", port = 8080)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>host</code></dt>
+<dd>
+<p>A string overriding the default host</p>
+</dd>
+<dt><code>port</code></dt>
+<dd>
+<p>An port number overriding the default port</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A <code>Fire</code> object
+</p>
+
+
+<hr>
+<a id="method-Fire-format"></a>
+
+
+
+<h4>Method <code>format()</code>
+</h4>
+
+<p>Human readable description of the app
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$format(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>ignored</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A character vector
+</p>
+
+
+<hr>
+<a id="method-Fire-ignite"></a>
+
+
+
+<h4>Method <code>ignite()</code>
+</h4>
+
+<p>Begin running the server. Will trigger the <code>start</code> event
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$ignite(block = TRUE, showcase = FALSE, ..., silent = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>block</code></dt>
+<dd>
+<p>Should the console be blocked while running (alternative is to run in the background)</p>
+</dd>
+<dt><code>showcase</code></dt>
+<dd>
+<p>Should the default browser open up at the server address</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Arguments passed on to the <code>start</code> handler</p>
+</dd>
+<dt><code>silent</code></dt>
+<dd>
+<p>Should startup messaging by silenced</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-start"></a>
+
+
+
+<h4>Method <code>start()</code>
+</h4>
+
+<p>Synonymous method to <code>ignite()</code>
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$start(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>passed on to <code>ignite()</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-reignite"></a>
+
+
+
+<h4>Method <code>reignite()</code>
+</h4>
+
+<p>Resume a session. This is equivalent to <code>ignite()</code> but will also trigger the <code>resume</code> event
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$reignite(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>passed on to <code>ignite()</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-resume"></a>
+
+
+
+<h4>Method <code>resume()</code>
+</h4>
+
+<p>Synonymous method to <code>reignite()</code>
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$resume(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>passed on to <code>ignite()</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-extinguish"></a>
+
+
+
+<h4>Method <code>extinguish()</code>
+</h4>
+
+<p>Stop the server. Will trigger the <code>end</code> event
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$extinguish()</pre></div>
+
+
+<hr>
+<a id="method-Fire-stop"></a>
+
+
+
+<h4>Method <code>stop()</code>
+</h4>
+
+<p>Synonymous method to <code>extinguish()</code>
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$stop()</pre></div>
+
+
+<hr>
+<a id="method-Fire-on"></a>
+
+
+
+<h4>Method <code>on()</code>
+</h4>
+
+<p>Add a handler to an event. See the <a href="https://fiery.data-imaginist.com/articles/events.html"><em>The event cycle in fiery</em> vignette</a> for more information.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$on(event, handler, pos = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>event</code></dt>
+<dd>
+<p>The name of the event that should trigger the handler</p>
+</dd>
+<dt><code>handler</code></dt>
+<dd>
+<p>The handler function that should be triggered</p>
+</dd>
+<dt><code>pos</code></dt>
+<dd>
+<p>The position in the handler stack to place it at. <code>NULL</code> will place it at the end.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A unique string identifying the handler
+</p>
+
+
+<hr>
+<a id="method-Fire-off"></a>
+
+
+
+<h4>Method <code>off()</code>
+</h4>
+
+<p>Remove an event handler from the app.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$off(handlerId)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>handlerId</code></dt>
+<dd>
+<p>The unique id identifying the handler</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-trigger"></a>
+
+
+
+<h4>Method <code>trigger()</code>
+</h4>
+
+<p>Trigger an event in the app. This will cause any handler attached to the event to be called. See the <a href="https://fiery.data-imaginist.com/articles/events.html"><em>The event cycle in fiery</em> vignette</a> for more information.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$trigger(event, ...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>event</code></dt>
+<dd>
+<p>The name of the event</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Arguments passed on to the handlers</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A named list containing the return values of all handlers attached to the event
+</p>
+
+
+<hr>
+<a id="method-Fire-send"></a>
+
+
+
+<h4>Method <code>send()</code>
+</h4>
+
+<p>Send a Websocket message to a client. Will trigger the <code>send</code> event.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$send(message, id)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>message</code></dt>
+<dd>
+<p>The message to send</p>
+</dd>
+<dt><code>id</code></dt>
+<dd>
+<p>The id of the client to send to. If missing, the message will be send to all clients</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-close_ws_con"></a>
+
+
+
+<h4>Method <code>close_ws_con()</code>
+</h4>
+
+<p>Close a Websocket connection. Will trigger the <code>websocket-closed</code> event
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$close_ws_con(id)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>id</code></dt>
+<dd>
+<p>The id of the client to close the websocket connection to</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-attach"></a>
+
+
+
+<h4>Method <code>attach()</code>
+</h4>
+
+<p>Attach a plugin to the app. See the <a href="https://fiery.data-imaginist.com/articles/plugins.html"><em>Creating and using fiery plugins</em> vignette</a> for more information
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$attach(plugin, ..., force = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>plugin</code></dt>
+<dd>
+<p>The plugin to attach</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Arguments to pass into the plugins <code>on_attach()</code> method</p>
+</dd>
+<dt><code>force</code></dt>
+<dd>
+<p>If the plugin has already been attached an error is thrown, unless <code>force = TRUE</code> which tells the app to reattach it</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-has_plugin"></a>
+
+
+
+<h4>Method <code>has_plugin()</code>
+</h4>
+
+<p>Check if the app has a plugin attached
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$has_plugin(name)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>The name of the plugin</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A boolean indicating if the given plugin is already attached
+</p>
+
+
+<hr>
+<a id="method-Fire-header"></a>
+
+
+
+<h4>Method <code>header()</code>
+</h4>
+
+<p>Add a global http header that will be applied to all responses
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$header(name, value)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>The name of the header</p>
+</dd>
+<dt><code>value</code></dt>
+<dd>
+<p>The value of the header. Use <code>NULL</code> to remove the global header</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-set_data"></a>
+
+
+
+<h4>Method <code>set_data()</code>
+</h4>
+
+<p>Add data to the global data store
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$set_data(name, value)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>The name identifying the data</p>
+</dd>
+<dt><code>value</code></dt>
+<dd>
+<p>The data to add</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-get_data"></a>
+
+
+
+<h4>Method <code>get_data()</code>
+</h4>
+
+<p>Retrieve data from the global data store
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$get_data(name)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>The name identifying the data</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>The data requested. Returns <code>NULL</code> if the store does not contain the requested data
+</p>
+
+
+<hr>
+<a id="method-Fire-remove_data"></a>
+
+
+
+<h4>Method <code>remove_data()</code>
+</h4>
+
+<p>Remove data from the global data store
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$remove_data(name)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>The name identifying the data to be removed</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-time"></a>
+
+
+
+<h4>Method <code>time()</code>
+</h4>
+
+<p>Add a timed evaluation that will be evaluated after the given number of seconds. See the <a href="https://fiery.data-imaginist.com/articles/delayed.html"><em>Delaying code execution in Fiery</em> vignette</a> for more information
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$time(expr, then, after, loop = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>expr</code></dt>
+<dd>
+<p>The expression to evaluate when the time has passed</p>
+</dd>
+<dt><code>then</code></dt>
+<dd>
+<p>A handler to call once <code>expr</code> has been evaluated</p>
+</dd>
+<dt><code>after</code></dt>
+<dd>
+<p>The time in second to wait before evaluating <code>expr</code></p>
+</dd>
+<dt><code>loop</code></dt>
+<dd>
+<p>Should <code>expr</code> be called repeatedly with the interval given by <code>after</code></p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A unique id identifying the handler
+</p>
+
+
+<hr>
+<a id="method-Fire-remove_time"></a>
+
+
+
+<h4>Method <code>remove_time()</code>
+</h4>
+
+<p>Remove a timed evaluation
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$remove_time(id)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>id</code></dt>
+<dd>
+<p>The unique id identifying the handler</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-delay"></a>
+
+
+
+<h4>Method <code>delay()</code>
+</h4>
+
+<p>Add a delayed evaluation to be evaluated immediately at the end of the loop cycle. See the <a href="https://fiery.data-imaginist.com/articles/delayed.html"><em>Delaying code execution in Fiery</em> vignette</a> for more information
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$delay(expr, then)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>expr</code></dt>
+<dd>
+<p>The expression to evaluate at the end of the cycle</p>
+</dd>
+<dt><code>then</code></dt>
+<dd>
+<p>A handler to call once <code>expr</code> has been evaluated</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A unique id identifying the handler
+</p>
+
+
+<hr>
+<a id="method-Fire-remove_delay"></a>
+
+
+
+<h4>Method <code>remove_delay()</code>
+</h4>
+
+<p>Remove a delayed evaluation
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$remove_delay(id)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>id</code></dt>
+<dd>
+<p>The unique id identifying the handler</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-async"></a>
+
+
+
+<h4>Method <code>async()</code>
+</h4>
+
+<p>Add an asynchronous evaluation to be evaluated in another process without blocking the server. See the <a href="https://fiery.data-imaginist.com/articles/delayed.html"><em>Delaying code execution in Fiery</em> vignette</a> for more information
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$async(expr, then)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>expr</code></dt>
+<dd>
+<p>The expression to evaluate at the end of the cycle</p>
+</dd>
+<dt><code>then</code></dt>
+<dd>
+<p>A handler to call once <code>expr</code> has been evaluated</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A unique id identifying the handler
+</p>
+
+
+<hr>
+<a id="method-Fire-remove_async"></a>
+
+
+
+<h4>Method <code>remove_async()</code>
+</h4>
+
+<p>Remove an async evaluation
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$remove_async(id)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>id</code></dt>
+<dd>
+<p>The unique id identifying the handler</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-set_client_id_converter"></a>
+
+
+
+<h4>Method <code>set_client_id_converter()</code>
+</h4>
+
+<p>Sets the function that converts an HTTP request into a specific client id
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$set_client_id_converter(converter)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>converter</code></dt>
+<dd>
+<p>A function with the argument <code>request</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-set_logger"></a>
+
+
+
+<h4>Method <code>set_logger()</code>
+</h4>
+
+<p>Sets the logging function to use
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$set_logger(logger)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>logger</code></dt>
+<dd>
+<p>A function with the arguments <code>event</code>, <code>message</code>, <code>request</code>, and <code>...</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-log"></a>
+
+
+
+<h4>Method <code>log()</code>
+</h4>
+
+<p>Log a message with the logger attached to the app. See loggers for build in functionality
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$log(event, message, request = NULL, ...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>event</code></dt>
+<dd>
+<p>The event associated with the message</p>
+</dd>
+<dt><code>message</code></dt>
+<dd>
+<p>The message to log</p>
+</dd>
+<dt><code>request</code></dt>
+<dd>
+<p>The <code>Request</code> object associated with the message, if any.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Additional arguments passed on to the logger.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-is_running"></a>
+
+
+
+<h4>Method <code>is_running()</code>
+</h4>
+
+<p>Test if an app is running
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$is_running()</pre></div>
+
+
+<hr>
+<a id="method-Fire-test_request"></a>
+
+
+
+<h4>Method <code>test_request()</code>
+</h4>
+
+<p>Send a request directly to the request logic of a non-running app. Only intended for testing the request logic
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$test_request(request)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>request</code></dt>
+<dd>
+<p>The request to send</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-test_header"></a>
+
+
+
+<h4>Method <code>test_header()</code>
+</h4>
+
+<p>Send a request directly to the header logic of a non-running app. Only intended for testing the request logic
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$test_header(request)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>request</code></dt>
+<dd>
+<p>The request to send</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-test_message"></a>
+
+
+
+<h4>Method <code>test_message()</code>
+</h4>
+
+<p>Send a message directly <strong>to</strong> the message logic of a non-running app. Only intended for testing the websocket logic
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$test_message(request, binary, message, withClose = TRUE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>request</code></dt>
+<dd>
+<p>The request to use to establish the connection</p>
+</dd>
+<dt><code>binary</code></dt>
+<dd>
+<p>Is the message send in binary or character format</p>
+</dd>
+<dt><code>message</code></dt>
+<dd>
+<p>The message to send. If <code>binary = FALSE</code> a character vector, if <code>binary = TRUE</code> a raw vector</p>
+</dd>
+<dt><code>withClose</code></dt>
+<dd>
+<p>Should the websocket connection be closed at the end by the client</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-test_websocket"></a>
+
+
+
+<h4>Method <code>test_websocket()</code>
+</h4>
+
+<p>Send a message directly <strong>from</strong> a non-running app. Only intended for testing the websocket logic
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$test_websocket(request, message, close = TRUE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>request</code></dt>
+<dd>
+<p>The request to use to establish the connection</p>
+</dd>
+<dt><code>message</code></dt>
+<dd>
+<p>The message to send from the app</p>
+</dd>
+<dt><code>close</code></dt>
+<dd>
+<p>Should the websocket connection be closed at the end by the server</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Fire-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Fire$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create a New App
+app &lt;- Fire$new(port = 4689)
+
+# Setup the data every time it starts
+app$on('start', function(server, ...) {
+    server$set_data('visits', 0)
+    server$set_data('cycles', 0)
+})
+
+# Count the number of cycles
+app$on('cycle-start', function(server, ...) {
+    server$set_data('cycles', server$get_data('cycles') + 1)
+})
+
+# Count the number of requests
+app$on('before-request', function(server, ...) {
+    server$set_data('visits', server$get_data('visits') + 1)
+})
+
+# Handle requests
+app$on('request', function(server, ...) {
+    list(
+        status = 200L,
+        headers = list('Content-Type' = 'text/html'),
+        body = paste('This is indeed a test. You are number', server$get_data('visits'))
+    )
+})
+
+# Show number of requests in the console
+app$on('after-request', function(server, ...) {
+    message(server$get_data('visits'))
+    flush.console()
+})
+
+# Terminate the server after 300 cycles
+app$on('cycle-end', function(server, ...) {
+    if (server$get_data('cycles') &gt; 300) {
+        message('Ending...')
+        flush.console()
+        server$extinguish()
+    }
+})
+
+# Be polite
+app$on('end', function(server) {
+    message('Goodbye')
+    flush.console()
+})
+
+## Not run: 
+app$ignite(showcase = TRUE)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

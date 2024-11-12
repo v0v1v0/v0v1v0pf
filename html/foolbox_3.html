@@ -1,0 +1,77 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_call_callback</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a function-specific callback to the call callbacks.</h2>
+
+<h3>Description</h3>
+
+<p>This function adds to the existing call callback, rather than replace it,
+by putting a callback in front of it to be tested first. The callback will
+be invoked when the traversal sees a call to a specific function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_call_callback(callbacks, fn, cb)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>callbacks</code></td>
+<td>
+<p>The existing callbacks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+<p>The function to which calls should be modified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cb</code></td>
+<td>
+<p>The callback function to invoke.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The callback that is installed will be called with the usual callback
+arguments (which depend on context and user-provided information to
+..., see <code>rewrite_callbacks()</code> and <code>analysis_callbacks()</code>), and additionally
+the next callback in line, through the parameter <code>next_cb</code>. This can be
+used to propagate information through several callbacks in a pipe-like
+fashion.
+</p>
+
+
+<h3>Value</h3>
+
+<pre>     The updated callbacks.
+</pre>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">f &lt;- function(x) 2 + x
+cb &lt;- rewrite_callbacks() %&gt;%
+   add_call_callback(f, function(expr, ...) {
+       quote(2 + x)
+   })
+tr_f &lt;- . %&gt;% rewrite() %&gt;% rewrite_with(cb)
+
+g &lt;- function(y) y + f(y)
+tr_f(g)
+
+</code></pre>
+
+
+</div>

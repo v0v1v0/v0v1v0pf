@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fk_regression</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast univariate kernel regression</h2>
+
+<h3>Description</h3>
+
+<p>Uses recursive formulation for kernel sums as described in Hofmeyr (2021) for exact evaluation of kernel regression estimate.  Both local linear and Nadaraya-Watson (Watson, 1964; Nadaraya, 1964) estimators are available. Binning approximation also available for faster computation if needed. Default is exact evaluation on a grid, but evaluation at sample points is also possible.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fk_regression(x, y, h = 'amise', beta = NULL, from = NULL,
+    to = NULL, ngrid = 1000, nbin = NULL, type = 'loc-lin')
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vector of response values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>(optional) bandwidth to be used in estimate. Can be either positive numeric, or one of "amise" for a rough estimate of the asymptotic mean integrated square error minimiser, or "cv" for leave-one-out cross validation error minimiser based on squared error. Default is "amise". Cross validation not available for binning approximation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>(optional) numeric vector of kernel coefficients. See Hofmeyr (2019) for details. The
+default is the smooth order one kernel described in the paper.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+<p>(optional) lower end of evaluation interval if evaluation on a grid is desired. Default is min(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+<p>(optional) upper end of evaluation interval if evaluation on a grid is desired. Default is max(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ngrid</code></td>
+<td>
+<p>(optional) integer number of grid points for evaluation. Default is 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbin</code></td>
+<td>
+<p>(optional) integer number of bins if binning estimator is to be used. The default is to compute the exact density on a grid of 1000 points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>(optional) one of "loc-lin" and "NW" if local linear or Nadaraya-Watson is desired, respectively. Default is local linear estimator.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named list with fields
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$x</code></td>
+<td>
+<p>the vector of points at which the regression function is estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$y</code></td>
+<td>
+<p>the estimated function values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$h</code></td>
+<td>
+<p>the value of the bandwidth.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Hofmeyr, D.P. (2021) "Fast exact evaluation of univariate kernel sums", <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, 43(2), 447-458.
+</p>
+<p>Nadaraya, E.A. (1964) "On estimating regression." <em>Theory of Probability and Its Applications</em>,9(1), 141–142.
+</p>
+<p>Watson, G.S. (1964) "Smooth regression analysis." <em>Sankhya: The Indian Journal of Statistics</em>, Series A, pp. 359–372.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">op &lt;- par(no.readonly = TRUE)
+
+set.seed(1)
+
+n &lt;- 2000
+x &lt;- rbeta(n, 2, 2) * 10
+y &lt;- 3 * sin(2 * x) + 10 * (x &gt; 5) * (x - 5)
+y &lt;- y + rnorm(n) + (rgamma(n, 2, 2) - 1) * (abs(x - 5) + 3)
+
+xs &lt;- seq(min(x), max(x), length = 1000)
+ftrue &lt;- 3 * sin(2 * xs) + 10 * (xs &gt; 5) * (xs - 5)
+
+fhat_loc_lin &lt;- fk_regression(x, y)
+fhat_NW &lt;- fk_regression(x, y, type = 'NW')
+
+par(mfrow = c(2, 2))
+plot(fhat_loc_lin, main = 'Local linear estimator with amise bandwidth')
+
+plot(fhat_NW, main = 'NW estimator with amise bandwidth')
+
+
+fhat_loc_lin &lt;- fk_regression(x, y, h = 'cv')
+fhat_NW &lt;- fk_regression(x, y, type = 'NW', h = 'cv')
+
+plot(fhat_loc_lin, main = 'Local linear estimator with cv bandwidth')
+
+plot(fhat_NW, main = 'NW estimator with cv bandwidth')
+
+par(op)
+</code></pre>
+
+
+</div>

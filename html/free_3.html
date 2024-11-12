@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>free_lasso</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Main solver of <code>free</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Main solver of <code>free</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">free_lasso(
+  p,
+  lambda,
+  est_func,
+  par_init,
+  alpha,
+  tau,
+  maxit = 1000L,
+  tol_ee = 1e-06,
+  tol_par = 1e-06,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The dimension of the dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Lasso regularization coefficient</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est_func</code></td>
+<td>
+<p>R function, the estimating function specified by the user</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_init</code></td>
+<td>
+<p>Optional, initial value for parameter update</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Tuning parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Tuning parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>Maximum iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol_ee</code></td>
+<td>
+<p>Convergence criterion based on the update of the estimating function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol_par</code></td>
+<td>
+<p>Convergence criterion based on the update of the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical, print updates</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the regularized estimating equation estimates and the number of iterations it takes to converge.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Standardize data
+dat &lt;- scale(mtcars)
+x &lt;- as.matrix(dat[, -1])
+y &lt;- as.vector(dat[, 1])
+n &lt;- nrow(x)
+p &lt;- ncol(x)
+
+# Specify estimating function
+ufunc &lt;- function(b) {
+  1/n * crossprod(x, (x %*% b - y) )
+}
+
+# Set hyperparameters
+tau &lt;- 0.6
+alpha &lt;- 0.5
+
+# Set regularization coefficient
+lambda1 &lt;- 0
+free_R1 &lt;- free_lasso(p = p,
+                      lambda = lambda1,
+                      est_func = ufunc,
+                      par_init = rep(0, p),
+                      alpha = alpha,
+                      tau = tau,
+                      maxit = 10000L,
+                      tol_ee = 1e-20,
+                      tol_par = 1e-10,
+                      verbose = FALSE)
+free_R1$coefficients
+
+# Compare with lm() - very close
+lm(y~x-1)$coefficients
+
+# Set regularization coefficient
+lambda2 &lt;- 0.7
+free_R2 &lt;- free_lasso(p = p,
+                      lambda = lambda2,
+                      est_func = ufunc,
+                      par_init = rep(0, p),
+                      alpha = alpha,
+                      tau = tau,
+                      maxit = 10000L,
+                      tol_ee = 1e-20,
+                      tol_par = 1e-10,
+                      verbose = FALSE)
+free_R2$coefficients
+
+</code></pre>
+
+
+</div>

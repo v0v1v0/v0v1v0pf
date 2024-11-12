@@ -1,0 +1,211 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ibdEstimate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pairwise relatedness estimation</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the IBD coefficients <code class="reqn">\kappa = (\kappa_0, \kappa_1,
+\kappa_2)</code> or the condensed identity coefficients <code class="reqn">\Delta =
+(\Delta_1, ..., \Delta_9)</code> between a pair (or several pairs)
+of pedigree members, using maximum likelihood methods. Estimates of
+<code class="reqn">\kappa</code> may be visualised with <code>showInTriangle()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ibdEstimate(
+  x,
+  ids = typedMembers(x),
+  param = c("kappa", "delta"),
+  markers = NULL,
+  start = NULL,
+  tol = sqrt(.Machine$double.eps),
+  beta = 0.5,
+  sigma = 0.5,
+  contourPlot = FALSE,
+  levels = NULL,
+  maxval = FALSE,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>ped</code> object or a list of such.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>Either a vector with ID labels, or a data frame/matrix with two
+columns, each row indicating a pair of individuals. The entries are coerced
+to characters, and must match uniquely against the ID labels of <code>x</code>. By
+default, all pairs of genotyped members of <code>x</code> are included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>Either "kappa" (default) or "delta"; indicating which set of
+coefficients should be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>markers</code></td>
+<td>
+<p>A vector with names or indices of markers attached to x,
+indicating which markers to include. By default, all markers are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>A probability vector (i.e., with nonnegative entries and sum 1)
+of length 3 (if <code>param = "kappa"</code>) or 9 (if <code>param = "delta"</code>), indicating
+the initial value of for the optimisation. By default, <code>start</code> is set to
+<code style="white-space: pre;">⁠(1/3, 1/3, 1/3)⁠</code> if <code>param = "kappa"</code> and <code style="white-space: pre;">⁠(1/9, ..., 1/9)⁠</code> if <code>param = "delta"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol, beta, sigma</code></td>
+<td>
+<p>Control parameters for the optimisation routine; can
+usually be left untouched.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contourPlot</code></td>
+<td>
+<p>A logical. If TRUE, contours of the log-likelihood
+function are plotted overlaying the IBD triangle.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>levels</code></td>
+<td>
+<p>(Only relevant if <code>contourPlot = TRUE</code>.) A numeric vector of
+levels at which to draw contour lines. If NULL (default), the levels are
+chosen automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxval</code></td>
+<td>
+<p>A logical. If TRUE, the maximum log-likelihood value is
+included in the output. Default: FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It should be noted that this procedure estimates the <em>realised</em> identity
+coefficients of each pair, i.e., the actual fractions of the autosomes in
+each IBD state. These may deviate substantially from the theoretical pedigree
+coefficients.
+</p>
+<p>Maximum likelihood estimation of relatedness coefficients originates with
+Thompson (1975). Optimisation of <code class="reqn">\kappa</code> is done in the <code class="reqn">(\kappa_0,
+\kappa_2)</code>-plane and restricted to the triangle defined by
+</p>
+<p style="text-align: center;"><code class="reqn">\kappa_0 \ge 0, \kappa_2 \ge 0, \kappa_0 + \kappa_2 \le 1</code>
+</p>
+
+<p>Optimisation of <code class="reqn">\Delta</code> is done in unit simplex of <code class="reqn">R^8</code>, using the
+first 8 coefficients.
+</p>
+<p>The implementation optimises the log-likelihood using a projected gradient
+descent algorithm, combined with a version of Armijo line search.
+</p>
+<p>When <code>param = "kappa"</code>, the output may be fed directly to <code>showInTriangle()</code>
+for visualisation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>ibdEst</code>, which is basically a data frame with
+either 6 columns (if <code>param = "kappa"</code>) or 12 columns (if <code>param = "delta"</code>). The first three columns are <code>id1</code> (label of first individual),
+<code>id2</code> (label of second individual) and <code>N</code> (the number of markers with no
+missing alleles). The remaining columns contain the coefficient estimates.
+If <code>maxval = T</code>, a column named <code>maxloglik</code> is added at the end.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Magnus Dehli Vigeland
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> E. A. Thompson (1975). <em>The estimation of pairwise relationships.</em> Annals
+of Human Genetics 39.
+</p>
+</li>
+<li>
+<p> E. A. Thompson (2000). <em>Statistical Inference from Genetic Data on
+Pedigrees.</em> NSF-CBMS Regional Conference Series in Probability and
+Statistics. Volume 6.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>ibdBootstrap()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+### Example 1: Siblings
+
+# Create pedigree and simulate 100 markers
+x = nuclearPed(2) |&gt; markerSim(N = 100, alleles = 1:4, seed = 123)
+x
+
+# Estimate kappa (expectation: (0.25, 0.5, 0.25)
+k = ibdEstimate(x, ids = 3:4)
+k
+
+# Visualise estimate
+showInTriangle(k, labels = TRUE)
+
+# Contour plot of the log-likelihood function
+ibdEstimate(x, ids = 3:4, contourPlot = TRUE)
+
+
+### Example 2: Full sib mating
+y = fullSibMating(1) |&gt;
+  markerSim(ids = 5:6, N = 1000, alleles = 1:10, seed = 123)
+
+# Estimate
+ibdEstimate(y, param = "delta")
+
+# Exact coefficient by `ribd`:
+ribd::condensedIdentity(y, 5:6, simplify = FALSE)
+
+</code></pre>
+
+
+</div>

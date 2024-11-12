@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flash_ebnm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Construct an EBNM function</h2>
+
+<h3>Description</h3>
+
+<p><code>flash_ebnm</code> is a helper function that provides readable syntax for
+constructing <code>ebnm</code> functions that can serve as
+arguments to parameter <code>ebnm_fn</code> in functions <code>flash</code>,
+<code>flash_greedy</code>, and <code>flash_factors_init</code> (see
+<strong>Examples</strong> below). It is also possible to write a custom function
+from scratch: see <strong>Details</strong> below for a simple example. A more
+involved example can be found in the "Advanced flashier" vignette.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flash_ebnm(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters to be passed to function <code>ebnm</code>
+in package <code>ebnm</code>. An argument to <code>prior_family</code> should be
+provided unless the default family of point-normal priors is desired.
+Arguments to parameters <code>x</code>, <code>s</code>, or <code>output</code> must not be
+included. Finally, if <code>g_init</code> is included, then <code>fix_g = TRUE</code>
+must be as well. To fix a prior grid, use parameter <code>scale</code> rather
+than <code>g_init</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>As input to parameter <code>ebnm_fn</code> in functions <code>flash</code>,
+<code>flash_greedy</code>, and <code>flash_factors_init</code>,
+it should suffice for many purposes to
+provide functions from package <code>ebnm</code> as is (for example, one might
+set <code>ebnm_fn = ebnm_point_laplace</code>). To use non-default
+arguments, function <code>flash_ebnm</code> may be used (see <strong>Examples</strong>).
+Custom functions may also be written. In general, any function that is
+used as an argument to <code>ebnm_fn</code> must accept parameters:
+</p>
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p>A vector of observations.</p>
+</dd>
+<dt><code>s</code></dt>
+<dd>
+<p>A vector of standard errors, or a scalar if all standard
+errors are equal.</p>
+</dd>
+<dt><code>g_init</code></dt>
+<dd>
+<p>The prior <code class="reqn">g</code>. Usually, this is left unspecified
+(<code>NULL</code>) and estimated from the data. If it is supplied and
+<code>fix_g = TRUE</code>, then the prior is fixed at <code>g_init</code>; if
+<code>fix_g = FALSE</code>, then <code>g_init</code> gives the
+initial value of <code class="reqn">g</code> used during optimization.
+</p>
+<p>In <code>flashier</code>,
+<code class="reqn">g</code> is fixed during the wrap-up phase when estimating local false
+sign rates and constructing a sampler; and <code>g_init</code> is used
+with <code>fix_g = FALSE</code> to "warmstart" backfits
+(see <code>flash_backfit</code>). If none of these features (local
+false sign rates, samplers, or warmstarts) are needed,
+then both <code>g_init</code> and <code>fix_g</code> can be ignored (the EBNM
+function must still accept them as parameters, but it need not do
+anything with their arguments).</p>
+</dd>
+<dt><code>fix_g</code></dt>
+<dd>
+<p>If <code>TRUE</code>, the prior is fixed at <code>g_init</code>
+instead of estimated. See the description of <code>g_init</code> above.</p>
+</dd>
+<dt><code>output</code></dt>
+<dd>
+<p>A character vector indicating which values are to be
+returned. Custom EBNM functions can safely ignore this parameter (again,
+they must accept it as a parameter, but they do not need to do anything
+with its argument).</p>
+</dd>
+</dl>
+<p>The return object must be a list that includes fields:
+</p>
+
+<dl>
+<dt><code>posterior</code></dt>
+<dd>
+<p>A data frame that includes columns <code>mean</code>
+and <code>second_moment</code> (the first and second moments for each
+posterior distribution
+<code class="reqn">p(\theta_i \mid s_i, \hat{g}), i = 1, ..., n</code>). Optionally,
+a column <code>lfsr</code> giving local false sign rates may also be
+included.</p>
+</dd>
+<dt><code>fitted_g</code></dt>
+<dd>
+<p>The estimated prior <code class="reqn">\hat{g}</code>. Within
+<code>flashier</code>, <code>fitted_g</code> is only ever used as an argument to
+<code>g_init</code> in subsequent calls to the same EBNM function, so the
+manner in which it is represented is unimportant.</p>
+</dd>
+<dt><code>log_likelihood</code></dt>
+<dd>
+<p>The optimal log likelihood
+<code class="reqn">L(\hat{g}) := \sum_i \log p(x_i \mid \hat{g}, s_i)</code>.</p>
+</dd>
+<dt><code>posterior_sampler</code></dt>
+<dd>
+<p>An optional field containing a function
+that samples from the posterior distributions of the "means"
+<code class="reqn">\theta_i</code>. If included, the function should take a single parameter
+<code>nsamp</code> and return a matrix where rows correspond to samples and
+columns correspond to observations (that is, there should be
+<code>nsamp</code> rows and <code class="reqn">n</code> columns).</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A function that can be passed as argument to parameter
+<code>ebnm_fn</code> in functions <code>flash</code>,
+<code>flash_greedy</code>, and <code>flash_factors_init</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ebnm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A custom EBNM function might be written as follows:
+my_ebnm_fn &lt;- function(x, s, g_init, fix_g, output) {
+  ebnm_res &lt;- ebnm_point_laplace(
+    x = x,
+    s = s,
+    g_init = g_init,
+    fix_g = fix_g,
+    output = output,
+    control = list(iterlim = 10)
+  )
+  return(ebnm_res)
+}
+
+# The following are equivalent:
+fl1 &lt;- flash(
+  gtex,
+  ebnm_fn = my_ebnm_fn,
+  greedy_Kmax = 2
+)
+fl2 &lt;- flash(
+  gtex,
+  ebnm_fn = flash_ebnm(
+    prior_family = "point_laplace",
+    control = list(iterlim = 10)
+  ),
+  greedy_Kmax = 2
+)
+
+</code></pre>
+
+
+</div>

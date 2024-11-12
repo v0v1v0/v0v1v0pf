@@ -1,0 +1,221 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fapply</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Apply formatting to a vector</h2>
+
+<h3>Description</h3>
+
+<p>The <code>fapply</code> function applies formatting to a vector.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fapply(x, format = NULL, width = NULL, justify = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector, factor, or list to apply the format to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>A format to be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>The desired character width of the formatted vector.  Default
+value is NULL, meaning the vector will be variable width.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>justify</code></td>
+<td>
+<p>Whether to justify the return vector.  Valid values are 
+'left', 'right', 'center', 'centre', or 'none'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>fapply</code> function accepts several types of formats:  formatting
+strings, named vectors,
+vectorized functions, or user-defined formats.  It also 
+accepts a formatting list, composed of any of the previous types.  
+The function will first determine the type of format, and then apply 
+the format in the appropriate way.  Results are returned as a vector.
+</p>
+<p>The function also has parameters for width and justification.
+</p>
+<p>Parameters may also be passed as attributes on the vector.  See 
+the <code>fattr</code> function for additional information on setting
+formatting attributes.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of formatted values.
+</p>
+
+
+<h3>Types of Formats</h3>
+
+<p>The <code>fapply</code> function will process any of the following types of
+formats:
+</p>
+
+<ul>
+<li>
+<p><strong>Formatting string:</strong> A single string will be interpreted as 
+a formatting string.  See the FormattingStrings documentation for 
+further details.
+</p>
+</li>
+<li>
+<p><strong>Named vector:</strong> A named vector can serve as a lookup list or 
+decode 
+for a vector.  You can use a named vector to perform simple 
+lookups on character vectors.
+</p>
+</li>
+<li>
+<p><strong>Format object:</strong> A format object may be created using the 
+<code>value</code> function.  The format object is included in the 
+<strong>fmtr</strong> package, and is specially designed for data categorization.  
+</p>
+</li>
+<li>
+<p><strong>Vectorized formatting function:</strong> A vectorized function 
+provides
+the most flexibility and power over your formatting.  You can use 
+an existing formatting function from any package, or create 
+your own vectorized formatting function using <code>Vectorize</code>.
+</p>
+</li>
+</ul>
+<p><code>fapply</code> will also accept a formatting list, which can contain any 
+number of formats from the above list.  To create a formatting list, 
+see the <code>flist</code> function.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fcat</code> to create a format catalog,
+<code>value</code> to define a format, 
+<code>fattr</code> to easily set the formatting attributes of a vector, 
+and <code>flist</code> to define a formatting list.  Also see 
+<code>fdata</code> to apply formats to an entire data frame, and 
+FormattingStrings for how to define a formatting string.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: Formatting string ##
+v1 &lt;- c(1.235, 8.363, 5.954, 2.465)
+
+# Apply string format.
+fapply(v1, "%.1f")
+# [1] "1.2" "8.4" "6.0" "2.5"
+
+## Example 2: Named vector ##
+# Set up vector
+v2 &lt;- c("A", "B", "C", "B")
+
+# Set up named vector for formatting
+fmt2 &lt;- c(A = "Label A", B = "Label B", C = "Label C")
+
+# Apply format to vector
+fapply(v2, fmt2)
+# [1] "Label A" "Label B" "Label C" "Label B"
+
+## Example 3: User-defined format ##
+# Define format
+fmt3 &lt;- value(condition(x == "A", "Label A"),
+              condition(x == "B", "Label B"), 
+              condition(TRUE, "Other"))
+              
+# Apply format to vector
+fapply(v2, fmt3)
+# [1] "Label A" "Label B" "Other"   "Label B"
+
+## Example 4: Formatting function ##
+# Set up vectorized function
+fmt4 &lt;- Vectorize(function(x) {
+
+  if (x %in% c("A", "B"))
+    ret &lt;- paste("Label", x)
+  else
+    ret &lt;- "Other" 
+    
+  return(ret)
+})
+
+# Apply format to vector
+fapply(v2, fmt4)
+# [1] "Label A" "Label B" "Other"   "Label B"
+
+## Example 5: Formatting List - Row Type ##
+# Set up data
+# Notice each row has a different data type
+v3 &lt;- list(2841.258, "H", Sys.Date(),
+           "L", Sys.Date() + 60, 1382.8865)
+v4 &lt;- c("int", "char", "date", "char", "date", "int")
+
+# Create formatting list
+lst &lt;- flist(type = "row", lookup = v4,
+       int = function(x) format(x, digits = 2, nsmall = 1, 
+                                  big.mark=","),
+       char = value(condition(x == "H", "High"),
+                     condition(x == "L", "Low"),
+                     condition(TRUE, "NA")),
+       date = "%d%b%Y")
+
+# Apply formatting list to vector
+fapply(v3, lst)
+# [1] "2,841.3"   "High"      "06Jan2024" "Low"       "06Mar2024" "1,382.9"  
+
+## Example 6: Formatting List - Column Type ##
+# Set up data
+v5 &lt;- c(Sys.Date(), Sys.Date() + 30, Sys.Date() + 60)
+v5
+# [1] "2024-01-06" "2024-02-05" "2024-03-06"
+
+# Create formatting list
+lst &lt;- flist("%B", "This month is: %s", type = "column")
+
+# Apply formatting list to vector
+fapply(v5, lst)
+# [1] "This month is: January"  "This month is: February" "This month is: March" 
+
+# Example 7: Conditional Formatting
+# Data vector
+v6 &lt;- c(8.38371, 1.46938, 3.28783, NA, 0.98632)
+
+# User-defined format
+fmt5 &lt;- value(condition(is.na(x), "Missing"),
+              condition(x &lt; 1, "Low"), 
+              condition(x &gt; 5, "High"),
+              condition(TRUE, "%.2f"))
+
+# Apply format to data vector
+fapply(v6, fmt5)
+# [1] "High"    "1.47"    "3.29"    "Missing" "Low" 
+</code></pre>
+
+
+</div>

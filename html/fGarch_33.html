@@ -1,0 +1,271 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>garchSpec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Univariate GARCH/APARCH time series specification</h2>
+
+<h3>Description</h3>
+
+<p>Specifies an univariate ARMA-GARCH or ARMA-APARCH time series model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">garchSpec(model = list(), presample = NULL, 
+    cond.dist = c("norm", "ged", "std", "snorm", "sged", "sstd"), 
+    rseed = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cond.dist</code></td>
+<td>
+
+<p>a character string naming the desired conditional distribution.
+Valid values are <code>"norm"</code>, <code>"ged"</code>, <code>"std"</code>, 
+<code>"snorm"</code>, <code>"sged"</code>, <code>"sstd"</code>. The default value 
+is <code>"norm"</code>, the standard normal distribution.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>a list of GARCH model parameters, see section ‘Details’.
+The default <code>model=list()</code> specifies Bollerslev's 
+GARCH(1,1) model with normal conditional distributed innovations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>presample</code></td>
+<td>
+
+<p>a numeric three column matrix with start values for the series, 
+for the innovations, and for the conditional variances. For an 
+ARMA(m,n)-GARCH(p,q) process the number of rows must be at least 
+max(m,n,p,q)+1, longer presamples are truncated. Note, all presamples
+are initialized by a normal-GARCH(p,q) process.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rseed</code></td>
+<td>
+
+<p>single integer argument, the seed for the intitialization of
+the random number generator for the innovations. If
+<code>rseed=NULL</code>,  the default, then the state of the random
+number generator is not touched by this function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>garchSpec</code> specifies a GARCH or APARCH time series
+process which we can use for simulating artificial GARCH and/or APARCH
+models. This is very useful for testing the GARCH parameter estimation
+results, since your model parameters are known and well specified.
+</p>
+<p>Argument <code>model</code> is a list of model parameters. For the GARCH
+part of the model they are:
+</p>
+
+<dl>
+<dt><code>omega</code></dt>
+<dd>
+<p>the constant coefficient of the variance
+equation, by default <code>1e-6</code>;</p>
+</dd>
+<dt><code>alpha</code></dt>
+<dd>
+<p>the value or vector of autoregressive
+coefficients, by default 0.1, specifying a model of order 1;</p>
+</dd>
+<dt><code>beta</code></dt>
+<dd>
+<p>the value or vector of variance coefficients, by
+default 0.8, specifying a model of order 1.</p>
+</dd>
+</dl>
+<p>If the model is APARCH, then the following additional parameters are
+available:
+</p>
+
+<dl>
+<dt>delta</dt>
+<dd>
+<p>a positive number, the power of sigma in the volatility
+equation, it is 2 for GARCH models;</p>
+</dd>
+<dt>gamma</dt>
+<dd>
+<p>the leverage parameters, a vector of length
+<code>alpha</code>, containing numbers in the interval <code class="reqn">(0,1)</code>.</p>
+</dd>
+</dl>
+<p>The values for the linear part (conditional mean) are:
+</p>
+
+<dl>
+<dt><code>mu</code></dt>
+<dd>
+<p>the mean value, by default NULL;</p>
+</dd> 
+<dt><code>ar</code></dt>
+<dd>
+<p>the autoregressive ARMA coefficients, by default NULL;</p>
+</dd> 
+<dt><code>ma</code></dt>
+<dd>
+<p>the moving average ARMA coefficients, by default NULL.</p>
+</dd>
+</dl>
+<p>The parameters for the conditional distributions are:
+</p>
+
+<dl>
+<dt><code>skew</code></dt>
+<dd>
+<p>the skewness parameter (also named "xi"), by
+default 0.9, effective only for the <code>"dsnorm"</code>, the
+<code>"dsged"</code>, and the <code>"dsstd"</code> skewed conditional
+distributions;</p>
+</dd>
+<dt><code>shape</code></dt>
+<dd>
+<p>the shape parameter (also named "nu"), by
+default 2 for the <code>"dged"</code> and <code>"dsged"</code>, and by default
+4 for the <code>"dstd"</code> and <code>"dsstd"</code> conditional
+distributions.</p>
+</dd>
+</dl>
+<p>For example, specifying a subset AR(5[1,5])-GARCH(2,1) model with a
+standardized Student-t distribution with four degrees of freedom will
+return the following printed output:
+</p>
+<pre>
+        garchSpec(model = list(ar = c(0.5,0,0,0,0.1), alpha =  
+            c(0.1, 0.1), beta = 0.75, shape = 4), cond.dist = "std")  
+        
+        Formula: 
+         ~ ar(5) + garch(2, 1)  
+        Model: 
+         ar:    0.5 0 0 0 0.1  
+         omega: 1e-06  
+         alpha: 0.1 0.1  
+         beta:  0.75  
+        Distribution:   
+         std  
+        Distributional Parameter:  
+         nu = 4  
+        Presample:  
+           time          z     h y  
+        0     0 -0.3262334 2e-05 0  
+        -1   -1  1.3297993 2e-05 0  
+        -2   -2  1.2724293 2e-05 0  
+        -3   -3  0.4146414 2e-05 0  
+        -4   -4 -1.5399500 2e-05 0  
+        </pre>
+<p>Its interpretation is as follows.  ‘Formula’ describes the
+formula expression specifying the generating process, ‘Model’
+lists the associated model parameters, ‘Distribution’ the type
+of the conditional distribution function in use,
+‘Distributional Parameters’ lists the distributional parameter
+(if any), and the ‘Presample’ shows the presample input matrix.
+</p>
+<p>If we have specified <code>presample = NULL</code> in the argument list,
+then the presample is generated automatically by default as
+norm-AR()-GARCH() process.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>"fGARCHSPEC"</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Diethelm Wuertz for the Rmetrics <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-port
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>garchSim</code>,
+<code>garchFit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## garchSpec -
+
+   # Normal Conditional Distribution:
+   spec = garchSpec()
+   spec
+   
+   # Skewed Normal Conditional Distribution:
+   spec = garchSpec(model = list(skew = 0.8), cond.dist = "snorm")
+   spec
+   
+   # Skewed GED Conditional Distribution:
+   spec = garchSpec(model = list(skew = 0.9, shape = 4.8), cond.dist = "sged")
+   spec
+   
+## More specifications ...
+
+   # Default GARCH(1,1) - uses default parameter settings
+   garchSpec(model = list())
+   
+   # ARCH(2) - use default omega and specify alpha, set beta=0!
+   garchSpec(model = list(alpha = c(0.2, 0.4), beta = 0))
+   
+   # AR(1)-ARCH(2) - use default mu, omega
+   garchSpec(model = list(ar = 0.5, alpha = c(0.3, 0.4), beta = 0))
+   
+   # AR([1,5])-GARCH(1,1) - use default garch values and subset ar[.]
+   garchSpec(model = list(mu = 0.001, ar = c(0.5,0,0,0,0.1)))
+   
+   # ARMA(1,2)-GARCH(1,1) - use default garch values
+   garchSpec(model = list(ar = 0.5, ma = c(0.3, -0.3)))  
+   
+   # GARCH(1,1) - use default omega and specify alpha/beta
+   garchSpec(model = list(alpha = 0.2, beta = 0.7))
+   
+   # GARCH(1,1) - specify omega/alpha/beta
+   garchSpec(model = list(omega = 1e-6, alpha = 0.1, beta = 0.8))
+   
+   # GARCH(1,2) - use default omega and specify alpha[1]/beta[2]
+   garchSpec(model = list(alpha = 0.1, beta = c(0.4, 0.4)))
+   
+   # GARCH(2,1) - use default omega and specify alpha[2]/beta[1]
+   garchSpec(model = list(alpha = c(0.12, 0.04), beta = 0.08))
+   
+   # snorm-ARCH(1) - use defaults with skew Normal
+   garchSpec(model = list(beta = 0, skew = 0.8), cond.dist = "snorm")
+   
+   # sged-GARCH(1,1) - using defaults with skew GED
+   garchSpec(model = list(skew = 0.93, shape = 3), cond.dist = "sged")
+   
+   # Taylor Schwert GARCH(1,1) - this belongs to the family of APARCH Models
+   garchSpec(model = list(delta = 1))
+   
+   # AR(1)-t-APARCH(2, 1) - a little bit more complex specification ...
+   garchSpec(model = list(mu = 1.0e-4, ar = 0.5, omega = 1.0e-6, 
+       alpha = c(0.10, 0.05), gamma = c(0, 0), beta = 0.8, delta = 1.8, 
+       shape = 4, skew = 0.85), cond.dist = "sstd")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Plot_Tradeoff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Visualizes the size distortion maximum power loss tradeoff from the Diebold-Mariano test for equal predictive accuracy</h2>
+
+<h3>Description</h3>
+
+<p>'Plot_Tradeoff' creates a plot to show sensitivity of statistical significance to the choice of bandwidth and how size distortion and maximum power loss vary.
+It is designed for the Diebold-Mariano test for equal predictive accuracy (Diebold and Mariano, 2002).
+For a size-power tradeoff plot, see Lazarus, Lewis, Stock, and Watson (2018) and Lazarus, Lewis, and Stock (2021).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Plot_Tradeoff(
+  data,
+  f1 = NULL,
+  f2 = NULL,
+  y = NULL,
+  loss_function = NULL,
+  n_sim = 1000,
+  m_set = NULL,
+  verbose = TRUE,
+  no_m_label = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f1</code></td>
+<td>
+<p>Column containing forecaster 1's predictions. Should be a string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f2</code></td>
+<td>
+<p>Column containing forecaster 2's predictions. Should be a string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Column containing the realized value for the outcome variable. Should be a string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss_function</code></td>
+<td>
+<p>The transformation applied to the forecast error. Defaults to squared error loss. The user supplied function should take two inputs and a scalar output, loss = loss_function(f, y). For example, quadratic loss function would be defined as <code>loss_function=function(f,y){(f-y)^2}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_sim</code></td>
+<td>
+<p>The number of simulations used to generate the ARIMA model. Defaults to 1,000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m_set</code></td>
+<td>
+<p>The truncation parameter. Defaults to c(1:10, seq( 11, floor(nrow(data)/2), 10)). For a standard long-run variance calculation (for example, using Bartlett kernel), it controls the number of terms used in estimating the autocovariance matrix. It should be a vector of integers with the values of M you would like to plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>TRUE to print out the progress to the console. Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no_m_label</code></td>
+<td>
+<p>TRUE to plot without m labels. Defaults to FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of length 2. The first element is a ggplot2 object of the size-power tradeoff. The second element is the underlying data used to construct the plot in element 1.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Nathan Schor and Minchul Shin
+</p>
+
+
+<h3>References</h3>
+
+<p>Diebold, F. X. &amp; Mariano, R. S. (2002), Comparing Predictive Accuracy, <em>Journal of Business &amp; Economic Statistics</em>, <b>20</b>(1), 134-144.
+</p>
+<p>Lazarus, E., Lewis, D. J., Stock, J. H. &amp; Watson, M. W. (2018), HAR Inference: Recommendations for Practice, <em>Journal of Business &amp; Economic Statistics</em>, <b>36</b>(4), 541-559.
+</p>
+<p>Lazarus, E., Lewis, D. J. &amp; Stock, J. H. (2021), The Size-Power Tradeoff in HAR Inference, <em>Econometrica</em>, <b>89</b>(5), 2497-2516.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# A typical example
+set.seed(1234)
+output = Plot_Tradeoff(
+  data = TBILL,
+  f1   = "SPFfor_Step1",
+  f2   = "NCfor_Step1",
+  y    = "Realiz1",
+  m_set = seq(from = 1, to = 70, by = 10)
+)
+output[[1]] # The first element is a ggplot2 object of the size-power tradeoff.
+output[[2]] # The second element is the underlying data used to construct the plot in element 1.
+
+# An example with a user supplied loss function
+# To use the mean absolute error as a loss function rather than a quadratic loss function
+set.seed(1234)
+output = Plot_Tradeoff(
+  data = TBILL,
+  f1   = "SPFfor_Step1",
+  f2   = "NCfor_Step1",
+  y    = "Realiz1",
+  loss_function = function(f,y){ abs(f-y) },
+  m_set = seq(from = 1, to = 50, by = 10)
+)
+
+# An example without (f1, f2, y). The function will take the first three columns and use them
+set.seed(1234)
+tmpdata = TBILL[, c("SPFfor_Step1", "NCfor_Step1", "Realiz1")] # data with [f1, f2, y]
+Plot_Tradeoff(
+  data = tmpdata,
+  m_set = seq(from = 1, to = 50, by = 10)
+)
+
+</code></pre>
+
+
+</div>

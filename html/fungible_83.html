@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Ravgr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a random R matrix with an average rij</h2>
+
+<h3>Description</h3>
+
+<p>Ravgr(Rseed, NVar = NULL, u = NULL, rdist = "U", alpha = 4, beta = 2, SEED = NULL)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Ravgr(
+  Rseed,
+  NVar = NULL,
+  u = NULL,
+  rdist = "U",
+  alpha = 4,
+  beta = 2,
+  SEED = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Rseed</code></td>
+<td>
+<p>(matrix or scalar) This argument can take one of two alternative inputs. 
+The first input is an <code class="reqn">n \times n</code> <strong>R</strong> matrix with a known, 
+average rij.  The second type of input is a scalar <code class="reqn">\bar{r}_{ij}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NVar</code></td>
+<td>
+<p>(integer)  If <code>Rseed</code> is a scalar then the user must specify
+<code>NVar</code>, the number of variables in the desired <strong>R</strong> matrix. Default(<code>NVar = NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>(scalar). A scalar <code class="reqn">\in [0,1]</code>. Higher values of u will produce
+<strong>R</strong> matrices with more variable off-diagonal elements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rdist</code></td>
+<td>
+<p>(character). A character that controls the variance of the off 
+diagonal elements of the generated <strong>R</strong>. If <code>u = NULL</code> and <code>rdist="U"</code> then the <strong>R</strong> 
+matrices are uniformly  sampled from the space of all <code class="reqn">n\times n</code> <strong>R</strong> matrices with a 
+fixed average rij.  If <code>u = NULL</code> and <code>rdist = "B"</code> then the <strong>R</strong> matrices are 
+selected as a function of the <code>alpha</code> and <code>beta</code> arguments of a 
+Beta distribution. Default <code>rdist= "U"</code>. See Waller (2024) for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>(numeric) The shape1 parameter of a beta distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>(numeric)  The shape2 parameter of a beta distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SEED</code></td>
+<td>
+<p>(numeric)  The initial seed for the random number generator. 
+If SEED is not supplied then the program will generate (and return) a randomly
+generated seed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+
+<ul>
+<li> <p><strong>R</strong> A random <strong>R</strong> matrix with a known, average off-diagonal 
+element rij.
+</p>
+</li>
+<li> <p><strong>Rseed</strong> The input <strong>R</strong> matrix or scalar with the
+desired average rij.
+</p>
+</li>
+<li> <p><strong>u</strong> A random number <code class="reqn">\in [0,1]</code>.
+</p>
+</li>
+<li> <p><strong>s</strong> Scaling factor for hollow matrix <code>H</code>.
+</p>
+</li>
+<li> <p><strong>H</strong>  A hollow matrix used to create a fungible <strong>R</strong> matrix.
+</p>
+</li>
+<li> <p><strong>alpha</strong>  First argument of the beta distribution. If 
+<code>rdist= "U"</code> then <code>alpha = NULL</code>.
+</p>
+</li>
+<li> <p><strong>beta</strong>  Second argument of the beta distribution. 
+If <code>rdist= "U"</code> then <code>beta = NULL</code>.
+</p>
+</li>
+<li>  <p><strong>SEED</strong> The initial value for the random number generator.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Niels G. Waller
+</p>
+
+
+<h3>References</h3>
+
+<p>Waller, N. G. (2024). Generating correlation matrices with a 
+user-defined average correlation. Manuscript under review.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> # Example 1
+  R &lt;- matrix(.35, 6, 6)
+  diag(R) &lt;- 1
+  
+  Rout &lt;- Ravgr(Rseed = R, 
+               rdist = "U", SEED = 123)$R
+               
+  Rout |&gt; round(3)            
+  mean( Rout[upper.tri(Rout, diag = FALSE)] )
+  
+  # Example 2 
+  Rout &lt;- Ravgr(Rseed = .35, NVar = 6, 
+               rdist = "U", SEED = 123)$R
+               
+  Rout |&gt; round(3)            
+  mean( Rout[upper.tri(Rout, diag = FALSE)] )   
+  
+  # Example 3
+  # Generate an R matrix with a larger var(rij)
+  Rout &lt;- Ravgr(Rseed = .35,
+               NVar = 6, 
+               rdist = "B",
+               alpha = 7,
+               beta = 2)$R
+               
+  Rout |&gt; round(3)            
+  mean( Rout[upper.tri(Rout, diag = FALSE)] )
+  
+  # Example 4: Demonstrate the function of u
+  sdR &lt;- function(R){
+    sd(R[lower.tri(R, diag = FALSE)])
+  }
+  
+  Rout &lt;- Ravgr(Rseed = .35,
+               NVar = 6, 
+               u = 0,
+               SEED = 123)
+  sdR(Rout$R)  
+  
+  Rout &lt;- Ravgr(Rseed = .35,
+               NVar = 6, 
+               u = .5,
+               SEED = 123)
+  sdR(Rout$R)   
+  
+  Rout &lt;- Ravgr(Rseed = .35,
+               NVar = 6, 
+               u = 1,
+               SEED = 123)
+  sdR(Rout$R)          
+   
+</code></pre>
+
+
+</div>

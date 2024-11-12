@@ -1,0 +1,374 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flux</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimate gas flux rates using non-steady-state closed chamber data
+</h2>
+
+<h3>Description</h3>
+
+<p><code>flux</code> is a convenience wrapper for the other two functions that should be suitable for most users. It can be used to estimate gas fluxes for all three commonly measured greenhouse gases (<code class="reqn">CO_2</code>, <code class="reqn">CH_4</code>, <code class="reqn">N_2O</code>) at once or separately.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flux(x, var.par, co2ntrol = list(leak = TRUE, relay = FALSE), 
+min.allowed = 3, max.nrmse = 0.1, nrmse.lim = 0.2, r2.qual = 0.8, 
+range.lim = 30, out.unit = "auto", elementar = FALSE, 
+hardflag = list(range = TRUE), asterisks = TRUE)
+
+flux.odae(dat, var.par, min.allowed = 3, max.nrmse = 0.1, rl = NULL)
+
+flux.conv(fl.dat, ghg = "CH4", r2.qual = 0.8, nrmse.lim = 0.2, 
+out.unit = "auto", elementar = FALSE, hardflag = list(range = TRUE))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>A list of data tables as returned by <code>chop</code>. Each table contains data for one chamber measurement. Required are at least the columns specified in the argument <code>var.par</code> (see also Example).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.par</code></td>
+<td>
+
+<p>A named list specifying the variables and parameters that are used in the estimation process and variables that should be handed through the function so that they are easily available for further analysis. Some of the names are obligatory (<code>time</code>, <code>volume</code>, <code>area</code>, <code>t.air</code>, <code>p.air</code>, and two or more that specify the gas column and the gas quality column), others are optional. See details and examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ghg</code></td>
+<td>
+
+<p>Character string identifying the greenhouse gas for which concentration measurements are handled. Can be <code>"CH4"</code>, <code>"N2O"</code> or <code>"CO2"</code>. Defaults to <code>"CH4"</code>. This argument determines the molar weight that is used in the flux calculation with <code>gflux</code>, the input unit (ppb or ppm), and the ambient concentration of the gas that is added to the diagnostic plots plotted with <code>plot.fluss</code> and used for the determination of the number of measurements below ambient (<code>nomba</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>co2ntrol</code></td>
+<td>
+
+<p>Options for estimating fluxes with <code class="reqn">CO_2</code> control. In this case outliers and the slope of the <code class="reqn">CO_2</code> concentration measurements influence the estimated flux rate of the other greenhouse gases (<code class="reqn">N_2O</code> and <code class="reqn">CH_4</code>; see Details). By default, <code class="reqn">CO_2</code> correction is switched off.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.allowed</code></td>
+<td>
+
+<p>Integer giving the minimum number of concentration measurements allowed during the estimation of one single flux. Can be any number between 3 and the number of concentration measurements during one chamber placement.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.nrmse</code></td>
+<td>
+
+<p>Numeric giving the maximum acceptable normalized root mean square error for configurations with higher numbers of concentration measurements than specified in <code>min.allowed</code>. Numeric value between 0 and 1. Defaults to 0.1. Above that value lower numbers of concentration measurements down to <code>min.allowed</code> are considered. See details. In <code>flux</code> <code>max.nrmse</code> can also be given as a named list with three items giving the maximum acceptable nrmse per gas. See examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrmse.lim</code></td>
+<td>
+
+<p>Numeric between 0 and 1 (defaults to 0.2) giving the main quality parameter for the model fit, the maximum acceptable normalized root mean square error. If the best fit for one chamber measurement exceeds this value, the function reports <code>FALSE</code> in the <code>nrmse.f</code> quality flag. See details and value. In <code>flux</code> <code>nrmse.lim</code> can also be given as a named list with three items giving the <code>nrmse.lim</code> per gas. See examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.lim</code></td>
+<td>
+
+<p>The minimum detectable range of the concentration measurements during one chamber placement. Has to be either a single numerical value, a numeric vector with the same length as <code>x</code> giving different range limits for each chamber placement (for instance obtained by <code>flux.calib</code>) or a character string naming the column in <code>x</code> that contains range limit data. If this column is named "rl" (the default when the range limits are attached to the data by <code>flux.calib</code>)  <code>flux</code> automatically detects it. Note, that setting <code>range.lim != NULL</code> overrides the auto detected range limits.
+</p>
+<p>The acceptable range limit depends on the accuracy of the concentration measurements. When the range of the concentration measurements is smaller than the repeatability range of the measurement device (e.g., a gas chromatograph) one cannot tell real increase in concentration from random fluctuation. Therefore, if the range of the concentration measurements during one chamber placement is &lt; <code>range.lim</code>, the range.flag is set to FALSE (0). See details. In <code>flux</code> <code>range.lim</code> can also be given as a named list with three items giving the maximum acceptable range limits per gas. See examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r2.qual</code></td>
+<td>
+
+<p>Numeric giving the limit of minimum acceptable r2 as an alternative quality parameter describing the model fit. Can be between 0 and 1 (0.8 by default). If a model r2 is below the setting the r2 quality flag is reported FALSE (0). In <code>flux</code> <code>r2.qual</code> can also be given as a named list with three items giving the acceptable <code>r2.qual</code>ities per gas. See examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out.unit</code></td>
+<td>
+
+<p>Character string determining the output unit of the flux rate mass part. Character string. The default "auto" tries to find a unit that ranges the output value between 0.01 and 10. Possible output units are "ng", "mug", "mg", or "g". "mug" stands for "<code class="reqn">\mu</code>g" because non-ascii characters are not allowed in functions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elementar</code></td>
+<td>
+
+<p>When the fluxes are wanted as element values set <code>elementar = TRUE</code>. Defaults to FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hardflag</code></td>
+<td>
+
+<p>Named list that controls which of the quality flags are to be hard flagged (the value is changed according to the quality flag). <code>range.lim</code> is hard flagged by default. So when the range of the actual concentration values for a chamber measurement is smaller than the set range limit a zero flux is returned. When a flux estimation does not meet the quality requirements of any other hard-flagged quality parameter <code>flux</code> returns NA. For changing a quality parameter to a hard flag just provide its name (without quotation marks) and set it to TRUE. Possible parameters to chose as hard or soft flag are <code>nrmse</code>, <code>range</code>, and <code>r2</code>. Further the number of measurements below ambient (<code>nomba</code>) can be hardflagged by setting <code>nomba = [0…nc]</code> with <code>nc</code> = number of concentration measurements during one chamber placement. See examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asterisks</code></td>
+<td>
+
+<p>Logical. If <code>TRUE</code>, p-values are given as asterisks.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+
+<p>One data table for one chamber placement. See <code>x</code> and <code>var.par</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rl</code></td>
+<td>
+
+<p>Specifies <code>range.lim</code> in the low level function <code>flux.odae</code>. As with <code>range.lim</code> several options are allowed. Defaults to NULL. In this case, the function looks for a column <code>rl</code> in <code>dat</code>. If it can't find a column <code>rl</code>, the value is set to 0 and a warning is returned; if it does exist <code>dat$rl</code> is always taken. If <code>rl</code> is a character string the function looks for a column of that name in <code>dat</code>, if <code>rl</code> is a numeric value, this value is taken as the range limit. See examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fl.dat</code></td>
+<td>
+
+<p>An object with the same structure as returned by <code>flux.odae</code>. See details and value.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Typically it will be most convenient to use <code>flux</code> on objects returned by <code>chop</code> (i.e. on lists of data tables that contain all necessary data per chamber measurement including supporting information). <code>flux</code> simply wraps <code>flux.odae</code> and <code>flux.conv</code> applied on lists of chamber measurement data tables into one function. Thus, the data of a one day field campaign or a year of chamber measurements can easily be handled by simply running two functions (<code>chop</code> and <code>flux</code>) consecutively to estimate ghg fluxes for all three common ghg gases. See example.
+</p>
+<p>Probably the most important argument is <code>var.par</code>. It specifies the variables (by referring to the names of the data columns) from <code>x</code>  and  parameters (fixed values that are constant for all chamber placements) that are used for the flux estimations. For simple handling it is expecting a named list. 
+</p>
+<p>For <code>flux</code> the obligatory list items are: One item that refers to a column in <code>x</code> containing ghg concentrations (see next paragraph for details); <code>time</code> – chamber closing time in minutes; <code>volume</code> – chamber volume during placement (in cbm); <code>area</code> – chamber area (in sqm); <code>t.air</code> – air temperature inside chamber during concentration measurements (in °C); <code>p.air</code> – air pressure during concentration measurements (in Pa). 
+</p>
+<p>The list items that are used to specify the ghg for which flux estimation is carried out have to be specified by using the named list items <code>CH4</code> – <code class="reqn">CH_4</code> concentrations; <code>CH4.gcq</code> – <code class="reqn">CH_4</code> GC quality flag; <code>CO2</code> – <code class="reqn">CO_2</code> concentrations; <code>CO2.gcq</code> – <code class="reqn">CO_2</code> GC quality flag; <code>N2O</code> – <code class="reqn">N_2O</code> concentrations; <code>N2O.gcq</code> – <code class="reqn">N_2O</code> GC quality flag. Fluxes are estimated for all ghg for which concentration data are given. Thus, at least one ghg should be specified. GC quality flags are optional. If you don't provide a reference to a column in <code>x</code> the function assumes that all GC measurements were OK.
+</p>
+<p>All these list items can either be given as a variable (name of a column in <code>x</code>) or as a fixed parameter (a numeric value). This makes no sense for the <code>ghg</code>s and <code>time</code>, but in many cases chamber <code>volume</code> and <code>area</code> will be constant across measurements. Another likely candidate for a fixed parameter is <code>p.air</code> because air pressure is often not logged during chamber measurements. All additional list items should be of type ‘variable‘ and refer to further columns in <code>x</code> if you want those data handed through the function and be part of the result tables (for having all data in one place for further analyses). You are free to choose appropriate names. Fixed parameters will not be relayed.
+</p>
+<p>If the flux estimation is carried out in two steps it will typically be carried out on a list structure as returned by <code>chop</code>. Therefore, it is used within a <code>lapply</code> call. For details see examples. However, the functions <code>flux.odae</code> and <code>flux.conv</code> are  designed to be carried out on single data tables (<code>data.frame</code>) per chamber measurement. 
+</p>
+<p>First <code>flux.odae</code> is run. It simply tries to find the best model fit for the series of concentration measurements that are given in <code>dat</code>. This <code>data.frame</code> has to consist of five columns that give (in that order): gas concentration, closing time of the chamber in minutes, gas concentration quality flag, chamber volume, temperature within the chamber headspace during measurements (may change during chamber placement). See example data. 
+</p>
+<p>At the moment the optimization bases on linear regression. All possible models with n (= total number of concentration measurements per chamber placement) to <code>min.allowed</code> number of concentration measurements are fitted and the best fit is evaluated in a stepwise procedure. The normalized root mean square error is used as the quality criterion for the outlier detection and elimination procedure. All model fits with a nrmse &lt;= <code>max.nrmse</code> are extracted and ranked according to the number of concentration measurements (decreasing) and to the nrmse (increasing). The first ranked model is stored along with the original data table and some other information. Therefore a model with e.g. a nrmse of 0.081 constructed from 5 concentration measurements wins against a model with a nrmse of 0.07 with only 4 concentration measurements. This reflects the idea that models with nrmse &lt;= <code>max.nrmse</code> already represent a sufficient fit and do not have "outliers" that must be eliminated. 
+</p>
+<p>In case no model has a nrmse &lt;= <code>max.nrmse</code>, the models are simply ranked according to their nrmse and the model with the lowest nrmse wins and is stored. In that way outliers are detected and exluded. <code>flux.odae</code> returns a complex object that contains most of the necessary information for the <code>flux.conv</code> function and also carries information that is later needed for the plot functions (<code>plot.flux</code> and <code>plot.fluss</code>). 
+</p>
+<p>The flux calculation is then carried out with the function <code>flux.conv</code>. It takes the object returned by <code>flux.odae</code> and additional information (chamber area, gas species, several quality settings and in- as well as output units) and calculates the flux rates. Further several quality checks (r2 check, range check, nrmse check, nomba check; for details see Value) are carried out and quality flags are reported along with the fluxes in the output. It is best when all quality flags are returned <code>TRUE</code>. Depending on the application quality requirements might vary. Therefore, per default the function reports soft quality flags (despite for range). However, this can be changed via <code>hardflag</code>.
+</p>
+<p>The idea behind <code>co2ntrol</code> in <code>flux</code> is that the <code class="reqn">CO_2</code> concentration measurements might serve as a further check on the integrity of the chamber measuremnt in the field. When <code>co2ntrol</code> is set, the function first carries out an outlier procedure on the <code class="reqn">CO_2</code> concentration data (the respective columns have to be in <code>x</code> of course). Further, the slope of the <code class="reqn">CO_2</code> concentration change over time is checked. When it is negative, chamber leakage is assumed and a respective quality flag (<code>leak.flag</code>) is reported FALSE. The <code>leak.flag</code> cannot be hard flagged.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>flux</code> returns a complex object of class <code>fluxes</code> that is a 3 entry list. When the object is printed to the console only the second entry is displayed in a modified form that is meant to maximize information display with small footprint for easy inspection. A table is printed to the console with three columns per gas. The first contains the quality flags (e.g. "111.02"). The order is: <code>nrmse.f</code>, <code>r2.f</code>, <code>range.f</code>, <code>nomba.f</code>, <code>leak.f</code>. The first three are considered more important, and if they are '1' everything is fine. The first flag behind the full stop just gives the number of measurements below ambient, while the second is '2' when <code>co2ntrol</code> was switched off, '0' when leaking occurred, and '1' when no leaking occurred.
+</p>
+<p>The <code>data.frame</code> with the estimated flux rates contains all data needed for further analysis. The columns represent the entries in <code>fluss</code> of the single chamber measurements (including quality flags, see below) plus naming information according to the settings in the <code>nmes</code> argument of <code>chop</code>. <code>export</code> provides a simple way to export the results. The first entry is itself a list of lists and data tables. It is called <code>flux.res</code> and is comprised of objects that are returned by <code>flux.conv</code> per ghg. Each first level entry in these lists contains the information for one chamber measurement. It is named according to the <code>nmes</code>-setting in <code>chop</code> and contains the elements <code>fluss</code> (which is itself a list with the elements given below), <code>fl.dat</code> (equals the object returned by <code>flux.odae</code>; see below), and <code>unit</code> which provides information on the output mass unit of the flux rate that is handed over to the function <code>plot.fluss</code> and to the table output.
+</p>
+<p>The elements of <code>fluss</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ghg </code></td>
+<td>
+<p>Character. The gas species for which the flux has been estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flux </code></td>
+<td>
+<p>Numeric. Calculated flux rate in mass unit per m2 and hour.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r2 </code></td>
+<td>
+<p>The <code class="reqn">R^2</code> of the best fitted model that has been used for flux caclulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrmse </code></td>
+<td>
+<p>The NRMSE of the best fitted model that has been used for flux caclulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r2.f </code></td>
+<td>
+<p>Logical. <code class="reqn">R^2</code> quality flag telling whether the <code class="reqn">R^2</code> quality setting given in <code>r2.qual</code> is fulfilled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.f </code></td>
+<td>
+<p>Logical. Range quality flag telling whether the range of the concentration measurements exceeded the quality range of the measurement device that has been specified in <code>range.lim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrmse.f </code></td>
+<td>
+<p>Logical. NRMSE quality flag telling whether the NRMSE quality setting given in <code>nrmse.lim</code> is fulfilled (i.e. if the NRMSE of the best model &lt;= <code>nrmse.lim</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nomba.f </code></td>
+<td>
+<p>Integer. Reports the <strong>n</strong>umber <strong>o</strong>f <strong>m</strong>easurements <strong>b</strong>elow <strong>a</strong>mbient. The ambient concentrations are set to be 392.6 ppm (<code class="reqn">CO_2</code>), 1874 ppb (<code class="reqn">CH_4</code>),  and 324 ppb (<code class="reqn">N_2O</code>) (taken from Mace Head Ireland (<code class="reqn">N_2O</code>, <code class="reqn">CH_4</code>) and global average (<code class="reqn">CO_2</code>) obtained from http://cdiac.ornl.gov/pns/current_ghg.html as of August 16th, 2013).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leak.f </code></td>
+<td>
+<p>Logical. When <code>co2ntrol</code> was applied with <code>leak = TRUE</code>, possible chamber leakage as represented by decreasing <code class="reqn">CO_2</code> concentrations over time is shown by a <code>FALSE (0)</code>.</p>
+</td>
+</tr>
+</table>
+<p>The elements of <code>fl.dat</code> that is also the object returned by <code>flux.odae</code> are:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lm4flux </code></td>
+<td>
+<p>Complex object. The best fitting model as reported by <code>lm</code>. It builds the basis for the calculation of the flux rate via <code>flux.conv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.select </code></td>
+<td>
+<p>Integer vector giving the indices of the rows of the data table that have been used to construct the best fitting model. This information is later used in the plotting functions <code>plot.flux</code> and <code>plot.fluss</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orig.dat </code></td>
+<td>
+<p><code>data.frame</code> with the original data provided according to arguments <code>x</code> and <code>columns</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out.dat </code></td>
+<td>
+<p>Data to be handed through. Per default <code>area</code> and <code>volume</code> of the chamber are relayed but these values are not part of the table output whereas all additionally relayed data are part of the table output. </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Gerald Jurasinski &lt;gerald.jurasinski@uni-rostock.de&gt;, Franziska Koebsch &lt;franziska.koebsch@uni-rostock.de&gt;, Ulrike Hagemann &lt;ulrike.hagemann@zalf.de&gt;, Anke Günther &lt;anke.guenther@uni-rostock.de&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Nakano T (2004) A comparison of regression methods for estimating 
+soil-atmosphere diffusion gas fluxes by a closed-chamber technique. 
+Soil Biology and Biochemistry 36: 107-113.
+</p>
+<p>Forbrich I, Kutzbach L, Hormann A, Wilmking M (2010) A comparison of 
+linear and exponential regression for estimating diffusive CH4 fluxes by 
+closed-chambers in peatlands. Soil Biology and Biochemistry 42: 507-515.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>chop</code>, <code>flux.calib</code>, <code>gflux</code>, <code>plot.fluss</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load example data
+data(tt.pre)
+
+## extract field concentration measurements
+gcd &lt;- tt.pre[tt.pre$sampletype_a=="P",]
+
+## partition the data into data tables per chamber measurement
+# then do the partitioning
+gcd.parts &lt;- chop(gcd, factors = c("date", "spot", "veg"), 
+nmes = c("date", "veg", "spot"))
+
+## calculate flux rates for methane
+# first define a global CH4 range limit
+CH4.lim &lt;- 30
+# do the flux rate estimation (it will often be best to define
+# var.par separately, note that p.air is given as a parameter)
+vp.CH4 &lt;- list(CH4 = "CH4ppb", time = "time_min", CH4.gcq = "CH4Code", 
+volume = "cham_vol", t.air = "temp_dC", area = "cham_area", p.air = 101325)
+flux.CH4 &lt;- flux(gcd.parts, var.par = vp.CH4)
+# look at the results table
+flux.CH4
+
+# extracting range limits from the calibration gas measurements
+# and attaching them to gcd.parts. first get the calibration gas
+# measurements from tt.pre (changing the date because it is in 
+# a strange format and has to be the same as the dates in gcd.parts)
+cgm &lt;- tt.pre[tt.pre$sampletype_a=="E",c("date_gc", "CH4ppb", "CH4Code", 
+"CO2ppm", "CO2Code", "N2Oppb", "N2OCode")]
+names(cgm)[1] &lt;- "date"
+cgm$date &lt;- "2011-03-16"
+# now we can do the flux.calib
+gcd.parts.cal &lt;- flux.calib(gcd.parts, columns = c("date", "CH4ppb"), 
+calib = cgm, format="%Y-%m-%d", window=48, buffer=1100, attach=TRUE)
+# do the flux rate estimation (we use the same var.par as before)
+flux.CH4 &lt;- flux(gcd.parts.cal, var.par=vp.CH4, co2ntrol = NULL, 
+range.lim=NULL)
+# look at the results table
+flux.CH4
+# export the results to the working directory
+wd &lt;- getwd()
+export(flux.CH4, file=paste(wd, "/flux.CH4.txt", sep=""))
+
+## plot the concentration-change-with-time-plots as kind of diagnostic
+plot(flux.CH4, dims = c(3,6))
+
+## do the flux rate estimation whilst using CO2 concentrations to
+## control for possible chamber leakage
+flux.CH4.b &lt;- flux(gcd.parts, var.par=vp.CH4)
+# look at the results table
+flux.CH4.b
+# plot the concentration-change-with-time-plots as kind of diagnostic
+plot(flux.CH4.b, dims = c(3,6))
+
+## do the flux rate estimation whilst using CO2 concentrations to
+## control for outliers and possible chamber leakage
+flux.CH4.c &lt;- flux(gcd.parts, var.par=vp.CH4, co2ntrol = list(leak = TRUE, 
+relay = FALSE))
+# look at the results table
+flux.CH4.c
+# plot the concentration-change-with-time-plots as kind of diagnostic
+plot(flux.CH4.c, dims = c(3,6))
+
+</code></pre>
+
+
+</div>

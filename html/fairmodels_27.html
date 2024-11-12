@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.fairness_pca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot fairness PCA</h2>
+
+<h3>Description</h3>
+
+<p>Plot pca calculated on fairness_object metrics. Similar models and metrics should be close to each other. Plot doesn't work on multiple <code>fairness_pca</code> objects.
+Unlike in other plots here other <code>fairness_pca</code> objects cannot be added.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fairness_pca'
+plot(x, scale = 0.5, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>fairness_pca</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>scaling loadings plot, from 0 to 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other plot parameters</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ggplot2</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+
+y_numeric &lt;- as.numeric(german$Risk) - 1
+
+lm_model &lt;- glm(Risk ~ .,
+  data = german,
+  family = binomial(link = "logit")
+)
+
+rf_model &lt;- ranger::ranger(Risk ~ .,
+  data = german,
+  probability = TRUE,
+  num.trees = 200,
+  num.threads = 1
+)
+
+explainer_lm &lt;- DALEX::explain(lm_model, data = german[, -1], y = y_numeric)
+explainer_rf &lt;- DALEX::explain(rf_model, data = german[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(explainer_lm, explainer_rf,
+  protected = german$Sex,
+  privileged = "male"
+)
+
+# same explainers with different cutoffs for female
+fobject &lt;- fairness_check(explainer_lm, explainer_rf, fobject,
+  protected = german$Sex,
+  privileged = "male",
+  cutoff = list(female = 0.4),
+  label = c("lm_2", "rf_2")
+)
+
+fpca &lt;- fairness_pca(fobject)
+
+plot(fpca)
+</code></pre>
+
+
+</div>

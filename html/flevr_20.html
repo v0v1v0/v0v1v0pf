@@ -1,0 +1,88 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SL_stabs_fitfun</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wrapper for using Super Learner-based extrinsic selection within stability selection</h2>
+
+<h3>Description</h3>
+
+<p>A wrapper function for Super Learner-based extrinsic variable selection within
+stability selection, using the <code>stabs</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SL_stabs_fitfun(x, y, q, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the outcome of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>the number of features to select on average.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments to pass to <code>SuperLearner</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list, with elements: <code>selected</code> (a logical vector
+indicating whether or not each variable was selected); and <code>path</code> (
+a logical matrix indicating which variable was selected at each step).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>stabsel</code> for general usage of stability selection.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("biomarkers")
+# subset to complete cases for illustration
+cc &lt;- complete.cases(biomarkers)
+dat_cc &lt;- biomarkers[cc, ]
+# use only the mucinous outcome, not the high-malignancy outcome
+y &lt;- dat_cc$mucinous
+x &lt;- dat_cc[, !(names(dat_cc) %in% c("mucinous", "high_malignancy"))]
+feature_nms &lt;- names(x)
+# use stability selection with SL (using small number of folds for CV, 
+# small SL library and small number of bootstrap replicates for illustration only)
+set.seed(20231129)
+library("SuperLearner")
+sl_stabs &lt;- stabs::stabsel(x = x, y = y,
+                           fitfun = SL_stabs_fitfun,
+                           args.fitfun = list(SL.library = "SL.glm", cvControl = list(V = 2)),
+                           q = 2, B = 5, PFER = 5)
+sl_stabs
+
+</code></pre>
+
+
+</div>

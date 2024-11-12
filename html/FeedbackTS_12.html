@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kdd.from.raw.data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Build a KDD object from raw data
+</h2>
+
+<h3>Description</h3>
+
+<p>Build a KDD (Key Day Dataset) object from a matrix or a data frame containing a time series and other attributes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kdd.from.raw.data(raw.data, keyday.threshold, nb.days, col.series, col.date, 
+na.rm = TRUE, filter = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>raw.data</code></td>
+<td>
+
+<p>a data frame or a matrix containing raw data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keyday.threshold</code></td>
+<td>
+
+<p>a numeric providing the threshold value above which a day is considered as a key day (i.e. if the value <code class="reqn">y_i</code> of the times series is greater than or equal to <code>keyday.threshold</code> at day <code class="reqn">i</code>, then day <code class="reqn">i</code> is a key day).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb.days</code></td>
+<td>
+
+<p>an integer specifying the number of days considered after and before each key day.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.series</code></td>
+<td>
+
+<p>an integer specifying the number of the column containing the time series.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.date</code></td>
+<td>
+
+<p>an integer vector of size three specifying the numbers of the columns containing the vector of years, the vector of months and the vector of days in numeric format.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+
+<p>a logical indicating whether key days <code class="reqn">i</code> with missing values in the sub-series <code class="reqn">y_{i-K},\ldots,y_{i+K}</code> have to be discarded. If <code>na.rm = TRUE</code>, these key days are discarded (default is <code>TRUE</code>). 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+
+<p>a list of lists specifying the filters to carry out over the time series (default is <code>NULL</code>).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>filter</code> argument is a list of lists, each list having the following arguments:
+</p>
+
+<dl>
+<dt>
+<code>apply.over</code>:</dt>
+<dd>
+<p>a character string that must be one of "keyday" or "range", and that indicates whether the filter concerns only  the key days or also the range of days considered around the key days (<code class="reqn">K</code> days before and <code class="reqn">K</code> days after each key day).</p>
+</dd>
+<dt>
+<code>column</code>:</dt>
+<dd>
+<p>an integer specifying the column of <code>raw.data</code> which the filter is applied to.</p>
+</dd>
+<dt>
+<code>value</code>:</dt>
+<dd>
+<p>a value that must be taken by the variable determined by the argument <code>column</code>. </p>
+</dd>
+</dl>
+<p>Let <code class="reqn">i</code> denote a key day. Let <code class="reqn">z_i</code> denote the value, at day <code class="reqn">i</code>, of the variable determined by the argument <code>column</code>. If <code>apply.over = "keyday"</code> and <code class="reqn">z_i</code> = <code>value</code>, then key day <code class="reqn">i</code> is kept, otherwise it is discarded.  If <code>apply.over = "range"</code> and <code class="reqn">z_j</code> = <code>value</code> for all <code class="reqn">j\in\{i-K,\ldots,i+K\}</code>, then key day <code class="reqn">i</code> is kept, otherwise it is discarded.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object from the KDD class.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Samuel Soubeyrand <a href="mailto:Samuel.Soubeyrand@avignon.inra.fr">Samuel.Soubeyrand@avignon.inra.fr</a>, Cindy E. Morris, E. Keith Bigg.
+</p>
+
+
+<h3>References</h3>
+
+<p>Soubeyrand, S., Morris, C. E. and Bigg, E. K. (2014). Analysis of fragmented time directionality in time series to elucidate feedbacks in climate data. Environmental Modelling and Software 61: 78-86.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>KDD, kdd, rain.site.6008
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### load data for site 6008 (Callagiddy station)
+data(rain.site.6008)
+
+#### build KDD objects from raw data (site 6008: Callagiddy station)
+## using a threshold value equal to 25
+KDD=kdd.from.raw.data(raw.data=rain.site.6008,keyday.threshold=25,nb.days=20,
+   col.series=5,col.date=c(2,3,4),na.rm=TRUE,filter=NULL)
+summary(KDD)
+
+#### build KDD objects from raw data (site 6008: Callagiddy station)
+## using a threshold value equal to 25
+## using filters
+rain.site.6008b=cbind(rain.site.6008,rain.site.6008[["Year"]]&gt;=1960)
+KDD2=kdd.from.raw.data(raw.data=rain.site.6008b,keyday.threshold=25,nb.days=20,
+   col.series=5,col.date=c(2,3,4),na.rm=TRUE,
+   filter=list(list(apply.over="range",column=6,value=TRUE)))
+summary(KDD2)
+</code></pre>
+
+
+</div>

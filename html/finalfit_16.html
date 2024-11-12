@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dependent_label</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Make a label for the dependent variable</h2>
+
+<h3>Description</h3>
+
+<p>Can be add dependent label to final results dataframe.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dependent_label(df.out, .data, dependent, prefix = "Dependent: ", suffix = "")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df.out</code></td>
+<td>
+<p>Dataframe (results table) to be altered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>Original dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dependent</code></td>
+<td>
+<p>Character vector of length 1:  quoted name of depdendent
+variable. Can be continuous, a binary factor, or a survival object of form
+<code>Surv(time, status)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix</code></td>
+<td>
+<p>Prefix for dependent label</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suffix</code></td>
+<td>
+<p>Suffix for dependent label</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns the label for the dependent variable, if specified.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr)
+explanatory = c("age.factor", "sex.factor", "obstruct.factor", "perfor.factor")
+explanatory_multi = c("age.factor", "obstruct.factor")
+random_effect = "hospital"
+dependent = 'mort_5yr'
+
+# Separate tables
+colon_s %&gt;%
+	summary_factorlist(dependent, explanatory, fit_id=TRUE) -&gt; example.summary
+
+colon_s %&gt;%
+	glmuni(dependent, explanatory) %&gt;%
+	fit2df(estimate_suffix=" (univariable)") -&gt; example.univariable
+
+colon_s %&gt;%
+	 glmmulti(dependent, explanatory) %&gt;%
+	 fit2df(estimate_suffix=" (multivariable)") -&gt; example.multivariable
+
+colon_s %&gt;%
+  glmmixed(dependent, explanatory, random_effect) %&gt;%
+	 fit2df(estimate_suffix=" (multilevel") -&gt; example.multilevel
+
+# Pipe together
+example.summary %&gt;%
+  finalfit_merge(example.univariable) %&gt;%
+  finalfit_merge(example.multivariable) %&gt;%
+	 finalfit_merge(example.multilevel) %&gt;%
+	 select(-c(fit_id, index)) %&gt;%
+	 dependent_label(colon_s, dependent) -&gt; example.final
+  example.final
+</code></pre>
+
+
+</div>

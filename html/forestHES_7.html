@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>longtowide</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+A R function for converting  to long data to wide data
+</h2>
+
+<h3>Description</h3>
+
+<p>Converting regular survey data (long data, similar to the treedata and herbdata in the package) to species matrix, and attributes matrix (wide data).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">longtowide(longdata, left, up, inner = NULL,
+fun = rep("sum", length(inner)), freq = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>longdata</code></td>
+<td>
+
+<p>Regular survey data (long data, similar to the treedata and herbdata in the package)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left</code></td>
+<td>
+
+<p>Row names of matrix data after converted
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>up</code></td>
+<td>
+
+<p>Column names of matrix data after converted
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inner</code></td>
+<td>
+
+<p>Attributes data need to converted
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+
+<p>Functions need to applied in the converting process
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+
+<p>Frequency of attributes
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Wide data,such species matrix, and attributes matrix, etc.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Zongzheng Chai
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#####Example######
+##Following two example data with different subject, pineoakTree
+##is for the base data of individual trees, and the herb data is for
+##the base data of cluster.
+data(treedata)
+data(herbdata)
+
+####Merge a species matrix from base data
+##Note: following calculation only for the base data of individual not cluster
+pineoak.spematrix&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id")
+pineoak.spematrix
+
+##Equivalent method to merge species matrix from base data
+treedata$abundance&lt;-1
+head(treedata)
+tree.spematrix&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id",inner="abundance")
+tree.spematrix
+herb.spematrix&lt;-longtowide(longdata=herbdata,left="plot.id",up="spe.id",inner="abundance")
+herb.spematrix
+
+####Compute the frequency of species in the multiple plots
+##Merge a frequency matrix from base data
+tree.freq&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id",freq=TRUE)
+tree.freq
+herb.freq&lt;-longtowide(longdata=herbdata,left="plot.id",up="spe.id",freq=TRUE)
+herb.freq
+
+####Compute the attribute matrix from base data
+##Single attribute matrix
+tree.dbh&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id",inner="dbh.cm")
+tree.dbh
+herb.cover&lt;-longtowide(longdata=herbdata,left="plot.id",up="spe.id",inner="coverage")
+herb.cover
+
+##Multiple attribute matrix
+tree.multattr&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id",
+inner=c("dbh.cm","ht.m"))
+tree.multattr
+herb.multattr&lt;-longtowide(longdata=herbdata,left="plot.id",up="spe.id",
+inner=c("coverage","abundance"))
+herb.multattr
+
+#######Calculation of Importance value (IV) for species######
+####Calculation of Importance value (IV) for individual tree data
+##Covert long data to wide data
+tree.freq&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id",freq=TRUE)$frequency
+tree.density&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id")/(20*400)
+treedata$base&lt;-pi*(treedata$dbh.cm)^2/10000
+tree.dominance&lt;-longtowide(longdata=treedata,left="plot.id",up="spe.id",inner="base")/(20*400)
+##Compute the relative value
+tree.refreq&lt;-tree.freq/rowSums(tree.freq)*100
+tree.redensity&lt;-tree.density/rowSums(tree.density)*100
+tree.redominance&lt;-tree.dominance/rowSums(tree.dominance)*100
+##Compute the importance value matrix
+treeIVmatirx&lt;-(tree.refreq+tree.redensity+tree.redominance)/3
+##Compute the total importance value for species
+treeTIV&lt;-colSums(treeIVmatirx)/20
+##Order the total importance value for species
+sortedtreeTIV&lt;-sort(treeTIV,decreasing=TRUE)
+sortedtreeTIV
+
+####Calculation of Importance value (IV) for clust herb data
+##Covert long data to wide data
+herb.freq&lt;-longtowide(longdata=herbdata,left="plot.id",up="spe.id",freq=TRUE)$frequency
+herb.dencover&lt;-longtowide(longdata=herbdata,left="plot.id",up="spe.id",
+inner=c("abundance","coverage"))
+herb.density&lt;-herb.dencover$abundance/100
+herb.coverage&lt;-herb.dencover$coverage/100
+##Compute the relative value
+herb.refreq&lt;-herb.freq/rowSums(herb.freq)*100
+herb.redensity&lt;-herb.density/rowSums(herb.density)*100
+herb.recoverage&lt;-herb.coverage/rowSums(herb.coverage)*100
+##Compute the importance value matrix
+herbIVmatirx&lt;-(herb.refreq+herb.redensity+herb.recoverage)/3
+##Compute the total importance value for species
+herbTIV&lt;-colSums(herbIVmatirx)/20
+##Order the total importance value for species
+sortedherbTIV&lt;-sort(herbTIV,decreasing=TRUE)
+sortedtreeTIV
+</code></pre>
+
+
+</div>

@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>number of mutant cells distribution</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The distribution of mutant cell counts</h2>
+
+<h3>Description</h3>
+
+<p>Density, distribution function, quantile function and random generation for mutant cell counts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  dflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1.,
+        model = c("LD", "H", "I"), muinf = +Inf)
+  pflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1.,
+        model = c("LD", "H", "I"), muinf = +Inf, lower.tail = TRUE)
+  qflan(p, mutations = 1., fitness = 1., death = 0., plateff = 1.,
+        model = c("LD", "H", "I"), muinf = +Inf, lower.tail = TRUE)
+  rflan(n, mutations = 1., mutprob = NULL, fitness = 1., death = 0., plateff = 1.,
+        dist = list(name = "lnorm", meanlog = -0.3795851, sdlog = 0.3016223),
+        distfn = NULL,
+        mfn = 1e9, cvfn = 0,
+        muih = list(mu = NULL, muinv0 = NULL),
+        ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p> vector of quantiles. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p> vector of probabilities. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p> number of observations. If <code>length(n) &gt; 1</code>, the length is taken to be the number required. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutations</code></td>
+<td>
+<p>mean number of mutations: positive integer. Ignored if <code>mutprob</code> is non-empty. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutprob</code></td>
+<td>
+<p> mutation probability: numeric between 0 and 1. By default empty. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitness</code></td>
+<td>
+<p> fitness parameter: numeric positive. By default 1. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>death</code></td>
+<td>
+<p> death probability: numeric between 0 and 0.5. By default 0. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plateff</code></td>
+<td>
+<p> plating efficiency parameter: numeric number between 0 and 1. By default 1. See Details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p> lifetime distribution for mutant cells. See Details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p> statistical lifetime model. Must be one of "LD" (default) for Luria-Delbrück model (exponential lifetimes), "H" for Haldane model (constant lifetimes), or "I" for Inhomogeneous model </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distfn</code></td>
+<td>
+<p> final number of cells distribution. Must be one of "lnorm" (default if <code>cvfn</code> is positive) or "gamma". </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfn</code></td>
+<td>
+<p> mean final number of cells: numeric positive. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvfn</code></td>
+<td>
+<p> coefficient of variation of final numbers of cells: numeric, default 0. If non-zero and if <code>mutprob</code> is empty, compute the sample with <code>mutprob</code> = <code>mutations</code>/<code>mfn</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muih</code></td>
+<td>
+<p> functions for inhomogeneous model. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muinf</code></td>
+<td>
+<p> parameter used only if <code>model</code> is <code>I</code>. See details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower.tail</code></td>
+<td>
+<p> logical: if TRUE (default), probabilities are P[X &lt;= x] otherwise, P[X &gt; m]. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> Arguments to be passed for <code>muih</code>, such that hyperparameters. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The argument <code>dist</code> is a list beginning with the distribution name followed by its parameters, and must be one the 4 following distributions: "dirac", "exp", "lnorm"(meanlog, sdlog), "gamma"(shape, scale).
+Note that the parameters related to the "dirac" and "exp" cases are directly computed with inputs <code>fitness</code> and <code>death</code>.
+</p>
+<p>If <code>muih$mu</code> is non-empty, a time dependent growth model is performed.
+The function <code>muih$mu</code> is a bivariate function which represents roughly the mean growth of clone durig an time interval.
+The function <code>muih$muinv0</code> is the inverse function of <code>muih$mu(0,.)</code>.
+If <code>muih$muinv0</code> is empty, it is approximated using <code>muih$mu</code>.
+</p>
+<p><code>muinf</code> corresponds to the cumulative division rate on the interval [0 ; +Inf).
+It is the limit as t tends to infinity of <code>muih$mu(0,t)</code>.
+If <code>model</code> is <code>I</code>, <code>muinf</code> has to be finite, else <code>model</code> is set to "LD"
+</p>
+<p>If <code>mutprob</code> is non-empty and if <code>cvfn</code> is zero, the sample of mutants is computed with <code>mutations</code> as the product of <code>mutprob</code> by <code>mfn</code>.
+If <code>cvfn</code> is positive, the final numbers of cells are generated with the log-normal (if <code>distfn</code> is "lnorm" or empty) or the gamma (if <code>distfn</code> is "gamma") distribution with mean <code>mfn</code> and coefficient of variation <code>cvfn</code>.
+The sample of mutants is then generated conditionally to the sample of final numbers of cells.
+</p>
+<p>A plating efficiency <code>plateff</code> smaller than 1 can be taken into account in the <code>dflan, pflan</code> and <code>qflan</code> functions only under <code>LD</code> model.
+</p>
+<p>If the plating efficiency <code>plateff</code> is smaller than 1 in the <code>flan</code> function, then each mutant count <code>mc</code> is replaced by a binomial number with parameters <code>size = mc</code> and <code>prob = plateff</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>dflan</code> gives the density, <code>pflan</code> gives the distribution
+function, <code>qflan</code> gives the quantile function, and <code>rflan</code>
+generates a random sample.
+</p>
+<p><code>rflan</code> returns a list with two arguments, each with length <code>n</code>: a vector of integers
+<code>$mc</code> (mutant counts), and a vector of numeric <code>$fn</code> (final numbers of cells).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>link{draw.clone}</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#----------------------- distributions ----------------------------------
+
+# Luria-Delbrück model, mean number of mutations 1, fitness parameter 1
+dflan(0:10)
+pflan(0:10)
+qflan(c(0.95, 0.99))
+
+# Luria-Delbrück model, mean number of mutations 2, fitness parameter 0.5
+qflan(c(0.95, 0.99), mutations = 2, fitness = 0.5)
+
+qflan(c(0.05, 0.01), mutations = 2, fitness = 0.5, lower.tail = FALSE)
+
+# Haldane model, mean number of mutations 2, fitness parameter 0.5
+qflan(c(0.95, 0.99), mutations = 2, fitness = 0.5, model = "H")
+
+#---------------------- random samples ----------------------------------
+# lognormal lifetime distribution, lognormal final numbers
+X &lt;- rflan(100, cvfn = 0.3)
+X$mc              # mutant counts
+X$fn              # final numbers
+
+# lognormal lifetime distribution, gamma final numbers
+X &lt;- rflan(100, distfn = "gamma", cvfn = 0.3)
+X$mc              # mutant counts
+X$fn              # final numbers
+
+# mean number of mutations 2, fitness parameter 0.5 (realistic model, but slow)
+
+# lognormal lifetimes
+rflan(1000, mutations = 2, fitness = 0.5)$mc
+# gamma lifetimes
+rflan(1000, mutations = 2, fitness = 0.5, dist = list(name = "gamma", shape = 10, scale = 0.05))$mc
+
+# exponential lifetimes (Luria-Delbrück model, fast)
+rflan(1000, mutations = 2, fitness = 0.5, dist = list("exp"))$mc
+
+# constant lifetimes (Haldane model, fast)
+rflan(1000, mutations = 2, fitness = 0.5, dist = "dirac")$mc
+
+# specifying mutation probability and mean final number
+
+rflan(1000, mutprob = 2e-9, mfn = 2e9, fitness = 0.5, dist = list("dirac"))$mc
+
+
+# positive cell death probability
+rflan(1000, mutprob = 2e-9, mfn = 2e9, death = 0.1, fitness = 0.5, dist = list("exp"))$mc
+
+#------------- Inhomogeneous model ---------
+f &lt;- function(t,n0,nf) nf/(1+(nf/n0-1)*exp(-t))  # Logistic function: mean growth of a clone
+finv &lt;- function(s,n0,nf) -log((nf/s-1)/(nf/n0-1))  # Inverse function of f
+
+mu &lt;- function(s,t,n0,nf) log(f(t,n0,nf)/f(s,n0,nf))   # Definition of mu
+muinv0 &lt;- function(u,n0,nf) finv(f(0.,n0,nf)*exp(u),n0,nf)   # Inverse function of mu
+
+rflan(1000, muih = list(mu = mu, muinv0 = muinv0), n0 = 1e2, nf = 1e6)$mc
+
+</code></pre>
+
+
+</div>

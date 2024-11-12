@@ -1,0 +1,223 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Downhill Riding (DR) Procedure</h2>
+
+<h3>Description</h3>
+
+<p>Downhill riding procedure for selecting optimal tuning parameters in clustering
+algorithms, using an (in)stability probe.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">DR(X, method, minPts = 3, theta = 0.9, B = 500, lb = -30, ub = 10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an <code class="reqn">n\times k</code> matrix where columns are <code class="reqn">k</code> objects to be clustered,
+and each object contains n observations (objects could be a set of time series).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the clustering method to be used – currently either
+“TRUST” (Ciampi et al. 2010)
+or “DBSCAN” (Ester et al. 1996). If the method is <code>DBSCAN</code>,
+then set <code>MinPts</code> and optimal <code class="reqn">\epsilon</code> is selected using DR.
+If the method is <code>TRUST</code>, then set <code>theta</code>, and optimal <code class="reqn">\delta</code>
+is selected using DR.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minPts</code></td>
+<td>
+<p>the minimum number of samples in an <code class="reqn">\epsilon</code>-neighborhood of
+a point to be considered as a core point. The <code>minPts</code> is to be used only
+with the <code>DBSCAN</code> method. The default value is 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>connectivity parameter <code class="reqn">\theta \in (0,1)</code>, which is to be used
+only with the <code>TRUST</code> method. The default value is 0.9.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of random splits in calculating the
+Average Cluster Deviation (ACD). The default value is 500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb, ub</code></td>
+<td>
+<p>endpoints for a range of search for the optimal parameter.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Parameters <code>lb,ub</code> are endpoints for the search for the
+optimal parameter. The parameter candidates are calculated in a way such that
+<code class="reqn">P:=  1.1^x , x \in {lb,lb+0.5,lb+1.0,...,ub}</code>.
+Although the default range of search is sufficiently wide, in some cases
+<code>lb,ub</code> can be further extended if a warning message is given.
+</p>
+<p>For more discussion on properties of the considered clustering algorithms and the
+DR procedure see Huang et al. (2016)
+and Huang et al. (2018).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>P_opt</code></td>
+<td>
+<p>the value of the optimal parameter. If the method is <code>DBSCAN</code>, then
+<code>P_opt</code> is optimal <code class="reqn">\epsilon</code>. If the method is <code>TRUST</code>,
+then <code>P_opt</code> is optimal <code class="reqn">\delta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ACD_matrix</code></td>
+<td>
+<p>a matrix that returns <code>ACD</code> for different values of a
+tuning parameter.
+If the method is <code>DBSCAN</code>, then the tuning parameter is <code class="reqn">\epsilon</code>.
+If the method is <code>TRUST</code>, then the tuning parameter is <code class="reqn">\delta</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Xin Huang, Yulia R. Gel
+</p>
+
+
+<h3>References</h3>
+
+<p>Ciampi A, Appice A, Malerba D (2010).
+“Discovering trend-based clusters in spatially distributed data streams.”
+In <em>International Workshop of Mining Ubiquitous and Social Environments</em>, 107–122.<br><br> Ester M, Kriegel H, Sander J, Xu X (1996).
+“A density-based algorithm for discovering clusters in large spatial databases with noise.”
+In <em>Proceedings of the International Conference on Knowledge Discovery and Data Mining (KDD)</em>, volume 96(34), 226–231.<br><br> Huang X, Iliev IR, Brenning A, Gel YR (2016).
+“Space-time clustering with stability probe while riding downhill.”
+In <em>Proceedings of the 2nd SIGKDD Workshop on Mining and Learning from Time Series (MiLeTS)</em>.<br><br> Huang X, Iliev IR, Lyubchich V, Gel YR (2018).
+“Riding down the bay: space-time clustering of ecological trends.”
+<em>Environmetrics</em>, <b>29</b>(5–6), e2455.
+<a href="https://doi.org/10.1002/env.2455">doi:10.1002/env.2455</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>BICC</code>, <code>dbscan</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## example 1
+## use iris data to test DR procedure
+
+data(iris)  
+require(clue)  # calculate NMI to compare the clustering result with the ground truth
+require(scatterplot3d)
+
+Data &lt;- scale(iris[,-5])
+ground_truth_label &lt;- iris[,5]
+
+# perform DR procedure to select optimal eps for DBSCAN 
+# and save it in variable eps_opt
+eps_opt &lt;- DR(t(Data), method="DBSCAN", minPts = 5)$P_opt   
+
+# apply DBSCAN with the optimal eps on iris data 
+# and save the clustering result in variable res
+res &lt;- dbscan(Data, eps = eps_opt, minPts =5)$cluster  
+
+# calculate NMI to compare the clustering result with the ground truth label
+clue::cl_agreement(as.cl_partition(ground_truth_label),
+                   as.cl_partition(as.numeric(res)), method = "NMI") 
+# visualize the clustering result and compare it with the ground truth result
+# 3D visualization of clustering result using variables Sepal.Width, Sepal.Length, 
+# and Petal.Length
+scatterplot3d(Data[,-4],color = res)
+# 3D visualization of ground truth result using variables Sepal.Width, Sepal.Length,
+# and Petal.Length
+scatterplot3d(Data[,-4],color = as.numeric(ground_truth_label))
+
+
+## example 2
+## use synthetic time series data to test DR procedure
+
+require(funtimes)
+require(clue) 
+require(zoo)
+
+# simulate 16 time series for 4 clusters, each cluster contains 4 time series
+set.seed(114) 
+samp_Ind &lt;- sample(12,replace=F)
+time_points &lt;- 30
+X &lt;- matrix(0,nrow=time_points,ncol = 12)
+cluster1 &lt;- sapply(1:4,function(x) arima.sim(list(order = c(1, 0, 0), ar = c(0.2)),
+                                             n = time_points, mean = 0, sd = 1))
+cluster2 &lt;- sapply(1:4,function(x) arima.sim(list(order = c(2 ,0, 0), ar = c(0.1, -0.2)),
+                                             n = time_points, mean = 2, sd = 1))
+cluster3 &lt;- sapply(1:4,function(x) arima.sim(list(order = c(1, 0, 1), ar = c(0.3), ma = c(0.1)),
+                                             n = time_points, mean = 6, sd = 1))
+
+X[,samp_Ind[1:4]] &lt;- t(round(cluster1, 4))
+X[,samp_Ind[5:8]] &lt;- t(round(cluster2, 4))
+X[,samp_Ind[9:12]] &lt;- t(round(cluster3, 4))
+
+
+# create ground truth label of the synthetic data
+ground_truth_label = matrix(1, nrow = 12, ncol = 1) 
+for(k in 1:3){
+    ground_truth_label[samp_Ind[(4*k - 4 + 1):(4*k)]] = k
+}
+
+# perform DR procedure to select optimal delta for TRUST
+# and save it in variable delta_opt
+delta_opt &lt;- DR(X, method = "TRUST")$P_opt 
+
+# apply TRUST with the optimal delta on the synthetic data 
+# and save the clustering result in variable res
+res &lt;- CSlideCluster(X, Delta = delta_opt, Theta = 0.9)  
+
+# calculate NMI to compare the clustering result with the ground truth label
+clue::cl_agreement(as.cl_partition(as.numeric(ground_truth_label)),
+                   as.cl_partition(as.numeric(res)), method = "NMI")
+
+# visualize the clustering result and compare it with the ground truth result
+# visualization of the clustering result obtained by TRUST
+plot.zoo(X, type = "l", plot.type = "single", col = res, xlab = "Time index", ylab = "")
+# visualization of the ground truth result 
+plot.zoo(X, type = "l", plot.type = "single", col = ground_truth_label,
+         xlab = "Time index", ylab = "")
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

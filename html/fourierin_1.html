@@ -1,0 +1,271 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fourierin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Fourier integrals</h2>
+
+<h3>Description</h3>
+
+<p>It computes Fourier integrals for functions of one and two
+variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fourierin(
+  f,
+  lower_int,
+  upper_int,
+  lower_eval = NULL,
+  upper_eval = NULL,
+  const_adj,
+  freq_adj,
+  resolution = NULL,
+  eval_grid = NULL,
+  use_fft = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>function or a vector of size m. If a function is
+provided, it must be able to be evaluated at vectors. If a
+vector of values is provided, such evaluations must have been
+obtained on a regular grid and the Fourier integral is faster
+is m is a power of 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_int</code></td>
+<td>
+<p>Lower integration limit(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper_int</code></td>
+<td>
+<p>Upper integration limit(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_eval</code></td>
+<td>
+<p>Lower evaluation limit(s). It can be NULL if an
+evaluation grid is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper_eval</code></td>
+<td>
+<p>Upper evaluation limit(s). It can be NULL if an
+evaluation grid is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>const_adj</code></td>
+<td>
+<p>Factor related to adjust definition of Fourier
+transform. It is usually equal to 0, -1 or 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq_adj</code></td>
+<td>
+<p>Constant to adjust the exponent on the definition
+of the Fourier transform. It is usually equal to 1, -1, 2pi or
+-2pi.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resolution</code></td>
+<td>
+<p>A vector of integers (faster if powers of two)
+determining the resolution of the evaluation grid. Not
+required if f is a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_grid</code></td>
+<td>
+<p>Optional matrix with d columns with the points
+where the Fourier integral will be evaluated. If it is
+provided, the FFT will not be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_fft</code></td>
+<td>
+<p>Logical value specifying whether the FFT will be
+used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See plenty of detailed examples in the vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the elements n-dimensional array and n vectors
+with their corresponding resolution. Specifically,
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>A n-dimensional (resol_1 x resol_2 x ... x
+resol_n) complex array with the values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w1</code></td>
+<td>
+<p>A vector of
+size resol_1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+ </td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wn</code></td>
+<td>
+<p>A vector of size resol_n</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">##--- Example 1 ---------------------------------------------------
+##--- Recovering std. normal from its characteristic function -----
+library(fourierin)
+
+## Function to be used in the integrand
+myfnc &lt;- function(t) exp(-t^2/2)
+
+## Compute integral
+out &lt;- fourierin(f = myfnc, lower_int = -5, upper_int = 5,
+                 lower_eval= -3, upper_eval = 3, const_adj = -1,
+                 freq_adj = -1, resolution = 64)
+
+## Extract grid and values
+grid &lt;- out$w
+values &lt;- Re(out$values)
+
+## Compare with true values of Fourier transform
+plot(grid, values, type = "l", col = 3)
+lines(grid, dnorm(grid), col = 4)
+
+
+##--- Example 2 ---------------------------------------------------
+##--- Computing characteristic function of a gamma r. v. ----------
+
+library(fourierin)
+
+## Function to be used in integrand
+myfnc &lt;- function(t) dgamma(t, shape, rate)
+
+## Compute integral
+shape &lt;- 5
+rate &lt;- 3
+out &lt;- fourierin(f = myfnc, lower_int = 0, upper_int = 6,
+                 lower_eval = -4, upper_eval = 4,
+                 const_adj = 1, freq_adj = 1, resolution = 64)
+
+## Extract values
+grid &lt;- out$w                           # Extract grid
+re_values &lt;- Re(out$values)             # Real values
+im_values &lt;- Im(out$values)             # Imag values
+
+## Now compute the real and imaginary true values of the
+## characteric function.
+true_cf &lt;- function(t, shape, rate) (1 - 1i*t/rate)^-shape
+true_re &lt;- Re(true_cf(grid, shape, rate))
+true_im &lt;- Im(true_cf(grid, shape, rate))
+
+## Compare them. We can see a slight discrepancy on the tails,
+## but that is fixed when resulution is increased.
+plot(grid, re_values, type = "l", col = 3)
+lines(grid, true_re, col = 4)
+
+                                        # Same here
+plot(grid, im_values, type = "l", col = 3)
+lines(grid, true_im, col = 4)
+
+##--- Example 3 -------------------------------------------------
+##--- Recovering std. normal from its characteristic function ---
+library(fourierin)
+
+##-Parameters of bivariate normal distribution
+mu &lt;- c(-1, 1)
+sig &lt;- matrix(c(3, -1, -1, 2), 2, 2)
+
+##-Multivariate normal density
+##-x is n x d
+f &lt;- function(x) {
+    ##-Auxiliar values
+    d &lt;- ncol(x)
+    z &lt;- sweep(x, 2, mu, "-")
+    ##-Get numerator and denominator of normal density
+    num &lt;- exp(-0.5*rowSums(z * (z %*% solve(sig))))
+    denom &lt;- sqrt((2*pi)^d*det(sig))
+    return(num/denom)
+}
+
+## Characteristic function
+## s is n x d
+phi &lt;- function(s) {
+    complex(modulus = exp(- 0.5*rowSums(s*(s %*% sig))),
+            argument = s %*% mu)
+}
+
+##-Approximate cf using Fourier integrals
+eval &lt;- fourierin(f, lower_int = c(-8, -6), upper_int = c(6, 8),
+                  lower_eval = c(-4, -4), upper_eval = c(4, 4),
+                  const_adj = 1, freq_adj =  1,
+                  resolution = c(128, 128))
+
+## Extract values
+t1 &lt;- eval$w1
+t2 &lt;- eval$w2
+t &lt;- as.matrix(expand.grid(t1 = t1, t2 = t2))
+approx &lt;- eval$values
+true &lt;- matrix(phi(t), 128, 128)        # Compute true values
+
+
+## This is a section of the characteristic function
+i &lt;- 65
+plot(t2, Re(approx[i, ]), type = "l", col = 2,
+     ylab = "",
+     xlab = expression(t[2]),
+     main = expression(paste("Real part section at ",
+                             t[1], "= 0")))
+lines(t2, Re(true[i, ]), col = 3)
+legend("topleft", legend = c("true", "approximation"),
+       col = 3:2, lwd = 1)
+
+##-Another section, now of the imaginary part
+plot(t1, Im(approx[, i]), type = "l", col = 2,
+     ylab = "",
+     xlab = expression(t[1]),
+     main = expression(paste("Imaginary part section at ",
+                             t[2], "= 0")))
+lines(t1, Im(true[, i]), col = 3)
+legend("topleft", legend = c("true", "approximation"),
+       col = 3:2, lwd = 1)
+</code></pre>
+
+
+</div>

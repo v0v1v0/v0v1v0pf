@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastcpd_lasso</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find change points efficiently in penalized linear regression models</h2>
+
+<h3>Description</h3>
+
+<p><code>fastcpd_lasso()</code> and <code>fastcpd.lasso()</code> are wrapper
+functions of <code>fastcpd()</code> to find change points in penalized
+linear regression models. The function is similar to <code>fastcpd()</code>
+except that the data is by default a matrix or data frame with the response
+variable as the first column and thus a formula is not required here.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastcpd_lasso(data, ...)
+
+fastcpd.lasso(data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A matrix or a data frame with the response variable as the first
+column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to <code>fastcpd()</code>, for example,
+<code>segment_count</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A fastcpd object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fastcpd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (
+  requireNamespace("dplyr", quietly = TRUE) &amp;&amp;
+    requireNamespace("ggplot2", quietly = TRUE) &amp;&amp;
+    requireNamespace("mvtnorm", quietly = TRUE) &amp;&amp;
+    requireNamespace("reshape2", quietly = TRUE)
+) {
+  set.seed(1)
+  n &lt;- 480
+  p_true &lt;- 5
+  p &lt;- 50
+  x &lt;- mvtnorm::rmvnorm(n, rep(0, p), diag(p))
+  theta_0 &lt;- rbind(
+    runif(p_true, -5, -2),
+    runif(p_true, -3, 3),
+    runif(p_true, 2, 5),
+    runif(p_true, -5, 5)
+  )
+  theta_0 &lt;- cbind(theta_0, matrix(0, ncol = p - p_true, nrow = 4))
+  y &lt;- c(
+    x[1:80, ] %*% theta_0[1, ] + rnorm(80, 0, 1),
+    x[81:200, ] %*% theta_0[2, ] + rnorm(120, 0, 1),
+    x[201:320, ] %*% theta_0[3, ] + rnorm(120, 0, 1),
+    x[321:n, ] %*% theta_0[4, ] + rnorm(160, 0, 1)
+  )
+  result &lt;- fastcpd.lasso(
+    cbind(y, x),
+    multiple_epochs = function(segment_length) if (segment_length &lt; 30) 1 else 0
+  )
+  summary(result)
+  plot(result)
+
+  thetas &lt;- result@thetas
+  thetas &lt;- cbind.data.frame(thetas, t(theta_0))
+  names(thetas) &lt;- c(
+    "segment 1", "segment 2", "segment 3", "segment 4",
+    "segment 1 truth", "segment 2 truth", "segment 3 truth", "segment 4 truth"
+  )
+  thetas$coordinate &lt;- c(seq_len(p_true), rep("rest", p - p_true))
+  molten &lt;- reshape2::melt(thetas, id.vars = "coordinate")
+  molten &lt;- dplyr::mutate(
+    molten,
+    segment = gsub("segment ", "", variable),
+    segment = gsub(" truth", "", segment),
+    height = as.numeric(gsub("segment.*", "", segment)) +
+      0.2 * as.numeric(grepl("truth", variable)),
+    parameter = ifelse(grepl("truth", variable), "truth", "estimated")
+  )
+  ggplot2::ggplot() +
+    ggplot2::geom_point(
+      data = molten,
+      ggplot2::aes(
+        x = value, y = height, shape = coordinate, color = parameter
+      ),
+      size = 4
+    ) +
+    ggplot2::ylim(0.8, 4.4) +
+    ggplot2::ylab("segment") +
+    ggplot2::theme_bw()
+}
+
+</code></pre>
+
+
+</div>

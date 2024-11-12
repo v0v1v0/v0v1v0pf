@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>roc_pivot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reject Option based Classification pivot</h2>
+
+<h3>Description</h3>
+
+<p>Reject Option based Classifier is post-processing bias mitigation method. Method changes labels of favorable, privileged and close to cutoff observations to unfavorable
+and the opposite for unprivileged observations (changing unfavorable and close to cutoff observations to favorable, more in details).
+By this potentially wrongfully labeled observations are assigned different labels.
+Note that in y in DALEX explainer 1 should indicate favorable outcome.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">roc_pivot(explainer, protected, privileged, cutoff = 0.5, theta = 0.1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>explainer</code></td>
+<td>
+<p>created with <code>explain</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>protected</code></td>
+<td>
+<p>factor, protected variables with subgroups as levels (sensitive attributes)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>privileged</code></td>
+<td>
+<p>factor/character, level in protected denoting privileged subgroup</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>numeric, threshold for all subgroups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>numeric, variable specifies maximal euclidean distance to cutoff resulting ing label switch</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Method implemented implemented based on article (Kamiran, Karim, Zhang 2012). In original implementation labels should be switched. Due to specific DALEX methods
+probabilities (y_hat) are assigned value in equal distance but other side of cutoff. The method changes explainers y_hat values in two cases.
+<br>
+1. When unprivileged subgroup is within (cutoff - theta, cutoff)<br>
+2. When privileged subgroup is within (cutoff, cutoff + theta)<br></p>
+
+
+<h3>Value</h3>
+
+<p>DALEX <code>explainer</code> with changed y_hat. This explainer should be used ONLY by fairmodels as it contains unchanged
+predict function (changed predictions (y_hat) can possibly be invisible by DALEX functions and methods).
+</p>
+
+
+<h3>References</h3>
+
+<p>Kamiran, Karim, Zhang 2012 <a href="https://ieeexplore.ieee.org/document/6413831/">https://ieeexplore.ieee.org/document/6413831/</a> ROC method
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("german")
+data &lt;- german
+data$Age &lt;- as.factor(ifelse(data$Age &lt;= 25, "young", "old"))
+y_numeric &lt;- as.numeric(data$Risk) - 1
+
+lr_model &lt;- stats::glm(Risk ~ ., data = data, family = binomial())
+lr_explainer &lt;- DALEX::explain(lr_model, data = data[, -1], y = y_numeric)
+
+fobject &lt;- fairness_check(lr_explainer,
+  protected = data$Age,
+  privileged = "old"
+)
+plot(fobject)
+
+lr_explainer_fixed &lt;- roc_pivot(lr_explainer,
+  protected = data$Age,
+  privileged = "old"
+)
+
+fobject2 &lt;- fairness_check(lr_explainer_fixed, fobject,
+  protected = data$Age,
+  privileged = "old",
+  label = "lr_fixed"
+)
+fobject2
+plot(fobject2)
+</code></pre>
+
+
+</div>

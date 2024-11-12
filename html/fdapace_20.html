@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FCCor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculation of functional correlation between two simultaneously observed processes.</h2>
+
+<h3>Description</h3>
+
+<p>Calculation of functional correlation between two simultaneously observed processes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FCCor(
+  x,
+  y,
+  Lt,
+  bw = stop("bw missing"),
+  kern = "epan",
+  Tout = sort(unique(unlist(Lt)))
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A list of function values corresponding to the first process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A list of function values corresponding to the second process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lt</code></td>
+<td>
+<p>A list of time points for both <code>x</code> and <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>A numeric vector for bandwidth of length either 5 or 1, specifying the bandwidths for E(X), E(Y), var(X), var(Y), and cov(X, Y). If <code>bw</code> is a scalar then all five bandwidths are chosen to be the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kern</code></td>
+<td>
+<p>Smoothing kernel for mu and covariance; "rect", "gauss", "epan", "gausvar", "quar" (default: "gauss")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tout</code></td>
+<td>
+<p>Output time points. Default to the sorted unique time points.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>FCCor</code> calculate only the concurrent correlation corr(X(t), Y(t)) (note that the time points t are the same). It assumes no measurement error in the observed values.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>A vector of the correlation corr(X(t), Y(t)) evaluated at <code>Tout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tout</code></td>
+<td>
+<p>Same as the input Tout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>The bandwidths used for E(X), E(Y), var(X), var(Y), and cov(X, Y).</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 200
+nGridIn &lt;- 50
+sparsity &lt;- 1:5 # must have length &gt; 1
+bw &lt;- 0.2
+kern &lt;- 'epan'
+T &lt;- matrix(seq(0.5, 1, length.out=nGridIn))
+
+## Corr(X(t), Y(t)) = 1/2
+A &lt;- Wiener(n, T)
+B &lt;- Wiener(n, T) 
+C &lt;- Wiener(n, T) + matrix((1:nGridIn) , n, nGridIn, byrow=TRUE)
+X &lt;- A + B
+Y &lt;- A + C
+indEach &lt;- lapply(1:n, function(x) sort(sample(nGridIn, sample(sparsity, 1))))
+tAll &lt;- lapply(1:n, function(i) T[indEach[[i]]])
+Xsp &lt;- lapply(1:n, function(i) X[i, indEach[[i]]])
+Ysp &lt;- lapply(1:n, function(i) Y[i, indEach[[i]]])
+
+plot(T, FCCor(Xsp, Ysp, tAll, bw)[['corr']], ylim=c(-1, 1))
+abline(h=0.5)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>read_resource</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read data from a Data Resource into a tibble data frame</h2>
+
+<h3>Description</h3>
+
+<p>Reads data from a Data Resource (in a Data Package) into a tibble (a
+Tidyverse data frame).
+The resource must be a <a href="https://specs.frictionlessdata.io/tabular-data-resource/">Tabular Data Resource</a>.
+The function uses <code>readr::read_delim()</code> to read CSV files, passing the
+resource properties <code>path</code>, CSV dialect, column names, data types, etc.
+Column names are taken from the provided Table Schema (<code>schema</code>), not from
+the header in the CSV file(s).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read_resource(package, resource_name, col_select = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>package</code></td>
+<td>
+<p>Data Package object, as returned by <code>read_package()</code> or
+<code>create_package()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resource_name</code></td>
+<td>
+<p>Name of the Data Resource.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_select</code></td>
+<td>
+<p>Character vector of the columns to include in the result,
+in the order provided.
+Selecting columns can improve read speed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>vignette("data-resource")</code>, <code>vignette("table-dialect")</code> and
+<code>vignette("table-schema")</code> to learn how this function implements the
+Data Package standard.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tibble::tibble()</code> with the Data Resource's tabular data.
+If there are parsing problems, a warning will alert you.
+You can retrieve the full details by calling <code>problems()</code> on your data
+frame.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other read functions: 
+<code>read_package()</code>,
+<code>resources()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Read a datapackage.json file
+package &lt;- read_package(
+  system.file("extdata", "datapackage.json", package = "frictionless")
+)
+
+package
+
+# Read data from the resource "observations"
+read_resource(package, "observations")
+
+# The above tibble is merged from 2 files listed in the resource path
+package$resources[[2]]$path
+
+# The column names and types are derived from the resource schema
+purrr::map_chr(package$resources[[2]]$schema$fields, "name")
+purrr::map_chr(package$resources[[2]]$schema$fields, "type")
+
+# Read data from the resource "deployments" with column selection
+read_resource(package, "deployments", col_select = c("latitude", "longitude"))
+</code></pre>
+
+
+</div>

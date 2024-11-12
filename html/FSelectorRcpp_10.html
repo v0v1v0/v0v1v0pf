@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>discretize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Discretization</h2>
+
+<h3>Description</h3>
+
+<p>Discretize a range of numeric attributes in the dataset into nominal
+attributes. <code>Minimum Description Length</code> (MDL) method is set as the default
+control. There is also available <code>equalsizeControl</code> method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">discretize(
+  x,
+  y,
+  control = list(mdlControl(), equalsizeControl()),
+  all = TRUE,
+  discIntegers = TRUE,
+  call = NULL
+)
+
+mdlControl()
+
+equalsizeControl(k = 10)
+
+customBreaksControl(breaks)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Explanatory continuous variables to be discretized or a formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Dependent variable for supervised discretization or a data.frame when <code>x</code> ia a formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p><code>discretizationControl</code> object containing the parameters for
+discretization algorithm. Possible inputs are <code>mdlControl</code> or <code>equalsizeControl</code>, so far. If passed as a list, the first element is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all</code></td>
+<td>
+<p>Logical indicating if a returned data.frame should contain other features that were not discretized.
+(Example: should <code>Sepal.Width</code> be returned, when you pass <code>iris</code> and discretize <code>Sepal.Length, Petal.Length, Petal.Width</code>.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discIntegers</code></td>
+<td>
+<p>logical value.
+If true (default), then integers are treated as numeric vectors and they are discretized.
+If false integers are treated as factors and they are left as is.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>Keep as <code>NULL</code>. Inner method parameter for consistency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of partitions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breaks</code></td>
+<td>
+<p>custom breaks used for partitioning.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Zygmunt Zawadzki <a href="mailto:zygmunt@zstat.pl">zygmunt@zstat.pl</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>U. M. Fayyad and K. B. Irani. Multi-Interval Discretization of
+Continuous-Valued Attributes for Classification Learning. In 13th
+International Joint Conference on Uncertainly in Artificial
+Intelligence(IJCAI93), pages 1022-1029, 1993.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# vectors
+discretize(x = iris[[1]], y = iris[[5]])
+
+# list and vector
+head(discretize(x = list(iris[[1]], iris$Sepal.Width), y = iris$Species))
+
+# formula input
+head(discretize(x = Species ~ ., y = iris))
+head(discretize(Species ~ ., iris))
+
+# use different methods for specific columns
+ir1 &lt;- discretize(Species ~ Sepal.Length, iris)
+ir2 &lt;- discretize(Species ~ Sepal.Width, ir1, control = equalsizeControl(3))
+ir3 &lt;- discretize(Species ~ Petal.Length, ir2, control = equalsizeControl(5))
+head(ir3)
+
+# custom breaks
+ir &lt;- discretize(Species ~ Sepal.Length, iris,
+  control = customBreaksControl(breaks = c(0, 2, 5, 7.5, 10)))
+head(ir)
+
+## Not run: 
+# Same results
+library(RWeka)
+Rweka_disc_out &lt;- RWeka::Discretize(Species ~ Sepal.Length, iris)[, 1]
+FSelectorRcpp_disc_out &lt;- FSelectorRcpp::discretize(Species ~ Sepal.Length,
+                                                    iris)[, 1]
+table(Rweka_disc_out, FSelectorRcpp_disc_out)
+# But faster method
+library(microbenchmark)
+microbenchmark(FSelectorRcpp::discretize(Species ~ Sepal.Length, iris),
+               RWeka::Discretize(Species ~ Sepal.Length, iris))
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

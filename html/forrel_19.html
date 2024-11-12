@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>missingPersonLR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Likelihood ratio calculation for missing person identification</h2>
+
+<h3>Description</h3>
+
+<p>This is a wrapper function for <code>kinshipLR()</code> for the special case of missing
+person identification. A person of interest (POI) is matched against a
+reference dataset containing genotypes of relatives of the missing person.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">missingPersonLR(reference, missing, poi = NULL, verbose = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>reference</code></td>
+<td>
+<p>A <code>ped</code> object with attached markers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing</code></td>
+<td>
+<p>The ID label of the missing member of <code>reference</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poi</code></td>
+<td>
+<p>A <code>singleton</code> object, or NULL. If NULL, and <code>missing</code> is
+genotyped, this data is extracted and used as <code>poi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optional parameters to be passed on to <code>kinshipLR()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that this function accepts two forms of input:
+</p>
+
+<ol>
+<li>
+<p> With <code>poi</code> a typed singleton. This is the typical use case, when you want
+to compute the LR for some person of interest.
+</p>
+</li>
+<li>
+<p> With <code>poi = NULL</code>, but <code>missing</code> being genotyped. The data for <code>missing</code>
+is then extracted as a singleton POI. This is especially useful in simulation
+procedures, e.g., for simulating the LR distribution of the true missing
+person.
+</p>
+</li>
+</ol>
+<p>See Examples for illustrations of both cases.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>LRresult</code> object returned by <code>kinshipLR()</code>, but without the
+trivial <code>H2:H2</code> comparison.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#------------------------------------------------
+# Example: Identification of a missing grandchild
+#------------------------------------------------
+
+# Database with 5 STR markers (increase to make more realistic)
+db = NorwegianFrequencies[1:5]
+
+# Pedigree with missing person (MP); grandmother is genotyped
+x = linearPed(2) |&gt;
+  relabel(old = 5, new = "MP") |&gt;
+  profileSim(markers = db, ids = "2", seed = 123)
+
+
+### Scenario 1: Unrelated POI --------------------
+
+# Generate random unrelated profile
+poi = singleton("POI") |&gt;
+  profileSim(markers = db, seed = 1234)
+
+# Compute LR
+lr = missingPersonLR(x, missing = "MP", poi = poi)
+lr
+lr$LRperMarker
+
+
+### Scenario 2: POI is the missing person --------
+# A small simulation example
+
+# Simulate profiles for MP conditional on the grandmother
+N = 10
+y = profileSim(x, N = N, ids = "MP", seed = 12345)
+
+# Compute LRs for each sim
+LRsims = lapply(y, missingPersonLR, missing = "MP", verbose = FALSE)
+
+# Plot distribution
+LRtotal = sapply(LRsims, function(a) a$LRtotal)
+plot(density(LRtotal))
+
+# LRs for each marker
+LRperMarker = sapply(LRsims, function(a) a$LRperMarker)
+LRperMarker
+
+# Overlaying marker-wise density plots (requires tidyverse)
+# library(tidyverse)
+# t(LRperMarker) |&gt; as_tibble() |&gt; pivot_longer(everything()) |&gt;
+#   ggplot() + geom_density(aes(value, fill = name), alpha = 0.6)
+
+</code></pre>
+
+
+</div>

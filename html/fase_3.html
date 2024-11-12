@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gaussian_snapshot_bs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate Gaussian edge networks with B-spline latent processes</h2>
+
+<h3>Description</h3>
+
+<p><code>gaussian_snapshot_bs</code> simulates a realization of a functional network
+with Gaussian edges, according to an inner product latent process model.
+The latent processes are generated from a <code class="reqn">B</code>-spline basis with equally
+spaced knots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gaussian_snapshot_bs(n,d,m,self_loops=TRUE,
+                     spline_design,sigma_edge=1,
+                     process_options)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>A positive integer, the number of nodes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A positive integer, the number of latent space dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>A positive integer, the number of snapshots.
+If this argument is not specified, it
+is determined from the snapshot index vector <code>spline_design$x_vec</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>self_loops</code></td>
+<td>
+<p>A Boolean, if <code>FALSE</code>, all diagonal adjacency matrix
+entries are set to zero. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_design</code></td>
+<td>
+<p>A list, describing the <code class="reqn">B</code>-spline design:
+</p>
+
+<dl>
+<dt>q</dt>
+<dd>
+<p>A positive integer, the dimension of the <code class="reqn">B</code>-spline basis.
+Must be at least <code>4</code> and at most <code>m</code>.</p>
+</dd>
+<dt>x_vec</dt>
+<dd>
+<p>A vector, the snapshot evaluation indices for the data.
+Defaults to an equally spaced sequence of length
+<code>m</code> from <code>0</code> to <code>1</code>.</p>
+</dd>
+<dt>x_max</dt>
+<dd>
+<p>A scalar, the maximum of the index space.
+Defaults to <code>max(spline_design$x_vec)</code>.</p>
+</dd>
+<dt>x_min</dt>
+<dd>
+<p>A scalar, the minimum of the index space.
+Defaults to <code>min(spline_design$x_vec)</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma_edge</code></td>
+<td>
+<p>A positive scalar,
+the entry-wise standard deviation for the Gaussian edge variables.
+Defaults to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>process_options</code></td>
+<td>
+<p>A list, containing additional optional arguments:
+</p>
+
+<dl>
+<dt>sigma_coord</dt>
+<dd>
+<p>A positive scalar, or a vector of length <code class="reqn">d</code>.
+If it is a vector, the entries correspond to the standard deviation
+of the randomly generated basis coordinates for each latent dimension.
+If is is a scalar, it corresponds to the standard deviation of the
+basis coordinates in all dimensions. Defaults to <code>1</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The spline design of the functional network data (snapshot indices,
+basis dimension) is generated using the information provided in
+<code>spline_design</code>, producing a <code class="reqn">q</code>-dimensional cubic
+<code class="reqn">B</code>-spline basis with equally spaced knots.
+</p>
+<p>The latent process basis coordinates are generated as iid
+Gaussian random variables with standard deviation
+<code>process_options$sigma_coord</code>. Each latent process is given by
+</p>
+<p style="text-align: center;"><code class="reqn">z_{i,r}(x) = w_{i,r}^{T}B(x).</code>
+</p>
+
+<p>Then, the <code class="reqn">n \times n</code> symmetric adjacency matrix for
+snapshot <code class="reqn">k=1,...,m</code> has independent Gaussian entries
+with standard deviation <code>sigma_edge</code> and mean
+</p>
+<p style="text-align: center;"><code class="reqn">E([A_k]_{ij}) = z_i(x_k)^{T}z_j(x_k)</code>
+</p>
+
+<p>for <code class="reqn">i \leq j</code> (or <code class="reqn">i &lt; j</code> with no self loops).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list is returned with the realizations of the basis coordinates,
+spline design, and the multiplex network snapshots:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>An array of dimension <code class="reqn">n \times n \times m</code>, the realized
+functional network data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>An array of dimension <code class="reqn">n \times q \times d</code>,
+the realized basis coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_design</code></td>
+<td>
+<p>A list, describing the <code class="reqn">B</code>-spline design:
+</p>
+
+<dl>
+<dt>type</dt>
+<dd>
+<p>The string <code>'bs'</code>.</p>
+</dd>
+<dt>q</dt>
+<dd>
+<p>A positive integer, the dimension of the <code class="reqn">B</code>-spline basis.</p>
+</dd>
+<dt>x_vec</dt>
+<dd>
+<p>A vector, the snapshot evaluation indices for the data.</p>
+</dd>
+<dt>x_max</dt>
+<dd>
+<p>A scalar, the maximum of the index space.</p>
+</dd>
+<dt>x_min</dt>
+<dd>
+<p>A scalar, the minimum of the index space.</p>
+</dd>
+<dt>spline_matrix</dt>
+<dd>
+<p>An <code class="reqn">m \times q</code> matrix, the B-spline basis
+evaluated at the snapshot indices.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Gaussian edge data with B-spline latent processes, Gaussian coordinates
+# NOTE: x_vec is automatically populated given m
+
+data &lt;- gaussian_snapshot_bs(n=100,d=4,m=100,
+                             self_loops=FALSE,
+                             spline_design=list(q=12),
+                             sigma_edge=3,
+                             process_options=list(sigma_coord=.75))
+
+</code></pre>
+
+
+</div>

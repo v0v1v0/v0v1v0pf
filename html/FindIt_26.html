@@ -1,0 +1,309 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cv.CausalANOVA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross validation for the CausalANOVA.</h2>
+
+<h3>Description</h3>
+
+<p><code>cv.CausalANOVA</code> implements cross-validation for <code>CausalANOVA</code> to
+select the <code>collapse.cost</code> parameter.  <code>CausalANOVA</code> runs this
+function internally when defaults when <code>collapse.type=cv.min</code> or
+<code>collapse.type=cv.1Std</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cv.CausalANOVA(
+  formula,
+  int2.formula = NULL,
+  int3.formula = NULL,
+  data,
+  nway = 1,
+  pair.id = NULL,
+  diff = FALSE,
+  cv.collapse.cost = c(0.1, 0.3, 0.7),
+  nfolds = 5,
+  screen = FALSE,
+  screen.type = "fixed",
+  screen.num.int = 3,
+  family = "binomial",
+  cluster = NULL,
+  maxIter = 50,
+  eps = 1e-05,
+  seed = 1234,
+  fac.level = NULL,
+  ord.fac = NULL,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula that specifies outcome and treatment variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int2.formula</code></td>
+<td>
+<p>(optional). A formula that specifies two-way
+interactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int3.formula</code></td>
+<td>
+<p>(optional). A formula that specifies three-way
+interactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible
+by 'as.data.frame' to a data frame) containing the variables in the model.
+If not found in 'data', the variables are taken from 'environment(formula)',
+typically the environment from which 'CausalANOVA' is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nway</code></td>
+<td>
+<p>With <code>nway=1</code>, the function estimates the Average Marginal
+Effects (AMEs) only.  With <code>nway=2</code>, the function estimates the AMEs
+and the two-way Average Marginal Interaction Effects (AMIEs).  With
+<code>nway=3</code>, the function estimates the AMEs, the two-way and three-way
+AMIEs. Default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pair.id</code></td>
+<td>
+<p>(optional).Unique identifiers for each pair of comparison.
+This option is used when <code>diff=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff</code></td>
+<td>
+<p>A logical indicating whether the outcome is the choice between a
+pair.  If <code>diff=TRUE</code>, <code>pair.id</code> should specify a pair of
+comparison. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.collapse.cost</code></td>
+<td>
+<p>A vector containing candidates for a cost parameter
+ranging from 0 to 1.  1 corresponds to no regularization and the smaller
+value corresponds to the stronger regularization.  Default is
+<code>c(0.1,0.3,0.7)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>number of folds - default is 5. Although nfolds can be as
+large as the sample size (leave-one-out CV), it is not recommended for large
+datasets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>screen</code></td>
+<td>
+<p>A logical indicating whether select significant factor
+interactions with <code>glinternet</code>.  When users specify interactions using
+<code>int2.formula</code> or <code>int3.formula</code>, this option is ignored.
+<code>screen</code> should be used only when users want data-driven selection of
+factor-interactions.  With <code>screen.type</code>, users can specify how to
+screen factor interactions. We recommend to use this option when the number
+of factors is large, e.g., more than 6. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>screen.type</code></td>
+<td>
+<p>Type for screening factor interactions. (1)
+<code>"fixed"</code> select the fixed number (specified by <code>screen.num.int</code>)
+of factor interactions. (2) <code>"cv.min"</code> selects factor-interactions with
+the tuning parameter giving the minimum cross-validation error. (3)
+<code>"cv.1Std"</code> selects factor-interactions with the tuning parameter
+giving a cross-validation error that is within 1 standard deviation of the
+minimum cv error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>screen.num.int</code></td>
+<td>
+<p>(optional).The number of factor interactions to
+select. This option is used when and <code>screen=TRUE</code> and
+<code>screen.type="fixed"</code>. Default is 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>A family of outcome variables. <code>"gaussian"</code> when
+continuous outcomes <code>"binomial"</code> when binary outcomes.  Default is
+<code>"binomial"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>Unique identifies with which cluster standard errors are
+computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>The number of maximum iteration for <code>glinternet</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>A tolerance parameter in the internal optimization algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>an argument for <code>set.seed()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fac.level</code></td>
+<td>
+<p>optional. A vector containing the number of levels in each
+factor. The order of <code>fac.level</code> should match to the order of columns
+in the data. For example, when the first and second columns of the design
+matrix is "Education" and "Race", the first and second element of
+<code>fac.level</code> should be the number of levels in "Education" and "Race",
+respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ord.fac</code></td>
+<td>
+<p>optional. logical vectors indicating whether each factor has
+ordered (<code>TRUE</code>) or unordered (<code>FALSE</code>) levels. When levels are
+ordered, the function uses the order given by function <code>levels()</code>. If
+levels are ordered, the function places penalties on the differences between
+adjacent levels. If levels are unordered, the function places penalties on
+the differences based on every pairwise comparison.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether it prints the value of a cost parameter used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Details in <code>CausalANOVA</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cv.error</code></td>
+<td>
+<p>The mean cross-validated error - a vector of length
+<code>length(cv.t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.min</code></td>
+<td>
+<p>A value of <code>t</code> that gives minimum
+<code>cv.missclass</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.1Std</code></td>
+<td>
+<p>The largest value of <code>t</code> such that
+error is within 1 standard error of the minimum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.each.mat</code></td>
+<td>
+<p>A
+matrix containing cross-validation errors for each fold and cost parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.cost</code></td>
+<td>
+<p>The <code>cv.collapse.cost</code> used in the function.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Naoki Egami and Kosuke Imai.
+</p>
+
+
+<h3>References</h3>
+
+<p>Post, J. B. and Bondell, H. D. 2013. “Factor selection and
+structural identification in the interaction anova model.” Biometrics 69,
+1, 70–79.
+</p>
+<p>Egami, Naoki and Kosuke Imai. 2019. Causal Interaction in
+Factorial Experiments: Application to Conjoint Analysis, Journal of the American Statistical Association.
+<a href="http://imai.fas.harvard.edu/research/files/int.pdf">http://imai.fas.harvard.edu/research/files/int.pdf</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>CausalANOVA.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(Carlson)
+## Specify the order of each factor
+Carlson$newRecordF&lt;- factor(Carlson$newRecordF,ordered=TRUE,
+                            levels=c("YesLC", "YesDis","YesMP",
+                                     "noLC","noDis","noMP","noBusi"))
+Carlson$promise &lt;- factor(Carlson$promise,ordered=TRUE,levels=c("jobs","clinic","education"))
+Carlson$coeth_voting &lt;- factor(Carlson$coeth_voting,ordered=FALSE,levels=c("0","1"))
+Carlson$relevantdegree &lt;- factor(Carlson$relevantdegree,ordered=FALSE,levels=c("0","1"))
+
+## ####################################### 
+## Collapsing Without Screening
+## ####################################### 
+#################### AMEs and two-way AMIEs ####################
+## We show a very small example for illustration.
+## Recommended to use cv.collapse.cost=c(0.1,0.3,0.5) and nfolds=10 in practice.
+fit.cv &lt;- cv.CausalANOVA(formula=won ~ newRecordF + promise + coeth_voting + relevantdegree,
+                         int2.formula = ~ newRecordF:coeth_voting,
+                         data=Carlson, pair.id=Carlson$contestresp,diff=TRUE,
+                         cv.collapse.cost=c(0.1,0.3), nfolds=2,
+                         cluster=Carlson$respcodeS, nway=2)
+fit.cv
+
+</code></pre>
+
+
+</div>

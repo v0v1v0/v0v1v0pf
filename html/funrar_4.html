@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>distinctiveness</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Distinctiveness on site-species matrix</h2>
+
+<h3>Description</h3>
+
+<p>Computes functional distinctiveness from a site-species matrix (containing
+presence-absence or relative abundances) of species with provided functional
+distance matrix. The sites-species matrix should have <strong>sites</strong> in
+<strong>rows</strong> and <strong>species</strong> in <strong>columns</strong>, similar to
+<span class="pkg">vegan</span> package defaults.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">distinctiveness(pres_matrix, dist_matrix, relative = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pres_matrix</code></td>
+<td>
+<p>a site-species matrix (presence-absence or relative
+abundances), with sites in rows and species in columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist_matrix</code></td>
+<td>
+<p>a species functional distance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relative</code></td>
+<td>
+<p>a logical indicating if distinctiveness should be scaled
+relatively to the community (scaled by max functional
+distance among the species of the targeted community)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Functional Distinctiveness of a species is the average functional
+distance from a species to all the other in the given community. It is
+computed as such:
+</p>
+<p style="text-align: center;"><code class="reqn">
+   D_i = \frac{\sum_{j = 0, i \neq j}^N d_{ij}}{N-1},
+   </code>
+</p>
+
+<p>with <code class="reqn">D_i</code> the functional distinctiveness of species <code class="reqn">i</code>, <code class="reqn">N</code>
+the total number of species in the community and <code class="reqn">d_{ij}</code> the
+functional distance between species <code class="reqn">i</code> and species <code class="reqn">j</code>.
+<strong>IMPORTANT NOTE</strong>: in order to get functional rarity indices between 0
+and 1, the distance metric has to be scaled between 0 and 1.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a similar matrix from provided <code>pres_matrix</code> with Distinctiveness
+values in lieu of presences or relative abundances, species absent from
+communities will have an <code>NA</code> value (see <code>Note</code> section)
+</p>
+
+
+<h3>Note</h3>
+
+<p>Absent species should be coded by <code>0</code> or <code>NA</code> in input matrices.
+</p>
+<p>When a species is alone in its community the functional distinctiveness
+cannot be computed (denominator = 0 in formula), and its value is assigned
+as <code>NaN</code>.
+</p>
+<p>For speed and memory efficiency sparse matrices can be used as input of
+the function using <code>as(pres_matrix, "dgCMatrix")</code> from the
+<code>Matrix</code> package.
+(see <code>vignette("sparse_matrices", package = "funrar")</code>)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("aravo", package = "ade4")
+# Site-species matrix
+mat = as.matrix(aravo$spe)
+
+# Compute relative abundances
+mat = make_relative(mat)
+
+# Example of trait table
+tra = aravo$traits[, c("Height", "SLA", "N_mass")]
+# Distance matrix
+dist_mat = compute_dist_matrix(tra)
+
+di = distinctiveness(pres_matrix = mat, dist_matrix = dist_mat)
+di[1:5, 1:5]
+
+# Compute distinctiveness for all species in the regional pool
+# i.e., with all the species in all the communities
+# Here considering each species present evenly in the regional pool
+reg_pool = matrix(1, ncol = ncol(mat))
+colnames(reg_pool) = colnames(mat)
+row.names(reg_pool) = c("Regional_pool")
+
+reg_di = distinctiveness(reg_pool, dist_mat)
+
+</code></pre>
+
+
+</div>

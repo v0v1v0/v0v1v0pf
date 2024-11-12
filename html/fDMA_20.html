@@ -1,0 +1,77 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mdmtest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes Harvey-Leybourne-Newbold Test.</h2>
+
+<h3>Description</h3>
+
+<p>This is a wrapper for <code>dm.test</code> from <code>forecast</code> package. This function computes the modified Diebold-Mariano test. The modification is useful for small samples. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mdmtest(y,f)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code>vector</code> of the forecasted time-series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p><code>matrix</code> of the predicted values from various methods, forecasts are ordered in rows, the first row should correspond to the method that is compared with alternative ones (corresponding to subsequent rows)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The null hypothesis is that the two methods have the same forecast accuracy. This function assumes that one-step ahead forecasts are compared and the second power is used in the loss function (see <code>dm.test</code>).</p>
+
+
+<h3>Value</h3>
+
+<p><code>matrix</code>, 
+first column contains tests statistics, next p-values are given for the alternative hypothesis that alternative forecasts have different accuracy than the compared forecast, alternative forecasts are less accurate and alternative forecasts have greater accuracy, tests outcomes for different forecasts are ordered by rows</p>
+
+
+<h3>References</h3>
+
+<p>Harvey, D., Leybourne, S., Newbold, P., 1997. Testing the equality of prediction mean squared errors. <em>International Journal of Forecasting</em> <b>13</b>, 281–291. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dmtest</code>, <code>hmdmtest</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+wti &lt;- crudeoil[-1,1]
+drivers &lt;- (lag(crudeoil[,-1],k=1))[-1,]
+ld.wti &lt;- (diff(log(wti)))[-1,]
+ld.drivers &lt;- (diff(log(drivers)))[-1,]
+m &lt;- fDMA(y=ld.wti,x=ld.drivers,alpha=0.99,lambda=0.90,initvar=10)
+m &lt;- m$y.hat
+a &lt;- altf2(y=ld.wti,x=ld.drivers,d=TRUE)
+a &lt;- a$y.hat
+a &lt;- matrix(unlist(a),nrow=length(a),byrow=TRUE)
+fc &lt;- rbind(m,a)
+mdm &lt;- mdmtest(y=as.vector(ld.wti),f=fc)
+
+</code></pre>
+
+
+</div>

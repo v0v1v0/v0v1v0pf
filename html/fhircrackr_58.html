@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fhir_melt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Melt multiple entries</h2>
+
+<h3>Description</h3>
+
+<p>This function divides multiple entries in an indexed data frame as produced by <code>fhir_crack()</code>
+into separate rows.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fhir_melt(
+  indexed_data_frame,
+  columns,
+  brackets = c("&lt;", "&gt;"),
+  sep = " ",
+  id_name = "resource_identifier",
+  all_columns = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>indexed_data_frame</code></td>
+<td>
+<p>A data.frame/data.table with indexed multiple entries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>columns</code></td>
+<td>
+<p>A character vector specifying the names of all columns that should be molten simultaneously.
+It is advisable to only melt columns simultaneously that belong to the same (repeating) attribute!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brackets</code></td>
+<td>
+<p>A character vector of length two, defining the brackets used for the indices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>A character vector of length one defining the separator that was used when pasting together multiple entries in <code>fhir_crack()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id_name</code></td>
+<td>
+<p>A character vector of length one, the name of the column that will hold the identification of the origin of the new rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all_columns</code></td>
+<td>
+<p>Return all columns? Defaults to <code>FALSE</code>, meaning only those specified in <code>columns</code> are returned.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Every row containing values that consist of multiple entries on the variables specified by the argument <code>columns</code>
+will be turned into multiple rows, one for each entry. Values on other variables will be repeated in all the new rows.
+</p>
+<p>The new data.frame will contain only the molten variables (if <code>all_cloumns = FALSE</code>) or all variables
+(if <code>all_columns = TRUE</code>) as well as an additional variable <code>resource_identifier</code> that maps which rows came
+from the same origin. The name of this column can be changed in the argument <code>id_name</code>.
+</p>
+<p>For a more detailed description on how to use this function please see the corresponding package vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame/data.table where each entry from the variables in <code>columns</code> appears in a separate row.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fhir_common_columns()</code>, <code>fhir_rm_indices()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#unserialize example
+bundles &lt;- fhir_unserialize(bundles = example_bundles1)
+
+#crack fhir resources
+table_desc &lt;- fhir_table_description(
+    resource = "Patient",
+    brackets = c("[", "]"),
+    sep = " "
+)
+
+df &lt;- fhir_crack(bundles = bundles, design = table_desc)
+
+#find all column names associated with attribute address
+col_names &lt;- fhir_common_columns(df, "address")
+
+#original data frame
+df
+
+#only keep address columns
+fhir_melt(
+     indexed_data_frame = df,
+     columns            = col_names,
+     brackets           = c("[", "]"),
+     sep = " "
+ )
+
+#keep all columns
+fhir_melt(indexed_data_frame = df, columns = col_names,
+          brackets = c("[","]"), sep = " ", all_columns = TRUE)
+</code></pre>
+
+
+</div>

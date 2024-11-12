@@ -1,0 +1,274 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastglcm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>GLCM feature texture extraction</h2>
+
+<h3>Description</h3>
+
+<p>GLCM feature texture extraction
+</p>
+<p>GLCM feature texture extraction
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"># init &lt;- fastglcm$new()
+</code></pre>
+
+
+<h3>Methods</h3>
+
+
+<dl>
+<dt><code>fastglcm$new()</code></dt>
+<dd></dd>
+<dt><code>--------------</code></dt>
+<dd></dd>
+<dt><code>GLCM_compute()</code></dt>
+<dd></dd>
+<dt><code>--------------</code></dt>
+<dd></dd>
+</dl>
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-fastglcm-new"><code>fastglcm$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-fastglcm-GLCM_compute"><code>fastglcm$GLCM_compute()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-fastglcm-clone"><code>fastglcm$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-fastglcm-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Initialization method for the 'fastglcm' R6 class
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>fastglcm$new()</pre></div>
+
+
+<hr>
+<a id="method-fastglcm-GLCM_compute"></a>
+
+
+
+<h4>Method <code>GLCM_compute()</code>
+</h4>
+
+<p>The GLCM computation method to receive the results
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>fastglcm$GLCM_compute(
+  img,
+  method,
+  vmin = 0,
+  vmax = 255,
+  levels = 8,
+  ks = 5,
+  distance = 1,
+  angle = 0,
+  verbose = FALSE
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>img</code></dt>
+<dd>
+<p>a numeric matrix</p>
+</dd>
+<dt><code>method</code></dt>
+<dd>
+<p>a character string specifying the method. Can be one of 'mean', 'std', 'contrast', 'dissimilarity', 'homogeneity', 'ASM_Energy', 'max' or 'entropy'</p>
+</dd>
+<dt><code>vmin</code></dt>
+<dd>
+<p>a numeric value specifying the minimum value of the input image ( <em>img</em> )</p>
+</dd>
+<dt><code>vmax</code></dt>
+<dd>
+<p>a numeric value specifying the maximum value of the input image ( <em>img</em> )</p>
+</dd>
+<dt><code>levels</code></dt>
+<dd>
+<p>an integer specifying the window size. This parameter will create a mask of size <em>levels x levels</em> internally</p>
+</dd>
+<dt><code>ks</code></dt>
+<dd>
+<p>an integer specifying the kernel size. A kernel of 1's will be created and the <em>cv2.filter2D</em> filter will be utilized for the convolution</p>
+</dd>
+<dt><code>distance</code></dt>
+<dd>
+<p>a numeric value specifying the pixel pair distance offsets (a 'pixel' value such as 1.0, 2.0 etc.)</p>
+</dd>
+<dt><code>angle</code></dt>
+<dd>
+<p>a numeric value specifying the pixel pair angles (a 'degree' value such as 0.0, 30.0, 45.0, 90.0 etc.)</p>
+</dd>
+<dt><code>verbose</code></dt>
+<dd>
+<p>a boolean. If TRUE then information will be printed out in the console</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>a list object if the method is set to 'ASM_Energy' otherwise a numeric matrix
+</p>
+
+
+<hr>
+<a id="method-fastglcm-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>fastglcm$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>References</h3>
+
+<p>https://github.com/tzm030329/GLCM
+https://github.com/1044197988/Python-Image-feature-extraction
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+require(fastGLCM)
+require(OpenImageR)
+
+file_im = system.file('images', 'Sugar_Cane_Bolivia_PlanetNICFI.png', package = 'fastGLCM')
+im = readImage(file_im)
+
+#...................................
+# convert to gray and make sure that
+# pixel values are between 0 and 255
+#...................................
+
+im = rgb_2gray(im)
+im = im * 255
+
+MIN = min(as.vector(im))
+MAX = max(as.vector(im))
+
+#...............
+# methods to use
+#...............
+
+methods_py = c('mean',
+               'std',
+               'contrast',
+               'dissimilarity',
+               'homogeneity',
+               'ASM_Energy',
+               'max',
+               'entropy')
+
+init = fastglcm$new()
+
+lst_glcm_py = list()
+
+for (item_m in methods_py) {
+
+  cat(paste0('Method: ', item_m), '\n')
+
+  res_item = init$GLCM_compute(img = im,
+                               method = item_m,
+                               vmin = as.integer(MIN),
+                               vmax = as.integer(MAX),
+                               levels = as.integer(8),
+                               ks = as.integer(5),
+                               distance = 1.0,
+                               angle = 0.0)
+
+  lst_glcm_py[[item_m]] = res_item
+}
+
+#..............................
+# Create two different sublists
+# for 'ASM' and 'Energy'
+#..............................
+
+lst_glcm_py = append(lst_glcm_py, list(lst_glcm_py[['ASM_Energy']][[1]]), after = 5)
+names(lst_glcm_py)[6] = 'ASM'
+
+lst_glcm_py = append(lst_glcm_py, list(lst_glcm_py[['ASM_Energy']][[2]]), after = 6)
+names(lst_glcm_py)[7] = 'energy'
+
+lst_glcm_py[['ASM_Energy']] = NULL
+
+str(lst_glcm_py)
+
+#.........................
+# multi-plot of the output
+#.........................
+
+plot_multi_images(list_images = lst_glcm_py,
+                  par_ROWS = 2,
+                  par_COLS = 5,
+                  titles = names(lst_glcm_py))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

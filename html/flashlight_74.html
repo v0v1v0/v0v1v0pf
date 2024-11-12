@@ -1,0 +1,334 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>light_profile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partial Dependence and other Profiles</h2>
+
+<h3>Description</h3>
+
+<p>Calculates different types of profiles across covariable values.
+By default, partial dependence profiles are calculated (see Friedman).
+Other options are profiles of ALE (accumulated local effects, see Apley),
+response, predicted values ("M plots" or "marginal plots", see Apley),
+residuals, and shap. The results are aggregated either by (weighted) means or by
+(weighted) quartiles.
+</p>
+<p>Note that ALE profiles are calibrated by (weighted) average predictions.
+In contrast to the suggestions in Apley, we calculate ALE profiles of factors
+in the same order as the factor levels.
+They are not being reordered based on similiarity of other variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">light_profile(x, ...)
+
+## Default S3 method:
+light_profile(x, ...)
+
+## S3 method for class 'flashlight'
+light_profile(
+  x,
+  v = NULL,
+  data = NULL,
+  by = x$by,
+  type = c("partial dependence", "ale", "predicted", "response", "residual", "shap"),
+  stats = c("mean", "quartiles"),
+  breaks = NULL,
+  n_bins = 11L,
+  cut_type = c("equal", "quantile"),
+  use_linkinv = TRUE,
+  counts = TRUE,
+  counts_weighted = FALSE,
+  v_labels = TRUE,
+  pred = NULL,
+  pd_evaluate_at = NULL,
+  pd_grid = NULL,
+  pd_indices = NULL,
+  pd_n_max = 1000L,
+  pd_seed = NULL,
+  pd_center = c("no", "first", "middle", "last", "mean", "0"),
+  ale_two_sided = FALSE,
+  ...
+)
+
+## S3 method for class 'multiflashlight'
+light_profile(
+  x,
+  v = NULL,
+  data = NULL,
+  type = c("partial dependence", "ale", "predicted", "response", "residual", "shap"),
+  breaks = NULL,
+  n_bins = 11L,
+  cut_type = c("equal", "quantile"),
+  pd_evaluate_at = NULL,
+  pd_grid = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "flashlight" or "multiflashlight".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>cut3()</code> in forming the
+cut breaks of the <code>v</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>The variable name to be profiled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional <code>data.frame</code>. Not used for <code>type = "shap"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>An optional vector of column names used to additionally group the results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of the profile: Either "partial dependence", "ale", "predicted",
+"response", "residual", or "shap".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+<p>Statistic to calculate: "mean" or "quartiles". For ALE profiles,
+only "mean" makes sense.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breaks</code></td>
+<td>
+<p>Cut breaks for a numeric <code>v</code>. Used to overwrite automatic binning via
+<code>n_bins</code> and <code>cut_type</code>. Ignored if <code>v</code> is not numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_bins</code></td>
+<td>
+<p>Approximate number of unique values to evaluate for numeric <code>v</code>.
+Ignored if <code>v</code> is not numeric or if <code>breaks</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cut_type</code></td>
+<td>
+<p>Should a numeric <code>v</code> be cut into "equal" or "quantile" bins?
+Ignored if <code>v</code> is not numeric or if <code>breaks</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_linkinv</code></td>
+<td>
+<p>Should retransformation function be applied? Default is <code>TRUE</code>.
+Not used for type "shap".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>Should observation counts be added?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>counts_weighted</code></td>
+<td>
+<p>If <code>counts = TRUE</code>: Should counts be weighted by the
+case weights? If <code>TRUE</code>, the sum of <code>w</code> is returned by group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_labels</code></td>
+<td>
+<p>If <code>FALSE</code>, return group centers of <code>v</code> instead of labels.
+Only relevant for types "response", "predicted" or "residual" and if <code>v</code>
+is being binned. In that case useful, for instance, if different flashlights
+use different data sets and bin labels would not match.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>Optional vector with predictions (after application of inverse link).
+Can be used to avoid recalculation of predictions over and over if the functions
+is to be repeatedly called for different <code>v</code> and predictions are computationally
+expensive to make. Not implemented for multiflashlight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_evaluate_at</code></td>
+<td>
+<p>Vector with values of <code>v</code> used to evaluate the profile.
+Only relevant for type = "partial dependence" and "ale".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_grid</code></td>
+<td>
+<p>A <code>data.frame</code> with grid values, e.g., generated by <code>expand.grid()</code>.
+Only used for type = "partial dependence".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_indices</code></td>
+<td>
+<p>A vector of row numbers to consider in calculating
+partial dependence profiles and "ale".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_n_max</code></td>
+<td>
+<p>Maximum number of ICE profiles to calculate (will be randomly
+picked from <code>data</code>) for partial dependence and ALE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_seed</code></td>
+<td>
+<p>Integer random seed used to select ICE profiles for partial dependence
+and ALE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_center</code></td>
+<td>
+<p>How should ICE curves be centered?
+</p>
+
+<ul>
+<li>
+<p> Default is "no".
+</p>
+</li>
+<li>
+<p> Choose "first", "middle", or "last" to 0-center at specific evaluation points.
+</p>
+</li>
+<li>
+<p> Choose "mean" to center all profiles at the within-group means.
+</p>
+</li>
+<li>
+<p> Choose "0" to mean-center curves at 0. Only relevant for partial dependence.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ale_two_sided</code></td>
+<td>
+<p>If <code>TRUE</code>, <code>v</code> is continuous and <code>breaks</code>
+are passed or being calculated, then two-sided derivatives are calculated
+for ALE instead of left derivatives. More specifically: Usually, local effects
+at value x are calculated using points in <code class="reqn">[x-e, x]</code>.
+Set <code>ale_two_sided = TRUE</code> to use points in <code class="reqn">[x-e/2, x+e/2]</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Numeric covariables <code>v</code> with more than <code>n_bins</code> disjoint values
+are binned into <code>n_bins</code> bins. Alternatively, <code>breaks</code> can be provided
+to specify the binning. For partial dependence profiles
+(and partly also ALE profiles), this behaviour can be overwritten either
+by providing a vector of evaluation points (<code>pd_evaluate_at</code>) or an
+evaluation <code>pd_grid</code>. By the latter we mean a data frame with column name(s)
+with a (multi-)variate evaluation grid.
+</p>
+<p>For partial dependence, ALE, and prediction profiles, "model", "predict_function",
+"linkinv" and "data" are required. For response profiles its "y", "linkinv" and
+"data", and for shap profiles it is just "shap". "data" can be passed on the fly.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "light_profile" with the following elements:
+</p>
+
+<ul>
+<li> <p><code>data</code> A tibble containing results. Can be used to build fully customized
+visualizations. Column names can be controlled by <code>options(flashlight.column_name)</code>.
+</p>
+</li>
+<li> <p><code>by</code> Names of group by variable.
+</p>
+</li>
+<li> <p><code>v</code> The variable(s) evaluated.
+</p>
+</li>
+<li> <p><code>type</code> Same as input <code>type</code>. For information only.
+</p>
+</li>
+<li> <p><code>stats</code> Same as input <code>stats</code>.
+</p>
+</li>
+</ul>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>light_profile(default)</code>: Default method not implemented yet.
+</p>
+</li>
+<li> <p><code>light_profile(flashlight)</code>: Profiles for flashlight.
+</p>
+</li>
+<li> <p><code>light_profile(multiflashlight)</code>: Profiles for multiflashlight.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Friedman J. H. (2001). Greedy function approximation: A gradient boosting machine. The Annals of Statistics, 29:1189–1232.
+</p>
+</li>
+<li>
+<p> Apley D. W. (2016). Visualizing the effects of predictor variables in black box supervised learning models.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>light_effects()</code>, <code>plot.light_profile()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">fit &lt;- lm(Sepal.Length ~ ., data = iris)
+fl &lt;- flashlight(model = fit, label = "iris", data = iris, y = "Sepal.Length")
+light_profile(fl, v = "Species")
+light_profile(fl, v = "Petal.Width", type = "residual")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>procsom</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Processing of self-organizing maps for pseudo-temporal expression profiles</h2>
+
+<h3>Description</h3>
+
+<p>This function processes the self-organizing maps produced by the function <code>getsom</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">procsom(s1d, corthr = 0.85, minsom = 3)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>s1d</code></td>
+<td>
+<p>output of function <code>getsom</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corthr</code></td>
+<td>
+<p>correlation threshold, i. e. a real number between 0 and 1. The z-score of the average normalized pseudo-temporal expression profiles within each node of the self-organizing map is computed, and the correlation of these z-scores between neighbouring nodes is computed. If the correlation is greater than <code>corthr</code>, neighbouring nodes are merged. Default value is 0.85.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minsom</code></td>
+<td>
+<p>positive integer number. Nodes of the self-organizing map with less than <code>minsom</code> transcripts are discarded. Default value is 3.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of the following seven components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>vector of Pearson's correlation coefficient between node <code>i</code> and node <code>i+1</code> of the populated nodes of the self-organizing map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes</code></td>
+<td>
+<p>vector with assignment of genes to nodes of the final self-organizing map (after merging). Components are node numbers and component names are gene IDs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes.e</code></td>
+<td>
+<p>data frame with average normalized pseudo-temporal expression profile for each node, ordered by node number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes.z</code></td>
+<td>
+<p>data frame with z-score transformed average normalized pseudo-temporal expression profile for each node, ordered by node number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all.e</code></td>
+<td>
+<p>data frame with normalized pseudo-temporal expression profile for all genes in the self-organizing map, ordered by node number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all.z</code></td>
+<td>
+<p>data frame with z-score transformed normalized pseudo-temporal expression profile for all genes in the self-organizing map, ordered by node number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all.b</code></td>
+<td>
+<p>data frame with binarized pseudo-temporal expression profile for all genes in the self-organizing map, ordered by node number. Expression is 1 in cells with z-score &gt; 1 and -1 in cells with z-score &lt; -1, and 0 otherwise.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+x &lt;- intestine$x
+y &lt;- intestine$y
+v &lt;- intestine$v
+
+tar &lt;- c(6,9,13)
+fb &lt;- fateBias(x,y,tar,z=NULL,minnr=5,minnrh=10,nbfactor=5,use.dist=FALSE,seed=NULL,nbtree=NULL)
+dr &lt;- compdr(x,z=NULL,m="cmd",k=2,tsne.perplexity=30)
+pr &lt;- prcurve(y,fb,dr,k=2,m="cmd",trthr=0.4,start=NULL)
+n &lt;- pr$trc[["t6"]]
+fs  &lt;- filterset(v,n,minexpr=2,minnumber=1)
+s1d &lt;- getsom(fs,nb=1000,alpha=.5)
+ps &lt;- procsom(s1d,corthr=.85,minsom=3)
+
+
+</code></pre>
+
+
+</div>

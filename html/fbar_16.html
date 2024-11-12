@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reactiontbl_to_expanded</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parse a reaction table to an intermediate, long format</h2>
+
+<h3>Description</h3>
+
+<p>The long format can also be suitable for manipulating equations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reactiontbl_to_expanded(reaction_table, regex_arrow = "&lt;?[-=]+&gt;")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>reaction_table</code></td>
+<td>
+<p>A data frame describing the metabolic model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regex_arrow</code></td>
+<td>
+<p>Regular expression for the arrow splitting sides of the reaction equation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>reaction_table</code> must have columns:
+</p>
+
+<ul>
+<li> <p><code>abbreviation</code>,
+</p>
+</li>
+<li> <p><code>equation</code>,
+</p>
+</li>
+<li> <p><code>uppbnd</code>,
+</p>
+</li>
+<li> <p><code>lowbnd</code>, and
+</p>
+</li>
+<li> <p><code>obj_coef</code>.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list of data frames: </p>
+
+<ul>
+<li> <p><code>rxns</code>, which has one row per reaction, 
+</p>
+</li>
+<li> <p><code>mets</code>, which has one row for each metabolite, and 
+</p>
+</li>
+<li> <p><code>stoich</code>, which has one row for each time a metabolite appears in a reaction.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other parsing_and_conversion: 
+<code>expanded_to_ROI()</code>,
+<code>expanded_to_glpk()</code>,
+<code>expanded_to_gurobi()</code>,
+<code>reactiontbl_to_gurobi()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+data(ecoli_core)
+library(dplyr)
+try(library(ROI.plugin.ecos)) # make a solver available to ROI
+
+roi_model &lt;- ecoli_core %&gt;%
+  reactiontbl_to_expanded %&gt;%
+  expanded_to_ROI
+  
+if(length(ROI::ROI_applicable_solvers(roi_model))&gt;=1){
+  roi_result &lt;- ROI::ROI_solve(roi_model)
+  
+  ecoli_core_with_flux &lt;- ecoli_core %&gt;%
+    mutate(flux = roi_result[['solution']])
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

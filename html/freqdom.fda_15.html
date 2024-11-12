@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fts.spectral.density</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional spectral and cross-spectral density operator</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the spectral density operator and cross spectral density operator of functional time series.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fts.spectral.density(
+  X,
+  Y = X,
+  freq = (-1000:1000/1000) * pi,
+  q = ceiling((dim(X$coefs)[2])^{     0.33 }),
+  weights = "Bartlett"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an object of class <code>fd</code> containing <code class="reqn">T</code> functional observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>an object of class <code>fd</code> containing <code class="reqn">T</code> functional observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>a vector containing frequencies in <code class="reqn">[-\pi, \pi]</code> on which the spectral density should be evaluated.
+By default <code>freq=(-1000:1000/1000)*pi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>window size for the kernel estimator, i.e. a positive integer. By default we choose <code>q = max(1, floor((dim(X$coefs)[2])^{0.33}))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>kernel used in the spectral smoothing. For possible choices see
+<code>spectral.density</code> in package <code>freqdom</code>. By default the Bartlett kernel is chosen.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let <code class="reqn">X_1(u),\ldots, X_T(u)</code> and <code class="reqn">Y_1(u),\ldots, Y_T(u)</code> be two samples of functional data. The cross-spectral density kernel between the two time series <code class="reqn">(X_t(u))</code> and <code class="reqn">(Y_t(u))</code> is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">  
+  f^{XY}_\omega(u,v)=\sum_{h\in\mathbf{Z}} \mathrm{Cov}(X_h(u),Y_0(v)) e^{-ih\omega}.
+</code>
+</p>
+
+<p>The function <code>fts.spectral.density</code> determines the empirical
+cross-spectral density kernel between the two time series. The estimator is of the
+form
+</p>
+<p style="text-align: center;"><code class="reqn">
+  \widehat{f}^{XY}_\omega(u,v)=\sum_{|h|\leq q} w(|k|/q)\widehat{c}^{XY}_h(u,v)e^{-ih\omega},
+</code>
+</p>
+
+<p>with <code class="reqn">\widehat{c}^{XY}_h(u,v)</code> defined in <code>fts.cov.structure</code>.
+The other paremeters are as in <code>cov.structure</code>.
+</p>
+<p>Since <code class="reqn">X_t(u)=\boldsymbol{b}_1^\prime(u)\mathbf{x}_t</code> and <code class="reqn">Y_t(u)=\mathbf{y}_t^\prime \boldsymbol{b}_2(u)</code> we can write
+</p>
+<p style="text-align: center;"><code class="reqn">
+  \widehat{f}^{XY}_\omega(u,v)=\boldsymbol{b}_1^\prime(u)\widehat{\mathcal{F}}^{\mathbf{xy}}(\omega)\boldsymbol{b}_2(v),
+</code>
+</p>
+
+<p>where <code class="reqn">\widehat{\mathcal{F}}^{\mathbf{xy}}(\omega)</code> is defined as for the function <code>spectral.density</code> for series of coefficient vectors
+<code class="reqn">(\mathbf{x}_t\colon 1\leq t\leq T)</code> and <code class="reqn">(\mathbf{y}_t\colon 1\leq t\leq T)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>fts.timedom</code>. The list is containing the following components:
+</p>
+
+<ul>
+<li> <p><code>operators</code> <code class="reqn">\quad</code> an array. Element <code>[,,k]</code> in the coefficient matrix of the spectral density matrix evaluated at the <code class="reqn">k</code>-th frequency listed in <code>freq</code>.
+</p>
+</li>
+<li> <p><code>lags</code> <code class="reqn">\quad</code> returns the lags vector from the arguments.
+</p>
+</li>
+<li> <p><code>basisX</code> <code class="reqn">\quad</code> returns <code>X$basis</code>, an object of class <code>basis.fd</code> (see <code>create.basis</code>).
+</p>
+</li>
+<li> <p><code>basisY</code> <code class="reqn">\quad</code> returns <code>Y$basis</code>, an object of class <code>basis.fd</code> (see <code>create.basis</code>)
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>The multivariate equivalent in the <code>freqdom</code> package: <code>spectral.density</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(pm10)
+X = center.fd(pm10)
+
+# Compute the spectral density operator with Bartlett weights
+SD = fts.spectral.density(X, freq = (-50:50/50) * pi, q = 2, weight="Bartlett")
+fts.plot.operators(SD, freq = -2:2)
+
+# Compute the spectral density operator with Tukey weights
+SD = fts.spectral.density(X, freq = (-50:50/50) * pi, q = 2, weight="Tukey")
+fts.plot.operators(SD, freq = -2:2)
+# Note relatively small difference between the two plots
+
+# Now, compute the spectral density operator with Tukey weights and larger q
+SD = fts.spectral.density(X, freq = (-50:50/50) * pi, q = 5, weight="Tukey")
+fts.plot.operators(SD, freq = -2:2)
+</code></pre>
+
+
+</div>

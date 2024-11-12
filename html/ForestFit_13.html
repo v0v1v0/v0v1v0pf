@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitmixturegrouped</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimating parameters of the well-known mixture models fitted to the grouped data</h2>
+
+<h3>Description</h3>
+
+<p>Estimates parameters of the gamma, log-normal, and Weibull mixture models fitted to the grouped data using the expectation maximization (EM) algorithm. General form for the cdf of a statistical mixture model is given by
+</p>
+<p style="text-align: center;"><code class="reqn">F(x,{\Theta}) = \sum_{k=1}^{K}\omega_k F_k(x,\theta_k),</code>
+</p>
+
+<p>where <code class="reqn">\Theta=(\theta_1,\dots,\theta_K)^T</code>, is the whole parameter vector, <code class="reqn">\theta_k</code> for <code class="reqn">k=1,\dots,K</code> is the parameter space of the <code class="reqn">j</code>-th component, i.e. <code class="reqn">\theta_k=(\alpha_k,\beta_k)^{T}</code>, <code class="reqn">F_j(.,\theta_j)</code> is the cdf of the <code class="reqn">k</code>-th component, and known constant <code class="reqn">K</code> is the number of components. Parameters <code class="reqn">\alpha</code> and <code class="reqn">\beta</code> are the shape and scale parameters. The constants <code class="reqn">\omega_k</code>s sum to one, i.e. <code class="reqn">\sum_{k=1}^{K}\omega_k=1</code>. The families considered for the cdf <code class="reqn">F</code> include Gamma, Log-normal, and Weibull. If a sample of <code class="reqn">n</code> independent observations each follows a distribution with cdf <code class="reqn">F</code> have been divided into <code class="reqn">m</code> separate groups of the form <code class="reqn">(r_{i-1},r_i]</code>, for <code class="reqn">i=1,\dots,m</code>. So, the likelihood function of the observed data is given by
+</p>
+<p style="text-align: center;"><code class="reqn">
+L(\Theta|f_1,\dots,f_m)=\frac{n!}{f_{1}!f_{2}!\dots f_{m}!}\prod_{i=1}^{m}\Bigl[\frac{F_i(\Theta)}{F(\Theta)}\Bigr]^{f_i},</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">F_i(\Theta)=\sum_{k=1}^{K}\omega_k\int_{r_{i-1}}^{r_i}f(x|\theta_k)dx,</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">F(\Theta)=\sum_{k=1}^{K}\omega_kf(x|\theta_k)dx,</code>
+</p>
+
+<p>in which <code class="reqn">f(x|\theta_k)</code> denotes the pdf of the <code class="reqn">j</code>-th component. Using the the EM algorithm proposed by Dempster et al. (1977), we can solve <code class="reqn">
+\partial L(\Theta|f_1,\dots,f_m)/{\partial \Theta}=0</code> by introducing two new missing variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitmixturegrouped(family, r, f, K, initial=FALSE, starts)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Name of the family including: "<code>gamma</code>", "<code>log-normal</code>", "<code>skew-normal</code>", and "<code>weibull</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>A numeric vector of length <code class="reqn">m+1</code>. The first element of <code class="reqn">r</code> is lower bound of the first group and other <code class="reqn">m</code> elements are upper bound of the <code class="reqn">m</code> groups. We note that upper bound of the <code class="reqn">(i-1)</code>-th group is the lower bound of the <code class="reqn">i</code>-th group, for <code class="reqn">i=2,\dots,m</code>. The lower bound of the first group and upper bound of the <code class="reqn">m</code>-th group are chosen arbitrarily. If raw data are available, the smallest and largest observations are chosen for lower bound of the first group and upper bound of the <code class="reqn">m</code>-th group, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>A numeric vector of length <code class="reqn">m</code> containing the group's frequency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>Number of components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>The sequence of initial values including <code class="reqn">\omega_1,\dots,\omega_K,\alpha_1,\dots,\alpha_K,\beta_1,\dots,\beta_K</code>. For skew normal case the vector of initial values of skewness parameters will be added. By default the initial values automatically is determind by k-means method of clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>starts</code></td>
+<td>
+<p>If <code>initial=TRUE</code>, then sequence of the initial values must be given.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Identifiability of the mixture models supposed to be held. For skew-normal mixture model the parameter vector of <code class="reqn">k</code>-th component gets the form <code class="reqn">\theta_k=(\alpha_k,\beta_k,\lambda_k)^{T}</code> where <code class="reqn">\alpha_k,\beta_k,</code> and <code class="reqn">\lambda_k</code> denote the location, scale, and skewness parameters, respectively.</p>
+
+
+<h3>Value</h3>
+
+
+<ol>
+<li>
+<p> The output has two parts, The first part includes vector of estimated weight, shape, and scale parameters.
+</p>
+</li>
+<li>
+<p> A sequence of goodness-of-fit measures consist of Akaike Information Criterion (<code>AIC</code>), Consistent Akaike Information Criterion (<code>CAIC</code>), Bayesian Information Criterion (<code>BIC</code>), Hannan-Quinn information criterion (<code>HQIC</code>), Anderson-Darling (<code>AD</code>), Cram\'eer-von Misses (<code>CVM</code>), Kolmogorov-Smirnov (<code>KS</code>), and log-likelihood (<code>log-likelihood</code>) statistics.</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Mahdi Teimouri</p>
+
+
+<h3>References</h3>
+
+<p>G. J. McLachlan and P. N. Jones, 1988. Fitting mixture models to grouped and truncated data via the EM algorithm, <em>Biometrics</em>, 44, 571-578</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n&lt;-50
+K&lt;-2
+m&lt;-10
+weight&lt;-c(0.3,0.7)
+alpha&lt;-c(1,2)
+beta&lt;-c(2,1)
+param&lt;-c(weight,alpha,beta)
+data&lt;-rmixture(n, "weibull", K, param)
+r&lt;-seq(min(data),max(data),length=m+1)
+D&lt;-data.frame(table(cut(data,r,labels=NULL,include.lowest=TRUE,right=FALSE,dig.lab=4)))
+f&lt;-D$Freq
+fitmixturegrouped("weibull",r,f,K,initial=FALSE)
+</code></pre>
+
+
+</div>

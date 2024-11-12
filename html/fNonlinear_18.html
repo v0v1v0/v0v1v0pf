@@ -1,0 +1,378 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>NonLinTests</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Time Series Tests</h2>
+
+<h3>Description</h3>
+
+<p>A collection and description of functions 
+for testing various aspects of univariate 
+time series, including independence, and neglected 
+nonlinearities.
+<br></p>
+<p>The family of time series tests includes the following 
+hypothesis tests:
+</p>
+<pre>
+    bdsTest         Brock--Dechert--Scheinkman test for iid series
+    tnnTest         Teraesvirta NN test for neglected nonlinearity
+    wnnTest         White NN test for neglected nonlinearity
+    runsTest        Runs test for detecting non-randomness
+    </pre>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bdsTest(x, m = 3, eps = NULL, title = NULL, description = NULL) 
+tnnTest(x, lag = 1, title = NULL, description = NULL) 
+wnnTest(x, lag = 1, qstar = 2, q = 10, range = 4, title = NULL, description = NULL) 
+runsTest(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+
+<p>optional description string, or a vector of character strings.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+
+<p>[bdsTest] - <br>
+a numeric vector of epsilon values for close points. The
+BDS test is computed for each element of <code>eps</code>. It should 
+be set in terms of the standard deviation of <code>x</code>. If
+<code>eps</code> is <code>NULL</code>, then the four default values
+<code>seq(0.5*sd(x), 2*sd(x), length = 4)</code> are used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag</code></td>
+<td>
+
+<p>[tnnTest][wnnTest] -<br>
+an integer which specifies the model order in terms of lags.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+
+<p>[bdsTest] - <br>
+an integer indicating that the BDS test statistic is computed
+for embedding dimensions <code>2</code>, ..., <code>m</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+
+<p>[wnnTest] -<br>
+an integer representing the number of phantom hidden units
+used to compute the test statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qstar</code></td>
+<td>
+
+<p>[wnnTest] -<br>
+the test is conducted using <code>qstar</code> principal components
+of the phantom hidden units. The first principal component is 
+omitted since in most cases it appears to be collinear with the 
+input vector of lagged variables. This strategy preserves power 
+while still conserving degrees of freedom.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range</code></td>
+<td>
+
+<p>[wnnTest] -<br>
+the input to hidden unit weights are initialized uniformly
+over <code>[-range/2, range/2]</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+
+<p>an optional title string, if not specified the inputs data 
+name is deparsed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>a numeric vector or an object of class <code>"timeseries"</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>Brock–Dechert–Sheinkman Test:</b>
+<br><br>
+The <code>bdsTest</code> test examines the <em>spatial dependence</em> of the 
+observed series. To do this, the series is embedded in <code>m</code>-space 
+and the dependence of <code>x</code> is examined by counting <em>near</em> 
+points. Points for which the distance is less than <code>eps</code> are 
+called near. The BDS test statistic is asymptotically standard Normal.
+Note, that missing values are not allowed.
+There is a special print method for objects of class <code>"bdsTest"</code>
+which by default uses 4 digits to format real numbers. 
+<br><code>[tseries:bds.test]</code>
+<br></p>
+<p><b>Teraesvirta Neural Network Test:</b>
+<br><br>  
+The null is the hypotheses of linearity in <code>mean</code>. This test 
+uses a Taylor series expansion of the activation function to 
+arrive at a suitable test statistic. If <code>type</code> equals <code>"F"</code>, 
+then the F-statistic instead of the Chi-Squared statistic
+is used in analogy to the classical linear regression. 
+Missing values are not allowed. 
+<br><code>[tseries:teraesvirta.test]</code>
+<br></p>
+<p><b>White Neural Network Test:</b>
+<br><br>
+The null is the hypotheses of linearity in “mean”. This
+type of test is consistent against arbitrary nonlinearity
+in mean. If <code>type</code> equals <code>"F"</code>, then the F-statistic
+instead of the Chi-Squared statistic is used in analogy to the
+classical linear regression. 
+<br><code>[tseries:white.test]</code>
+<br></p>
+<p><b>Runs Test:</b>
+<br><br>
+The runs test can be used to decide if a data set is from a random 
+process. A run is defined as a series of increasing values or a 
+series of decreasing values. The number of increasing, or decreasing, 
+values is the length of the run. In a random data set, the probability 
+that the <em>(i+1)-th</em> value is larger or smaller than the <em>i-th</em> 
+value follows a binomial distribution, which forms the basis of the 
+runs test. 
+<br><code>[tseries:runs.test]</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>In contrast to R's output report from S3 objects of class <code>"htest"</code>
+a different output report is produced. The tests here return an S4 
+object of class <code>"fHTEST"</code>. The object contains the following slots:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>@call</code></td>
+<td>
+
+<p>the function call.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>@data</code></td>
+<td>
+
+<p>the data as specified by the input argument(s).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>@test</code></td>
+<td>
+
+<p>a list whose elements contail the results from the statistical
+test. The information provided is similar to a list object of
+<code>"htest"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>@title</code></td>
+<td>
+
+<p>a character string with the name of the test. This can be 
+overwritten specifying a user defined input argument.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>@description</code></td>
+<td>
+
+<p>a character string with an optional user defined description. 
+By default just the current date when the test was applied will
+be returned.
+</p>
+</td>
+</tr>
+</table>
+<p>The slot <code>@test</code> returns an object of class <code>"list"</code> 
+containing the following (otionally empty) elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+
+<p>the value(s) of the test statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+
+<p>the p-value(s) of the test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+
+<p>a numeric value or vector of parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+
+<p>a numeric value or vector of sample estimates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+
+<p>a numeric two row vector or matrix of 95
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>a character string indicating what type of test was performed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+
+<p>a character string giving the name(s) of the data.
+</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The output of the various hypothesis tests is an object of class
+<code>htest</code>. The associated <code>print</code> method gives an unique 
+report about the test results.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Adrian Trapletti for the tests from <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>'s tseries package,<br>
+Blake LeBaron for the <code>bds</code> C program,<br> 
+Diethelm Wuertz for the Rmetrics <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-port.
+</p>
+
+
+<h3>References</h3>
+
+<p>Brock, W.A., Dechert W.D., Sheinkman J.A. (1987); 
+<em>A Test of Independence Based on the Correlation 
+Dimension</em>, 
+SSRI no. 8702, Department of Economics, University of 
+Wisconsin, Madison.
+</p>
+<p>Conover, W.J. (1980);
+<em>Practical Nonparametric Statistics</em>, 
+New York, Wiley. 
+</p>
+<p>Cromwell J.B., Labys W.C., Terraza M. (1994);
+<em>Univariate Tests for Time Series Models</em>,
+Sage, Thousand Oaks, CA, pages 32–36.
+</p>
+<p>Lee T.H., White H., Granger C.W.J. (1993); 
+<em>Testing for neglected nonlinearity in time series models</em>,
+Journal of Econometrics 56, 269–290.
+</p>
+<p>Teraesvirta T., Lin C.F., Granger C.W.J. (1993);
+<em>Power of the Neural Network Linearity Test</em>,
+Journal of Time Series Analysis 14, 209–220.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## bdsTest -
+   # iid Time Series:
+   par(mfrow = c(3, 1))
+   x = rnorm(100)
+   plot(x, type = "l", main = "iid Time Series")
+   bdsTest(x, m = 3)
+   # Non Identically Distributed Time Series:
+   x = c(rnorm(50), runif(50))
+   plot(x, type = "l", main = "Non-iid Time Series")
+   bdsTest(x, m = 3)  
+   # Non Independent Innovations from Quadratic Map:
+   x = rep(0.2, 100)
+   for (i in 2:100) x[i] = 4*(1-x[i-1])*x[i-1]
+   plot(x, type = "l", main = "Quadratic Map")
+   bdsTest(x, m = 3)
+   
+## tnnTest -
+   # Time Series Non-linear in "mean" regression 
+   par(mfrow = c(2, 1))
+   n = 1000
+   x = runif(1000, -1, 1)  
+   tnnTest(x)
+   # Generate time series which is nonlinear in "mean"
+   x[1] = 0.0
+   for (i in (2:n)) {
+     x[i] = 0.4*x[i-1] + tanh(x[i-1]) + rnorm (1, sd = 0.5) }
+   plot(x, main = "Teraesvirta Test", type = "l")
+   tnnTest(x)
+   
+## wnnTest -
+   # Time Series Non-Linear in "mean" Regression
+   par(mfrow = c(2, 1))
+   n = 1000
+   x = runif(1000, -1, 1)
+   wnnTest(x)
+   # Generate time series which is nonlinear in "mean"
+   x[1] = 0.0
+   for (i in (2:n)) {
+     x[i] = 0.4*x[i-1] + tanh(x[i-1]) + rnorm (1, sd = 0.5) }
+   plot(x, main = "White Test", type = "l")
+   wnnTest(x)                     
+</code></pre>
+
+
+</div>

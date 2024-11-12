@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wff.formula</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>WGCNA based fuzzy forest algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Implements formula interface for <code>wff</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+wff(formula, data = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data used in the analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of type <code>fuzzy_forest</code>.  This
+object is a list containing useful output of fuzzy forests.
+In particular it contains a data.frame with list of selected features.
+It also includes the random forest fit using the selected features.
+</p>
+
+
+<h3>Note</h3>
+
+<p>See <code>ff</code> for additional arguments.
+Note that the matrix, <code>Z</code>, of features that do not go through
+the screening step must specified separately from the formula.
+<code>test_features</code> and <code>test_y</code> are not supported in formula
+interface.  As in the <code>randomForest</code> package, for large data sets
+the formula interface may be substantially slower.
+</p>
+<p>This work was partially funded by NSF IIS 1251151 and AMFAR 8721SC.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>wff</code>,
+<code>print.fuzzy_forest</code>,
+<code>predict.fuzzy_forest</code>,
+<code>modplot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(ctg)
+y &lt;- ctg$NSP
+X &lt;- ctg[, 2:22]
+dat &lt;- as.data.frame(cbind(y, X))
+WGCNA_params &lt;- WGCNA_control(p = 6, minModuleSize = 1, nThreads = 1)
+mtry_factor &lt;- 1; min_ntree &lt;- 500;  drop_fraction &lt;- .5; ntree_factor &lt;- 1
+screen_params &lt;- screen_control(drop_fraction = drop_fraction,
+                                keep_fraction = .25, min_ntree = min_ntree,
+                                ntree_factor = ntree_factor,
+                                mtry_factor = mtry_factor)
+select_params &lt;- select_control(drop_fraction = drop_fraction,
+                                number_selected = 5,
+                                min_ntree = min_ntree,
+                                ntree_factor = ntree_factor,
+                                mtry_factor = mtry_factor)
+
+library(WGCNA)
+wff_fit &lt;- wff(y ~ ., data=dat,
+               WGCNA_params = WGCNA_params,
+               screen_params = screen_params,
+               select_params = select_params,
+               final_ntree = 500)
+
+#extract variable importance rankings
+vims &lt;- wff_fit$feature_list
+
+#plot results
+modplot(wff_fit)
+
+</code></pre>
+
+
+</div>

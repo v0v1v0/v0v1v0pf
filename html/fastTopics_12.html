@@ -1,0 +1,564 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit_poisson_nmf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit Non-negative Matrix Factorization to Count Data</h2>
+
+<h3>Description</h3>
+
+<p>Approximate the input matrix <code>X</code> by the
+non-negative matrix factorization <code>tcrossprod(L,F)</code>, in which
+the quality of the approximation is measured by a
+“divergence” criterion; equivalently, optimize the
+likelihood under a Poisson model of the count data, <code>X</code>, in
+which the Poisson rates are given by <code>tcrossprod(L,F)</code>.
+Function <code>fit_poisson_nmf</code> runs a specified number of
+coordinate-wise updates to fit the L and F matrices.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_poisson_nmf(
+  X,
+  k,
+  fit0,
+  numiter = 100,
+  update.factors = seq(1, ncol(X)),
+  update.loadings = seq(1, nrow(X)),
+  method = c("scd", "em", "mu", "ccd"),
+  init.method = c("topicscore", "random"),
+  control = list(),
+  verbose = c("progressbar", "detailed", "none")
+)
+
+fit_poisson_nmf_control_default()
+
+init_poisson_nmf(
+  X,
+  F,
+  L,
+  k,
+  init.method = c("topicscore", "random"),
+  beta = 0.5,
+  betamax = 0.99,
+  control = list(),
+  verbose = c("detailed", "none")
+)
+
+init_poisson_nmf_from_clustering(X, clusters, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The n x m matrix of counts; all entries of X should be
+non-negative. It can be a sparse matrix (class <code>"dgCMatrix"</code>)
+or dense matrix (class <code>"matrix"</code>), with some exceptions (see
+‘Details’).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>An integer 2 or greater giving the matrix rank. This
+argument should only be specified if the initial fit (<code>fit0</code>
+or <code>F, L</code>) is not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit0</code></td>
+<td>
+<p>The initial model fit. It should be an object of class
+“poisson_nmf_fit”, such as an output from
+<code>init_poisson_nmf</code>, or from a previous call to
+<code>fit_poisson_nmf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numiter</code></td>
+<td>
+<p>The number of updates of the factors and loadings to
+perform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update.factors</code></td>
+<td>
+<p>A numeric vector specifying which factors
+(rows of <code>F</code>) to update. By default, all factors are
+updated. Note that the rows that are not updated may still change
+by rescaling. When <code>NULL</code>, all factors are fixed. This option
+is only implemented for <code>method = "em"</code> and <code>method =
+"scd"</code>. If another method is selected, the default setting of
+<code>update.factors</code> must be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update.loadings</code></td>
+<td>
+<p>A numeric vector specifying which loadings
+(rows of <code>L</code>) to update. By default, all loadings are
+updated. Note that the rows that are not updated may still change
+by rescaling. When <code>NULL</code>, all loadings are fixed. This option
+is only implemented for <code>method = "em"</code> and <code>method =
+"scd"</code>. If another method is selected, the default setting of
+<code>update.loadings</code> must be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method to use for updating the factors and
+loadings. Four methods are implemented: multiplicative updates,
+<code>method = "mu"</code>; expectation maximization (EM), <code>method =
+"em"</code>; sequential co-ordinate descent (SCD), <code>method = "scd"</code>;
+and cyclic co-ordinate descent (CCD), <code>method = "ccd"</code>. See
+‘Details’ for a detailed description of these methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.method</code></td>
+<td>
+<p>The method used to initialize the factors and
+loadings. When <code>init.method = "random"</code>, the factors and
+loadings are initialized uniformly at random; when
+<code>init.method = "topicscore"</code>, the factors are initialized
+using the (very fast) Topic SCORE algorithm (Ke &amp; Wang, 2017), and
+the loadings are initialized by running a small number of SCD
+updates. This input argument is ignored if initial estimates of the
+factors and loadings are already provided via input <code>fit0</code>, or
+inputs <code>F</code> and <code>L</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list of parameters controlling the behaviour of
+the optimization algorithm (and the Topic SCORE algorithm if it
+is used to initialize the model parameters). See ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>When <code>verbose = "detailed"</code>, information about
+the algorithm's progress is printed to the console at each
+iteration; when <code>verbose = "progressbar"</code>, a progress bar is
+shown; and when <code>verbose = "none"</code>, no progress information is
+printed. See the description of the “progress” return value
+for an explanation of <code>verbose = "detailed"</code> console
+output. (Note that some columns of the “progress” data frame
+are not shown in the console output.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>An optional argument giving is the initial estimate of the
+factors (also known as “basis vectors”). It should be an m x
+k matrix, where m is the number of columns in the counts matrix
+<code>X</code>, and k &gt; 1 is the rank of the matrix factorization
+(equivalently, the number of “topics”). All entries of
+<code>F</code> should be non-negative. When <code>F</code> and <code>L</code> are not
+provided, input argument <code>k</code> should be specified instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>An optional argument giving the initial estimate of the
+loadings (also known as “activations”). It should be an n x k
+matrix, where n is the number of rows in the counts matrix
+<code>X</code>, and k &gt; 1 is the rank of the matrix factorization
+(equivalently, the number of “topics”). All entries of
+<code>L</code> should be non-negative. When <code>F</code> and <code>L</code> are not
+provided, input argument <code>k</code> should be specified instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Initial setting of the extrapolation parameter. This is
+<code class="reqn">beta</code> in Algorithm 3 of Ang &amp; Gillis (2019).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betamax</code></td>
+<td>
+<p>Initial setting for the upper bound on the
+extrapolation parameter. This is <code class="reqn">\bar{\gamma}</code> in Algorithm 3
+of Ang &amp; Gillis (2019).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusters</code></td>
+<td>
+<p>A factor specifying a grouping, or clustering, of
+the rows of <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>init_poisson_nmf</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In Poisson non-negative matrix factorization (Lee &amp; Seung,
+2001), counts <code class="reqn">x_{ij}</code> in the <code class="reqn">n \times m</code> matrix, <code class="reqn">X</code>,
+are modeled by the Poisson distribution: </p>
+<p style="text-align: center;"><code class="reqn">x_{ij} \sim
+\mathrm{Poisson}(\lambda_{ij}).</code>
+</p>
+<p> Each Poisson rate,
+<code class="reqn">\lambda_{ij}</code>, is a linear combination of parameters
+<code class="reqn">f_{jk} \geq 0, l_{ik} \geq 0</code> to be fitted to the data:
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_{ij} = \sum_{k=1}^K l_{ik} f_{jk},</code>
+</p>
+<p> in which <code class="reqn">K</code>
+is a user-specified tuning parameter specifying the rank of the
+matrix factorization. Function <code>fit_poisson_nmf</code> computes
+maximum-likelihood estimates (MLEs) of the parameters. For
+additional mathematical background, and an explanation of how
+Poisson NMF is connected to topic modeling, see the vignette:
+<code>vignette(topic = "relationship",package = "fastTopics")</code>.
+</p>
+<p>Using this function requires some care; only minimal argument
+checking is performed, and error messages may not be helpful.
+</p>
+<p>The EM and multiplicative updates are simple and fast, but can be
+slow to converge to a stationary point. When <code>control$numiter
+= 1</code>, the EM and multiplicative updates are mathematically
+equivalent to the multiplicative updates, and therefore share the
+same convergence properties. However, the implementation of the EM
+updates is quite different; in particular, the EM updates are more
+suitable for sparse counts matrices. The implementation of the
+multiplicative updates is adapted from the MATLAB code by Daichi
+Kitamura <a href="http://d-kitamura.net">http://d-kitamura.net</a>.
+</p>
+<p>Since the multiplicative updates are implemented using standard
+matrix operations, the speed is heavily dependent on the
+BLAS/LAPACK numerical libraries used. In particular, using
+optimized implementations such as OpenBLAS or Intel MKL can result
+in much improved performance of the multiplcative updates.
+</p>
+<p>The cyclic co-ordinate descent (CCD) and sequential co-ordinate
+descent (SCD) updates adopt the same optimization strategy, but
+differ in the implementation details. In practice, we have found
+that the CCD and SCD updates arrive at the same solution when
+initialized “sufficiently close” to a stationary point. The
+CCD implementation is adapted from the C++ code developed by
+Cho-Jui Hsieh and Inderjit Dhillon, which is available for download
+at <a href="https://www.cs.utexas.edu/~cjhsieh/nmf/">https://www.cs.utexas.edu/~cjhsieh/nmf/</a>. The SCD
+implementation is based on version 0.4-3 of the ‘NNLM’
+package.
+</p>
+<p>An additional re-scaling step is performed after each update to
+promote numerical stability.
+</p>
+<p>We use three measures of progress for the model fitting: (1)
+improvement in the log-likelihood (or deviance), (2) change in the
+model parameters, and (3) the residuals of the Karush-Kuhn-Tucker
+(KKT) first-order conditions. As the iterates approach a stationary
+point of the loss function, the change in the model parameters
+should be small, and the residuals of the KKT system should vanish.
+Use <code>plot_progress</code> to plot the improvement in the
+solution over time.
+</p>
+<p>See <code>fit_topic_model</code> for additional guidance on model
+fitting, particularly for large or complex data sets.
+</p>
+<p>The <code>control</code> argument is a list in which any of the
+following named components will override the default optimization
+algorithm settings (as they are defined by
+<code>fit_poisson_nmf_control_default</code>):
+</p>
+
+<dl>
+<dt><code>numiter</code></dt>
+<dd>
+<p>Number of “inner loop” iterations to
+run when performing and update of the factors or loadings. This
+must be set to 1 for <code>method = "mu"</code> and <code>method =
+  "ccd"</code>.</p>
+</dd>
+<dt><code>nc</code></dt>
+<dd>
+<p>Number of RcppParallel threads to use for the
+updates. When <code>nc</code> is <code>NA</code>, the number of threads is
+determined by calling
+<code>defaultNumThreads</code>. This setting is
+ignored for the multiplicative upates (<code>method = "mu"</code>).</p>
+</dd>
+<dt><code>minval</code></dt>
+<dd>
+<p>A small, positive constant used to safeguard
+the multiplicative updates. The safeguarded updates are implemented
+as <code>F &lt;- pmax(F1,minval)</code> and <code>L &lt;- pmax(L1,minval)</code>,
+where <code>F1</code> and <code>L1</code> are the factors and loadings matrices
+obtained by applying an update. This is motivated by Theorem 1 of
+Gillis &amp; Glineur (2012). Setting <code>minval = 0</code> is allowed, but
+some methods are not guaranteed to converge to a stationary point
+without this safeguard, and a warning will be given in this case.</p>
+</dd>
+<dt><code>extrapolate</code></dt>
+<dd>
+<p>When <code>extrapolate = TRUE</code>, the
+extrapolation scheme of Ang &amp; Gillis (2019) is used.</p>
+</dd>
+<dt><code>extrapolate.reset</code></dt>
+<dd>
+<p>To promote better numerical
+stability of the extrapolated updates, they are “reset”
+every so often. This parameter determines the number of iterations
+to wait before resetting.</p>
+</dd>
+<dt><code>beta.increase</code></dt>
+<dd>
+<p>When the extrapolated update improves
+the solution, scale the extrapolation parameter by this amount.</p>
+</dd>
+<dt><code>beta.reduce</code></dt>
+<dd>
+<p>When the extrapolaaed update does not
+improve the solution, scale the extrapolation parameter by this
+amount.</p>
+</dd>
+<dt><code>betamax.increase</code></dt>
+<dd>
+<p>When the extrapolated update
+improves the solution, scale the extrapolation parameter by this
+amount.</p>
+</dd>
+<dt><code>eps</code></dt>
+<dd>
+<p>A small, non-negative number that is added to the
+terms inside the logarithms to sidestep computing logarithms of
+zero. This prevents numerical problems at the cost of introducing a
+small inaccuracy in the solution. Increasing this number may lead
+to faster convergence but possibly a less accurate solution.</p>
+</dd>
+<dt><code>zero.threshold</code></dt>
+<dd>
+<p>A small, non-negative number used to
+determine which entries of the solution are exactly zero. Any
+entries that are less than or equal to <code>zero.threshold</code> are
+considered to be exactly zero.</p>
+</dd>
+</dl>
+<p>An additional setting, <code>control$init.numiter</code>, controls the
+number of sequential co-ordinate descent (SCD) updates that are
+performed to initialize the loadings matrix when <code>init.method
+= "topicscore"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>init_poisson_nmf</code> and <code>fit_poisson_nmf</code> both
+return an object capturing the optimization algorithm state (for
+<code>init_poisson_nmf</code>, this is the initial state). It is a list
+with the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>A matrix containing the current best estimates of the
+factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>A matrix containing the current best estimates of the
+loadings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fn</code></td>
+<td>
+<p>A matrix containing the non-extrapolated factor estimates.
+If extrapolation is not used, <code>Fn</code> and <code>F</code> will be the
+same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ln</code></td>
+<td>
+<p>A matrix containing the non-extrapolated estimates of the
+loadings. If extrapolation is not used, <code>Ln</code> and <code>L</code> will
+be the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fy</code></td>
+<td>
+<p>A matrix containing the extrapolated factor estimates. If
+the extrapolation scheme is not used, <code>Fy</code> and <code>F</code> will
+be the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ly</code></td>
+<td>
+<p>A matrix containing the extrapolated estimates of the
+loadings. If extrapolation is not used, <code>Ly</code> and <code>L</code> will
+be the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>Value of the objective (“loss”) function
+computed at the current best estimates of the factors and
+loadings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss.fnly</code></td>
+<td>
+<p>Value of the objective (“loss”) function
+computed at the extrapolated solution for the loadings (<code>Ly</code>)
+and the non-extrapolated solution for the factors (<code>Fn</code>). This
+is used internally to implement the extrapolated updates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>The number of the most recently completed iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The extrapolation parameter, <code class="reqn">beta</code> in Algorithm 3
+of Ang &amp; Gillis (2019).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betamax</code></td>
+<td>
+<p>Upper bound on the extrapolation parameter. This is
+<code class="reqn">\bar{\gamma}</code> in Algorithm 3 of Ang &amp; Gillis (2019).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta0</code></td>
+<td>
+<p>The setting of the extrapolation parameter at the
+last iteration that improved the solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>A data frame containing detailed information about
+the algorithm's progress. The data frame should have <code>numiter</code>
+rows. The columns of the data frame are: “iter”, the
+iteration number; “loglik”, the Poisson NMF log-likelihood
+at the current best factor and loading estimates;
+“loglik.multinom”, the multinomial topic model
+log-likelihood at the current best factor and loading estimates;
+“dev”, the deviance at the current best factor and loading
+estimates; “res”, the maximum residual of the
+Karush-Kuhn-Tucker (KKT) first-order optimality conditions at the
+current best factor and loading estimates; “delta.f”, the
+largest change in the factors matrix; “delta.l”, the largest
+change in the loadings matrix; “nonzeros.f”, the proportion
+of entries in the factors matrix that are nonzero;
+“nonzeros.l”, the proportion of entries in the loadings
+matrix that are nonzero; “extrapolate”, which is 1 if
+extrapolation is used, otherwise it is 0; “beta”, the
+setting of the extrapolation parameter; “betamax”, the
+setting of the extrapolation parameter upper bound; and
+“timing”, the elapsed time in seconds (recorded using
+<code>proc.time</code>).</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ang, A. and Gillis, N. (2019). Accelerating nonnegative matrix
+factorization algorithms using extrapolation. <em>Neural
+Computation</em> <b>31</b>, 417–439.
+</p>
+<p>Cichocki, A., Cruces, S. and Amari, S. (2011). Generalized
+alpha-beta divergences and their application to robust nonnegative
+matrix factorization. <em>Entropy</em> <b>13</b>, 134–170.
+</p>
+<p>Gillis, N. and Glineur, F. (2012). Accelerated multiplicative
+updates and hierarchical ALS algorithms for nonnegative matrix
+factorization. <em>Neural Computation</em> <code>24</code>, 1085–1105.
+</p>
+<p>Hsieh, C.-J. and Dhillon, I. (2011). Fast coordinate descent
+methods with variable selection for non-negative matrix
+factorization. In <em>Proceedings of the 17th ACM SIGKDD
+international conference on Knowledge discovery and data mining</em>,
+p. 1064-1072
+</p>
+<p>Lee, D. D. and Seung, H. S. (2001). Algorithms for non-negative
+matrix factorization. In <em>Advances in Neural Information
+Processing Systems</em> <b>13</b>, 556–562.
+</p>
+<p>Lin, X. and Boutros, P. C. (2018). Optimization and expansion of
+non-negative matrix factorization. <em>BMC Bioinformatics</em>
+<b>21</b>, 7.
+</p>
+<p>Ke, Z. &amp; Wang, M. (2017). A new SVD approach to optimal topic
+estimation. <em>arXiv</em> <a href="https://arxiv.org/abs/1704.07016">https://arxiv.org/abs/1704.07016</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fit_topic_model</code>, <code>plot_progress</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate a (sparse) 80 x 100 counts matrix.
+library(Matrix)
+set.seed(1)
+X &lt;- simulate_count_data(80,100,k = 3,sparse = TRUE)$X
+
+# Remove columns (words) that do not appear in any row (document).
+X &lt;- X[,colSums(X &gt; 0) &gt; 0]
+
+# Run 10 EM updates to find a good initialization.
+fit0 &lt;- fit_poisson_nmf(X,k = 3,numiter = 10,method = "em")
+
+# Fit the Poisson NMF model by running 50 EM updates.
+fit_em &lt;- fit_poisson_nmf(X,fit0 = fit0,numiter = 50,method = "em")
+
+# Fit the Poisson NMF model by running 50 extrapolated SCD updates.
+fit_scd &lt;- fit_poisson_nmf(X,fit0 = fit0,numiter = 50,method = "scd",
+                           control = list(extrapolate = TRUE))
+
+# Compare the two fits.
+fits &lt;- list(em = fit_em,scd = fit_scd)
+compare_fits(fits)
+plot_progress(fits,y = "loglik")
+plot_progress(fits,y = "res")
+
+# Recover the topic model. After this step, the L matrix contains the
+# mixture proportions ("loadings"), and the F matrix contains the
+# word frequencies ("factors").
+fit_multinom &lt;- poisson2multinom(fit_scd)
+
+</code></pre>
+
+
+</div>

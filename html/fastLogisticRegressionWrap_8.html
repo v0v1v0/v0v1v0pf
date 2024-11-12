@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fast_logistic_regression</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>FastLR Wrapper</h2>
+
+<h3>Description</h3>
+
+<p>Returns most of what you get from glm
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fast_logistic_regression(
+  Xmm,
+  ybin,
+  drop_collinear_variables = FALSE,
+  lm_fit_tol = 1e-07,
+  do_inference_on_var = "none",
+  Xt_times_diag_w_times_X_fun = NULL,
+  sqrt_diag_matrix_inverse_fun = NULL,
+  num_cores = 1,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xmm</code></td>
+<td>
+<p>The model.matrix for X (you need to create this yourself before)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ybin</code></td>
+<td>
+<p>The binary response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_collinear_variables</code></td>
+<td>
+<p>Should we drop perfectly collinear variables? Default is <code>FALSE</code> to inform the user of the problem.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lm_fit_tol</code></td>
+<td>
+<p>When <code>drop_collinear_variables = TRUE</code>, this is the tolerance to detect collinearity among predictors.
+We use the default value from <code>base::lm.fit</code>'s which is 1e-7. If you fit the logistic regression and
+still get p-values near 1 indicating high collinearity, we recommend making this value smaller.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do_inference_on_var</code></td>
+<td>
+<p>Which variables should we compute approximate standard errors of the coefficients and approximate p-values for the test of
+no linear log-odds probability effect? Default is <code>"none"</code> for inference on none (for speed). If not default, then <code>"all"</code>
+to indicate inference should be computed for all variables. The final option is to pass one index to indicate the column
+number of <code>Xmm</code> where inference is desired. We have a special routine to compute inference for one variable only. It consists of a conjugate
+gradient descent which is another approximation atop the coefficient-fitting approximation in RcppNumerical. Note: if you are just comparing
+nested models using anova, there is no need to compute inference for coefficients (keep the default of <code>FALSE</code> for speed).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xt_times_diag_w_times_X_fun</code></td>
+<td>
+<p>A custom function whose arguments are <code>X</code> (an n x m matrix), <code>w</code> (a vector of length m) and this function's <code>num_cores</code> 
+argument in that order. The function must return an m x m R matrix class object which is the result of the computing X^T 
+function is not parallelized, the <code>num_cores</code> argument is ignored. Default is <code>NULL</code> which uses the function 
+<code>eigen_Xt_times_diag_w_times_X</code> which is implemented with the Eigen C++ package and hence very fast. The only way we know of to beat the default is to use a method that employs
+GPUs. See README on github for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sqrt_diag_matrix_inverse_fun</code></td>
+<td>
+<p>A custom function that returns a numeric vector which is square root of the diagonal of the inverse of the inputted matrix. Its arguments are <code>X</code> 
+(an n x n matrix) and this function's <code>num_cores</code> argument in that order. If your custom function is not parallelized, the <code>num_cores</code> argument is ignored. 
+The object returned must further have a defined function <code>diag</code> which returns the diagonal of the matrix as a vector. Default is <code>NULL</code> which uses the function 
+<code>eigen_inv</code> which is implemented with the Eigen C++ package and hence very fast. The only way we know of to beat the default is to use a method that employs
+GPUs. See README on github for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_cores</code></td>
+<td>
+<p>Number of cores to use to speed up matrix multiplication and matrix inversion (used only during inference computation). Default is 1.
+Unless the number of variables, i.e. <code>ncol(Xmm)</code>, is large, there does not seem to be a performance gain in using multiple cores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to <code>fastLR</code>. See documentation there.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of raw results
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(MASS); data(Pima.te)
+flr = fast_logistic_regression(
+	 Xmm = model.matrix(~ . - type, Pima.te), 
+  ybin = as.numeric(Pima.te$type == "Yes")
+)
+</code></pre>
+
+
+</div>

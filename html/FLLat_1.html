@@ -1,0 +1,231 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLLat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fused Lasso Latent Feature Model</h2>
+
+<h3>Description</h3>
+
+<p>Fits the Fused Lasso Latent Feature (FLLat) model for given
+values of <code class="reqn">J</code> (the number of features), and <code class="reqn">\lambda_1</code> and
+<code class="reqn">\lambda_2</code> (the two fused lasso tuning parameters).</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLLat(Y, J=min(15,floor(ncol(Y)/2)), B="pc", lam1, lam2, thresh=10^(-4),
+      maxiter=100, maxiter.B=1, maxiter.T=1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A matrix of data from an aCGH experiment (usually in the form
+of log intensity ratios) or some other type of copy number data.  Rows
+correspond to the probes and columns correspond to the samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>The number of features in the FLLat model.  The default is
+the smaller of either <code class="reqn">15</code> or the number of samples divided by
+<code class="reqn">2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>The initial values for the features.  Can be one of
+<code>"pc"</code> (the first <code>J</code> principal components of <code>Y</code>),
+<code>"rand"</code> (a random selection of <code>J</code> columns of <code>Y</code>), or
+a user specified matrix of initial values, where rows correspond to
+the probes and columns correspond to the features.  The default is
+<code>"pc"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam1</code></td>
+<td>
+<p>The tuning parameter <code class="reqn">\lambda_1</code> in the fused lasso
+penalty that controls the level of sparsity in the features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam2</code></td>
+<td>
+<p>The tuning parameter <code class="reqn">\lambda_2</code> in the fused lasso
+penalty that controls the level of smoothness in the features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>The threshold for determining when the solutions have
+converged.  The default is <code class="reqn">10^{-4}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of iterations for the outer loop of
+the algorithm.  The default is <code class="reqn">100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter.B</code></td>
+<td>
+<p>The maximum number of iterations for the inner loop
+of the algorithm for estimating the features <code class="reqn">B</code>.  The default is
+<code class="reqn">1</code>.  Increasing this may decrease the number of iterations for the
+outer loop but may still increase total run time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter.T</code></td>
+<td>
+<p>The maximum number of iterations for the inner loop
+of the algorithm for estimating the weights <code class="reqn">\Theta</code>.  The default
+is <code class="reqn">1</code>.  Increasing this may decrease the number of iterations for the
+outer loop but may still increase total run time.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function fits the Fused Lasso Latent Feature model to
+multi-sample aCGH data, as described in Nowak and others (2011), for
+given values of <code class="reqn">J</code>, <code class="reqn">\lambda_1</code> and <code class="reqn">\lambda_2</code>.  Given
+aCGH data consisting of <code class="reqn">S</code> samples and <code class="reqn">L</code> probes, the model
+is given by: </p>
+<p style="text-align: center;"><code class="reqn">Y=B\Theta,</code>
+</p>
+<p> where <code class="reqn">Y</code> is an <code class="reqn">L</code>-by-<code class="reqn">S</code>
+matrix denoting the aCGH data (with samples in columns), <code class="reqn">B</code> is an
+<code class="reqn">L</code>-by-<code class="reqn">J</code> matrix denoting the features (with features in
+columns), and <code class="reqn">\Theta</code> is a <code class="reqn">J</code>-by-<code class="reqn">S</code> matrix denoting the
+weights.  Each feature describes a pattern of copy number variation
+and the weights describe the composition of each sample.
+Specifically, each sample (column of <code class="reqn">Y</code>) is modeled as a
+weighted sum of the features (columns of <code class="reqn">B</code>), with the weights
+given by the corresponding column of <code class="reqn">\Theta</code>.
+</p>
+<p>The model is fitted by minimizing a penalized version of the residual
+sum of squares (RSS): </p>
+<p style="text-align: center;"><code class="reqn">RSS + \sum_{j=1}^J PEN_j</code>
+</p>
+<p> where the penalty is given by: </p>
+<p style="text-align: center;"><code class="reqn">PEN_j =
+  \lambda_1\sum_{l=1}^L\left|\beta_{lj}\right| +
+  \lambda_2\sum_{l=2}^L\left|\beta_{lj} -
+  \beta_{l-1,j}\right|.</code>
+</p>
+
+<p>Here <code class="reqn">\beta_{lj}</code> denotes the <code class="reqn">(l,j)</code>th element of <code class="reqn">B</code>.
+We also constrain the <code class="reqn">L_2</code> norm of each row of <code class="reqn">\Theta</code> to be
+less than or equal to <code class="reqn">1</code>.
+</p>
+<p>For more details, please see Nowak and others (2011) and the package
+vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FLLat</code> with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Beta</code></td>
+<td>
+<p>The estimated features <code class="reqn">\hat{B}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Theta</code></td>
+<td>
+<p>The estimated weights <code class="reqn">\hat{\Theta}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>The number of iterations taken by the algorithm (outer
+loop).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rss</code></td>
+<td>
+<p>The residual sum of squares of the fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bic</code></td>
+<td>
+<p>The BIC for the fitted model.  See <code>FLLat.BIC</code>
+for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam1</code></td>
+<td>
+<p>The value of <code class="reqn">\lambda_1</code> used in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam2</code></td>
+<td>
+<p>The value of <code class="reqn">\lambda_2</code> used in the model.</p>
+</td>
+</tr>
+</table>
+<p>There is a <code>plot</code> method and a <code>predict</code>
+method for <code>FLLat</code> objects.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gen Nowak <a href="mailto:gen.nowak@gmail.com">gen.nowak@gmail.com</a>, Trevor Hastie, Jonathan
+R. Pollack, Robert Tibshirani and Nicholas Johnson.</p>
+
+
+<h3>References</h3>
+
+<p>G. Nowak, T. Hastie, J. R. Pollack and R. Tibshirani.  A
+Fused Lasso Latent Feature Model for Analyzing Multi-Sample aCGH
+Data. <em>Biostatistics</em>, 2011, doi: 10.1093/biostatistics/kxr012</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.FLLat</code>, <code>predict.FLLat</code>,
+<code>FLLat.BIC</code>, <code>FLLat.PVE</code>,
+<code>FLLat.FDR</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load simulated aCGH data.
+data(simaCGH)
+
+## Run FLLat for J = 5, lam1 = 1 and lam2 = 9.
+result &lt;- FLLat(simaCGH,J=5,lam1=1,lam2=9)
+
+## Plot the estimated features.
+plot(result)
+
+## Plot a heatmap of the estimated weights.
+plot(result,type="weights")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,66 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bind_views</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Stack Different Views</h2>
+
+<h3>Description</h3>
+
+<p>Bind views for entropy programming.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bind_views(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Objects of the class <code>ffp_views</code> to combine.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A <code>list</code> of the <code>view</code> class.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+
+# Invariant
+ret &lt;- diff(log(EuStockMarkets))
+n   &lt;- nrow(ret)
+
+# Prior probabilities (usually equal weight scheme)
+prior &lt;- rep(1 / n, n)
+
+# Prior belief for expected returns (here is 0% for each asset)
+view_mean &lt;- view_on_mean(x = ret, mean = rep(0, 4))
+
+#' view on volatility
+vol &lt;- apply(ret, 2, stats::sd) * 1.1 # volatility 10% higher than average
+view_volatility &lt;- view_on_volatility(x = ret, vol = vol)
+
+views_comb &lt;- bind_views(view_mean, view_volatility)
+views_comb
+
+ep &lt;- entropy_pooling(p      = prior,
+                      Aeq    = views_comb$Aeq,
+                      beq    = views_comb$beq,
+                      A      = views_comb$A,
+                      b      = views_comb$b,
+                      solver = "nlminb")
+autoplot(ep)
+</code></pre>
+
+
+</div>

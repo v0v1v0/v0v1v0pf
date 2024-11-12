@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cumsumCPA_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Change Point Detection in Time Series via a Linear Regression with Temporally Correlated
+Errors</h2>
+
+<h3>Description</h3>
+
+<p>The function tests for a change point in parameters of a linear regression model with errors
+exhibiting a general weakly dependent structure. The approach extends earlier methods based
+on cumulative sums derived under the assumption of independent errors. The approach applies
+smoothing when the time series is dominated by high frequencies. To detect multiple changes,
+it is recommended to employ a binary or wild segmentation (Gombay 2010).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cumsumCPA_test(
+  y,
+  a.order,
+  crit.type = c("asymptotic", "bootstrap"),
+  bootstrap.method = c("nonparametric", "parametric"),
+  num.bootstrap = 1000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric time series vector. Missing values are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a.order</code></td>
+<td>
+<p>order of the autoregressive model which must be a non-negative integer number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit.type</code></td>
+<td>
+<p>a string parameter allowing to choose "asymptotic" or "bootstrap" options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap.method</code></td>
+<td>
+<p>a string parameter allowing to choose "nonparametric" or
+"parametric" method of bootstrapping. "nonparametric" – resampling of the estimated
+residuals (with replacement); "parametric" – sampling innovations from a normal distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.bootstrap</code></td>
+<td>
+<p>number of bootstrap replications if <code>crit.type = "bootstrap"</code>.
+The default number is 1000.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>time point where the change has occurred.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p>test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p><code>p-value</code> of the change point test.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Palina Niamkova, Dorcas Ofori-Boateng, Yulia R. Gel
+</p>
+
+
+<h3>References</h3>
+
+<p>Gombay E (2010).
+“Change detection in linear regression with time series errors.”
+<em>Canadian Journal of Statistics</em>, <b>38</b>(1), 65–79.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mcusum.test</code> for change point test for regression
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#Example 1:
+
+#Simulate some time series:
+series_1 = rnorm(157, 2, 1)
+series_2 = rnorm(43, 7, 10)
+main_val = c(series_1, series_2)
+
+#Now perform a change point detection:
+cumsumCPA_test(series_1, 1) # no change
+cumsumCPA_test(main_val, 1) # one change, asymptotic critical region
+cumsumCPA_test(main_val, 1, "bootstrap", "parametric") # one change, parametric bootstrap
+cumsumCPA_test(main_val, 1, "bootstrap", "nonparametric") # one change, nonparametric 
+#bootstrap
+
+#Example 2:
+
+#Consider time series with ratio of real GDP per family to the median income. This is a
+#skewness and income inequality measure for the US families from 1947 till 2012. 
+e.data = (Ecdat::incomeInequality['mean.median'])
+incomeInequality.ts = ts(e.data, start = 1947, end = 2012, frequency = 1)
+
+#Now perform a change point detection:
+cumsumCPA_test(incomeInequality.ts, 0)
+cumsumCPA_test(incomeInequality.ts, 0, "bootstrap", "parametric")
+cumsumCPA_test(incomeInequality.ts, 0, "bootstrap", "nonparametric")
+incomeInequality.ts[13] # median income
+Ecdat::incomeInequality$Year[13] + 1 # year of change point
+
+#The first change point occurs at the 13th time point, that is 1960, where the ratio of real 
+#GDP per family to the median income is 1.940126. This ratio shows that in 1960 the national
+#wealth was not distributed equally between all the population and that most people earn 
+#almost twice less than the equal share of the all produced goods and services by the nation.
+
+#Note: To look for the other possible change points, run the same function for the 
+#segment of time series after value 13.
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

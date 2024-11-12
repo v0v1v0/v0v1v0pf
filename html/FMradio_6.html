@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dimVAR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Assessing variances under factor solutions
+</h2>
+
+<h3>Description</h3>
+
+<p><code>dimVAR</code> is a support function that assesses the proportion of and cumulative variances for a 
+range of factor solutions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dimVAR(R, maxdim, graph = TRUE, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>(Regularized) correlation <code>matrix</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdim</code></td>
+<td>
+
+<p>A <code>numeric</code> integer or <code>integer</code> indicating the maximum factor dimension to be assessed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the results should be visualized.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>A <code>logical</code> indicating if the function should run silently.<br>
+Runs silently when <code>verbose = FALSE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To assess a factor solution under <code class="reqn">m</code> factors one might look at the proportion of explained variance.
+The <code>dimVAR</code> function calculates the proportion of variance explained by any factor as well as 
+the proportion of variance explained by all factors for each factor solution raging from 1 to <code>maxdim</code>.
+Qualitatively, we want the proportion of variance explained by all factors to be appreciable (rules of thumb would say in excess of 70%).
+Moreover, one would want the proportion of variance explained by the <code class="reqn">k</code>th factor in relation to the <code class="reqn">(k - 1)</code>th factor to be appreciable and the proportion of variance of the <code class="reqn">(k + 1)</code>th factor in relation to the <code class="reqn">k</code>th factor to be negligible.
+</p>
+<p>When <code>graph = TRUE</code> also a graph is returned visualizing the total cumulative variance against the dimension of the factor solution.
+Hence, it plots the total cumulative variances against the respective factor solutions ranging from 1 to <code>maxdim</code>.
+The point at which the graph flattens out is indicative of a formative number of latent factors.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>list</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>$CumVar</code></td>
+<td>
+<p>Contains a <code>numeric</code> vector with the cumulative variances explained for each factor solution from 1 to <code>maxdim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$varianceTables</code></td>
+<td>
+<p>This slot is itself a <code>list</code>. It contains, for each factor solution, a matrix with the sum of squares (SS), proportion variance (PV), and cumulative variance (CV) for each respective latent feature. Say one wants to access the variance table for a solution under 5-factors. Then one can call <code>$varianceTables$`dimension = 5`</code>. Similar calls are made to retrieve the variance table for other factor solutions.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+
+<ul>
+<li>
+<p> The argument <code>maxdim</code> cannot exceed the Ledermann-bound (Ledermann, 1937): <code class="reqn">\lfloor [2p + 1 - (8p + 1)^{1/2}]/2\rfloor</code>, where <code class="reqn">p</code> indicates the observed-feature dimension.
+Usually, one wants to set <code>maxdim</code> much lower than this bound.
+</p>
+</li>
+<li>
+<p> The tabulations in the <code>$varianceTables</code> slot are based on unrotated maxmimum likelihood factor solutions. Note that the total cumulative variance does not depend on the choice of (orthogonal) rotation.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Carel F.W. Peeters &lt;cf.peeters@vumc.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Ledermann, W. (1937). On the rank of the reduced correlational matrix in multiple factor analysis. Psychometrika, 2:85–93.
+</p>
+<p>Peeters, C.F.W. <em>et al.</em> (2019). Stable prediction with radiomics data.
+<a href="https://arxiv.org/abs/1903.11696">arXiv:1903.11696 [stat.ML]</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dimGB</code>, <code>FAsim</code>, <code>mlFA</code>, <code>SMC</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate some high-dimensional data according to the factor model
+simDAT &lt;- FAsim(p = 50, m = 5, n = 40)
+
+## Regularize the correlation matrix
+RegR &lt;- regcor(simDAT$data)
+
+## Assess proportion and cumulative variances for a range of factor solutions
+## Inspect, for example, the variance table for the 5-factor solution
+V &lt;- dimVAR(RegR$optCor, maxdim = 20)
+V$varianceTables$`dimension = 5`
+</code></pre>
+
+
+</div>

@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getPValue</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>A Non-parametric Test of Sample Exchangeability and Feature Independence</h2>
+
+<h3>Description</h3>
+
+<p>The V test computes the p-value of a multivariate dataset <code class="reqn">\mathbf{X}</code>, which
+informs the user about one of two decisions: (1) whether the sample is exchangeable 
+at a given significance level, assuming that the feature dependencies are known; 
+or (2) whether the features or groups of features are independent at a given significance
+level, assuming that the sample is exchangeable.
+See Aw, Spence and Song (2023) for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getPValue(
+  X,
+  block_boundaries = NULL,
+  block_labels = NULL,
+  largeP = FALSE,
+  largeN = FALSE,
+  nruns = 5000,
+  type = "unbiased",
+  p = 2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The binary or real matrix on which to perform test of exchangeability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block_boundaries</code></td>
+<td>
+<p>Vector denoting the positions where a new
+block of non-independent features starts. Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block_labels</code></td>
+<td>
+<p>Length <code class="reqn">P</code> vector recording the block label of each feature.
+Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>largeP</code></td>
+<td>
+<p>Boolean indicating whether to use large <code class="reqn">P</code> asymptotics. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>largeN</code></td>
+<td>
+<p>Boolean indicating whether to use large <code class="reqn">N</code> asymptotics. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nruns</code></td>
+<td>
+<p>Resampling number for exact test. Default is 5000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Either an unbiased estimate of ('unbiased', default), or valid, but biased estimate of, ('valid') p-value 
+(see Hemerik and Goeman, 2018), or both ('both'). Default is 'unbiased'. Note that unbiased estimate can return <code class="reqn">0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The power <code class="reqn">p</code> of <code class="reqn">l_p^p</code>, i.e., <code class="reqn">||x||_p^p = (x_1^p+...x_n^p)</code>. Default is 2.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Automatically detects if dataset is binary, and runs the Hamming
+distance version of test if so. Otherwise, computes the squared
+Euclidean distance between samples and evaluates whether the
+variance of Euclidean distances, <code class="reqn">V</code>, is atypically large under the
+null hypothesis of exchangeability. Note the user may tweak the
+choice of power <code class="reqn">p</code> if they prefer an <code class="reqn">l_p^p</code> distance other than Euclidean.
+</p>
+<p>Under the hood, the variance statistic, <code class="reqn">V</code>, is computed efficiently.
+Moreover, the user can specify their choice of block permutations,
+large <code class="reqn">P</code> asymptotics, or large <code class="reqn">P</code> and large <code class="reqn">N</code> asymptotics. The latter two
+return reasonably accurate p-values for moderately large dimensionalities.
+</p>
+<p>User recommendations: When the number of independent blocks <code class="reqn">B</code> or number of
+independent features <code class="reqn">P</code> is at least 50, it is safe to use large <code class="reqn">P</code> asymptotics.
+If <code class="reqn">P</code> or <code class="reqn">B</code> is small, however, stick with permutations.
+</p>
+<p>Dependencies: All functions in auxiliary.R
+</p>
+
+
+<h3>Value</h3>
+
+<p>The p-value to be used to test the null hypothesis of exchangeability.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1 (get p-value of small matrix with independent features using exact test)
+suppressWarnings(require(doParallel))
+# registerDoParallel(cores = 2)
+
+X1 &lt;- matrix(nrow = 5, ncol = 10, rbinom(50, 1, 0.5)) # binary matrix, small
+getPValue(X1) # perform exact test with 5000 permutations
+
+# should be larger than 0.05
+
+# Example 2 (get p-value of high-dim matrix with independent features using asymptotic test)
+X2 &lt;- matrix(nrow = 10, ncol = 1000, rnorm(1e4)) # real matrix, large enough
+getPValue(X2, p = 2, largeP = TRUE) # very fast
+
+# should be larger than 0.05
+# getPValue(X2, p = 2) # slower, do not run (Output: 0.5764)
+
+# Example 3 (get p-value of high-dim matrix with partitionable features using exact test)
+
+X3 &lt;- matrix(nrow = 10, ncol = 1000, rbinom(1e4, 1, 0.5))
+getPValue(X3, block_labels = rep(c(1,2,3,4,5), 200))
+
+# Warning message: # there are features that have zero variation (i.e., all 0s or 1s)
+# In getPValue(X3, block_labels = rep(c(1, 2, 3, 4, 5), 200)) :
+# There exist columns with all ones or all zeros for binary X.
+
+# Example 4 (get p-value of high-dim matrix with partitionable features using asymptotic test)
+
+## This elaborate example generates binarized versions of time series data.
+
+# Helper function to binarize a marker
+# by converting z-scores to {0,1} based on
+# standard normal quantiles
+binarizeMarker &lt;- function(x, freq, ploidy) {
+ if (ploidy == 1) {
+   return((x &gt; qnorm(1-freq)) + 0)
+ } else if (ploidy == 2) {
+   if (x &lt;= qnorm((1-freq)^2)) {
+     return(0)
+   } else if (x &lt;= qnorm(1-freq^2)) {
+     return(1)
+   } else return(2)
+ } else {
+   cat("Specify valid ploidy number, 1 or 2")
+ }
+}
+
+getAutoRegArray &lt;- function(B, N, maf_l = 0.38, maf_u = 0.5, rho = 0.5, ploid = 1) {
+# get minor allele frequencies by sampling from uniform
+mafs &lt;- runif(B, min = maf_l, max = maf_u)
+# get AR array
+ar_array &lt;- t(replicate(N, arima.sim(n = B, list(ar=rho))))
+# theoretical column variance
+column_var &lt;- 1/(1-rho^2)
+# rescale so that variance per marker is 1
+ar_array &lt;- ar_array / sqrt(column_var)
+# rescale each column of AR array
+for (b in 1:B) {
+  ar_array[,b] &lt;- sapply(ar_array[,b],
+                         binarizeMarker,
+                         freq = mafs[b],
+                         ploidy = ploid)
+}
+return(ar_array)
+}
+
+## Function to generate the data array with desired number of samples
+getExHaplotypes &lt;- function(N) {
+  array &lt;- do.call("cbind",
+                   lapply(1:50, function(x) {getAutoRegArray(N, B = 20)}))
+  return(array)
+}
+
+##  Generate data and run test
+X4 &lt;- getExHaplotypes(10)
+getPValue(X4, block_boundaries = seq(from = 1, to = 1000, by = 25), largeP = TRUE)
+
+# stopImplicitCluster()
+
+</code></pre>
+
+
+</div>

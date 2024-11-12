@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>convert_all_levels</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conversion of software specific levels</h2>
+
+<h3>Description</h3>
+
+<p>Conversion of precursor, modified peptide and proteinGroup entries to standardized format.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">convert_all_levels(
+  input_df,
+  input_MQ_pg,
+  software = c("MaxQuant", "DIA-NN", "Spectronaut", "PD")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input_df</code></td>
+<td>
+<p>A tibble with precursor, modified peptide and proteinGroup level information. For MaxQuant: evidence.txt and proteinGroups.txt, for PD: PSMs.txt with R-friendly headers enabled, for DIA-NN and Spectronaut default output reports.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input_MQ_pg</code></td>
+<td>
+<p>For MaxQuant: A tibble with proteinGroup level information - proteinGroups.txt.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>software</code></td>
+<td>
+<p>The used analysis software - MaxQuant, PD, DIA-NN or Spectronaut. Default is MaxQuant.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The input entries are converted to a software independent format. The generated entries are appended to the submitted dataframe.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns the original submitted <code>tibble</code> - input_df - including the following new columns:
+</p>
+
+<ul>
+<li>
+<p> traceR_precursor - software-independent standardized text for precursor entries.
+</p>
+</li>
+<li>
+<p> traceR_precursor_unknownMods - logical value, if TRUE: a modification is detected, which is not converted to a standardized format.
+</p>
+</li>
+<li>
+<p> traceR_mod.peptides - software-independent standardized text for modified peptide entries.
+</p>
+</li>
+<li>
+<p> traceR_mod.peptides_unknownMods - logical value, if TRUE: a modification is detected, which is not converted to a standardized format.
+</p>
+</li>
+<li>
+<p> traceR_proteinGroups - software-independent standardized text for proteinGroups.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Oliver Kardell
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load libraries
+library(dplyr)
+library(stringr)
+library(tidyr)
+library(comprehenr)
+library(tibble)
+
+# MaxQuant example data
+evidence &lt;- tibble::tibble(
+  "Modified sequence" = c("_AACLLPK_",
+   "_ALTDM(Oxidation (M))PQM(Oxidation (M))R_",
+   "ALTDM(Dummy_Modification)PQMK"),
+  Charge = c(2,2,3),
+  "Protein group IDs" = c("26", "86;17", "86;17")
+)
+
+proteingroups &lt;- tibble::tibble(
+"Protein IDs" = c("A0A075B6P5;P01615;A0A087WW87;P01614;A0A075B6S6", "P02671", "P02672"),
+id = c(26, 86, 17)
+)
+
+# Conversion
+convert_all_levels(
+ input_df = evidence,
+ input_MQ_pg = proteingroups,
+ software = "MaxQuant"
+)
+</code></pre>
+
+
+</div>

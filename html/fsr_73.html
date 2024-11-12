@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spa_set_classification</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Set a new classification for fuzzy topological relationships</h2>
+
+<h3>Description</h3>
+
+<p><code>spa_set_classification()</code> configures a new set of linguistic values and corresponding membership functions to be used by fuzzy topological relationships.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spa_set_classification(classes, mfs)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>classes</code></td>
+<td>
+<p>A character vector containing linguistic values that characterizes different situations of fuzzy topological relationships.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfs</code></td>
+<td>
+<p>A vector of membership functions with domain in [0, 1].</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>spa_set_classification()</code> function replaces the default linguistic values employed by fuzzy topological relationships.
+Each membership function <em>i</em> of the parameter <code>mfs</code> represents the class <em>i</em> of the parameter <code>classes</code>.
+The length of these parameters must to be equal.
+</p>
+
+
+<h3>Value</h3>
+
+<p>No return values, called for side effects.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://onlinelibrary.wiley.com/doi/10.1111/tgis.13044">Carniel, A. C.; Venâncio, P. V. A. B; Schneider, M. fsr: An R package for fuzzy spatial data handling. Transactions in GIS, vol. 27, no. 3, pp. 900-927, 2023.</a>
+</p>
+<p>Underlying concepts and formal definitions of spatial plateau topological relationships and fuzzy topological relationships are respectively introduced in:
+</p>
+
+<ul>
+<li> <p><a href="https://ieeexplore.ieee.org/document/8491565">Carniel, A. C.; Schneider, M. Spatial Plateau Algebra: An Executable Type System for Fuzzy Spatial Data Types. In Proceedings of the 2018 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2018), pp. 1-8, 2018.</a>
+</p>
+</li>
+<li> <p><a href="https://ieeexplore.ieee.org/document/7737976">Carniel, A. C.; Schneider, M. A Conceptual Model of Fuzzy Topological Relationships for Fuzzy Regions. In Proceedings of the 2016 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2016), pp. 2271-2278, 2016.</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(tibble)
+library(sf)
+
+set.seed(456)
+
+# Generating some random points to create pgeometry objects by using spa_creator()
+tbl = tibble(x = runif(10, min= 0, max = 30), 
+             y = runif(10, min = 0, max = 30), 
+             z = runif(10, min = 0, max = 50))
+
+# Getting the convex hull on the points to clip plateau region objects during their constructions
+pts &lt;- st_as_sf(tbl, coords = c(1, 2))
+ch &lt;- st_convex_hull(do.call(c, st_geometry(pts)))
+
+pregions &lt;- spa_creator(tbl, base_poly = ch, fuzz_policy = "fcp", k = 2)
+
+plot(pregions$pgeometry[[1]])
+plot(pregions$pgeometry[[2]])
+
+# Showing results for spa_overlap() by considering default list of classes
+spa_overlap(pregions$pgeometry[[1]], pregions$pgeometry[[2]], ret = "list")
+
+## End(Not run)
+# Changing the default classification 
+trap_mf &lt;- function(a, b, c, d) {
+  function(x) {
+    pmax(pmin((x - a)/(b - a), 1, (d - x)/(d - c), na.rm = TRUE), 0)
+  }
+}
+
+classes &lt;- c("superficially", "moderately", "completely")
+superficially &lt;- trap_mf(0, 0.2, 0.4, 0.6)
+moderately &lt;- trap_mf(0.4, 0.6, 0.8, 1)
+completely &lt;- trap_mf(0.6, 0.8, 1, 1)
+
+spa_set_classification(classes, c(superficially, moderately, completely))
+## Not run: 
+# Now the fuzzy topological relationships will use the new classification
+spa_overlap(pregions$pgeometry[[1]], pregions$pgeometry[[2]], ret = "list")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,258 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>field_trial_error</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate plot errors in plant breeding field trials</h2>
+
+<h3>Description</h3>
+
+<p>Creates a data frame of simulated plot errors in multi-environment field trials for one or
+more traits. The plot errors capture spatial trend, random error (noise), and extraneous variation.
+Spatial trend is simulated using bivariate interpolation or a separable first-order
+autoregressive (AR1) process. Random error is simulated using an independent process. Extraneous
+variation is simulated using random or zig-zag ordering between neighbouring columns and/or rows.
+The three error components are combined at a user-defined ratio. <br>
+Correlated plot errors can be simulated between traits by setting different correlation structures
+for each error component. A separable structure is assumed between traits and plots within environments,
+but different error variances can be specified for each environment-within-trait combination.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">field_trial_error(
+  ntraits = 1,
+  nenvs = 1,
+  nblocks = 2,
+  block.dir = "col",
+  ncols = 10,
+  nrows = 20,
+  varR = 1,
+  ScorR = NULL,
+  RcorR = NULL,
+  EcorR = NULL,
+  spatial.model = "Bivariate",
+  complexity = NULL,
+  plot.length = 8,
+  plot.width = 2,
+  col.cor = 0.5,
+  row.cor = 0.7,
+  prop.spatial = 0.5,
+  ext.ord = "random",
+  ext.dir = "row",
+  prop.ext = 0,
+  return.effects = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ntraits</code></td>
+<td>
+<p>Number of traits to be simulated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nenvs</code></td>
+<td>
+<p>Number of environments to be simulated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nblocks</code></td>
+<td>
+<p>A vector defining the number of blocks in each environment.
+If only one value is specified, all environments will be assigned the same number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block.dir</code></td>
+<td>
+<p>A vector defining the block direction in each environment. Use
+'col' for side-by-side (default), 'row' for above-and-below, or
+NA if only one block is simulated. If only one value is specified, all environments
+will be assigned the same block direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncols</code></td>
+<td>
+<p>A vector defining the number of columns in each environment. If only one
+value is specified, all environments will be assigned the same number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrows</code></td>
+<td>
+<p>A vector defining the number of rows in each environment. If only one
+value is specified, all environments will be assigned the same number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varR</code></td>
+<td>
+<p>A vector of error variances for each environment-within-trait combination. If only
+one value is specified, all combinations will be assigned the same error variance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ScorR</code></td>
+<td>
+<p>A matrix of spatial error correlations between traits. If not specified and
+spatial trend is simulated, a diagonal matrix is constructed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RcorR</code></td>
+<td>
+<p>A matrix of random error correlations between traits. If not specified and
+random error is simulated, a diagonal matrix is constructed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EcorR</code></td>
+<td>
+<p>A matrix of extraneous error correlations between traits. If not specified and
+extraneous variation is simulated, a diagonal matrix is constructed. <br><strong>Note:</strong> the same correlation between traits is used for the column and row errors.
+Currently only implemented when <code>ext.ord = "random"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatial.model</code></td>
+<td>
+<p>A character string defining the model used to simulate spatial trend.
+Use 'Bivariate' for bivariate interpolation (default) or 'AR1' for a separable first-order
+autoregressive process. Bivariate interpolation is implemented with the <code>interp</code>
+function of the R package <a href="https://CRAN.R-project.org/package=interp">'interp'</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complexity</code></td>
+<td>
+<p>A vector defining the complexity of the simulated spatial trend in each
+environment when <code>spatial.model = "Bivariate"</code>. If only one value is specified,
+all environments will be assigned the same complexity.
+If not specified and <code>spatial.model = "Bivariate"</code>, the complexity is set to half the maximum
+number of columns and rows in each environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.length</code></td>
+<td>
+<p>A vector of plot lengths for each environment (column direction). If only one value is specified,
+all environments will be assigned the same plot length. Only required when <code>spatial.model = "Bivariate"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.width</code></td>
+<td>
+<p>A vector of plot widths for each environment (row direction). If only one value is specified,
+all environments will be assigned the same plot width. Only required when <code>spatial.model = "Bivariate"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.cor</code></td>
+<td>
+<p>A vector of column autocorrelations for each environment.
+If only one value is specified, all environments will be assigned the same column autocorrelation.
+Only required when <code>spatial.model = "AR1"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.cor</code></td>
+<td>
+<p>A vector of row autocorrelations for each environment.
+If only one value is specified, all environments will be assigned the same row
+autocorrelation. Only required when <code>spatial.model = "AR1"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop.spatial</code></td>
+<td>
+<p>A vector defining the proportion of spatial trend for each environment-within-trait
+combination. If only one value is specified, all combinations will be assigned the proportion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ext.ord</code></td>
+<td>
+<p>A character string defining the method used to simulate extraneous variation.
+Use 'random' (default) for random variation between neighbouring columns and/or rows or
+'zig-zag' for alternating positive and negative values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ext.dir</code></td>
+<td>
+<p>A vector defining the direction of extraneous variation for each environment.
+Use 'row' (default) for row variation, 'col' for column variation, 'both' for variation in both directions,
+or NA if no extraneous variation is simulated. When <code>ext.dir = "both"</code>, half the variance is assigned to the columns and
+half is assigned to the rows. If only one value is specified, all environments will be
+assigned the same direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop.ext</code></td>
+<td>
+<p>A vector defining the proportion of extraneous variation for each environment-within-trait
+combination. If only one value is specified, all combinations will be assigned the same proportion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.effects</code></td>
+<td>
+<p>When <code>TRUE</code> (default is <code>FALSE</code>), a list is returned with additional entries
+containing the spatial, random, and extraneous error terms for each trait.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame with columns 'env', 'block', 'col', and 'row', followed by the
+simulated plot errors for each trait. When <code>return.effects = TRUE</code>, a list is returned with additional entries
+containing the spatial, random, and extraneous error terms for each trait.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate plot errors for two traits in two environments using an AR1 model
+# for spatial variation.
+
+# Error variances for the four environment-within-trait combinations.
+varR &lt;- c(0.2, 0.4, 10, 15) # Trait 1 x 2 environments, Trait 2 x 2 environments
+
+# Spatial error correlations between the two simulated traits.
+ScorR &lt;- matrix(c(
+  1.0, 0.2,
+  0.2, 1.0
+), ncol = 2)
+
+error_ls &lt;- field_trial_error(
+  ntraits = 2,
+  nenvs = 2,
+  nblocks = 2,
+  block.dir = "row",
+  ncols = 10,
+  nrows = 20,
+  varR = varR,
+  ScorR = ScorR,
+  spatial.model = "AR1",
+  col.cor = 0.5,
+  row.cor = 0.7,
+  prop.spatial = 0.4,
+  ext.ord = "zig-zag",
+  ext.dir = "row",
+  prop.ext = 0.2,
+  return.effects = TRUE
+)
+
+</code></pre>
+
+
+</div>

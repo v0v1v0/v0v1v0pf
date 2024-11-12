@@ -1,0 +1,424 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Data2fd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Create smooth functions that fit scatterplot data.
+</h2>
+
+<h3>Description</h3>
+
+<p>The function converts scatter plot data into one or a set of curves that do
+a satisfactory job of representing their corresponding abscissa and ordinate 
+values by smooth curves.  It returns a list object of class <code>fdSmooth</code> 
+that contains curves defined by functional data objects of class <code>fd</code>
+as well as a variety of other results related to the data smoothing process.
+</p>
+<p>The function tries to do as much for the user as possible before setting up a 
+call to function <code>smooth.basisPar</code>. This is achieved by an initial call
+to function <code>argvalsSwap</code> that examines arguments <code>argvals</code> that 
+contains abscissa values and <code>y</code> that contains ordinate values.  
+</p>
+<p>If the arguments are provided in an order that is not the one above, 
+<code>Data2fd</code> attempts to swap argument positions to provide the correct 
+order. A warning message is returned if this swap takes place.  Any such 
+automatic decision, though, has the possibility of being wrong, and the 
+results should be carefully checked.  
+</p>
+<p>Preferably, the order of the arguments should be respected: <code>argvals</code> 
+comes first and <code>y</code> comes second.
+</p>
+<p>Be warned that the result that the <code>fdSmooth</code> object that is returned may 
+not define a satisfactory smooth of the data, and consequently that it may be 
+necessary to use the more sophisticated data smoothing function 
+<code>smooth.basis</code> instead.  Its help file provides a great deal more 
+information than is provided here.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  Data2fd(argvals=NULL, y=NULL, basisobj=NULL, nderiv=NULL,
+          lambda=3e-8/diff(as.numeric(range(argvals))),
+          fdnames=NULL, covariates=NULL, method="chol")</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>argvals</code></td>
+<td>
+<p>a set of argument values.  If this is a vector, the same set of 
+argument values is used for all columns of <code>y</code>.  If <code>argvals</code> is a 
+matrix, the columns correspond to the columns of <code>y</code>, and contain the 
+argument values for that replicate or case.
+Dimensions for <code>argvals</code> must match the first dimensions of <code>y</code>, 
+though <code>y</code> can have more dimensions.  For example, if dim(y) = 
+c(9, 5, 2), <code>argvals</code> can be a vector of length 9 or a matrix of 
+dimensions c(9, 5) or an array of dimensions c(9, 5, 2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>an array containing sampled values of curves.  If <code>y</code> is a 
+vector, only one replicate and variable are assumed.  If <code>y</code> is a 
+matrix, rows must correspond to argument values and columns to replications 
+or cases, and it will be assumed that there is only one variable per 
+observation.  If <code>y</code> is a three-dimensional array, the first dimension 
+(rows) corresponds to argument values, the second (columns) to replications, 
+and the third (layers) to variables within replications.  Missing values are 
+permitted, and the number of values may vary from one replication to 
+another.  If this is the case, the number of rows must equal the maximum 
+number of argument values, and columns of <code>y</code> having fewer values 
+must be padded out with NA's.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basisobj</code></td>
+<td>
+<p>An object of one of the following classes:
+</p>
+
+<dl>
+<dt>basisfd</dt>
+<dd>
+<p>a functional basis object (class <code>basisfd</code>).</p>
+</dd>
+<dt>fd</dt>
+<dd>
+<p>a functional data object (class <code>fd</code>), from which its 
+<code>basis</code> component is extracted.</p>
+</dd>
+<dt>fdPar</dt>
+<dd>
+<p>a functional parameter object (class <code>fdPar</code>), from 
+which	its <code>basis</code> component is extracted.</p>
+</dd>
+<dt>integer</dt>
+<dd>
+<p>an integer giving the order of	a B-spline basis, 
+<code>create.bspline.basis(argvals, norder=basisobj)</code></p>
+</dd>
+<dt>numeric vector</dt>
+<dd>
+<p>specifying the knots for a B-spline basis, 
+<code>create.bspline.basis(basisobj)</code></p>
+</dd>
+<dt>NULL</dt>
+<dd>
+<p>Defaults to create.bspline.basis(argvals).</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nderiv</code></td>
+<td>
+<p>Smoothing typically specified as an integer order for the 
+derivative whose square is integrated and weighted by <code>lambda</code> to 
+smooth.  By default, <code>if basisobj[['type']] == 'bspline'</code>, the 
+smoothing operator is <code>int2Lfd(max(0, norder-2)).</code>
+</p>
+<p>A general linear differential operator can also be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>weight on the smoothing operator specified by <code>nderiv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdnames</code></td>
+<td>
+<p>Either a character vector of length 3 or a named list of length 
+3.  In either case, the three elements correspond to the following:
+</p>
+
+<dl>
+<dt>argname</dt>
+<dd>
+<p>name of the argument, e.g. "time" or "age".</p>
+</dd>
+<dt>repname</dt>
+<dd>
+<p>a description of the cases, e.g. "reps" or "weather 
+stations".</p>
+</dd>
+<dt>value</dt>
+<dd>
+<p>the name of the observed function value, e.g. "temperature".</p>
+</dd>
+</dl>
+<p>If fdnames is a list, the components provide labels for the levels of the 
+corresponding dimension of <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+<p>the observed values in <code>y</code> are assumed to be primarily 
+determined by the height of the curve being estimated.  However, from time 
+to time certain values can also be influenced by other known variables.  For 
+example, multi-year sets of climate variables may be also determined by
+the presence of absence of an El Nino event, or a volcanic eruption.One or 
+more of these covariates can be supplied as an <code>n</code> by<code>p</code> matrix, 
+where <code>p</code> is the number of such covariates.  When such covariates are 
+available, the smoothing is called "semi-parametric."  Matrices or arrays of 
+regression coefficients are then estimated that define the impacts of each 
+of these covariates for each curve and each variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>by default the function uses the usual textbook equations for 
+computing the coefficients of the basis function expansions.  But, as in 
+regression analysis, a price is paid in terms of rounding error for such 
+computations since they involved cross-products of  basis function values.  
+Optionally, if <code>method</code> is set equal to the string "qr", the 
+computation uses an algorithm based on the qr-decomposition which is more 
+accurate, but will require substantially more computing timewhen <code>n</code> is 
+large, meaning more than 500 or so.  The defaultis "chol", referring the 
+Choleski decomposition of a symmetric positive definite matrix.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function tends to be used in rather simple applications where there is no 
+need to control the roughness of the resulting curve with any great finesse.  
+The roughness is essentially controlled by how many basis functions are used.  
+In more sophisticated applications, it would be better to use the function   
+<code>smooth.basisPar</code>.
+</p>
+<p>It may happen that a value in argvals is outside the basis object interval 
+due to rounding error and other causes of small violations.  The code tests
+for this and pulls these near values into the interval if they are within
+1e-7 times the interval width.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an S3 list object of class <code>fdSmooth</code> defined in file 
+<code>smooth.basis1.R</code> containing:
+</p>
+
+<dl>
+<dt>fd</dt>
+<dd>
+<p>the functional data object defining smooth B-spline curves that
+fit the data</p>
+</dd>
+<dt>df</dt>
+<dd>
+<p>the degrees of freedom in the fits</p>
+</dd>
+<dt>gcv</dt>
+<dd>
+<p>a generalized cross-validation value</p>
+</dd>
+<dt>beta</dt>
+<dd>
+<p>the semi-parametric coefficient array</p>
+</dd>
+<dt>SSE</dt>
+<dd>
+<p>Error sum of squares</p>
+</dd>
+<dt>penmat</dt>
+<dd>
+<p>the symmetric matrix defining roughness penalty</p>
+</dd>
+<dt>argvals</dt>
+<dd>
+<p>the argument values</p>
+</dd>
+<dt>y</dt>
+<dd>
+<p>the array of ordinate values in the scatter-plot</p>
+</dd> 
+</dl>
+<h3>References</h3>
+
+<p>Ramsay, James O., Hooker, Giles, and Graves, Spencer (2009),
+<em>Functional data analysis with R and Matlab</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2005), 
+<em>Functional Data Analysis, 2nd ed.</em>, Springer, New York.
+</p>
+<p>Ramsay, James O., and Silverman, Bernard W. (2002), 
+<em>Applied Functional Data Analysis</em>, Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>smooth.basisPar</code>,
+<code>smooth.basis</code>,
+<code>smooth.basis1</code>,
+<code>project.basis</code>,
+<code>smooth.fd</code>,
+<code>smooth.monotone</code>,
+<code>smooth.pos</code>,
+<code>day.5</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+## Simplest possible example:  constant function
+##
+# 1 basis, order 1 = degree 0 = constant function
+b1.1 &lt;- create.bspline.basis(nbasis=1, norder=1)
+# data values: 1 and 2, with a mean of 1.5
+y12 &lt;- 1:2
+# smooth data, giving a constant function with value 1.5
+fd1.1 &lt;- Data2fd(y12, basisobj=b1.1)
+oldpar &lt;- par(no.readonly=TRUE)
+plot(fd1.1)
+# now repeat the analysis with some smoothing, which moves the
+# toward 0.
+fd1.5 &lt;- Data2fd(y12, basisobj=b1.1, lambda=0.5)
+#  values of the smooth:
+# fd1.1 = sum(y12)/(n+lambda*integral(over arg=0 to 1 of 1))
+#         = 3 / (2+0.5) = 1.2
+#. JR ... Data2fd returns an fdsmooth object and a member of the
+#         is an fd smooth object.  Calls to functions expecting 
+#         an fd object require attaching $fd to the fdsmooth object
+#         this is required in lines 268, 311 and 337
+eval.fd(seq(0, 1, .2), fd1.5)
+##
+## step function smoothing
+##
+# 2 step basis functions: order 1 = degree 0 = step functions
+b1.2 &lt;- create.bspline.basis(nbasis=2, norder=1)
+#  fit the data without smoothing
+fd1.2 &lt;- Data2fd(1:2, basisobj=b1.2)
+# plot the result:  A step function:  1 to 0.5, then 2
+op &lt;- par(mfrow=c(2,1))
+plot(b1.2, main='bases')
+plot(fd1.2, main='fit')
+par(op)
+##
+## Simple oversmoothing
+##
+# 3 step basis functions: order 1 = degree 0 = step functions
+b1.3 &lt;- create.bspline.basis(nbasis=3, norder=1)
+#  smooth the data with smoothing
+fd1.3 &lt;- Data2fd(y12, basisobj=b1.3, lambda=0.5)
+#  plot the fit along with the points
+plot(0:1, c(0, 2), type='n')
+points(0:1, y12)
+lines(fd1.3)
+# Fit = penalized least squares with penalty =
+#          = lambda * integral(0:1 of basis^2),
+#            which shrinks the points towards 0.
+# X1.3 = matrix(c(1,0, 0,0, 0,1), 2)
+# XtX = crossprod(X1.3) = diag(c(1, 0, 1))
+# penmat = diag(3)/3
+#        = 3x3 matrix of integral(over arg=0:1 of basis[i]*basis[j])
+# Xt.y = crossprod(X1.3, y12) = c(1, 0, 2)
+# XtX + lambda*penmat = diag(c(7, 1, 7)/6
+# so coef(fd1.3.5) = solve(XtX + lambda*penmat, Xt.y)
+#                  = c(6/7, 0, 12/7)
+##
+## linear spline fit
+##
+# 3 bases, order 2 = degree 1
+b2.3 &lt;- create.bspline.basis(norder=2, breaks=c(0, .5, 1))
+# interpolate the values 0, 2, 1
+fd2.3 &lt;- Data2fd(c(0,2,1), basisobj=b2.3, lambda=0)
+#  display the coefficients
+round(fd2.3$coefs, 4)
+# plot the results
+op &lt;- par(mfrow=c(2,1))
+plot(b2.3, main='bases')
+plot(fd2.3, main='fit')
+par(op)
+# apply some smoothing
+fd2.3. &lt;- Data2fd(c(0,2,1), basisobj=b2.3, lambda=1)
+op &lt;- par(mfrow=c(2,1))
+plot(b2.3, main='bases')
+plot(fd2.3., main='fit', ylim=c(0,2))
+par(op)
+all.equal(
+ unclass(fd2.3)[-1], 
+ unclass(fd2.3.)[-1])
+##** CONCLUSION:  
+##** The only differences between fd2.3 and fd2.3.
+##** are the coefficients, as we would expect.  
+
+##
+## quadratic spline fit
+##
+# 4 bases, order 3 = degree 2 = continuous, bounded, locally quadratic
+b3.4 &lt;- create.bspline.basis(norder=3, breaks=c(0, .5, 1))
+# fit values c(0,4,2,3) without interpolation
+fd3.4 &lt;- Data2fd(c(0,4,2,3), basisobj=b3.4, lambda=0)
+round(fd3.4$coefs, 4)
+op &lt;- par(mfrow=c(2,1))
+plot(b3.4)
+plot(fd3.4)
+points(c(0,1/3,2/3,1), c(0,4,2,3))
+par(op)
+#  try smoothing
+fd3.4. &lt;- Data2fd(c(0,4,2,3), basisobj=b3.4, lambda=1)
+round(fd3.4.$coef, 4)
+op &lt;- par(mfrow=c(2,1))
+plot(b3.4)
+plot(fd3.4., ylim=c(0,4))
+points(seq(0,1,len=4), c(0,4,2,3))
+par(op)
+##
+##  Two simple Fourier examples
+##
+gaitbasis3 &lt;- create.fourier.basis(nbasis=5)
+gaitfd3    &lt;- Data2fd(seq(0,1,len=20), gait, basisobj=gaitbasis3)
+# plotfit.fd(gait, seq(0,1,len=20), gaitfd3)
+#    set up the fourier basis
+daybasis &lt;- create.fourier.basis(c(0, 365), nbasis=65)
+#  Make temperature fd object
+#  Temperature data are in 12 by 365 matrix tempav
+#    See analyses of weather data.
+tempfd &lt;- Data2fd(CanadianWeather$dailyAv[,,"Temperature.C"],
+                  day.5, daybasis)
+#  plot the temperature curves
+par(mfrow=c(1,1))
+plot(tempfd)
+##
+## argvals of class Date and POSIXct
+##
+#  These classes of time can generate very large numbers when converted to 
+#  numeric vectors.  For basis systems such as polynomials or splines,
+#  severe rounding error issues can arise if the time interval for the 
+#  data is very large.  To offset this, it is best to normalize the
+#  numeric version of the data before analyzing them.
+#  Date class time unit is one day, divide by 365.25.
+invasion1 &lt;- as.Date('1775-09-04')
+invasion2 &lt;- as.Date('1812-07-12')
+earlyUS.Canada &lt;- as.numeric(c(invasion1, invasion2))/365.25
+BspInvasion &lt;- create.bspline.basis(earlyUS.Canada)
+earlyYears  &lt;- seq(invasion1, invasion2, length.out=7)
+earlyQuad   &lt;- (as.numeric(earlyYears-invasion1)/365.25)^2
+earlyYears  &lt;- as.numeric(earlyYears)/365.25
+fitQuad &lt;- Data2fd(earlyYears, earlyQuad, BspInvasion)
+# POSIXct: time unit is one second, divide by 365.25*24*60*60
+rescale     &lt;- 365.25*24*60*60
+AmRev.ct    &lt;- as.POSIXct1970(c('1776-07-04', '1789-04-30'))
+BspRev.ct   &lt;- create.bspline.basis(as.numeric(AmRev.ct)/rescale)
+AmRevYrs.ct &lt;- seq(AmRev.ct[1], AmRev.ct[2], length.out=14)
+AmRevLin.ct &lt;- as.numeric(AmRevYrs.ct-AmRev.ct[1])
+AmRevYrs.ct &lt;- as.numeric(AmRevYrs.ct)/rescale
+AmRevLin.ct &lt;- as.numeric(AmRevLin.ct)/rescale
+fitLin.ct   &lt;- Data2fd(AmRevYrs.ct, AmRevLin.ct, BspRev.ct)
+par(oldpar)
+</code></pre>
+
+
+</div>

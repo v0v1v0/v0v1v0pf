@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit.models</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit dot Models</h2>
+
+<h3>Description</h3>
+
+<p>Fit a statistical model using different estimators (e.g., robust and
+least-squares) or combine fitted models into a single object.  Generic
+methods then produce side-by-side comparisons of the parameter estimates and
+diagnostic plots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit.models(model.list, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model.list</code></td>
+<td>
+<p>a list or a character vector containing names of modeling
+functions.  Only required when <code>fit.models</code> is being used to fit models
+(rather than combine already fitted models into a <code>fit.models</code> object).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>see details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are two distinct ways the <code>fit.models</code> function can be used.
+</p>
+<p>The first is to fit the same model using different estimators.  In this
+case, <code>model.list</code> should be a character vector or a list where each
+element is the name of a modeling function and the remaining arguments (in
+...) are the common arguments to the functions in <code>model.list</code>.
+For example, the following command fits robust and least squares linear
+models to Brownlee's Stack Loss Plant Data. </p>
+<pre>
+fit.models(c("rlm", "lm"), stack.loss ~ ., data = stackloss)</pre>
+<p> The resulting
+<code>fit.models</code> object is a list with the output of </p>
+<pre>
+rlm(stack.loss ~ ., data = stackloss)</pre>
+<p> in the first element and
+</p>
+<pre> lm(stack.loss ~ ., data = stackloss)</pre>
+<p> in the second.  The
+class attribute of the returned list is set (in this case) to <code>"lmfm"</code>
+which is the <code>fit.models</code> class (fmclass) for comparing linear-model-like
+fits.
+</p>
+<p>The second use of fit.models is to combine fitted model objects.  In
+this case, <code>fit.models</code> combines its arguments into a fit.models object
+(a list where element <code class="reqn">i</code> is occupied by argument <code class="reqn">i</code> and sets the
+class attribute to the appropriate <code>fit.models</code> class.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The returned object is a list containing the fitted models.  The
+class of the retuned object depends on the classes of the model objects it
+contains.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fmclass.add.class</code> for adding a class to an existing
+fit.models class and <code>fmclass.register</code> to create a new
+fit.models class.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # First, use fit.models to fit robust and least squares linear
+  # regression models to Brownlee's Stack Loss Plant Data.
+
+  # Step 1: rlm (robust linear model) is in the MASS package.
+  library(MASS)
+
+  # Step 2: tell fit.models rlm can be compared to lm
+  fmclass.add.class("lmfm", "rlm")
+
+  fm1 &lt;- fit.models(c("rlm", "lm"), stack.loss ~ ., data = stackloss)
+
+  summary(fm1) #rlm does not provide p-values or Multiple R-squared
+
+
+  # Second, use fit.models to combine fitted models into a
+  # fit.models object.
+
+  lm.complete &lt;- lm(stack.loss ~ ., data = stackloss)
+  lm.clean &lt;- lm(stack.loss ~ ., data = stackloss, subset = 5:20)
+
+  fm2 &lt;- fit.models(lm.clean, lm.complete)
+
+  summary(fm2)
+  plot(fm2)
+
+
+  # Name the models in the fit.models object.
+  
+  fm3 &lt;- fit.models(c(Robust = "rlm", "Least Squares" = "lm"),
+                    stack.loss ~ ., data = stackloss)
+
+  fm4 &lt;- fit.models(Clean = lm.clean, Complete = lm.complete)
+</code></pre>
+
+
+</div>

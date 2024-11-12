@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastCrr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast Fine-Gray Model Estimation</h2>
+
+<h3>Description</h3>
+
+<p>Estimates parameters for the proportional subdistribution hazards model using two-way linear scan approach.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastCrr(
+  formula,
+  data,
+  eps = 1e-06,
+  max.iter = 1000,
+  getBreslowJumps = TRUE,
+  standardize = TRUE,
+  variance = TRUE,
+  var.control = varianceControl(B = 100, useMultipleCores = FALSE),
+  returnDataFrame = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula object, with the response on the left of a ~ operator, and the terms on the right. The response must be a Crisk object as returned by the <code>Crisk</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame in which to interpret the variables named in the formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Numeric: algorithm stops when the relative change in any coefficient is less than <code>eps</code> (default is <code>1E-6</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+<p>Numeric: maximum iterations to achieve convergence (default is 1000)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getBreslowJumps</code></td>
+<td>
+<p>Logical: Output jumps in Breslow estimator for the cumulative hazard.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Logical: Standardize design matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance</code></td>
+<td>
+<p>Logical: Get standard error estimates for parameter estimates via bootstrap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.control</code></td>
+<td>
+<p>List of options for variance estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnDataFrame</code></td>
+<td>
+<p>Logical: Return (ordered) data frame.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Fits the 'proportional subdistribution hazards' regression model described in Fine and Gray (1999) using a novel two-way linear scan approach.
+By default, the <code>Crisk</code> object will specify which observations are censored (0), the event of interest (1), or competing risks (2).
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list of class <code>fcrr</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>the estimated regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>estimated variance-covariance matrix via bootstrap (if <code>variance = TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik</code></td>
+<td>
+<p>log-pseudo likelihood at the estimated regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik.null</code></td>
+<td>
+<p>log-pseudo likelihood when the regression coefficients are 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lrt</code></td>
+<td>
+<p>log-pseudo likelihood ratio test statistic for the estimated model vs. the null model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>iterations of coordinate descent until convergence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+<p>logical.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breslowJump</code></td>
+<td>
+<p>Jumps in the Breslow baseline cumulative hazard (used by <code>predict.fcrr</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uftime</code></td>
+<td>
+<p>vector of unique failure (event) times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isVariance</code></td>
+<td>
+<p>logical to return if variance is chosen to be estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>returned ordered data frame if <code>returnDataFrame = TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Fine J. and Gray R. (1999) A proportional hazards model for the subdistribution of a competing risk.  <em>JASA</em> 94:496-509.
+</p>
+<p>#' Kawaguchi, E.S., Shen J.I., Suchard, M. A., Li, G. (2020) Scalable Algorithms for Large Competing Risks Data, Journal of Computational and Graphical Statistics
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fastcmprsk)
+
+set.seed(10)
+ftime &lt;- rexp(200)
+fstatus &lt;- sample(0:2, 200, replace = TRUE)
+cov &lt;- matrix(runif(1000), nrow = 200)
+dimnames(cov)[[2]] &lt;- c('x1','x2','x3','x4','x5')
+fit &lt;- fastCrr(Crisk(ftime, fstatus) ~ cov, variance = FALSE)
+
+# Not run: How to set up multiple cores for boostrapping
+# library(doParallel) #  make sure necessary packages are loaded
+# myClust &lt;- makeCluster(2)
+# registerDoParallel(myClust)
+# fit1 &lt;- fastCrr(Crisk(ftime, fstatus) ~ cov, variance = TRUE,
+# var.control = varianceControl(B = 100, useMultipleCores = TRUE))
+# stopCluster(myClust)
+
+
+
+</code></pre>
+
+
+</div>

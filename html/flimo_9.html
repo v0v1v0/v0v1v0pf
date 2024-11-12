@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_objective</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot the objective to be minimized using flimo</h2>
+
+<h3>Description</h3>
+
+<p>Plot of the objective function with one parameter moving
+(objective = f(theta_index)).
+You need either to provide data, dsumstats AND simulatorQ
+OR obj.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_objective(
+  ndraw,
+  data = NULL,
+  dsumstats = NULL,
+  simulatorQ = NULL,
+  obj = NULL,
+  quantiles = NULL,
+  index = NULL,
+  other_param = NULL,
+  nsim = 10,
+  lower = 0,
+  upper = 1,
+  dim2 = TRUE,
+  visualize_min = TRUE,
+  plot_legend = TRUE,
+  npoints = 300,
+  add_to_plot = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ndraw</code></td>
+<td>
+<p>Integer.Number of random variables to draw
+for one simulation of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>1D array containing the observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dsumstats</code></td>
+<td>
+<p>Function computing the distance
+between simulations and data of form dsumstats(simulations, data)
+where simulations : 2D array and data : 1D array.
+ncol(simulations) = length(data) mandatory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulatorQ</code></td>
+<td>
+<p>Function of type simulatorQ(Theta, quantiles)
+where Theta is the parameter set for the simulations and
+quantiles are drawn in U(0,1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>objective function of type objective(Theta, quantiles).
+Default : directly computed with "dsumstats" and "simulatorQ".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>2D array containing values drawn in U(0,1).
+Row number = number of simulations. Default: simulated within the function.
+Column number = number of random variables to draw in one simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>Integer. Index of the moving parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>other_param</code></td>
+<td>
+<p>Other parameters of the model. If NULL : assume 1D-model.
+If numeric : 2D-model, one curve.
+If 1D-array and dim2 is True (default) :
+2D-model, one curve by value in other_param.
+If 1D-array and dim2 is False or 2D-array : (n&gt;2)D-model,
+one curve by row in other_param.
+If your model has n&gt;2 dimensions,
+you should define other_param as a matrix even if
+you have only one parameter set to test
+(with as.matrix(t(vect_param)) where vect_param is a 1D-array).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Integer. Number of simulations to run for each step
+of the optimization algorithm.
+Computation time grows linearly with this number. Default to 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>Numeric. Lower value of the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>Numeric. Upper value of the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim2</code></td>
+<td>
+<p>Boolean. True if model is 2-dimensional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>visualize_min</code></td>
+<td>
+<p>Boolean. If True, show explicitly the minimum point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_legend</code></td>
+<td>
+<p>Boolean. If True (default), plots the legend.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npoints</code></td>
+<td>
+<p>Integer. Number of points evaluated. Default = 300.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_to_plot</code></td>
+<td>
+<p>ggplot object. If not NULL,
+will add all curves/points on previous plot instead of creating a new one.
+Does not change title/labels/limits defined in previous plot.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>ggplot object representing the objective function to be minimized.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data &lt;- rep(100, 5)
+
+dsumstats &lt;- function(simulations, data){
+mean_simu &lt;- mean(rowMeans(simulations))
+mean_data &lt;- mean(data)
+(mean_simu-mean_data)^2
+}
+
+simulatorQ &lt;- function(Theta, quantiles){
+qpois(quantiles, lambda = Theta)
+}
+
+plot_objective(5, data, dsumstats, simulatorQ,
+lower = 0, upper = 200)
+
+</code></pre>
+
+
+</div>

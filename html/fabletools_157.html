@@ -1,0 +1,56 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>skill_score</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forecast skill score measure</h2>
+
+<h3>Description</h3>
+
+<p>This function converts other error metrics such as <code>MSE</code> into a skill score.
+The reference or benchmark forecasting method is the Naive method for
+non-seasonal data, and the seasonal naive method for seasonal data.
+When used within <code>accuracy.fbl_ts</code>, it is important that the data
+contains both the training and test data, as the training data is used to
+compute the benchmark forecasts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">skill_score(measure)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>measure</code></td>
+<td>
+<p>The accuracy measure to use in computing the skill score.</p>
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+skill_score(MSE)
+
+
+library(fable)
+library(tsibble)
+
+lung_deaths &lt;- as_tsibble(cbind(mdeaths, fdeaths))
+lung_deaths %&gt;% 
+  dplyr::filter(index &lt; yearmonth("1979 Jan")) %&gt;%
+  model(
+    ets = ETS(value ~ error("M") + trend("A") + season("A")),
+    lm = TSLM(value ~ trend() + season())
+  ) %&gt;%
+  forecast(h = "1 year") %&gt;%
+  accuracy(lung_deaths, measures = list(skill = skill_score(MSE)))
+
+</code></pre>
+
+
+</div>

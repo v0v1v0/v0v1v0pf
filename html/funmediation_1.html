@@ -1,0 +1,442 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>funmediation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>funmediation:  Fit funmediation model</h2>
+
+<h3>Description</h3>
+
+<p>Calculate indirect effect of a binary treatment on a scalar
+response as mediated by a longitudinal functional trajectory
+(see Baron &amp; Kenny, 1986; Lindquist, 2012; Coffman et al., 2021).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">funmediation(
+  data,
+  treatment,
+  mediator,
+  outcome,
+  id,
+  time,
+  tve_covariates_on_mediator = NULL,
+  tie_covariates_on_mediator = NULL,
+  covariates_on_outcome = NULL,
+  interpolate = TRUE,
+  tvem_penalize = TRUE,
+  tvem_penalty_order = 1,
+  tvem_spline_order = 3,
+  tvem_num_knots = 3,
+  tvem_do_loop = FALSE,
+  tvem_use_bic = FALSE,
+  binary_mediator = FALSE,
+  binary_outcome = FALSE,
+  nboot = 200,
+  boot_level = 0.05,
+  show_progress = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The dataset containing the data to be analyzed, in long
+format (one row per observation, multiple per individual).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treatment</code></td>
+<td>
+<p>The name of the variable containing the treatment
+assignment, assumed to be unidimensional (either binary
+or else numeric).  We recommend a binary (dichotomous) treatment with
+0 for control and 1 for experimental).  The values of this variable
+should be the same for each row for a given subject.  If there are
+more than one treatment variables, such as a dummy-coded exposure with
+more than two levels, specify them as a formula such as ~x1+x2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mediator</code></td>
+<td>
+<p>The name of the mediator variable. The values of
+this variable can (and should) vary within each subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>The name of the outcome variable. The values of this
+variable should be the same for each row for a given subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>The name of the variable identifying each subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The name of the time variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tve_covariates_on_mediator</code></td>
+<td>
+<p>The covariates with time-varying-effects,
+if any, to be included in the model predicting the mediator from
+the treatment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tie_covariates_on_mediator</code></td>
+<td>
+<p>The covariates with time-invariant
+effects, if any, to be included in the
+model predicting the mediator from the treatment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates_on_outcome</code></td>
+<td>
+<p>The covariates, if any, to be included
+in the model predicting the outcome from the treatment.
+They are assumed to be subject-level (time-invariant both in value
+and in effect).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpolate</code></td>
+<td>
+<p>What kind of presmoothing to use in the
+penalized functional regression – specifically, whether
+to interpolate each subject's trajectory on the mediator
+(TRUE) or fit a spline to each subject's trajectory on the
+mediator (FALSE).  This will be counted as TRUE if
+binary_mediator is TRUE because it does
+not make as much sense to interpolate a binary outcome.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvem_penalize</code></td>
+<td>
+<p>Input to be passed on to the tvem function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvem_penalty_order</code></td>
+<td>
+<p>Input to be passed on to the tvem function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvem_spline_order</code></td>
+<td>
+<p>Input to be passed on to the tvem function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvem_num_knots</code></td>
+<td>
+<p>If tvem_do_loop is FALSE, then tvem_num_knots
+is passed on to the tvem function as num_knots, an integer representing
+the number of interior knots per B-spline. If tvem_do_loop is
+TRUE then tvem_num_knots is reinterpreted as the highest number of
+interior knots to try.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvem_do_loop</code></td>
+<td>
+<p>Whether to use a loop to select the number of knots
+with a pseudo-AIC or pseudo-BIC, passed on to the tvem function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tvem_use_bic</code></td>
+<td>
+<p>This parameter only matters if tvem_do_loop is TRUE.
+If tvem_do_loop is TRUE
+and tvem_use_bic is TRUE, then the information criterion used will be
+a pseudolikelihood version of BIC.
+If tvem_do_loop is TRUE and tvem_use_bic is FALSE, then the information
+criterion used will be
+a pseudolikelihood version of AIC instead. If tvem_do_loop is FALSE then
+tvem_use_bic is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binary_mediator</code></td>
+<td>
+<p>Whether the mediator should be modeled as
+dichotomous with a logistic model (TRUE),
+or numerical with a normal model (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binary_outcome</code></td>
+<td>
+<p>Whether the outcome should be modeled as
+dichotomous with a logistic model (TRUE),
+or numerical with a normal model (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>Number of bootstrap samples for bootstrap significance
+test of the overall effect. This test is done using the boot
+function from the boot package by Angelo Canty and Brian Ripley.
+It differs somewhat from the bootstrap approach used in a similar
+context by Lindquist (2012).  We recommend using at least 200 bootstrap
+samples and preferably 500 or more.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_level</code></td>
+<td>
+<p>One minus the nominal coverage for
+the bootstrap confidence interval estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_progress</code></td>
+<td>
+<p>Whether to display intermediate updates on the progress of
+the bootstrap simulations.  If show_progress==FALSE then the funmediation
+function runs silently but results can be viewed via the print and plot methods.
+If show_progress==TRUE then progress messages will be printed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of type funmediation. The components of an object of
+type funmediation are as follows:
+</p>
+
+<dl>
+<dt>original_results</dt>
+<dd>
+<p>The estimates from the fitted models for
+predicting the mediator from the treatment, predicting the outcome
+from the mediator and treatment, and predicting the outcome from the
+treatment alone.</p>
+</dd>
+<dt>bootstrap_results</dt>
+<dd>
+<p>The estimate and confidence interval of the
+indirect effect using a bootstrap approach.</p>
+</dd>
+</dl>
+<p>The original_results component has these components within it:
+</p>
+
+<dl>
+<dt>time_grid</dt>
+<dd>
+<p>Grid of time points on which the functional
+coefficients are estimated.</p>
+</dd>
+<dt>alpha_int_estimate</dt>
+<dd>
+<p>Estimated intercept function (as a vector
+of estimates) from the TVEM regression of the mediator, M, on treatment, X.</p>
+</dd>
+<dt>alpha_int_se</dt>
+<dd>
+<p>Estimated pointwise standard errors associated
+with the above.</p>
+</dd>
+<dt>alpha_X_estimate</dt>
+<dd>
+<p>Estimated time-varying treatment effect
+from the TVEM regression of the mediator, M, on the treatment, X.</p>
+</dd>
+<dt>alpha_X_se</dt>
+<dd>
+<p>Estimated pointwise standard errors associated
+with the above.</p>
+</dd>
+<dt>beta_int_estimate</dt>
+<dd>
+<p>Estimated scalar intercept from the scalar-on-
+function regression of the outcome, Y, on the mediator, M, and treatment, X.</p>
+</dd>
+<dt>beta_int_se</dt>
+<dd>
+<p>Estimated standard error for the above.</p>
+</dd>
+<dt>beta_X_estimate</dt>
+<dd>
+<p>Estimated scalar coefficient for the treatment, X,
+from the scalar-on-function regression of the outcome, Y, on the mediator,
+M, and treatment, X.</p>
+</dd>
+<dt>beta_X_se</dt>
+<dd>
+<p>Estimated standard error for the above.</p>
+</dd>
+<dt>beta_M_estimate</dt>
+<dd>
+<p>Estimated functional coefficient for the mediator,
+M, from the scalar-on-function regression of the outcome, Y, on the mediator,
+M, and treatment, X.</p>
+</dd>
+<dt>beta_M_se</dt>
+<dd>
+<p>Estimated pointwise standard errors associated with the above</p>
+</dd>
+<dt>beta_M_pvalue</dt>
+<dd>
+<p>The p-value for significance of the mediator, M, in
+predicting outcome, Y, after adjusting for treatment, X.</p>
+</dd>
+<dt>tau_int_estimate</dt>
+<dd>
+<p>Intercept from simple model predicting outcome, Y,
+directly from treatment, X.</p>
+</dd>
+<dt>tau_int_se</dt>
+<dd>
+<p>Estimated standard error for the above.</p>
+</dd>
+<dt>tau_X_estimate</dt>
+<dd>
+<p>Coefficient for treatment in model predicting outcome,
+Y, directly from treatment, X.</p>
+</dd>
+<dt>tau_X_se</dt>
+<dd>
+<p>Estimated standard error for the above.</p>
+</dd>
+<dt>indirect_effect_estimate</dt>
+<dd>
+<p>Estimated indirect effect, calculated as
+the dot product of the effect of treatment on mediator and the treatment-
+adjusted effect of mediator on outcome.  It is a scalar, even though the
+two component effects are functions of time.</p>
+</dd>
+<dt>tvem_XM_details</dt>
+<dd>
+<p>Detailed output from the tvem function for the time-
+varying-effect model predicting the mediator, M, from the treatment, X.</p>
+</dd>
+<dt>funreg_MY_details</dt>
+<dd>
+<p>Detailed output from the refund::pfr function for
+the scalar-on-function functional regression predicting the outcome, Y, from
+the treatment, X, and mediator, M.</p>
+</dd>
+<dt>total_effect_details</dt>
+<dd>
+<p>Detailed output from the linear or generalized
+linear model predicting the outcome from the treatment alone, ignoring the
+mediator (i.e., total effect)</p>
+</dd>
+</dl>
+<p>The bootstrap_results component has these components within it:
+</p>
+
+<dl>
+<dt>indirect_effect_boot_estimate</dt>
+<dd>
+<p>Bootstrap point estimate of the
+indirect effect (average of bootstrap sample estimates).</p>
+</dd>
+<dt>indirect_effect_boot_se</dt>
+<dd>
+<p>Bootstrap standard error for the
+indirect effect (standard deviation of bootstrap sample estimates).</p>
+</dd>
+<dt>indirect_effect_boot_norm_lower</dt>
+<dd>
+<p>Lower end of the bootstrap
+confidence interval using the normal method in boot.ci in the boot package.</p>
+</dd>
+<dt>indirect_effect_boot_norm_upper</dt>
+<dd>
+<p>Upper end of the bootstrap
+confidence interval using the normal method.</p>
+</dd>
+<dt>indirect_effect_boot_basic_lower</dt>
+<dd>
+<p>Lower end of the bootstrap
+confidence interval using the basic method in boot.ci in the boot package.</p>
+</dd>
+<dt>indirect_effect_boot_basic_upper</dt>
+<dd>
+<p>Upper end of the bootstrap
+confidence interval using the basic method.</p>
+</dd>
+<dt>indirect_effect_boot_perc_lower</dt>
+<dd>
+<p>Lower end of the bootstrap
+confidence interval using the percentile method in boot.ci in the boot package.</p>
+</dd>
+<dt>indirect_effect_boot_perc_upper</dt>
+<dd>
+<p>Upper end of the bootstrap
+confidence interval using the percentile method.</p>
+</dd>
+<dt>boot_level</dt>
+<dd>
+<p>The alpha level used for the bootstrap confidence interval.</p>
+</dd>
+<dt>boot1</dt>
+<dd>
+<p>The output returned from the boot function.</p>
+</dd>
+<dt>time.required</dt>
+<dd>
+<p>The amount of time spent doing the bootstrap test,
+including generating and analyzing all samples.</p>
+</dd>
+</dl>
+<h3>Note</h3>
+
+<p>This function calls the tvem function in the tvem package.
+It also calls the pfr function in the refund package (see
+Goldsmith et al., 2011) to perform penalized functional regression.
+Some suggestions on interpreting the output from penalized functional
+regression are given by Dziak et al. (2019).
+</p>
+
+
+<h3>References</h3>
+
+<p>Baron, R.M., &amp; Kenny, D.A. (1986). The moderator-mediator variable
+distinction in social psychological research: Conceptual, strategic,
+and statistical considerations. Journal of Personality &amp; Social
+Psychology, 51: 1173-1182.
+</p>
+<p>Coffman, D. L., Dziak, J. J., Litson, K., Chakraborti, Y., Piper, M. E., &amp; Li, R. #' (2021). A causal approach to functional mediation analysis with application to a
+smoking cessation intervention. &lt;arXiv:2112.03960&gt;
+</p>
+<p>Dziak, J. J., Coffman, D. L., Reimherr, M., Petrovich, J., Li, R.,
+Shiffman, S., &amp; Shiyko, M. P. (2019). Scalar-on-function regression
+for predicting distal outcomes from intensively gathered longitudinal
+data: interpretability for applied scientists.
+Statistics Surveys, 13, 150-180. &lt;doi:10.1214/19-SS126&gt;
+</p>
+<p>Goldsmith, J., Bobb, J., Crainiceanu, C., Caffo, B., &amp; Reich, D.
+(2011). Penalized functional regression. Journal of Computational
+and Graphical Statistics, 20(4), 830-851. &lt;doi:10.1198/jcgs.2010.10007&gt;
+</p>
+<p>Lindquist, M. A. (2012). Functional Causal Mediation Analysis
+With an Application to Brain Connectivity. Journal of the American
+Statistical Association, 107: 1297-1309. &lt;doi:10.1080/01621459.2012.695640&gt;
+</p>
+
+
+</div>

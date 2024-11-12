@@ -1,0 +1,263 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.basis.fr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional Regression with functional response using basis representation.</h2>
+
+<h3>Description</h3>
+
+<p>Computes functional regression between functional explanatory variable
+<code class="reqn">X(s)</code> and functional response <code class="reqn">Y(t)</code> using basis representation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.basis.fr(
+  x,
+  y,
+  basis.s = NULL,
+  basis.t = NULL,
+  lambda.s = 0,
+  lambda.t = 0,
+  Lfdobj.s = vec2Lfd(c(0, 0), range.s),
+  Lfdobj.t = vec2Lfd(c(0, 0), range.t),
+  weights = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Functional explanatory variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Functional response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.s</code></td>
+<td>
+<p>Basis related with <code>s</code> and it is used in the estimation
+of <code class="reqn">\beta(s,t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.t</code></td>
+<td>
+<p>Basis related with <code>t</code> and it is used in the estimation
+of <code class="reqn">\beta(s,t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.s</code></td>
+<td>
+<p>A roughness penalty with respect to <code>s</code> to be applied
+in the estimation of <code class="reqn">\beta(s,t)</code>. By default, no penalty
+<code>lambda.s=0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.t</code></td>
+<td>
+<p>A roughness penalty with respect to <code>t</code> to be applied
+in the estimation of <code class="reqn">\beta(s,t)</code>.  By default, no penalty
+<code>lambda.t=0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj.s</code></td>
+<td>
+<p>A linear differential operator object with respect to
+<code>s</code> . See eval.penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lfdobj.t</code></td>
+<td>
+<p>A linear differential operator object with respect to
+<code>t</code>. See eval.penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p style="text-align: center;"><code class="reqn">Y(t)=\alpha(t)+\int_{T}{X(s)\beta(s,t)ds+\epsilon(t)}</code>
+</p>
+
+<p>where <code class="reqn">\alpha(t)</code> is the intercept function, <code class="reqn">\beta(s,t)</code> is the
+bivariate resgression function and <code class="reqn">\epsilon(t)</code> are the error term with
+mean zero.
+</p>
+<p>The function is a wrapped of <code>linmod</code> function proposed by
+Ramsay and Silverman (2005) to model the relationship between the functional
+response <code class="reqn">Y(t)</code> and the functional covariate <code class="reqn">X(t)</code> by basis
+representation of both.
+</p>
+<p>The unknown bivariate functional parameter <code class="reqn">\beta(s,t)</code> can
+be expressed as a double expansion in terms of <code class="reqn">K</code> basis function
+<code class="reqn">\nu_k</code> and <code class="reqn">L</code> basis functions <code class="reqn">\theta_l</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">\beta(s,t)=\sum_{k=1}^{K}\sum_{l=1}^{L} b_{kl}
+\nu_{k}(s)\theta_{l}(t)=\nu(s)^{\top}\bold{B}\theta(t)</code>
+</p>
+<p> Then, the model can be
+re–written in a matrix version as,
+</p>
+<p style="text-align: center;"><code class="reqn">Y(t)=\alpha(t)+\int_{T}{X(s)\nu(s)^{\top}\bold{B}\theta(t)ds+\epsilon(t)}=\alpha(t)+\bold{XB}\theta(t)+\epsilon(t)</code>
+</p>
+<p> where
+<code class="reqn">\bold{X}=\int X(s)\nu^{\top}(t)ds</code> <br></p>
+<p>This function allows objects of class <code>fdata</code> or directly covariates of
+class <code>fd</code>.  If <code>x</code> is a <code>fdata</code> class, <code>basis.s</code> is
+also the basis used to represent <code>x</code> as <code>fd</code> class object. If
+<code>y</code> is a <code>fdata</code> class, <code>basis.t</code> is also the basis used to
+represent <code>y</code> as <code>fd</code> class object. The function also gives
+default values to arguments <code>basis.s</code> and <code>basis.t</code> for construct
+the bifd class object used in the estimation of <code class="reqn">\beta(s,t)</code>.  If
+<code>basis.s=</code><code>NULL</code> or <code>basis.t=</code><code>NULL</code> the function
+creates a <code>bspline</code> basis by <code>create.bspline.basis</code>.
+</p>
+<p><code>fregre.basis.fr</code> incorporates a roughness penalty using an appropiate
+linear differential operator; <code>lambda.s</code>,<code>Lfdobj.s</code> for
+penalization of <code class="reqn">\beta</code>'s variations with respect to <code class="reqn">s</code> and
+<br><code>lambda.t</code>,<code>Lfdobj.t</code> for penalization of
+<code class="reqn">\beta</code>'s variations with respect to <code class="reqn">t</code>.<br></p>
+
+
+<h3>Value</h3>
+
+<p>Return:
+</p>
+
+<ul>
+<li> <p><code>call</code> The matched call. 
+</p>
+</li>
+<li> <p><code>a.est</code> Intercept parameter estimated. 
+</p>
+</li>
+<li> <p><code>coefficientes</code> the matrix of the coefficients.
+</p>
+</li>
+<li> <p><code>beta.est</code> A bivariate functional data object of class <code>bifd</code> with the estimated parameters of <code class="reqn">\beta(s,t)</code>.
+</p>
+</li>
+<li> <p><code>fitted.values</code> Estimated response. 
+</p>
+</li>
+<li> <p><code>residuals</code> <code>y</code> minus <code>fitted values</code>. 
+</p>
+</li>
+<li> <p><code>y</code> Functional response. 
+</p>
+</li>
+<li> <p><code>x</code> Functional explanatory data. 
+</p>
+</li>
+<li> <p><code>lambda.s</code> A roughness penalty with respect to <code>s</code> . 
+</p>
+</li>
+<li> <p><code>lambda.t</code> A roughness penalty with respect to <code>t</code>.
+</p>
+</li>
+<li> <p><code>Lfdobj.s</code> A linear differential operator with respect to <code>s</code>.
+</p>
+</li>
+<li> <p><code>Lfdobj.t</code> A linear differential operator with respect to <code>t</code>.
+</p>
+</li>
+<li> <p><code>weights</code> Weights. 
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Ramsay, James O., and Silverman, Bernard W. (2006), <em>
+Functional Data Analysis</em>, 2nd ed., Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also as: <code>predict.fregre.fr</code>.
+Alternative method: <code>linmod</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+rtt&lt;-c(0, 365)
+basis.alpha  &lt;- create.constant.basis(rtt)
+basisx  &lt;- create.bspline.basis(rtt,11)
+basisy  &lt;- create.bspline.basis(rtt,11)
+basiss  &lt;- create.bspline.basis(rtt,7)
+basist  &lt;- create.bspline.basis(rtt,9)
+
+# fd class
+dayfd&lt;-Data2fd(day.5,CanadianWeather$dailyAv,basisx)
+tempfd&lt;-dayfd[,1]
+log10precfd&lt;-dayfd[,3]
+res1 &lt;-  fregre.basis.fr(tempfd, log10precfd,
+basis.s=basiss,basis.t=basist)
+
+# fdata class
+tt&lt;-1:365
+tempfdata&lt;-fdata(t(CanadianWeather$dailyAv[,,1]),tt,rtt)
+log10precfdata&lt;-fdata(t(CanadianWeather$dailyAv[,,3]),tt,rtt)
+res2&lt;-fregre.basis.fr(tempfdata,log10precfdata,
+basis.s=basiss,basis.t=basist)
+
+# penalization
+Lfdobjt &lt;- Lfdobjs &lt;- vec2Lfd(c(0,0), rtt)
+Lfdobjt &lt;- vec2Lfd(c(0,0), rtt)
+lambdat&lt;-lambdas &lt;- 100
+res1.pen &lt;- fregre.basis.fr(tempfdata,log10precfdata,basis.s=basiss,
+basis.t=basist,lambda.s=lambdas,lambda.t=lambdat,
+Lfdobj.s=Lfdobjs,Lfdobj.t=Lfdobjt)
+
+res2.pen &lt;- fregre.basis.fr(tempfd, log10precfd,
+basis.s=basiss,basis.t=basist,lambda.s=lambdas,
+lambda.t=lambdat,Lfdobj.s=Lfdobjs,Lfdobj.t=Lfdobjt)
+
+plot(log10precfd,col=1)
+lines(res1$fitted.values,col=2)
+plot(res1$residuals)
+plot(res1$beta.est,tt,tt)
+plot(res1$beta.est,tt,tt,type="persp",theta=45,phi=30)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

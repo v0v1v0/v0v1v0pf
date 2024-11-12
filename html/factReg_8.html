@@ -1,0 +1,286 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>perGeno</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Genomic prediction using glmnet, with a genotype-specific penalized
+regression model.</h2>
+
+<h3>Description</h3>
+
+<script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script><p>.... These models can be fitted either for the original
+data, or on the residuals of a model with only main effects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">perGeno(
+  dat,
+  Y,
+  G,
+  E,
+  indices = NULL,
+  indicesData = NULL,
+  testEnv = NULL,
+  weight = NULL,
+  useRes = TRUE,
+  outputFile = NULL,
+  corType = c("pearson", "spearman"),
+  partition = data.frame(),
+  nfolds = 10,
+  alpha = 1,
+  scaling = c("train", "all", "no"),
+  quadratic = FALSE,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>A <code>data.frame</code> with data from multi-environment trials.
+Each row corresponds to a particular genotype in a particular environment.
+The data do not need to be balanced, i.e. an environment does not need to
+contain all genotypes. <code>dat</code> should contain the training as well as the
+test environments (see testEnv)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>The trait to be analyzed: either of type character, in which case
+it should be one of the column names in <code>dat</code>, or numeric, in which
+case the Yth column of <code>dat</code> will be analyzed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>The column in <code>dat</code> containing the factor genotype (either
+character or numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>E</code></td>
+<td>
+<p>The column in <code>dat</code> containing the factor environment
+(either character or numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indices</code></td>
+<td>
+<p>The columns in <code>dat</code> containing the environmental
+indices (vector of type character). Alternatively, if the indices are always
+constant within environments (i.e. not genotype dependent), the
+environmental data can also be provided using the argument <code>indicesData</code>
+(see below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indicesData</code></td>
+<td>
+<p>An optional <code>data.frame</code> containing environmental
+indices (covariates); one value for each environment and index. It should
+have the environment names as row names (corresponding to the names
+contained in <code>dat$E</code>); the column names are the indices. If
+<code>indices</code> (see before) is also provided, the latter will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testEnv</code></td>
+<td>
+<p>vector (character). Data from these environments are not used
+for fitting the model. Accuracy is evaluated for training and test
+environments separately. The default is <code>NULL</code>, i.e. no test
+environments, in which case the whole data set is training. It is also
+possible that there are test environments, but without any data; in this
+case, no accuracy is reported for test environments (CHECK correctness).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>Numeric vector of length <code>nrow(dat)</code>, specifying the
+weight (inverse variance) of each observation, used in glmnet. Default
+<code>NULL</code>, giving constant weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useRes</code></td>
+<td>
+<p>Indicates whether the genotype-specific regressions are to be
+fitted on the residuals of a model with main effects. If <code>TRUE</code>
+residuals of a model with environmental main effects are used, if
+<code>FALSE</code> the regressions are fitted on the original data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputFile</code></td>
+<td>
+<p>The file name of the output files, without .csv extension
+which is added by the function. If not <code>NULL</code> the prediction accuracies
+for training and test environments are written to separate files. If
+<code>NULL</code> the output is not written to file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corType</code></td>
+<td>
+<p>type of correlation: Pearson (default) or Spearman rank sum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partition</code></td>
+<td>
+<p><code>data.frame</code> with columns E and partition. The column
+E should contain the training environments (type character); partition
+should be of type integer. Environments in the same fold should have
+the same integer value. Default is <code>data.frame()</code>, in which case the
+function uses a leave-one-environment out cross-validation. If <code>NULL</code>,
+the (inner) training sets used for cross-validation will be drawn randomly
+from all observations, ignoring the environment structure. In the latter
+case, the number of folds (nfolds) can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>Default <code>NULL</code>. If <code>partition == NULL</code>, this can be
+used to specify the number of folds to be used in glmnet.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Type of penalty, as in glmnet (1 = LASSO, 0 = ridge; in between
+= elastic net). Default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaling</code></td>
+<td>
+<p>determines how the environmental variables are scaled.
+"train" : all data (test and training environments) are scaled
+using the mean and and standard deviation in the training environments.
+"all" : using the mean and standard deviation of all environments.
+"no" : No scaling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quadratic</code></td>
+<td>
+<p>boolean; default <code>FALSE</code>. If <code>TRUE</code>, quadratic
+terms (i.e., squared indices) are added to the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>boolean; default <code>FALSE</code>. If <code>TRUE</code>, the accuracies
+per environment are printed on screen.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following elements:
+</p>
+
+<dl>
+<dt>predTrain</dt>
+<dd>
+<p>Vector with predictions for the training set (to do: Add
+the factors genotype and environment; make a data.frame)</p>
+</dd>
+<dt>predTest</dt>
+<dd>
+<p>Vector with predictions for the test set (to do: Add the
+factors genotype and environment; make a data.frame). To do: add estimated
+environmental main effects, not only predicted environmental main effects</p>
+</dd>
+<dt>mu</dt>
+<dd>
+<p>the estimated overall (grand) mean</p>
+</dd>
+<dt>envInfoTrain</dt>
+<dd>
+<p>The estimated environmental main effects, and the
+predicted effects, obtained when the former are regressed on the averaged
+indices, using penalized regression.</p>
+</dd>
+<dt>envInfoTest</dt>
+<dd>
+<p>The predicted environmental main effects for the test
+environments, obtained from penalized regression using the estimated
+main effects for the training environments and the averaged indices.</p>
+</dd>
+<dt>parGeno</dt>
+<dd>
+<p>data.frame containing the estimated genotypic
+main effects (first column) and sensitivities (subsequent columns)</p>
+</dd>
+<dt>testAccuracyEnv</dt>
+<dd>
+<p>a <code>data.frame</code> with the accuracy (r) for each
+test environment</p>
+</dd>
+<dt>trainAccuracyEnv</dt>
+<dd>
+<p>a <code>data.frame</code> with the accuracy (r) for each
+training environment</p>
+</dd>
+<dt>trainAccuracyGeno</dt>
+<dd>
+<p>a <code>data.frame</code> with the accuracy (r) for
+each genotype, averaged over the training environments</p>
+</dd>
+<dt>testAccuracyGeno</dt>
+<dd>
+<p>a <code>data.frame</code> with the accuracy (r) for
+each genotype, averaged over the test environments</p>
+</dd>
+<dt>RMSEtrain</dt>
+<dd>
+<p>The root mean squared error on the training environments</p>
+</dd>
+<dt>RMSEtest</dt>
+<dd>
+<p>The root mean squared error on the test environments</p>
+</dd>
+<dt>Y</dt>
+<dd>
+<p>The name of the trait that was predicted, i.e. the column name
+in dat that was used</p>
+</dd>
+<dt>G</dt>
+<dd>
+<p>The genotype label that was used, i.e. the argument G that was
+used</p>
+</dd>
+<dt>E</dt>
+<dd>
+<p>The environment label that was used, i.e. the argument E that was
+used</p>
+</dd>
+<dt>indices</dt>
+<dd>
+<p>The indices that were used, i.e. the argument indices that
+was used</p>
+</dd>
+<dt>lambdaOpt</dt>
+<dd></dd>
+<dt>pargeno</dt>
+<dd></dd>
+<dt>quadratic</dt>
+<dd>
+<p>The quadratic option that was used</p>
+</dd>
+</dl>
+</div>

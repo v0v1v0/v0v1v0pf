@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>writeControlFile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Writes a sample <code>controlFile.json</code> file</h2>
+
+<h3>Description</h3>
+
+<p><code>writeControlFile()</code> writes a sample <code>controlFile.json</code> file. The <code>controlFile.json</code> file is used to specify alternate model and optimisation options and used as an input to the function <code>generateScenarios</code>.
+The user may use the sample file created by this function as a guide to create an "<code>controlFile.json</code>" file for their application.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">writeControlFile(
+  jsonfile = "sample_controlFile.json",
+  basic = TRUE,
+  nml = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>jsonfile</code></td>
+<td>
+<p>string; to specify the name of the json file to be written. The default name of the sample file is "sample_controlFile.json".
+The file will be written to the working directory of the user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basic</code></td>
+<td>
+<p>logical (<code>TRUE/FALSE</code>); used to specify whether a "basic" or "advanced" sample file is to be written. The default is <code>TRUE</code>.
+A "basic" controlFile does not contain modelParameterBounds, and is sufficient for most applications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nml</code></td>
+<td>
+<p>list; the namelist to be written to the json file, as an R list. This argument may be used to create a JSON file using an controlFile from an existing simulation.
+If this argument is set to NULL, the function writes the default model/optimisation options defined in the package to the json file.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function may be used without any input arguments to write a "basic" sample controlFile.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A json file. The file may be used as an example to create an "<code>controlFile.json</code>" file for input to <code>generateScenarios</code>.
+An "<code>controlFile.json</code>" file may contain any subset of the fields listed below. The user may delete the unused fields from the file.
+The exception cases where it is mandatory to specify two fields together in controlFile are detailed as part of the list below.
+</p>
+
+<ul>
+<li> <p><strong><code>modelType</code></strong>: a list by variable. Each element of the list is a string specifying the type of stochastic model. if <code>modelType</code> is specified for a variable in controlFile,
+<code>modelParameterVariation</code> should also be specified. This is because these two fields together define the stochastic model.
+Use <code>viewModels()</code> to view the valid options for <code>modelType</code> by variable.
+</p>
+</li>
+<li> <p><strong><code>modelParameterVariation</code></strong>: a list by variable. Each element of the list is a string specifying the type of the parameter variation (annual, seasonal, harmonic etc.) of the stochastic model.
+if <code>modelParameterVariation</code> is specified for a variable in controlFile, <code>modelType</code> should also be specified.
+This is because these two fields together define the stochastic model.
+Use <code>viewModels()</code> to view valid options for <code>modelParameterVariation</code> by variable.
+</p>
+</li>
+<li> <p><strong><code>modelParameterBounds</code></strong>: a nested list by variable. Each element is a list containing the bounds of the parameters of the chosen stochastic model.
+This field exists to provide an option to overwrite the default bounds of the parameters of the stochastic model.
+Careful consideration is recommended prior to setting <code>modelParameterBounds</code> in the controlFile to overwrite the defaults provided in the package.
+</p>
+</li>
+<li> <p><strong><code>optimisationArguments</code></strong>: a list. Contains the optimisation options used by function <code>ga</code> from the <code>ga</code> package. Brief definitions are given below.
+</p>
+
+<ul>
+<li> <p><code>optimizer</code>: the numerical optimization routine. Options include
+<code>'RGN'</code> for Robust Gauss Newton (using <code>RGN::rgn</code>),
+<code>'NM'</code> for Nelder-Mead (using <code>dfoptim::nmkb</code>),
+<code>'SCE'</code> for Shuffled Complex Evolution (using <code>SoilHyP::SCEoptim</code>).
+<code>'GA'</code> for Genetic Algorithm (using <code>GA::ga</code>),
+Defaults to 'RGN'.
+</p>
+</li>
+<li> <p><code>seed</code>: random seed used (for first multistart) in numerical optimization (often for determining random initial parameter values). Default is 1.
+</p>
+</li>
+<li> <p><code>obj.func</code>: the type of objective function used (important only when penalty weights are not equal.
+</p>
+</li>
+<li> <p><code>suggestions</code>: suggestions for starting values of parameters for optimisation.
+Options include <code>'WSS'</code> (weighted sum of squares) and <code>SS_absPenalty</code> (sum of squares plus absolute penalty)
+</p>
+</li>
+<li> <p><code>nMultiStart</code>: the number of multistarts used in optimization. Default is 5.
+</p>
+</li>
+<li> <p><code>RGN.control</code>: RGN optional arguments specified by <code>control</code> list in <code>RGN::rgn</code>.
+</p>
+</li>
+<li> <p><code>NM.control</code>: NM optional arguments specified by <code>control</code> list in <code>dfoptim::nmkb</code>.
+</p>
+</li>
+<li> <p><code>SCE.control</code>: SCE optional arguments specified by <code>control</code> list in <code>SoilHyP::SCEoptim</code>.
+</p>
+</li>
+<li> <p><code>GA.args</code>: GA optional arguments specified in <code>GA::ga</code>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong><code>penaltyAttributes</code></strong>: a character vector of climate attributes to place specific focus on during targeting via the use of a penalty function during the optimisation process.
+The <code>penaltyAttributes</code> should belong to <code>attPerturb</code> or <code>attHold</code> that are specified in the exposure space used as input to <code>generateScenarios</code>.
+If <code>penaltyAttributes</code> are specified in the controlFile, <code>penaltyWeights</code> should also be specified.
+</p>
+</li>
+<li> <p><strong><code>penaltyWeights</code></strong>: a numeric vector; the length of the vector should be equal to the length of <code>penaltyAttributes</code>.
+<code>penaltyWeights</code> are the multipliers of the corresponding <code>penaltyAttributes</code> used during the optimisation.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>generateScenarios</code>, <code>viewModels</code>, <code>viewDefaultOptimArgs</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# To write a sample controlFile
+writeControlFile()
+
+# To write an advanced sample controlFile
+writeControlFile(jsonfile = "sample_controlFile_advanced.json", basic = FALSE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsim.kNN.fit.optim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Functional single-index model fit using kNN estimation and iterative LOOCV minimisation
+</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a functional single-index model (FSIM) between a functional covariate and a
+scalar response. 
+It employs kNN estimation with Nadaraya-Watson weights and uses B-spline expansions to represent curves and eligible functional indexes. 
+</p>
+<p>The function also utilises the leave-one-out cross-validation (LOOCV) criterion to select the bandwidth (<code>h.opt</code>) and the coefficients of the functional index in the spline basis (<code>theta.est</code>). It performs an iterative minimisation of the LOOCV objective function, starting from an initial set of coefficients (<code>gamma</code>) for the functional index.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsim.kNN.fit.optim(x, y, order.Bspline = 3, nknot.theta = 3, gamma = NULL, 
+knearest = NULL, min.knn = 2, max.knn = NULL,  step = NULL, 
+kind.of.kernel = "quad", range.grid = NULL, nknot = NULL, threshold = 0.005)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix containing the observations of the functional covariate (i.e. curves) collected by row.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Vector containing the scalar response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order.Bspline</code></td>
+<td>
+
+<p>Positive integer giving the order of the B-spline basis functions. This is the number of coefficients in each piecewise polynomial segment. The default is 3</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot.theta</code></td>
+<td>
+<p>Positive integer indicating the number of regularly spaced interior knots in the B-spline expansion of <code class="reqn">\theta_0</code>. The default is 3. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+
+<p>Vector indicating the initial coefficients for the functional index used in the iterative procedure. By default, it is a vector of ones. The size of the vector is determined by the sum <code>nknot.theta+order.Bspline</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knearest</code></td>
+<td>
+
+<p>Vector of positive integers that defines the sequence within which the optimal number of nearest neighbours <code>k.opt</code> is selected. If <code>knearest=NULL</code>, then <code>knearest &lt;- seq(from =min.knn, to = max.knn, by = step)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.knn</code></td>
+<td>
+
+<p>A positive integer that represents the minimum value in the sequence for selecting the number of nearest neighbours <code>k.opt</code>. This value should be less than the sample size. The default is 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.knn</code></td>
+<td>
+
+<p>A positive integer that represents the maximum value in the sequence for selecting number of nearest neighbours <code>k.opt</code>. This value should be less than the sample size. The default is <code>max.knn &lt;- n%/%5</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+
+<p>A positive integer used to construct the sequence of k-nearest neighbours as follows: <code>min.knn, min.knn + step, min.knn + 2*step, min.knn + 3*step,...</code>. The default value for <code>step</code> is <code>step&lt;-ceiling(n/100)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kind.of.kernel</code></td>
+<td>
+
+<p>The type of kernel function used. Currently, only Epanechnikov kernel (<code>"quad"</code>) is available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.grid</code></td>
+<td>
+
+<p>Vector of length 2 containing the endpoints of the grid at which the observations of the functional covariate <code>x</code> are evaluated (i.e. the range of the discretisation). If <code>range.grid=NULL</code>, then <code>range.grid=c(1,p)</code> is considered, where <code>p</code> is the discretisation size of <code>x</code> (i.e. <code>ncol(x))</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot</code></td>
+<td>
+
+<p>Positive integer indicating the number of regularly spaced interior knots for the B-spline expansion of the functional covariate. The default value is <code>(p - order.Bspline - 1)%/%2</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>The convergence threshold for the LOOCV function (scaled by the variance of the response). The default is <code>5e-3</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The functional single-index model (FSIM) is given by the expression:
+</p>
+<p style="text-align: center;"><code class="reqn">Y_i=r(\langle\theta_0,X_i\rangle)+\varepsilon_i, \quad i=1,\dots,n,</code>
+</p>
+
+<p>where <code class="reqn">Y_i</code> denotes a scalar response, 
+<code class="reqn">X_i</code> is a functional covariate valued in a separable Hilbert space <code class="reqn">\mathcal{H}</code> with an inner product <code class="reqn">\langle \cdot, \cdot\rangle</code>. The term <code class="reqn">\varepsilon</code> denotes the random error, <code class="reqn">\theta_0 \in \mathcal{H}</code> is the unknown functional index and <code class="reqn">r(\cdot)</code> denotes the unknown smooth link function.
+</p>
+<p>The FSIM is fitted using the kNN estimator
+</p>
+<p style="text-align: center;"><code class="reqn">
+\widehat{r}_{k,\hat{\theta}}(x)=\sum_{i=1}^nw_{n,k,\hat{\theta}}(x,X_i)Y_i,  \quad   \forall x\in\mathcal{H},
+</code>
+</p>
+
+<p>with Nadaraya-Watson weights
+</p>
+<p style="text-align: center;"><code class="reqn">
+w_{n,k,\hat{\theta}}(x,X_i)=\frac{K\left(H_{k,x,\hat{\theta}}^{-1}d_{\hat{\theta}}\left(X_i,x\right)\right)}{\sum_{i=1}^nK\left(H_{k,x,\hat{\theta}}^{-1}d_{\hat{\theta}}\left(X_i,x\right)\right)},
+</code>
+</p>
+
+<p>where
+</p>
+
+<ul>
+<li>
+<p> the positive integer <code class="reqn">k</code> is a smoothing factor, representing the number of nearest neighbours.
+</p>
+</li>
+<li> <p><code class="reqn">K</code> is a kernel function (see the argument <code>kind.of.kernel</code>).
+</p>
+</li>
+<li> <p><code class="reqn">d_{\hat{\theta}}(x_1,x_2)=|\langle\hat{\theta},x_1-x_2\rangle|</code> is the projection semi-metric and <code class="reqn">\hat{\theta}</code> is an estimate of <code class="reqn">\theta_0</code>. 
+</p>
+</li>
+<li> <p><code class="reqn">H_{k,x,\hat{\theta}}=\min\{h\in R^+ \text{ such that } \sum_{i=1}^n1_{B_{\hat{\theta}}(x,h)}(X_i)=k\}</code>, where <code class="reqn">1_{B_{\hat{\theta}}(x,h)}(\cdot)</code> is the indicator function of the open ball defined by the projection semi-metric, with centre <code class="reqn">x\in\mathcal{H}</code> and radius <code class="reqn">h</code>.
+</p>
+</li>
+</ul>
+<p>The procedure requires the estimation of the function-parameter <code class="reqn">\theta_0</code>. Therefore, we use B-spline expansions to represent curves (dimension <code>nknot+order.Bspline</code>) and eligible functional indexes (dimension <code>nknot.theta+order.Bspline</code>).
+We obtain the estimated coefficients of <code class="reqn">\theta_0</code> in the spline basis (<code>theta.est</code>) and the selected number of neighbours (<code>k.opt</code>) by minimising the LOOCV criterion. This function performs an iterative minimisation procedure, starting from an initial set of coefficients (<code>gamma</code>) for the functional index. Given a functional index, the optimal number of neighbours according to the LOOCV criterion is selected. For a given number of neighbours, the minimisation in the functional index is performed using the R function <code>optim</code>. The procedure is iterated until convergence.  For details, see Ferraty et al. (2013). 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>Estimated scalar response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Differences between <code>y</code> and the <code>fitted.values</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.est</code></td>
+<td>
+<p>Coefficients of <code class="reqn">\hat{\theta}</code> in the B-spline basis: a vector of <code>length(order.Bspline+nknot.theta)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k.opt</code></td>
+<td>
+<p>Selected number of neighbours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r.squared</code></td>
+<td>
+<p>Coefficient of determination.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.res</code></td>
+<td>
+<p>Redidual variance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Residual degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CV.opt</code></td>
+<td>
+<p>Minimum value of the LOOCV function, i.e. the value of LOOCV for <code>theta.est</code> and <code>k.opt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err</code></td>
+<td>
+<p>Value of the LOOCV function divided by <code>var(y)</code> for each interaction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>Hat matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k.seq</code></td>
+<td>
+<p>Sequence of eligible values for <code class="reqn">k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CV.hseq</code></td>
+<td>
+<p>CV values for each <code class="reqn">k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>German Aneiros Perez <a href="mailto:german.aneiros@udc.es">german.aneiros@udc.es</a> 
+</p>
+<p>Silvia Novo Diaz  <a href="mailto:snovo@est-econ.uc3m.es">snovo@est-econ.uc3m.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Ferraty, F., Goia, A., Salinelli, E., and Vieu, P. (2013) Functional projection pursuit regression. <em>Test</em>, <b>22</b>, 293–320, <a href="https://doi.org/10.1007/s11749-012-0306-2">doi:10.1007/s11749-012-0306-2</a>.
+</p>
+<p>Novo S., Aneiros, G., and Vieu, P., (2019) Automatic and location-adaptive estimation in functional single–index regression. <em>Journal of Nonparametric Statistics</em>, <b>31(2)</b>, 364–392, <a href="https://doi.org/10.1080/10485252.2019.1567726">doi:10.1080/10485252.2019.1567726</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>predict.fsim.kNN</code> and <code>plot.fsim.kNN</code>.
+</p>
+<p>Alternative procedures <code>fsim.kernel.fit.optim</code>, <code>fsim.kernel.fit</code> and <code>fsim.kNN.fit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(Tecator)
+y&lt;-Tecator$fat
+X&lt;-Tecator$absor.spectra2
+
+#FSIM fit.
+ptm&lt;-proc.time()
+fit&lt;-fsim.kNN.fit.optim(y=y[1:160],x=X[1:160,],max.knn=20,nknot.theta=4,nknot=20,
+range.grid=c(850,1050))
+proc.time()-ptm
+fit
+names(fit)
+
+
+</code></pre>
+
+
+</div>

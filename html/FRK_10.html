@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Basis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generic basis-function constructor</h2>
+
+<h3>Description</h3>
+
+<p>This function is meant to be used for manual construction of arbitrary basis functions. For
+‘local’ basis functions, please use the function <code>local_basis</code> instead.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Basis(manifold, n, fn, pars, df, regular = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>manifold</code></td>
+<td>
+<p>object of class <code>manifold</code>, for example, <code>sphere</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of basis functions (should be an integer)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+<p>a list of functions, one for each basis function. Each function should be encapsulated within an environment
+in which the manifold and any other parameters required to evaluate the function are defined. The
+function itself takes a single input <code>s</code> which can be of class <code>numeric</code>, <code>matrix</code>, or <code>Matrix</code>,
+and returns a vector which contains the basis function evaluations at <code>s</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p>A list containing a list of parameters for each function. For local basis functions these would correspond
+to location and scale parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A data frame containing one row per basis function, typically for providing informative summaries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regular</code></td>
+<td>
+<p>logical indicating if the basis functions (of each resolution) are in a regular grid</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This constructor checks that all parameters are valid before constructing the basis functions. 
+The requirement that every function is encapsulated is tedious, but necessary for
+FRK to work with a large range of basis functions in the future. Please see the example below which exemplifies
+the process of constructing linear basis functions from scratch using this function.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>auto_basis</code> for constructing basis functions automatically, <code>local_basis</code> for
+constructing ‘local’ basis functions, and <code>show_basis</code> for visualising basis functions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Construct two linear basis functions on [0, 1]
+manifold &lt;- real_line()
+n &lt;- 2
+lin_basis_fn &lt;- function(manifold, grad, intercept) {
+   function(s) grad*s + intercept
+}
+pars &lt;- list(list(grad = 1, intercept = 0),
+             list(grad = -1, intercept = 1))
+fn &lt;- list(lin_basis_fn(manifold, 1, 0),
+           lin_basis_fn(manifold, -1, 1))
+df &lt;- data.frame(n = 1:2, grad = c(1, -1), m = c(1, -1))
+G &lt;- Basis(manifold = manifold, n = n, fn = fn, pars = pars, df = df)
+## Not run: 
+eval_basis(G, s = matrix(seq(0,1, by = 0.1), 11, 1))
+## End(Not run)
+</code></pre>
+
+
+</div>

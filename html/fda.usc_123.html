@@ -1,0 +1,242 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fregre.pc.cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional penalized PC regression with scalar response using selection of
+number of PC components</h2>
+
+<h3>Description</h3>
+
+<p>Functional Regression with scalar response using selection of number of
+(penalized) principal components PC through cross-validation. The algorithm
+selects the PC with best estimates the response. The selection is performed
+by cross-validation (CV) or Model Selection Criteria (MSC). After is
+computing functional regression using the best selection of principal
+components.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fregre.pc.cv(
+  fdataobj,
+  y,
+  kmax = 8,
+  lambda = 0,
+  P = c(0, 0, 1),
+  criteria = "SIC",
+  weights = rep(1, len = n),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fdataobj</code></td>
+<td>
+<p><code>fdata</code> class object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Scalar response with length <code>n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmax</code></td>
+<td>
+<p>The number of components to include in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Vector with the amounts of penalization. Default value is 0,
+i.e. no penalization is used.  If <code>lambda=TRUE</code> the algorithm computes
+a sequence of lambda values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>The vector of coefficients to define the penalty matrix object. For
+example, if <code>P=c(1,0,0)</code>, ridge regresion is computed and if
+<code>P=c(0,0,1)</code>, penalized regression is computed penalizing the second
+derivative (curvature).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criteria</code></td>
+<td>
+<p>Type of cross-validation (CV) or Model Selection Criteria
+(MSC) applied. Possible values are <em>"CV"</em>, <em>"AIC"</em>, <em>"AICc"</em>,
+<em>"SIC"</em>, <em>"SICc"</em>, <em>"HQIC"</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>fregre.pc</code> or
+<code>fregre.pls</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm selects the best principal components <code>pc.opt</code> from the first <code>kmax</code> PC and (optionally) the best penalized parameter <code>lambda.opt</code> from a sequence of non-negative
+numbers <code>lambda</code>. <br>  
+If <code>kmax</code> is a integer (by default and recomended) the procedure is as follows (see example 1):
+</p>
+
+<ul>
+<li>
+<p> Calculate the best principal component (<em>pc.order[1]</em>) between <code>kmax</code> by
+<code>fregre.pc</code>.
+</p>
+</li>
+<li>
+<p> Calculate the second-best principal component (<code>pc.order [2]</code>) between the <code>(kmax-1)</code> by
+<code>fregre.pc</code> and calculate the criteria value of the two
+principal components.  
+</p>
+</li>
+<li>
+<p> The process (point 1 and 2) is repeated until <code>kmax</code> principal component (<em>pc.order[kmax]</em>). 
+</p>
+</li>
+<li>
+<p> The proces (point 1, 2 and 3) is repeated for each <code>lambda</code> value.
+</p>
+</li>
+<li>
+<p> The method selects the principal components (<code>pc.opt</code>=<code>pc.order[1:k.min]</code>) and (optionally) the lambda
+parameter with minimum MSC criteria.
+</p>
+</li>
+</ul>
+<p>If <code>kmax</code> is a sequence of integer the procedure is as follows (see example 2): 
+</p>
+
+<ul>
+<li>
+<p> The method selects the best principal components with minimum MSC criteria by
+stepwise regression using <code>fregre.pc</code> in each step.  
+</p>
+</li>
+<li>
+<p> The process (point 1) is repeated for each <code>lambda</code> value.
+</p>
+</li>
+<li>
+<p> The method selects the principal components (<code>pc.opt</code>=<code>pc.order[1:k.min]</code>) and (optionally) the lambda
+parameter with minimum MSC criteria. 
+</p>
+</li>
+</ul>
+<p>Finally, is computing functional PC regression between functional explanatory variable <code class="reqn">X(t)</code> and scalar
+response <code class="reqn">Y</code> using the best selection of PC <code>pc.opt</code> and ridge
+parameter <code>rn.opt</code>.  <br>  
+The criteria selection is done by cross-validation (CV) or Model Selection
+Criteria (MSC).  
+</p>
+
+<ul>
+<li>
+<p> Predictive Cross-Validation:
+<code class="reqn">PCV(k_n)=\frac{1}{n}\sum_{i=1}^{n}{\Big(y_i -\hat{y}_{(-i,k_n)}
+\Big)^2}</code>,<br><code>criteria</code>=“CV”
+</p>
+</li>
+<li>
+<p> Model Selection Criteria: <code class="reqn">MSC(k_n)=log \left[
+\frac{1}{n}\sum_{i=1}^{n}{\Big(y_i-\hat{y}_i\Big)^2} \right]
++p_n\frac{k_n}{n} </code> 
+</p>
+</li>
+</ul>
+<p><code class="reqn">p_n=\frac{log(n)}{n}</code>, <code>criteria</code>=“SIC” (by default)<br><code class="reqn">p_n=\frac{log(n)}{n-k_n-2}</code>, <code>criteria</code>=“SICc”<br><code class="reqn">p_n=2</code>, <code>criteria</code>=“AIC”<br><code class="reqn">p_n=\frac{2n}{n-k_n-2}</code>, <code>criteria</code>=“AICc”<br><code class="reqn">p_n=\frac{2log(log(n))}{n}</code>, <code>criteria</code>=“HQIC”<br>
+where <code>criteria</code> is an argument that controls the
+type of validation used in the selection of the smoothing parameter
+<code>kmax</code><code class="reqn">=k_n</code> and penalized parameter
+<code>lambda</code><code class="reqn">=\lambda</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return:
+</p>
+
+<ul>
+<li> <p><code>fregre.pc</code> Fitted regression object by the best (<code>pc.opt</code>) components. 
+</p>
+</li>
+<li> <p><code>pc.opt</code> Index of PC components selected. 
+</p>
+</li>
+<li> <p><code>MSC.min</code> Minimum Model Selection Criteria (MSC) value for the (<code>pc.opt</code> components. 
+</p>
+</li>
+<li> <p><code>MSC</code> Minimum Model Selection Criteria (MSC) value for <code>kmax</code> components.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p><code>criteria=``CV''</code> is not recommended: time-consuming.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Manuel Febrero-Bande, Manuel Oviedo de la Fuente
+<a href="mailto:manuel.oviedo@udc.es">manuel.oviedo@udc.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Febrero-Bande, M., Oviedo de la Fuente, M. (2012).
+<em>Statistical Computing in Functional Data Analysis: The R Package
+fda.usc.</em> Journal of Statistical Software, 51(4), 1-28.
+<a href="https://www.jstatsoft.org/v51/i04/">https://www.jstatsoft.org/v51/i04/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also as:<code>fregre.pc</code> .
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(tecator)
+x&lt;-tecator$absorp.fdata[1:129]
+y&lt;-tecator$y$Fat[1:129]
+# no penalization
+ res.pc1=fregre.pc.cv(x,y,8)
+# 2nd derivative penalization
+ res.pc2=fregre.pc.cv(x,y,8,lambda=TRUE,P=c(0,0,1))
+# Ridge regression
+res.pc3=fregre.pc.cv(x,y,1:8,lambda=TRUE,P=1) 
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

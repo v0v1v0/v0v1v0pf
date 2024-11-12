@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>amp_drift_corr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Charge Amplifier Drift Correction</h2>
+
+<h3>Description</h3>
+
+<p>Removes the systemic, asymptotical drift of charge amplifiers with
+resistor-capacitor (RC) circuits.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">amp_drift_corr(
+  filename,
+  tau = 9400,
+  res.reduction = 10,
+  plot.to.screen = FALSE,
+  write.data = FALSE,
+  write.PDFs = FALSE,
+  write.logs = FALSE,
+  output.folder = NULL,
+  show.progress = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Path to file on which amplifier drift correction should be
+performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Numeric time constant of charge amplifier in the same time unit
+as the measurement data.
+Default: <code>9400</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res.reduction</code></td>
+<td>
+<p>A numeric value to reduce the number of time steps by
+during plotting. Speeds up
+the plotting process and reduces PDF size. Has no effect on the results,
+only on the plots. Default: <code>10</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.to.screen</code></td>
+<td>
+<p>A logical value indicating if results should be
+plotted in the current R plot device. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write.data</code></td>
+<td>
+<p>A logical value indicating if drift-corrected file should
+be saved. If yes, it will be saved in <code>output.folder</code>.
+Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write.PDFs</code></td>
+<td>
+<p>A logical value indicating whether results should be saved
+as PDFs. Does not slow
+down the process as much as printing to the R plot device and is considered
+necessary to quality check the results. If yes, it will be saved in
+<code>output.folder/PDFs</code>. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write.logs</code></td>
+<td>
+<p>A logical value indicating whether a log file with
+information on the method and values used to correct the amplifier drift should be
+saved. Is considered necessary for reproducibility. If yes, it will be saved
+in <code>output.folder/logs</code>. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output.folder</code></td>
+<td>
+<p>Path to folder where data, PDF and log files should
+be stored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.progress</code></td>
+<td>
+<p>A logical value indicating if progress should be
+printed to the console. Slows down the process. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>forceR generally expects file names to start with a leading number specifying the
+measurement number (E.g. "0001_G_maculatus.csv"). The number ("0001") is used to
+keep data files, log files, and PDF files of the same measurement associated
+with each other.
+</p>
+<p>The input file should be in the following format:</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+   <code>t</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.1</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.2</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>...</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>...</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.n</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.n</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a tibble containing the amplifier drift-corrected data in the
+following format</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+   <code>t</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.1</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.2</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>...</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>...</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   <code>t.n</code> </td>
+<td style="text-align: center;">  </td>
+<td style="text-align: center;"> <code>y.n</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># define file for amplifier drift correction
+filename &lt;- forceR_example(type = "raw")
+
+# Run amplifier drift correction without saving files or printing to screen:
+file.ampdriftcorr &lt;- amp_drift_corr(filename = filename,
+                                     tau = 9400,
+                                     res.reduction = 10,
+                                     plot.to.screen = FALSE,
+                                     write.data = FALSE,
+                                     write.PDFs = FALSE,
+                                     write.logs = FALSE,
+                                     output.folder,
+                                     show.progress = FALSE)
+# file.ampdriftcorr
+
+# Run amplifier drift correction with saving files and printing to screen:
+#    - commented out to pass package tests
+# file.ampdriftcorr &lt;- amp_drift_corr(filename = filename,
+#                                       tau = 9400,
+#                                       res.reduction = 10,
+#                                       plot.to.screen = TRUE,
+#                                       write.data = TRUE,
+#                                       write.PDFs = TRUE,
+#                                       write.logs = TRUE,
+#                                       output.folder = "./ampdriftcorr",
+#                                       show.progress = TRUE)
+#
+# file.ampdriftcorr
+
+</code></pre>
+
+
+</div>

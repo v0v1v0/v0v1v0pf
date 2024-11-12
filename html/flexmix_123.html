@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLXMRglmfix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>FlexMix Interface to GLMs with Fixed Coefficients</h2>
+
+<h3>Description</h3>
+
+<p>This implements a driver for FlexMix which interfaces the <code>glm</code>
+family of models and where it is possible to specify fixed (constant) or
+nested varying coefficients or to ensure that in the Gaussian case the
+variance estimate is equal for all components.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLXMRglmfix(formula = . ~ ., fixed = ~0, varFix = FALSE, nested = NULL, 
+       family = c("gaussian", "binomial", "poisson", "Gamma"),
+       offset = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula which is interpreted relative to the formula
+specified in the call to <code>flexmix</code> using
+<code>update.formula</code>. Default is to use the original
+<code>flexmix</code> model
+formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>A formula which specifies the additional
+regressors for the fixed (constant) coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varFix</code></td>
+<td>
+<p>A logical indicating if the variance estimate for
+Gaussian components should be constrained to be equal for all
+components. It can be also a vector specifying the number of
+components with equal variance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nested</code></td>
+<td>
+<p>An object of class <code>FLXnested</code> or a list specifying
+the nested structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>A character string naming a <code>glm</code>
+family function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>This can be used to specify an <em>a priori</em> known
+component to be included in the linear predictor during fitting.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of class <code>FLXMRglmfix</code> 
+inheriting from <code>FLXMRglm</code> and <code>FLXMRfix</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Friedrich Leisch and Bettina Gruen</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FLXMRglm</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("NPreg", package = "flexmix")
+ex &lt;- flexmix(yn ~ x | id2, data = NPreg, k = 2,
+              cluster = NPreg$class,
+              model = FLXMRglm(yn ~ . + I(x^2)))
+ex.fix &lt;- flexmix(yn ~ x | id2, data = NPreg,
+                  cluster = posterior(ex),
+                  model = FLXMRglmfix(nested = list(k = c(1, 1),
+                                      formula = c(~0, ~I(x^2)))))
+summary(refit(ex))
+## Not run: 
+summary(refit(ex.fix))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>knownqpcr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate auxiliary parameters using samples with known allele ratios.</h2>
+
+<h3>Description</h3>
+
+<p>The function to estimate the auxiliary experimental parameters using DNA solutions, provided the dataset contains samples with multiple allele mixing ratios and the exact mixing ratio are known for each sample. This function is used when all replicates in the  dataset comprise the complete observations on the <code class="reqn">2 \times 2</code> combinations of the qPCR conditions in a RED-<code class="reqn">\Delta\Delta</code>Cq analysis: (loci for target or housekeeping genes) and (the target gene is undigested or digested with endonuclease). The quartet of the four Cq data, <code>housek0</code>, <code>target0</code> (these two are undigested samples amplified with housekeeping and target genes, respectively), <code>housek1</code>, and <code>target1</code> (digested samples) should be prepared as four numeric vectors having the same length.
+<br>
+One more variable, <code>trueY</code> is needed to run the estimation process; it a numeric vector having the same length with the four Cq data. It holds the exact allele-mixing ratio for each quartet (also see the code example). Optionally, you can adjust the relative DNA concentration between the replicates with a parameter vector <code>A</code>.
+<br>
+Since version 0.3.2, the <code>knownqpcr()</code> function can also deal with general <code class="reqn">\Delta\Delta</code>Cq analyses. In such cases, samples with any mixing ratios are generally marked as ‘digested samples’ i.e., either of  <code>housek1</code> or <code>target1</code>, depending on the loci to be amplified. The arguments of the corresponding undigested samples, <code>housek0</code> and <code>target0</code>, must not be specified by the user. Then, the parameter <code>baseChange</code> (<code class="reqn">\delta_{B}</code>: the change rate of DNA contents before/after the endonuclease digestion) is not included in the estimation result.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">knownqpcr(
+  housek0,
+  target0,
+  housek1,
+  target1,
+  trueY,
+  A = rep(1, length(trueY)),
+  XInit = c(meanDNA = -10, targetScale = 0, baseChange = 0, sdMeasure = 1, zeroAmount =
+    -5, EPCR = 0),
+  method = "BFGS",
+  pvalue = 0.05,
+  trace = 0,
+  report = 10,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>housek0, target0, housek1, target1</code></td>
+<td>
+<p>Measured Cq values. Numeric vectors having the same length as <code>trueY</code>. Values must not be duplicated (any single Cq measure must not be recycled); if the dataset has missing Cq values, there are two ways. 1) Fill the missing values explicitly with NA and use <code>knownqpcr()</code>, or 2) use another function <code>knownqpcr_unpaired()</code>, which accepts a ‘long’ format dataset.
+<br>
+In RED-<code class="reqn">\Delta\Delta</code>Cq method, <code>housek0</code> and <code>target0</code> corresponds to the intact test samples (not digested with endonuclease) amplified with the housekeeping- and target-loci, respectively. In general <code class="reqn">\Delta\Delta</code>Cq analyses, <code>housek0</code> and <code>target0</code> are absent, and only test samples (<code>housek1</code> and <code>target1</code>) are input by the user. At a first glance, the test samples seem to be unaffected by endonuclease when <code>trueY[i] == 1</code>, but they must also be input as <code>housek1</code> or <code>target1</code> because in fact their Cq values are affected by <code>baseChange</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trueY</code></td>
+<td>
+<p>A numeric vector having the same length as the Cq data. <code>trueY[i]</code> signifies the exact allele frequency in the <em>i</em>th sample. The values must be between 0 and 1, and <code>NA</code> is not allowed. To improve the estimation accuracy, it is better to include the settings y == 0 (pure S solution) and y == 1 (pure R) in your dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>Optionally, you can specify relative DNA content between the samples, as a numeric vector having the same length as the Cq data. If present, <code>A</code> must not include missing values. It is the counterpart of the <code>N</code> argument in <code>freqpcr()</code>, whereas an element of <code>A</code> is not restricted to integer. Because the concentration as a whole is also adjusted with the parameter <code>meanDNA</code> (see Value section), <code>A</code> is used exclusively to reflect the relative contents between the sample solutions. Otherwise, <code>A</code> should be left unspecified (the default is 1 for all replicates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XInit</code></td>
+<td>
+<p>Optionally, the named vector specifies the initial parameter values to be optimized. Defined in the natural log scale; e.g. <code>zeroAmount = -5</code> corresponds to the residue rate <code>exp(-5)</code> = 0.007. Keeping the default is highly recommended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A string specifying the optimization algorithm used in <code>optim()</code>. The default is <code>BFGS</code>, which is plausible in most situation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+<p>The two-sided confidence interval is calculated at the last iteration at given significance level. Default is 0.05, which returns the 95% Wald's CI (2.5 to 97.5 percentile) based on the Hessian matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>Non-negative integer. If positive, <code>optim()</code> outputs trace information. The default is 0 (no information).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+<p>The frequency of reports if <code>trace</code> is positive. Defaults to every 10 iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Send messages to stdout? Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A table containing the estimated values for the following parameters:
+</p>
+
+<ol>
+<li>
+<p><code>meanDNA</code> is the template DNA concentration (of housekeeping gene, per unit volume of sample solution) compared to the threshold line of PCR.
+</p>
+</li>
+<li>
+<p><code>targetScale</code> (<code class="reqn">\delta_{T}</code>) is the relative template DNA amount of the target to the houskeeping loci.
+</p>
+</li>
+<li>
+<p><code>baseChange</code> (<code class="reqn">\delta_{B}</code>) is the change rate in the DNA amount after endonuclease digestion in RED-<code class="reqn">\Delta\Delta</code>Cq method. In general <code class="reqn">\Delta\Delta</code>Cq analyses (neither <code>housek0</code> nor <code>target0</code> is input), this parameter is not returned. In both cases, <code>baseChange</code> is not required to run <code>freqpcr()</code>.
+</p>
+</li>
+<li>
+<p><code>sdMeasure</code> (<code class="reqn">\sigma_{c}</code>) is the measurement error (standard deviation) at each Cq value.
+</p>
+</li>
+<li>
+<p><code>zeroAmount</code> (<code class="reqn">z</code>) is the ratio of non-target allele amplified in qPCR (see the argument list of <code>freqpcr()</code>).
+</p>
+</li>
+<li>
+<p><code>EPCR</code> (<code class="reqn">\eta</code>) is the amplification efficiency per PCR cycle.
+</p>
+</li>
+</ol>
+<h3>See Also</h3>
+
+<p>Other estimation procedures: 
+<code>freqpcr()</code>,
+<code>knownqpcr_unpaired()</code>,
+<code>sim_dummy()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A dummy Cq dataset: four mixing ratios with four replicates.
+# K:2, scaleDNA:1e-11, targetScale:1.5, baseChange:0.3, zeroAmount:1e-3,
+# sdMeasure:0.3, and EPCR:0.95. Assuming a RED-DeltaDeltaCq analyses.
+trueY &lt;- c(rep(0.1, 4), rep(0.25, 4), rep(0.5, 4), rep(1, 4))
+housek0 &lt;- c( 19.39, 19.78, 19.28, 19.58,  18.95, 19.91, 19.66, 19.96,
+              20.05, 19.86, 19.55, 19.61,  19.86, 19.27, 19.59, 20.21 )
+target0 &lt;- c( 19.16, 19.08, 19.28, 19.03,  19.17, 19.67, 18.68, 19.52,
+              18.92, 18.79, 18.8, 19.28,   19.57, 19.21, 19.05, 19.15 )
+housek1 &lt;- c( 21.61, 21.78, 21.25, 21.07,  22.04, 21.45, 20.72, 21.6,
+              21.51, 21.27, 21.08, 21.7,   21.44, 21.46, 21.5, 21.8 )
+target1 &lt;- c( 24.3, 24.22, 24.13, 24.13,   22.74, 23.14, 23.02, 23.14,
+              21.65, 22.62, 22.28, 21.65,  20.83, 20.82, 20.76, 21.3 )
+d.cmp &lt;- data.frame(A=rep(1, 16), trueY, housek0, target0, housek1, target1)
+print(d.cmp)
+
+# In RED-DeltaDeltaCq analyses, four observations stem from one sample solution.
+# Each argument must be specified with its name (name=source).
+knownqpcr(  housek0=d.cmp$housek0, target0=d.cmp$target0,
+            housek1=d.cmp$housek1, target1=d.cmp$target1,
+            trueY=d.cmp$trueY, A=d.cmp$A, verbose=FALSE  )
+
+# In general DeltaDeltaCq analyses, the experimental design will not include
+# dedicated control samples. The function then runs without 'housek0' and 'target0'.
+knownqpcr(  housek1=d.cmp$housek1, target1=d.cmp$target1,
+            trueY=d.cmp$trueY, A=d.cmp$A, verbose=TRUE  )
+</code></pre>
+
+
+</div>

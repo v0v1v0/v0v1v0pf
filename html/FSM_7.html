@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>love_plot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Love plot</h2>
+
+<h3>Description</h3>
+
+<p>Generates a Love plot of Absolute Standardized Mean Differences (ASMD) or Target Absolute Standardized Differences (TASMD) 
+between two groups under one or two designs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">love_plot(
+  data_frame,
+  index_col = TRUE,
+  alloc1,
+  alloc2 = NULL,
+  imbalance = "TASMD",
+  treat_lab = 1,
+  vline = "",
+  xupper = 1,
+  mean_tar = NULL,
+  sd_tar = NULL,
+  denom = "target",
+  legend_text = "FSM",
+  legend_position = "topright"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_frame</code></td>
+<td>
+<p>Data frame containing a column of unit indices (optional) and covariates (or transformations thereof).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index_col</code></td>
+<td>
+<p>if <code>TRUE</code>, <code>data_frame</code> contains a column of unit indices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alloc1</code></td>
+<td>
+<p>A vector of treatment assignment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alloc2</code></td>
+<td>
+<p>A (optional) vector of treatment assignment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imbalance</code></td>
+<td>
+<p>Measure of imbalance used. If <code>imbalance = 'TASMD'</code>, imbalance is computed using 
+the Target Absolute Standardized Mean Differences (TASMD). If <code>imbalance = 'ASMD'</code>, 
+imbalance is computed using the Absolute Standardized Mean Differences (ASMD)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat_lab</code></td>
+<td>
+<p>Label of the treatment group in which the TASMD is computed. Applicable only when <code>imbalance = 'TASMD'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vline</code></td>
+<td>
+<p>A (optional) x-coordinate at which a vertical line is drawn.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xupper</code></td>
+<td>
+<p>Upper limit of the x-axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_tar</code></td>
+<td>
+<p>A (optional) vector of target profile of the covariates under consideration, 
+e.g., mean of the covariates in the target population. Applicable only when <code>imbalance = 'TASMD'</code>. 
+If <code>mean_tar = NULL</code>, the full-sample average of the covariates is considered as the target profile.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd_tar</code></td>
+<td>
+<p>A optional vector of the standard deviation of the covariates in the target population. 
+Applicable only when <code>imbalance = 'TASMD'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>denom</code></td>
+<td>
+<p>Specifies the denominator for the computation of TASMD. If <code>denom = 'target'</code>, 
+the standard deviations of the covariates in the target population are used. If <code>denom = 'group'</code>, 
+the standard deviations of the covariates in the treatment group given by <code>treat_lab</code> are used. 
+Applicable only when <code>imbalance = 'TASMD'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_text</code></td>
+<td>
+<p>Legend of the two designs under consideration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_position</code></td>
+<td>
+<p>= Position of the legend in the plot. The default is <code>'topright'</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Love plot of the ASMD/TASMD of the covariates.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ambarish Chattopadhyay, Carl N. Morris and Jose R. Zubizarreta.
+</p>
+
+
+<h3>References</h3>
+
+<p>Chattopadhyay, A., Morris, C. N., and Zubizarreta, J. R. (2020), “Randomized and Balanced Allocation 
+of Units into Treatment Groups Using the Finite Selection Model for <code>R</code>".
+</p>
+<p>Love, T. (2004), “Graphical display of covariate balance”, Presentation, 
+See http://chrp.org/love/JSM2004RoundTableHandout.pdf, 1364.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Consider the Lalonde dataset.
+# Get the full sample size.
+N = nrow(Lalonde)
+# Get the treatment group sizes.
+n1 = floor(N/2)
+n2 = N-n1
+# Generate an SOM.
+som_obs = som(n_treat = 2, treat_sizes = c(n1,n2),include_discard = FALSE,
+method = 'SCOMARS', marginal_treat = rep((n2/N),N), control = FALSE)
+# Generate a treatment assignment given som_obs.
+f = fsm(data_frame = Lalonde, SOM = som_obs, s_function = 'Dopt', eps = 0.0001, 
+ties = 'random', intercept = TRUE, standardize = TRUE, units_print = FALSE)
+# Get assignment vector under the FSM.
+Z_fsm_obs = f$data_frame_allocated$Treat
+# Draw a random CRD.
+Z_crd_obs = crd(data_frame = Lalonde, n_treat = 2, treat_sizes = c(n1, n2), 
+control = FALSE)$Treat
+# Draw Love plot.
+love_plot(data_frame = Lalonde, index_col = TRUE, alloc1 = Z_fsm_obs, alloc2 = Z_crd_obs, 
+imbalance = 'TASMD', treat_lab = 1, mean_tar = NULL, sd_tar = NULL, denom = 'target',
+vline = "", legend_text = c("FSM","CRD"), xupper = 0.15, legend_position = 'topright') 
+</code></pre>
+
+
+</div>

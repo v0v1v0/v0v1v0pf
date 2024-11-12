@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FLLat.BIC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal Tuning Parameters for the Fused Lasso Latent Feature
+Model</h2>
+
+<h3>Description</h3>
+
+<p>Returns the optimal values of the fused lasso tuning
+parameters for the Fused Lasso Latent Feature (FLLat) model by
+minimizing the BIC.  Also returns the fitted FLLat model for the
+optimal values of the tuning parameters.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FLLat.BIC(Y, J=min(15,floor(ncol(Y)/2)), B="pc", thresh=10^(-4), maxiter=100,
+          maxiter.B=1, maxiter.T=1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A matrix of data from an aCGH experiment (usually in the form
+of log intensity ratios) or some other type of copy number data.  Rows
+correspond to the probes and columns correspond to the samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>The number of features in the FLLat model.  The default is
+the smaller of either <code class="reqn">15</code> or the number of samples divided by
+<code class="reqn">2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>The initial values for the features.  Can be one of
+<code>"pc"</code> (the first <code>J</code> principal components of <code>Y</code>),
+<code>"rand"</code> (a random selection of <code>J</code> columns of <code>Y</code>), or
+a user specified matrix of initial values, where rows correspond to
+the probes and columns correspond to the features.  The default is
+<code>"pc"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>The threshold for determining when the solutions have
+converged.  The default is <code class="reqn">10^{-4}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of iterations for the outer loop of
+the FLLat algorithm.  The default is <code class="reqn">100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter.B</code></td>
+<td>
+<p>The maximum number of iterations for the inner loop
+of the FLLat algorithm for estimating the features <code class="reqn">B</code>.  The default is
+<code class="reqn">1</code>.  Increasing this may decrease the number of iterations for the
+outer loop but may still increase total run time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter.T</code></td>
+<td>
+<p>The maximum number of iterations for the inner loop
+of the FLLat algorithm for estimating the weights <code class="reqn">\Theta</code>.  The default
+is <code class="reqn">1</code>.  Increasing this may decrease the number of iterations for the
+outer loop but may still increase total run time.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function returns the optimal values of the fused lasso tuning
+parameters, <code class="reqn">\lambda_1</code> and <code class="reqn">\lambda_2</code>, for the FLLat model.
+The optimal values are chosen by first
+re-parameterizing <code class="reqn">\lambda_1</code> and <code class="reqn">\lambda_2</code> in terms of
+<code class="reqn">\lambda_0</code> and a proportion <code class="reqn">\alpha</code> such that
+<code class="reqn">\lambda_1=\alpha\lambda_0</code> and
+<code class="reqn">\lambda_2=(1-\alpha)\lambda_0</code>.
+The values of <code class="reqn">\alpha</code> are fixed to be
+<code class="reqn">\{0.1, 0.3, 0.5, 0.7, 0.9\}</code> and for
+each value of <code class="reqn">\alpha</code> we consider a range of <code class="reqn">\lambda_0</code>
+values.  The optimal values of <code class="reqn">\lambda_0</code> and <code class="reqn">\alpha</code> (and
+consequently <code class="reqn">\lambda_1</code> and <code class="reqn">\lambda_2</code>) are chosen by
+minimizing the following BIC-type criterion over this two dimensional grid:
+</p>
+<p style="text-align: center;"><code class="reqn">(SL)\times\log\left(\frac{RSS}{SL}\right) +
+  k_{\alpha,\lambda_0}\log(SL),</code>
+</p>
+<p> where <code class="reqn">S</code> is the number of samples,
+<code class="reqn">L</code> is the number probes, <code class="reqn">RSS</code> denotes the residual sum of
+squares and <code class="reqn">k_{\alpha, \lambda_0}</code> denotes the sum over all the
+features of the number of unique non-zero elements in each estimated
+feature.
+</p>
+<p>Note that for extremely large data sets, this function may take some
+time to run.
+</p>
+<p>For more details, please see Nowak and others (2011) and the package
+vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lam0</code></td>
+<td>
+<p>The optimal value of <code class="reqn">\lambda_0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The optimal value of <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam1</code></td>
+<td>
+<p>The optimal value of <code class="reqn">\lambda_1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam2</code></td>
+<td>
+<p>The optimal value of <code class="reqn">\lambda_2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.FLLat</code></td>
+<td>
+<p>The fitted FLLat model for the optimal values of the
+tuning parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gen Nowak <a href="mailto:gen.nowak@gmail.com">gen.nowak@gmail.com</a>, Trevor Hastie, Jonathan
+R. Pollack, Robert Tibshirani and Nicholas Johnson.</p>
+
+
+<h3>References</h3>
+
+<p>G. Nowak, T. Hastie, J. R. Pollack and R. Tibshirani.  A
+Fused Lasso Latent Feature Model for Analyzing Multi-Sample aCGH
+Data. <em>Biostatistics</em>, 2011, doi: 10.1093/biostatistics/kxr012</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FLLat</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load simulated aCGH data.
+data(simaCGH)
+
+## Run FLLat.BIC to choose optimal tuning parameters for J = 5 features.
+result.bic &lt;- FLLat.BIC(simaCGH,J=5)
+
+## Plot the features for the optimal FLLat model.
+plot(result.bic$opt.FLLat)
+
+## Plot a heatmap of the weights for the optimal FLLat model.
+plot(result.bic$opt.FLLat,type="weights")
+</code></pre>
+
+
+</div>

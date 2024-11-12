@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Omega</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate forecastability of a time series</h2>
+
+<h3>Description</h3>
+
+<p>An estimator for the forecastability <code class="reqn">\Omega(x_t)</code> of a univariate time series <code class="reqn">x_t</code>.
+Currently it uses a discrete plug-in estimator given the empirical spectrum (periodogram).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Omega(
+  series = NULL,
+  spectrum.control = list(),
+  entropy.control = list(),
+  mvspectrum.output = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>series</code></td>
+<td>
+<p>a univariate time series; if it is multivariate, then
+<code>Omega</code> works component-wise (i.e., same as <code>apply(series, 2, Omega)</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spectrum.control</code></td>
+<td>
+<p>list; control settings for spectrum estimation. 
+See <code>complete_spectrum_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy.control</code></td>
+<td>
+<p>list; control settings for entropy estimation.
+See <code>complete_entropy_control</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mvspectrum.output</code></td>
+<td>
+<p>an object of class <code>"mvspectrum"</code> representing
+the multivariate spectrum of <code class="reqn">\mathbf{X}_t</code> (not necessarily <code>normalize</code>d).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <em>forecastability</em> of a stationary process <code class="reqn">x_t</code> is defined as
+(see References)
+</p>
+<p style="text-align: center;"><code class="reqn">
+\Omega(x_t) = 1 - \frac{ - \int_{-\pi}^{\pi} f_x(\lambda) \log f_x(\lambda) d \lambda }{\log 2 \pi} \in [0, 1]
+</code>
+</p>
+
+<p>where <code class="reqn">f_x(\lambda)</code> is the normalized spectral <em>density</em> of <code class="reqn">x_t</code>.
+In particular <code class="reqn"> \int_{-\pi}^{\pi} f_x(\lambda) d\lambda = 1</code>.
+</p>
+<p>For white noise <code class="reqn">\varepsilon_t</code> forecastability
+<code class="reqn">\Omega(\varepsilon_t) = 0</code>; for a sum of sinusoids it equals <code class="reqn">100</code> %.
+However, empirically it reaches <code class="reqn">100\%</code> only if the estimated spectrum has
+exactly one peak at some <code class="reqn">\omega_j</code> and <code class="reqn">\widehat{f}(\omega_k) = 0</code>
+for all <code class="reqn">k\neq j</code>.
+</p>
+<p>In practice, a time series of length <code>T</code> has <code class="reqn">T</code> Fourier frequencies
+which represent a discrete
+probability distribution.  Hence entropy of <code class="reqn">f_x(\lambda)</code> must be
+normalized by <code class="reqn">\log T</code>, not by <code class="reqn">\log 2 \pi</code>.
+</p>
+<p>Also we can use several smoothing techniques to obtain a less variance estimate of
+<code class="reqn">f_x(\lambda)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A real-value between <code class="reqn">0</code> and <code class="reqn">100</code> (%). <code class="reqn">0</code> means not
+forecastable (white noise); <code class="reqn">100</code> means perfectly forecastable (a
+sinusoid).
+</p>
+
+
+<h3>References</h3>
+
+<p>Goerg, G. M. (2013). “Forecastable Component
+Analysis”. Journal of Machine Learning Research (JMLR) W&amp;CP 28 (2): 64-72, 2013.
+Available at <a href="http://jmlr.org/proceedings/papers/v28/goerg13.html">http://jmlr.org/proceedings/papers/v28/goerg13.html</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>spectral_entropy</code>, <code>discrete_entropy</code>,
+<code>continuous_entropy</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+nn &lt;- 100
+eps &lt;- rnorm(nn)  # white noise has Omega() = 0 in theory
+Omega(eps, spectrum.control = list(method = "pgram"))
+# smoothing makes it closer to 0
+Omega(eps, spectrum.control = list(method = "mvspec"))
+
+xx &lt;- sin(seq_len(nn) * pi / 10)
+Omega(xx, spectrum.control = list(method = "pgram"))
+Omega(xx, entropy.control = list(threshold = 1/40))
+Omega(xx, spectrum.control = list(method = "mvspec"),
+      entropy.control = list(threshold = 1/20))
+
+# an AR(1) with phi = 0.5
+yy &lt;- arima.sim(n = nn, model = list(ar = 0.5))
+Omega(yy, spectrum.control = list(method = "mvspec"))
+
+# an AR(1) with phi = 0.9 is more forecastable
+yy &lt;- arima.sim(n = nn, model = list(ar = 0.9))
+Omega(yy, spectrum.control = list(method = "mvspec"))
+
+</code></pre>
+
+
+</div>

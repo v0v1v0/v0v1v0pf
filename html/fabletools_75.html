@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>forecast.mdl_df</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Produce forecasts</h2>
+
+<h3>Description</h3>
+
+<p>The forecast function allows you to produce future predictions of a time series
+from fitted models. If the response variable has been transformed in the
+model formula, the transformation will be automatically back-transformed
+(and bias adjusted if <code>bias_adjust</code> is <code>TRUE</code>). More details about
+transformations in the fable framework can be found in
+<code>vignette("transformations", package = "fable")</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'mdl_df'
+forecast(
+  object,
+  new_data = NULL,
+  h = NULL,
+  point_forecast = list(.mean = mean),
+  ...
+)
+
+## S3 method for class 'mdl_ts'
+forecast(
+  object,
+  new_data = NULL,
+  h = NULL,
+  bias_adjust = NULL,
+  simulate = FALSE,
+  bootstrap = FALSE,
+  times = 5000,
+  point_forecast = list(.mean = mean),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The time series model used to produce the forecasts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_data</code></td>
+<td>
+<p>A <code>tsibble</code> containing future information used to forecast.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>The forecast horison (can be used instead of <code>new_data</code> for regular
+time series with no exogenous regressors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>point_forecast</code></td>
+<td>
+<p>The point forecast measure(s) which should be returned
+in the resulting fable. Specified as a named list of functions which accept
+a distribution and return a vector. To compute forecast medians, you can use
+<code>list(.median = median)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for forecast model methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias_adjust</code></td>
+<td>
+<p>Deprecated. Please use <code>point_forecast</code> to specify the
+desired point forecast method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulate</code></td>
+<td>
+<p>Should forecasts be based on simulated future paths instead
+of analytical results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>Should innovations from simulated forecasts be bootstrapped
+from the model's fitted residuals. This allows the forecast distribution to
+have a different underlying shape which could better represent the nature
+of your data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>The number of future paths for simulations if <code>simulate = TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The forecasts returned contain both point forecasts and their distribution.
+A specific forecast interval can be extracted from the distribution using the
+<code>hilo()</code> function, and multiple intervals can be obtained using <code>report()</code>.
+These intervals are stored in a single column using the <code>hilo</code> class, to
+extract the numerical upper and lower bounds you can use <code>unpack_hilo()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A fable containing the following columns:
+</p>
+
+<ul>
+<li> <p><code>.model</code>: The name of the model used to obtain the forecast. Taken from
+the column names of models in the provided mable.
+</p>
+</li>
+<li>
+<p> The forecast distribution. The name of this column will be the same as the
+dependent variable in the model(s). If multiple dependent variables exist,
+it will be named <code>.distribution</code>.
+</p>
+</li>
+<li>
+<p> Point forecasts computed from the distribution using the functions in the
+<code>point_forecast</code> argument.
+</p>
+</li>
+<li>
+<p> All columns in <code>new_data</code>, excluding those whose names conflict with the
+above.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(fable)
+library(tsibble)
+library(tsibbledata)
+library(dplyr)
+library(tidyr)
+
+# Forecasting with an ETS(M,Ad,A) model to Australian beer production
+beer_fc &lt;- aus_production %&gt;%
+  model(ets = ETS(log(Beer) ~ error("M") + trend("Ad") + season("A"))) %&gt;% 
+  forecast(h = "3 years")
+
+# Compute 80% and 95% forecast intervals
+beer_fc %&gt;% 
+  hilo(level = c(80, 95))
+
+beer_fc %&gt;% 
+  autoplot(aus_production)
+
+# Forecasting with a seasonal naive and linear model to the monthly 
+# "Food retailing" turnover for each Australian state/territory.
+library(dplyr)
+aus_retail %&gt;% 
+  filter(Industry == "Food retailing") %&gt;% 
+  model(
+    snaive = SNAIVE(Turnover),
+    ets = TSLM(log(Turnover) ~ trend() + season()),
+  ) %&gt;% 
+  forecast(h = "2 years 6 months") %&gt;% 
+  autoplot(filter(aus_retail, Month &gt;= yearmonth("2000 Jan")), level = 90)
+  
+# Forecast GDP with a dynamic regression model on log(GDP) using population and
+# an automatically chosen ARIMA error structure. Assume that population is fixed
+# in the future.
+aus_economy &lt;- global_economy %&gt;% 
+  filter(Country == "Australia")
+fit &lt;- aus_economy %&gt;% 
+  model(lm = ARIMA(log(GDP) ~ Population))
+
+future_aus &lt;- new_data(aus_economy, n = 10) %&gt;% 
+  mutate(Population = last(aus_economy$Population))
+
+fit %&gt;% 
+  forecast(new_data = future_aus) %&gt;% 
+  autoplot(aus_economy)
+
+</code></pre>
+
+
+</div>

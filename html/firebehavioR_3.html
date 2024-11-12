@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cfis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Canopy Fire Initiation &amp; Spread model</h2>
+
+<h3>Description</h3>
+
+<p>Prediction of crown fire probability, crown fire rate of spread and separation distance (Alexander and Cruz 2006). Separation distance is distance ahead of main fire front required for a spot fire to form, separate of a main fire.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cfis(fsg, u10, effm, sfc, cbd, id)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fsg</code></td>
+<td>
+<p>a numeric vector of fuel stratum gaps (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u10</code></td>
+<td>
+<p>a numeric vector of 10-m open wind speeds (km/hr)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effm</code></td>
+<td>
+<p>a numeric vector of effective fine fuel moistures (%)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sfc</code></td>
+<td>
+<p>a numeric vector of surface fuel consumed (Mg/ha)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cbd</code></td>
+<td>
+<p>a numeric vector of canopy bulk densities (kg/m3)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>a numeric vector of spot ignition delays, the time during which a given firebrand generates, is transported aloft, and ignites a receptive fuelbed (min)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a data frame with type of fire, probability of crown fire occurrences (%), crown fire rate of spread (m/min), and critical spotting distance (m)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Justin P Ziegler, <a href="mailto:justin.ziegler@colostate.edu">justin.ziegler@colostate.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Alexander M.E., Cruz M.G. 2006. Evaluating a model for predicting active crown fire rate of spread using wildfire observations. <em>Canadian Journal of Forest Research</em>. <strong>36</strong>:2015-3028.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("coForest")
+# show the data format:
+head(coForest)
+# Predict crown fire, using coForest
+# measurements and assumed weather
+# parameters
+df.cfis = cfis(fsg = coForest$cbh_m, u10 = 20,
+    effm = 6, sfc = coForest$sfl_kgm2*10, cbd = coForest$cbd_kgm3,
+    id = 1)
+print(df.cfis)
+
+# Examine differences between treatment
+# statuses
+aggregate(x = df.cfis$cROS, by = list(treatmentStatus = coForest$status),
+    FUN = mean)
+# Now, examine the sensitivity of fire
+# type designations to wind speed by
+# treatment status
+coForest = coForest[rep(seq_len(nrow(coForest)),
+    11), ]
+coForest$u10 = sort(rep(10:20, 14))
+coForest$type = cfis(coForest$cbh_m, coForest$u10,
+    6, coForest$sfl_kgm2*10, coForest$cbd_kgm3,
+    1)$type
+table(u10 = coForest$u10, coForest$type,
+    coForest$status)
+</code></pre>
+
+
+</div>

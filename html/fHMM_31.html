@@ -1,0 +1,344 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parameter_transformations</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parameter transformations</h2>
+
+<h3>Description</h3>
+
+<p>These helper functions transform model parameters between
+</p>
+
+<ul>
+<li>
+<p> constrained spaces (suffix <code>*Con</code>)
+</p>
+</li>
+<li>
+<p> and unconstrained spaces (suffix <code>*Uncon</code>).
+</p>
+</li>
+</ul>
+<p>The former is useful for interpretation, the latter for unconstrained
+optimization.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">par2parUncon(par, controls, use_parameter_labels = TRUE)
+
+parUncon2parCon(
+  parUncon,
+  controls,
+  use_parameter_labels = TRUE,
+  numerical_safeguard = FALSE
+)
+
+parCon2par(parCon, controls, use_parameter_labels = TRUE)
+
+par2parCon(par, controls, use_parameter_labels = TRUE)
+
+parCon2parUncon(parCon, controls, use_parameter_labels = TRUE)
+
+parUncon2par(
+  parUncon,
+  controls,
+  use_parameter_labels = TRUE,
+  numerical_safeguard = FALSE
+)
+
+muCon2muUncon(muCon, link, prefix = "muUncon_", use_parameter_labels = TRUE)
+
+muUncon2muCon(muUncon, link, prefix = "muCon_", use_parameter_labels = TRUE)
+
+sigmaCon2sigmaUncon(
+  sigmaCon,
+  prefix = "sigmaUncon_",
+  use_parameter_labels = TRUE
+)
+
+sigmaUncon2sigmaCon(
+  sigmaUncon,
+  prefix = "sigmaCon_",
+  use_parameter_labels = TRUE,
+  numerical_safeguard = FALSE
+)
+
+dfCon2dfUncon(dfCon, prefix = "dfUncon_", use_parameter_labels = TRUE)
+
+dfUncon2dfCon(
+  dfUncon,
+  prefix = "dfCon_",
+  use_parameter_labels = TRUE,
+  numerical_safeguard = FALSE
+)
+
+Gamma2gammasCon(
+  Gamma,
+  prefix = "gammasCon_",
+  use_parameter_labels = TRUE,
+  numerical_safeguard = FALSE
+)
+
+Gamma2gammasUncon(Gamma, prefix = "gammasUncon_", use_parameter_labels = TRUE)
+
+gammasCon2Gamma(gammasCon, dim, prefix = "state_", use_parameter_labels = TRUE)
+
+gammasCon2gammasUncon(
+  gammasCon,
+  dim,
+  prefix = "gammasUncon_",
+  use_parameter_labels = TRUE
+)
+
+gammasUncon2Gamma(
+  gammasUncon,
+  dim,
+  prefix = "state_",
+  use_parameter_labels = TRUE,
+  numerical_safeguard = FALSE
+)
+
+gammasUncon2gammasCon(
+  gammasUncon,
+  dim,
+  prefix = "gammasCon_",
+  use_parameter_labels = TRUE,
+  numerical_safeguard = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>An object of class <code>fHMM_parameters</code>, which is a <code>list</code>
+of model parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controls</code></td>
+<td>
+<p>Either a <code>list</code> or an object of class <code>fHMM_controls</code>.
+</p>
+<p>The <code>list</code> can contain the following elements, which are described
+in more detail below:
+</p>
+
+<ul>
+<li> <p><code>hierarchy</code>, defines an hierarchical HMM,
+</p>
+</li>
+<li> <p><code>states</code>, defines the number of states,
+</p>
+</li>
+<li> <p><code>sdds</code>, defines the state-dependent distributions,
+</p>
+</li>
+<li> <p><code>horizon</code>, defines the time horizon,
+</p>
+</li>
+<li> <p><code>period</code>, defines a flexible, periodic fine-scale time horizon,
+</p>
+</li>
+<li> <p><code>data</code>, a <code>list</code> of controls that define the data,
+</p>
+</li>
+<li> <p><code>fit</code>, a <code>list</code> of controls that define the model fitting
+</p>
+</li>
+</ul>
+<p>Either none, all, or selected elements can be specified.
+</p>
+<p>Unspecified parameters are set to their default values.
+</p>
+<p>Important: Specifications in <code>controls</code> always override individual
+specifications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_parameter_labels</code></td>
+<td>
+<p>Either <code>TRUE</code> to label the parameters or <code>FALSE</code>, if not (this can
+save computation time).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parUncon</code></td>
+<td>
+<p>An object of class <code>parUncon</code>, which is a <code>numeric</code> <code>vector</code>
+with identified and unconstrained model parameters in the following order:
+</p>
+
+<ol>
+<li>
+<p> non-diagonal transition probabilities <code>gammasUncon</code>
+</p>
+</li>
+<li>
+<p> expectations <code>muUncon</code>
+</p>
+</li>
+<li>
+<p> standard deviations <code>sigmaUncon</code> (if any)
+</p>
+</li>
+<li>
+<p> degrees of freedom <code>dfUncon</code> (if any)
+</p>
+</li>
+<li>
+<p> fine-scale parameters for each coarse-scale state, in the same order (if any)
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numerical_safeguard</code></td>
+<td>
+<p>Either <code>TRUE</code> or <code>FALSE</code>, determining whether to apply the
+following small corrections to boundary parameters to improve numerical
+performance when calculating and optimizing the likelihood function:
+</p>
+
+<ul>
+<li>
+<p> transition probabilities equal to 0 or 1 are shifted towards the center
+by <code>1e-3</code>
+</p>
+</li>
+<li>
+<p> standard deviations and degrees of freedom are bounded above by <code>100</code>
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parCon</code></td>
+<td>
+<p>An object of class <code>parCon</code>, which is a <code>numeric</code> <code>vector</code>
+with identified (and constrained) model parameters in the following order:
+</p>
+
+<ol>
+<li>
+<p> non-diagonal transition probabilities <code>gammasCon</code>
+</p>
+</li>
+<li>
+<p> expectations <code>muCon</code>
+</p>
+</li>
+<li>
+<p> standard deviations <code>sigmaCon</code> (if any)
+</p>
+</li>
+<li>
+<p> degrees of freedom <code>dfCon</code> (if any)
+</p>
+</li>
+<li>
+<p> fine-scale parameters for each coarse-scale state, in the same order (if any)
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muCon, muUncon</code></td>
+<td>
+<p>A vector of (un-) constrained expected values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>link</code></td>
+<td>
+<p>Either <code>TRUE</code> or <code>FALSE</code>, determining whether to apply the link
+function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix</code></td>
+<td>
+<p>A <code>character</code> prefix for labeling the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmaCon, sigmaUncon</code></td>
+<td>
+<p>A vector of (un-) constrained standard deviations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfCon, dfUncon</code></td>
+<td>
+<p>A vector of (un-) constrained degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gammasCon, gammasUncon</code></td>
+<td>
+<p>A vector of (un-) constrained non-diagonal transition probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p>An <code>integer</code>, the dimension of the transition probability matrix.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>For <code>par2parUncon</code>: a vector of unconstrained model parameters.
+</p>
+<p>For <code>parUncon2parCon</code>: a vector of constrained model parameters.
+</p>
+<p>For <code>parCon2par</code>: an object of class <code>fHMM_parameters</code>.
+</p>
+<p>For <code>par2parCon</code>: a vector of constrained model parameters.
+</p>
+<p>For <code>parCon2parUncon</code>: a vector of unconstrained model parameters.
+</p>
+<p>For <code>parUncon2par</code>: an object of class <code>fHMM_parameters</code>.
+</p>
+<p>For <code>muCon2muUncon</code>: a vector of unconstrained expected values.
+</p>
+<p>For <code>muUncon2muCon</code>: a vector of constrained expected values.
+</p>
+<p>For <code>sigmaCon2sigmaUncon</code>: a vector of unconstrained standard
+deviations.
+</p>
+<p>For <code>sigmaUncon2sigmaCon</code>: a vector of constrained standard deviations.
+</p>
+<p>For <code>dfCon2dfUncon</code>: a vector of unconstrained degrees of freedom.
+</p>
+<p>For <code>dfUncon2dfCon</code>: a vector of constrained degrees of freedom.
+</p>
+<p>For <code>Gamma2gammasCon</code>: a vector of constrained non-diagonal matrix
+elements (column-wise).
+</p>
+<p>For <code>Gamma2gammasUncon</code>: a vector of unconstrained non-diagonal matrix
+elements (column-wise).
+</p>
+<p>For <code>gammasCon2Gamma</code>: a transition probability matrix.
+</p>
+<p>For <code>gammasCon2gammasUncon</code>: a vector of unconstrained non-diagonal
+elements of the transition probability matrix.
+</p>
+<p>For <code>gammasUncon2Gamma</code>: a transition probability matrix.
+</p>
+<p>For <code>gammasUncon2gammasCon</code>: a vector of constrained non-diagonal
+elements of a transition probability matrix.
+</p>
+
+
+</div>

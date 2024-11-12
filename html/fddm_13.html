@@ -1,0 +1,293 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dv2_dfddm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Second-Order Partial Derivative of 5-parameter DDM PDF with respect to v
+(drift rate)</h2>
+
+<h3>Description</h3>
+
+<p>Second-Order Partial Derivative of the density function for the 5-parameter
+variant of the Ratcliff diffusion decision model (DDM) with respect to v,
+the drift rate. This variant contains the following parameters:
+<code>v</code> (drift rate), <code>a</code> (threshold separation),
+<code>t0</code> (non-decision time/response time constant), <code>w</code>
+(relative starting point), <code>sv</code> (inter-trial variability of drift),
+and <code>sigma</code> (diffusion coefficient of underlying Wiener process).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dv2_dfddm(
+  rt,
+  response,
+  v,
+  a,
+  t0,
+  w = 0.5,
+  sv = 0,
+  sigma = 1,
+  sl_thresh = 0.355,
+  err_tol = 1e-06
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>rt</code></td>
+<td>
+<p>A vector of response times (in seconds). If a response time is
+non-positve, then its density will evaluate to <code class="reqn">0</code> if log = FALSE and
+-∞ if log = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>Binary response(s) that correspond(s) to either the "lower"
+or "upper" threshold. This model parameter can either be a singular value
+or a vector. The value(s) in 'response' can be of the following data
+types:
+</p>
+
+<ul>
+<li>
+<p> integers or doubles (<code class="reqn">1</code>
+→ "lower", <code class="reqn">2</code>
+→ "upper");
+</p>
+</li>
+<li>
+<p> factors (the first level gets mapped to "lower", and the second
+level gets mapped to "upper"; any additional levels are ignored).
+</p>
+</li>
+<li>
+<p> strings (only the first character is checked, "L"
+→ "lower" or "U"
+→ "upper", case insensitive);
+</p>
+</li>
+<li>
+<p> logicals (FALSE → "lower",
+TRUE → "upper");
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Drift rate. Average slope of the information accumulation process.
+The drift gives information about the speed and direction of the
+accumulation of information. Large (absolute) values of drift indicate a
+good performance. If received information supports the response linked to
+the upper threshold, then the sign will be positive; similarly a negative
+value indicates that the received information supports the response linked
+to the lower threshold. Allowed range: <code>v</code> is a real number. Typical
+range: <code class="reqn">-5 &lt;</code> <code>v</code> <code class="reqn">&lt; 5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>Threshold separation. Amount of information that is considered for
+a decision. Large values indicate a conservative decisional style. Allowed
+range: <code class="reqn">0 &lt;</code> <code>a</code>. Typical range: <code class="reqn">0.5 &lt;</code> <code>a</code> <code class="reqn">&lt; 2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t0</code></td>
+<td>
+<p>Non-decision time or response time constant (in seconds). Lower
+bound for the duration of all non-decisional processes (encoding and
+response execution). If this value is greater than <code>rt</code>, then the
+resulting density is returned as if <code>rt</code> <code class="reqn"> \le 0</code>. Allowed range:
+<code class="reqn">0 \le</code> <code>t0</code>. Typical range: <code class="reqn">0.1 &lt;</code> <code>t0</code> <code class="reqn">&lt; 0.5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>Relative starting point. Indicator of an a priori bias in decision
+making. When the relative starting point <code>w</code> deviates from <code class="reqn">0.5</code>,
+the amount of information necessary for a decision differs between
+response alternatives. Allowed range: <code class="reqn">0 &lt;</code> <code>w</code> <code class="reqn">&lt; 1</code>.
+Default value is <code class="reqn">0.5</code> (i.e., no bias).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sv</code></td>
+<td>
+<p>Inter-trial-variability of drift rate. Standard deviation of a
+normal distribution with mean <code>v</code> describing the distribution of
+actual drift rates from specific trials. Values different from <code class="reqn">0</code> can
+predict slow errors. Allowed range: <code class="reqn">0 \le</code> <code>sv</code>. Typical range:
+<code class="reqn">0 &lt;</code> <code>sv</code> <code class="reqn">&lt; 2</code>. Default value is <code class="reqn">0</code>, which indicates
+no drift in the function call. See Details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>Diffusion coefficient of the underlying Wiener process. Allowed
+range: <code class="reqn">0 &lt;</code> <code>sigma</code>. Default value is <code class="reqn">1</code>. This parameter
+simply scales the parameters <code>v</code>, <code>a</code>, and <code>sv</code> as follows.
+See Details for more information. </p>
+ <ul>
+<li> <p><code>a</code>
+→ <code>a</code> <code class="reqn">/</code> <code>sigma</code>
+</p>
+</li>
+<li> <p><code>v</code> → <code>v</code> <code class="reqn">/</code>
+<code>sigma</code> </p>
+</li>
+<li> <p><code>sv</code> →
+<code>sv</code> <code class="reqn">/</code> <code>sigma</code> </p>
+</li>
+</ul>
+<p>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sl_thresh</code></td>
+<td>
+<p>Threshold for deciding when to use the "small-time" variant
+or the "large-time" variant. If the "effective response time" is greater
+than <code>sl_thresh</code> (i.e., <code class="reqn">\frac{rt}{a^2} &gt;</code> <code>sl_thresh</code>),
+then the "large-time" variant is used; otherwise, the "small-time" variant
+is used. Allowed values are any real number; however any non-positive
+number means that the "large-time" variant will always be used. Similarly,
+any very large positive number (e.g., +Inf) means that the "small-time"
+variant will always be used. Default value is <code class="reqn">0.355</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err_tol</code></td>
+<td>
+<p>Allowed error tolerance of the overall calculation. Since the
+partial derivative of the density function contains one infinite sum, this
+parameter defines the precision of the approximation to that infinite sum.
+If the provided error tolerance is less than <code class="reqn">1e-300</code>, it is set to
+<code class="reqn">1e-300</code>. Default is <code class="reqn">1e-6</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All of the model inputs and parameters (<code>rt</code>, <code>response</code>,
+<code>v</code>, <code>a</code>, <code>t0</code>, <code>w</code>, <code>sv</code>, <code>sigma</code>) can be
+input as a single value or as a vector of values. If input as a vector of
+values, then the standard <code>R</code> input wrapping will occur.
+</p>
+<p><code>sv</code> - Both the "small-time" and "large-time" variants of the density
+function have two further variants: one with a constant drift rate <code>v</code>
+(i.e., <code>sv</code> <code class="reqn">= 0</code>), and one with a variable drift rate <code>v</code>
+(i.e., <code>sv</code> <code class="reqn">&gt; 0</code>). The details of the differences between these
+two density functions can be found in our associated paper. To use the
+density function with a constant drift rate, leave the parameter <code>sv</code>
+to its default value of <code>sv = 0</code>, as this will indicate no drift to the
+function. To use the density function with a variable drift rate, set the
+parameter <code>sv</code> to some non-negative value, i.e., <code>sv</code> <code class="reqn">&gt; 0</code>.
+</p>
+<p><code>sigma</code> - The default value of this parameter is <code>1</code> because it
+only scales the parameters <code>v</code>, <code>a</code>, and <code>sv</code>, as shown
+above. However, other formulations of the DDM may set <code>sigma = 0.1</code>
+(see Ratcliff (1978), the fourth reference), so care must be taken when
+comparing the results of different formulations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector containing the second-order partial derivatives of the
+DDM PDF with precision <code>err_tol</code> whose length matches that of the
+longest input parameter (usually <code>rt</code>).
+</p>
+
+
+<h3>References</h3>
+
+<p>Navarro, D. J., &amp; Fuss, I. G. (2009). Fast and accurate
+calculations for first-passage times in Wiener diffusion models. Journal
+of Mathematical Psychology, 53(4), 222-230.
+</p>
+<p>Gondan, M., Blurton, S. P., &amp; Kesselmeier, M. (2014). Even faster and even
+more accurate first-passage time densities and distributions for the
+Wiener diffusion model. Journal of Mathematical Psychology, 60, 20-22.
+</p>
+<p>Blurton, S. P., Kesselmeier, M., &amp; Gondan, M. (2017). The first-passage
+time distribution for the diffusion model with variable drift. Journal of
+Mathematical Psychology, 76, 7-12.
+</p>
+<p>Hartmann, R., Klauer, K. C. (2021). Partial derivatives for the
+first-passage time distribution in Wiener diffusion models. Journal of
+Mathematical Psychology, 103, 102550.
+</p>
+<p>Ratcliff, R. (1978). A theory of memory retrieval. Psychological review,
+85(2), 59.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># derivative with respect to rt (response time)
+dt_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+         sv = 0.4, err_tol = 1e-6)
+
+# derivative with respect to t0 (non-decision time)
+dt0_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+          sv = 0.4, err_tol = 1e-6)
+
+# derivative with respect to a (threshold separation)
+da_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+         sv = 0.4, err_tol = 1e-6)
+
+# derivative with respect to v (drift rate)
+dv_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+         sv = 0.4, err_tol = 1e-6)
+
+# derivative with respect to w (relative starting point)
+dw_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+         sv = 0.4, err_tol = 1e-6)
+
+# derivative with respect to sv (inter-trial variability in the drift rate)
+dsv_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+          sv = 0.4, err_tol = 1e-6)
+
+#-------- Log Versions --------#
+
+# # derivative with respect to rt (response time)
+# dt_log_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+#              sv = 0.4, err_tol = 1e-6)
+
+# # derivative with respect to t0 (non-decision time)
+# dt0_log_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+#               sv = 0.4, err_tol = 1e-6)
+
+# # derivative with respect to a (threshold separation)
+# da_log_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+#              sv = 0.4, err_tol = 1e-6)
+
+# # derivative with respect to v (drift rate)
+# dv_log_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+#              sv = 0.4, err_tol = 1e-6)
+
+# # derivative with respect to w (relative starting point)
+# dw_log_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+#              sv = 0.4, err_tol = 1e-6)
+
+# # derivative with respect to sv (inter-trial variability in the drift rate)
+# dsv_log_dfddm(rt = 1.2, response = "lower", a = 1, v = -1, t0 = 0.3, w = 0.5,
+#               sv = 0.4, err_tol = 1e-6)
+</code></pre>
+
+
+</div>

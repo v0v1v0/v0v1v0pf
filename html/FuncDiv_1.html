@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>alpha_div_contrib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Main function for computing contributional <strong>alpha</strong> diversity</h2>
+
+<h3>Description</h3>
+
+<p>Based on joint taxa-function input data (i.e., contributional data), a dataframe
+will be returned for each specified metric, which will contain the metric values for all function and sample combinations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">alpha_div_contrib(
+  metrics,
+  func_tab = NULL,
+  abun_tab = NULL,
+  contrib_tab = NULL,
+  in_tree = NULL,
+  ncores = 1,
+  replace_NA = FALSE,
+  custom_metric_functions = NULL,
+  samp_colname = "sample",
+  func_colname = "function.",
+  taxon_colname = "taxon",
+  abun_colname = "taxon_abun"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>alpha diversity metrics to compute. Must either be names of functions in <code>FuncDiv_alpha_metrics</code>, or alternatively in <code>custom_metric_functions</code>, if specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func_tab</code></td>
+<td>
+<p>data.frame object containing function copy numbers, with rows as functions and columns as taxa. Required if <code>abun_tab</code> is specified, and is mutually exclusive with <code>contrib_tab</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abun_tab</code></td>
+<td>
+<p>data.frame object containing taxonomic abundances across samples, with rows as taxa and columns as samples. Required if <code>func_tab</code> is specified, and is mutually exclusive with <code>contrib_tab</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrib_tab</code></td>
+<td>
+<p>data.frame object containing combined taxa abundances and function copy numbers across taxa. Must contain columns corresponding to the sample ids, function ids, taxa ids, and taxa
+abundances within samples. These column names are specified by the <code>samp_colname</code>, <code>func_colname</code>, <code>taxon_colname</code>, and <code>abun_colname</code>, respectively. Mutually exclusive with <code>abun_tab</code> and <code>func_tab</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>in_tree</code></td>
+<td>
+<p>phylo object to use if <code>faiths_pd</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>integer indicating number of cores to use for parallelizable steps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace_NA</code></td>
+<td>
+<p>Boolean vector of length one, indicating whether all NA's in the output of all metrics should be converted to 0's. Note that this done automatically done for <code>richness</code> either way.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom_metric_functions</code></td>
+<td>
+<p>List object containing custom alpha diversity metric functions. This overrides <code>FuncDiv_alpha_metrics</code> when specified. The list element names must correspond to at
+least the names indicated by the <code>metrics</code> parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp_colname</code></td>
+<td>
+<p>sample id column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func_colname</code></td>
+<td>
+<p>function id column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxon_colname</code></td>
+<td>
+<p>taxon id column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abun_colname</code></td>
+<td>
+<p>taxonomic abundance (within each sample) column name of <code>contrib_tab</code> input data.frame.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Input data can be either a separate function copy number and taxonomic abundance table, or a joint contributional table.
+By default, specified metrics must be one of <code>names(FuncDiv_alpha_metrics)</code>. However, custom alpha diversity metric functions
+can be specified with the <code>custom_metric_functions</code> parameter.
+</p>
+<p>Note that the taxonomic abundances can be relative abundance, read counts, or transformed in another way. However, note that some default metrics
+are only compatible with count data (see <code>?FuncDiv_alpha_metrics</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list, containing one dataframe for each specified alpha diversity metric.
+In each dataframe, rows are functions and samples are columns.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># First, simulate some (non-realistic) data.
+set.seed(123)
+test_tree &lt;- ape::rtree(100)
+test_abun &lt;- data.frame(matrix(rnorm(500), nrow = 100, ncol = 5))
+rownames(test_abun) &lt;- test_tree$tip.label
+colnames(test_abun) &lt;- c("sample1", "sample2", "sample3", "sample4", "sample5")
+test_abun[test_abun &lt; 0] &lt;- 0
+test_func &lt;- data.frame(matrix(sample(c(0L, 1L), 200, replace = TRUE),
+                               nrow = 2, ncol = 100))
+colnames(test_func) &lt;- test_tree$tip.label
+rownames(test_func) &lt;- c("func1", "func2")
+
+# Compute alpha diversity, based on (observed) richness, Faith's phylogenetic
+# diversity, and the Gini-Simpson Index.
+contrib_alpha &lt;- alpha_div_contrib(metrics = c("richness",  "faiths_pd", "gini_simpson_index"),
+                                   func_tab = test_func,
+                                   abun_tab = test_abun,
+                                   in_tree = test_tree,
+                                   ncores = 1)
+
+# Print out computed Gini-Simpson Index values.
+contrib_alpha$gini_simpson_index
+
+</code></pre>
+
+
+</div>

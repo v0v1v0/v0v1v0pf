@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CreateModeOfVarPlotLQ2D</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transformation Mode of Variation Plot</h2>
+
+<h3>Description</h3>
+
+<p>Create the k-th transformation mode of variation plot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CreateModeOfVarPlotLQ2D(
+  fpcaObj,
+  domain = "D",
+  k = 1,
+  dSup = NULL,
+  Qvec = -2:2,
+  alpha = 0,
+  useAlpha = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fpcaObj</code></td>
+<td>
+<p>An FPCA class object returned by FPCA() on the log quantile density functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domain</code></td>
+<td>
+<p>should the mode be plotted in LQD ('Q') or density space ('D', the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The k-th mode of variation to plot (default k = 1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dSup</code></td>
+<td>
+<p>The common support of the original densities. Only relevant for <code>domain = 'D'</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qvec</code></td>
+<td>
+<p>Vector of values <code class="reqn">Q</code> to be plotted.  If 0 is not included, it will be added (default is -2:2).  Only relevant for <code>domain = 'D'</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>(De)regularisation parameter (default is 0).  See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useAlpha</code></td>
+<td>
+<p>logical - should deregularisation be performed?  Default:FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for the 'plot' function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>domain = 'D'</code> (the default), the a transformation mode of variation is plotted.  The red-line is 
+<code class="reqn">\psi^{-1}(\nu)</code>, where <code class="reqn">\nu</code> is the mean in LQD space and
+<code class="reqn">\psi</code> is the LQD transformation.  Other lines correspond to perturbations by 
+adding multiples of the LQD eigenfunctions <code class="reqn">\rho_k</code> (with eigenvalues <code class="reqn">\tau_k</code>)
+: <code class="reqn">\psi^{-1}(\nu  + Q \sqrt{\tau_k} \rho_k)</code> 
+for the values <code class="reqn">Q</code> in <code>Qvec</code>.  If <code>alpha</code> is positive, will attempt to deregularise (see <code>DeregulariseByAlpha</code>). This
+will throw an error if alpha is too large.
+</p>
+<p>If <code>domain = 'Q'</code>, ordinary modes of variation are plotted in LQD space (see documentation for <code>CreateModeOfVarPlot</code> in <code>fdapace</code>).
+</p>
+
+
+<h3>References</h3>
+
+<p><cite>Functional Data Analysis for Density Functions by Transformation to a Hilbert space, Alexander Petersen and Hans-Georg Mueller, 2016</cite>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>DeregulariseByAlpha</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Densities for Top 50 Male Baby Names
+data(Top50BabyNames)
+x = Top50BabyNames$x
+
+# Perform Transformation FPCA for male baby name densities
+X = FPCAdens(dmatrix = t(Top50BabyNames$dens$male), dSup = Top50BabyNames$x, useAlpha = TRUE, 
+                  optns = list(dataType = 'Dense', error = FALSE, methodSelectK = 2))
+
+# Plot Modes
+
+Qvec = quantile(X$xiEst[,1], probs = c(0.1, 0.25, 0.75, 0.9))/sqrt(X$lambda[1])
+CreateModeOfVarPlotLQ2D(X, k = 1, dSup = x, Qvec = Qvec, main = 'First Mode, Density Space')
+CreateModeOfVarPlotLQ2D(X, domain = 'Q', k = 1, dSup = x, Qvec = Qvec, 
+                            main = 'First Mode, LQD space')
+
+Qvec = quantile(X$xiEst[,2], probs = c(0.1, 0.25, 0.75, 0.9))/sqrt(X$lambda[2])
+CreateModeOfVarPlotLQ2D(X, k = 2, dSup = x, Qvec = Qvec, main = 'Second Mode, Density Space')
+CreateModeOfVarPlotLQ2D(X, domain = 'Q', k = 2, dSup = x, Qvec = Qvec, 
+                            main = 'Second Mode, LQD space')
+
+</code></pre>
+
+
+</div>

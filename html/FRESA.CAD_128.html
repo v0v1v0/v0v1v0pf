@@ -1,0 +1,257 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FilterUnivariate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Univariate Filters</h2>
+
+<h3>Description</h3>
+
+<p>Returns the top set of features that are statistically associated with the outcome.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">univariate_Logit(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH", 
+                 uniTest=c("zIDI","zNRI"),limit=0,...,n=0)
+univariate_residual(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH",
+                    uniTest=c("Ftest","Binomial","Wilcox","tStudent"),
+                    type=c("LM","LOGIT"),limit=0,...,n=0)
+univariate_tstudent(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH",
+                    limit=0,...,n=0)
+univariate_Wilcoxon(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH",
+                     limit=0,...,n=0)
+univariate_KS(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH",
+                     limit=0,...,n=0)
+univariate_DTS(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH",
+                     limit=0,...,n=0)
+univariate_correlation(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH",
+                       method = "kendall",limit=0,...,n=0)
+univariate_cox(data=NULL, Outcome=NULL, pvalue=0.2, adjustMethod="BH",
+                     limit=0,...,n=0)
+univariate_BinEnsemble(data,Outcome, pvalue=0.2,limit=0,adjustMethod="BH",...)
+univariate_Strata(data,Outcome,pvalue=0.2,limit=0,
+                   adjustMethod="BH",
+                   unifilter=univariate_BinEnsemble,strata="Gender",...)
+correlated_Remove(data=NULL,fnames=NULL,thr=0.999,isDataCorMatrix=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The data frame
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outcome</code></td>
+<td>
+
+<p>The outcome feature
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+
+<p>The threshold pvalue used after the p.adjust method
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjustMethod</code></td>
+<td>
+
+<p>The method used by the p.adjust method
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniTest</code></td>
+<td>
+
+<p>The unitTest to be performed by the linear fitting model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>The type of linear model: LM or LOGIT
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>The correlation method: pearson,spearman or kendall.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+
+<p>The samples-wise fraction of features to return. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fnames</code></td>
+<td>
+
+<p>The list of features to test inside the correlated_Remove function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thr</code></td>
+<td>
+
+<p>The maximum correlation to allow between features
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unifilter</code></td>
+<td>
+
+<p>The filter function to be stratified
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+
+<p>The feature to be used for data stratification
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Parameters to be passed to the correlated_Remove function
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+
+<p>the number of original features passed to p.adjust
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isDataCorMatrix</code></td>
+<td>
+
+<p>The provided data is the correlation matrix
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Named vector with the adjusted p-values or the list of no-correlated features for the correlated_Remove 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jose G. Tamez-Pena</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    ## Not run: 
+
+        library("FRESA.CAD")
+
+        ### Univariate Filter Examples ####
+
+        # Get the stage C prostate cancer data from the rpart package
+        data(stagec,package = "rpart")
+
+        # Prepare the data. Create a model matrix without the event time and interactions
+        stagec$pgtime &lt;- NULL
+        stagec$eet &lt;- as.factor(stagec$eet)
+        options(na.action = 'na.pass')
+        stagec_mat &lt;- cbind(pgstat = stagec$pgstat,
+                            as.data.frame(model.matrix(pgstat ~ .*.,stagec))[-1])
+        fnames &lt;- colnames(stagec_mat)
+        fnames &lt;- str_replace_all(fnames,":","__")
+        colnames(stagec_mat) &lt;- fnames
+
+        # Impute the missing data
+        dataCancerImputed &lt;- nearestNeighborImpute(stagec_mat)
+        dataCancerImputed[,1:ncol(dataCancerImputed)] &lt;- sapply(dataCancerImputed,as.numeric)
+
+        # Get the top Features associated to pgstat
+
+        q_values &lt;- univariate_Logit(data=dataCancerImputed, 
+                                    Outcome="pgstat",
+                                    pvalue = 0.05)
+
+        qValueMatrix &lt;- q_values
+        idiqValueMatrix &lt;- q_values
+        barplot(-log(q_values),las=2,cex.names=0.4,ylab="-log(Q)",
+        main="Association with PGStat: IDI Test")
+
+        q_values &lt;- univariate_Logit(data=dataCancerImputed, 
+                                    Outcome="pgstat", 
+                                    uniTest="zNRI",pvalue = 0.05)
+        qValueMatrix &lt;- cbind(idiqValueMatrix,q_values[names(idiqValueMatrix)])
+
+        q_values &lt;- univariate_residual(data=dataCancerImputed, 
+                                    Outcome="pgstat", 
+                                    pvalue = 0.05,type="LOGIT")
+        qValueMatrix &lt;- cbind(qValueMatrix,q_values[names(idiqValueMatrix)])
+
+        q_values &lt;- univariate_tstudent(data=dataCancerImputed, 
+                                       Outcome="pgstat", 
+                                       pvalue = 0.05)
+        qValueMatrix &lt;- cbind(qValueMatrix,q_values[names(idiqValueMatrix)])
+
+        q_values &lt;- univariate_Wilcoxon(data=dataCancerImputed, 
+                                       Outcome="pgstat", 
+                                       pvalue = 0.05)
+        qValueMatrix &lt;- cbind(qValueMatrix,q_values[names(idiqValueMatrix)])
+
+        q_values &lt;- univariate_correlation(data=dataCancerImputed, 
+                                       Outcome="pgstat", 
+                                       pvalue = 0.05)
+        qValueMatrix &lt;- cbind(qValueMatrix,q_values[names(idiqValueMatrix)])
+
+        q_values &lt;- univariate_correlation(data=dataCancerImputed, 
+                                          Outcome="pgstat", 
+                                          pvalue = 0.05,
+                                          method = "pearson")
+
+        #The qValueMatrix has the qValues of all filter methods.  
+        qValueMatrix &lt;- cbind(qValueMatrix,q_values[names(idiqValueMatrix)])
+        colnames(qValueMatrix) &lt;- c("IDI","NRI","F","t","W","K","P")
+        #Do the log transform to display the heatmap
+        qValueMatrix &lt;- -log10(qValueMatrix)
+        #the Heatmap of the q-values
+        gplots::heatmap.2(qValueMatrix,Rowv = FALSE,dendrogram = "col",
+        main = "Method q.values",cexRow = 0.4)
+
+    
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fuzzyRangeChange</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Range change based on continuous (fuzzy) values
+</h2>
+
+<h3>Description</h3>
+
+<p>This function quantifies overall range change (expansion, contraction, maintenance and balance) based on either presence-absence data or the continuous predictions of two models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fuzzyRangeChange(pred1, pred2, number = TRUE, prop = TRUE,
+na.rm = TRUE, round.digits = 2,
+measures = c("Gain", "Loss", "Stable positive", "Stable negative", "Balance"),
+plot = TRUE, plot.type = "lollipop", x.lab = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pred1</code></td>
+<td>
+<p>numeric vector containing the predictions (between 0 and 1) of the model that will serve as reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred2</code></td>
+<td>
+<p>numeric vector containing the predictions (between 0 and 1) of the model whose change will be calculated. Must be of the same length and in the same order as 'pred1'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>number</code></td>
+<td>
+<p>logical value indicating if results should include the fuzzy number of cases. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop</code></td>
+<td>
+<p>logical value indicating if results should include the proportion of the total number of cases. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>logical value indicating whether NA values should be ignored. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>round.digits</code></td>
+<td>
+<p>argument to pass to <code>fuzzyOverlay</code>, indicating the number of decimal places to which to round 'pred' for calculating 'maintenance' or 'stability'. The default is 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>measures</code></td>
+<td>
+<p>character vector listing the range change measures to calculate. The default includes all available measures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>logical value indicating whether to plot the results. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.type</code></td>
+<td>
+<p>character value indicating the type of plot to produce (if plot=TRUE). Can be "lollipop" (the default) or "barplot".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.lab</code></td>
+<td>
+<p>logical value indicating whether to add the x axis labels to the plot (i.e., the names below each lollipop or bar). The default is TRUE, but users may set it to FALSE and then add labels differently (e.g. with different names or rotations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to pass to <code>barplot</code> or to <code>modEvA::lollipop</code> (if plot=TRUE).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>This function returns a data frame with the following values in different rows (among those included in 'measures'):
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Gain</code></td>
+<td>
+<p>sum of the predicted values that have increased from 'pred1' to 'pred2' (fuzzy equivalent of the number of localities that gained presence)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Loss</code></td>
+<td>
+<p>sum of the predicted values that have decreased from 'pred1' to 'pred2' (fuzzy equivalent of the number of localities that lost presence)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Stable positive</code></td>
+<td>
+<p>fuzzy equivalent of the number of (predicted) presences that have remained as such (when rounded to 'round.digits') between 'pred1' and 'pred2'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Stable negative</code></td>
+<td>
+<p>fuzzy equivalent of the number of (predicted) absences that have remained as such (when rounded to 'round.digits') between 'pred1' and 'pred2')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Balance</code></td>
+<td>
+<p>sum of the change in predicted values from 'pred1' to 'pred2' (fuzzy equivalent of the balance of gained and lost presences)</p>
+</td>
+</tr>
+</table>
+<p>If number=TRUE (the default), there is a column named "Number" with the number of localities in each of the above categories. If prop=TRUE (the default), there is a column named "Proportion" in which this number is divided by the total number of reference values (i.e., the fuzzy range or fuzzy non-range size). If plot=TRUE (the default), a plot is also produced representing the last column of the result data frame.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A. Marcia Barbosa</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fuzSim</code>, <code>modOverlap</code> for other ways to compare models; <code>fuzzyOverlay</code> for row-wise model comparisons
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># get an environmental favourability model for a rotifer species:
+
+data(rotif.env)
+
+names(rotif.env)
+
+fav_current &lt;- multGLM(rotif.env, sp.cols = 18, var.cols = 5:17,
+step = TRUE, FDR = TRUE, trim = TRUE, P = FALSE, Fav = TRUE) $
+predictions
+
+
+# imagine you have a model prediction for this species in a future time
+# (here we will create one by randomly jittering the current predictions)
+
+fav_imag &lt;- jitter(fav_current, amount = 0.2)
+fav_imag[fav_imag &lt; 0] &lt;- 0
+fav_imag[fav_imag &gt; 1] &lt;- 1
+
+
+# calculate range change given by current and imaginary future predictions:
+
+fuzzyRangeChange(fav_current, fav_imag)
+
+fuzzyRangeChange(fav_current, fav_imag, las = 2)
+
+fuzzyRangeChange(fav_current, fav_imag, prop = FALSE)
+
+fuzzyRangeChange(fav_current, fav_imag, ylim = c(-0.3, 0.3))
+
+fuzzyRangeChange(fav_current, fav_imag, plot.type = "barplot")
+</code></pre>
+
+
+</div>

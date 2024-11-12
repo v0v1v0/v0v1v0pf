@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flget_Pfunction</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract p function data from a NetCDF file downloaded by <code>FjordLight</code>.</h2>
+
+<h3>Description</h3>
+
+<p>This functions will conveniently extract the p function data stored within a
+NetCDF file downloaded via <code>fl_DownloadFjord</code>.
+There are options for how the user would like to subset the data, which data format the
+data should be extracted to, and if the user would like to plot the data in the process.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flget_Pfunction(
+  fjord,
+  type = "coastal",
+  period = "Global",
+  month = NULL,
+  year = NULL,
+  mode = "function",
+  PLOT = FALSE,
+  add = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fjord</code></td>
+<td>
+<p>Expects the object loaded via <code>fl_LoadFjord</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Whether the p function should show values for the <code>coastal</code> zone (&lt; 200 m deep),
+or the <code>shallow</code> zone (&lt; 50 m deep).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>period</code></td>
+<td>
+<p>Here the user determines which time period of data should be loaded. To load
+the total average values (default) use <code>"Global"</code>. One may chose instead to load the
+<code>"Yearly"</code> or <code>"Monthly"</code> values. Note that monthly values here represent the
+climatological average for the month, not one month in a given year. If the user would
+like one specific month of data (only available for bottom PAR), they should use
+<code>flget_PARbottomMonthlyTS</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>month</code></td>
+<td>
+<p>The monthly climatology to extract. Accepts an integer value from 3 to 10.
+This argument is ignored if <code>period = "Yearly"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>The yearly average to extract. Currently accepts an integer value from 2003 to 2022.
+This argument is ignored if <code>period = "Monthly"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Determines the basic process that this function performs. The default
+<code>mode = "function"</code> will allow the user to create a function that they can then use
+themselves to determine p curves using their own input (see examples). Or to access the
+underlying p function data directly set <code>mode = "df"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PLOT</code></td>
+<td>
+<p>Boolean argument (default = <code>FALSE</code>) that tells the function if the user
+would like the loaded data to be plotted or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>Boolean (i.e. <code>TRUE/FALSE</code>) to tell the function to add the p function plot
+to an existing plot. See examples below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments that may be passed to <code>flplot_Pfunction</code>, which
+will implement them using base R plotting functionality.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Depending on which arguments the user chooses for <code>mode</code>, a function will
+be returned (see examples). Or a two column data.frame:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>irradianceLevel</code></td>
+<td>
+<p>A threshold value [mol photons m-2 d-1]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optics_global|year|month</code></td>
+<td>
+<p>The column name is determined by the arguments passed to <code>optics</code>
+and either <code>global</code>, <code>year</code>, or <code>month</code>, depending on which <code>period</code> was indicated.
+These values show the percent of the fjord (filtered for pixels with a depth of 200 m or shallower) that
+received at least the amount of irradiance indicated in the <code>irradianceLevel</code> column.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Bernard Gentili &amp; Robert Schlegel
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load data
+fjord_code &lt;- "test"
+fjorddata &lt;- fl_LoadFjord(fjord_code, dirdata = system.file("extdata", package = "FjordLight"))
+
+# Create a function
+fG &lt;- flget_Pfunction(fjorddata, "shallow", "Global")
+
+# Then use it with specific PAR thresholds
+irradiance_levels &lt;- c(0.1, 1, 10)
+fG(irradiance_levels)
+
+# As a 2 column data.frame
+f2012 &lt;- flget_Pfunction(fjorddata, "shallow", "Yearly", year = 2012, mode = "df", PLOT = TRUE)
+str(f2012)
+
+# Plot a P-function
+fGlob &lt;- flget_Pfunction(fjorddata, "coastal", "Global", PLOT = TRUE, lty = 1, col = 1, lwd = 2,
+                         Main = paste(fjord_code, "P-functions"), ylim = c(0, 50))
+
+</code></pre>
+
+
+</div>

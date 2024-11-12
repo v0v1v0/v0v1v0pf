@@ -1,0 +1,335 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frailtyMM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting frailty models with clustered, multi-event and recurrent data using MM algorithm</h2>
+
+<h3>Description</h3>
+
+
+<p>This formula is used to fit the non-penalized regression. 3 types of the models can be fitted, shared frailty model where
+hazard rate of <code class="reqn">j^{th}</code> object in <code class="reqn">i^{th}</code> cluster is
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_{ij}(t|\omega_i) = \lambda_0(t) \omega_i \exp(\boldsymbol{\beta}' \mathbf{X_{ij}}).</code>
+</p>
+
+<p>The multi-event frailty model with different baseline hazard of different event and the hazard rate of <code class="reqn">j^{th}</code> event for individual <code class="reqn">i^{th}</code> is 
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_{ij}(t|\omega_i) = \lambda_{0j}(t) \omega_i \exp(\boldsymbol{\beta}' \mathbf{X_{ij}}).</code>
+</p>
+
+<p>The recurrent event model where the <code class="reqn">j^{th}</code> event of individual <code class="reqn">i</code> has observed feature <code class="reqn">\mathbf{X_{ij}}</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_{ij}(t|\omega_i) = \lambda_0(t) \omega_i \exp(\boldsymbol{\beta}' \mathbf{X_{ij}}).</code>
+</p>
+
+<p>For the  clustered type of data, we further assume that cluster <code class="reqn">i</code> has <code class="reqn">n_i</code> with <code class="reqn">j=1,...,n_{i}</code> number 
+of objects where they share the common frailty parameter <code class="reqn">\omega_i</code>. For simplicity, we let <code class="reqn">\boldsymbol{\alpha}</code> 
+be the collection of all parameters and baseline hazard function. Then, the marginal likelihood is as follows,
+</p>
+<p><img src="../help/figures/fig1.png" style="width:750px;max-width:75%;" alt="fig1.png"></p>
+<p>Given the objective functions above, we take the clustered data as an example to illustrate the application of MM algorithm in optimizing the observed likelihood function,
+the observed log-likelihood function is, 
+</p>
+<p><img src="../help/figures/fig4.png" style="width:750px;max-width:75%;" alt="fig4.png"></p>
+<p>where,
+</p>
+<p><img src="../help/figures/fig5.png" style="width:750px;max-width:75%;" alt="fig5.png"></p>
+<p>In order to formulate the iterative algorithm to optimize the observed log likelihood, we further define density function <code class="reqn">g_i(\cdot)</code> 
+based on the estimates of the parameters in <code class="reqn">k^{th}</code> iteration <code class="reqn">\boldsymbol{\alpha}^{(k)}</code>
+</p>
+<p><img src="../help/figures/fig6.png" style="width:750px;max-width:75%;" alt="fig6.png"></p>
+<p>Then, we construct the surrogate function to minimize the mariginal log-likelihood using the Jensen's inequality,
+</p>
+<p><img src="../help/figures/fig7.png" style="width:750px;max-width:75%;" alt="fig7.png"></p>
+<p>which successfully separated <code class="reqn">\boldsymbol{\alpha}</code> into <code class="reqn">\boldsymbol{\theta}</code> and <code class="reqn">(\boldsymbol{\beta}, \Lambda_{0})</code> where,
+</p>
+<p><img src="../help/figures/fig8.png" style="width:750px;max-width:75%;" alt="fig8.png"></p>
+<p>and let <img src="../help/figures/fig91.png" width="200" alt="fig91.png">, 
+</p>
+<p><img src="../help/figures/fig9.png" style="width:750px;max-width:75%;" alt="fig9.png"></p>
+<p>And then we estimate <code class="reqn">\Lambda_{0}</code> by,
+</p>
+<p><img src="../help/figures/fig10.png" style="width:750px;max-width:75%;" alt="fig10.png"></p>
+<p>Then, we have, 
+</p>
+<p><img src="../help/figures/fig11.png" style="width:750px;max-width:75%;" alt="fig11.png"></p>
+<p>Further more, we apply hyperplane inequality to construct surrogate function for <code class="reqn">\boldsymbol{\beta}</code> where we can update the its estimates coordinate wise,
+</p>
+<p><img src="../help/figures/fig12.png" style="width:750px;max-width:75%;" alt="fig12.png"></p>
+<p>By applying Jensen's inequality, 
+</p>
+<p><img src="../help/figures/fig13.png" style="width:750px;max-width:75%;" alt="fig13.png"></p>
+<p>Finally, 
+</p>
+<p><img src="../help/figures/fig14.png" style="width:750px;max-width:75%;" alt="fig14.png"></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">frailtyMM(
+  formula,
+  data,
+  frailty = "gamma",
+  power = NULL,
+  tol = 1e-05,
+  maxit = 200,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula where the left hand side is an object of the type <code>Surv</code>
+and the right hand side contains the variables and additional specifications. 
+<code>+cluster()</code> function specify the group id for clustered data or individual id for recurrent data.
+<code>+event()</code> function specify the event id for multi-event data (only two events are allowed).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The <code>data.frame</code> where the formula argument can be evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frailty</code></td>
+<td>
+<p>The frailty used for model fitting. The default is "lognormal", other choices are
+"invgauss", "gamma" and "pvf". (Note that the computation time for PVF family will be slow 
+due to the non-explicit expression of likelihood function)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>The power used if PVF frailty is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The tolerance level for convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>Maximum iterations for MM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments pass to the function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To run the shared frailty model, <code>Surv(tstop, status)</code> formula should be applied along with <code>+cluster()</code> to specify the
+corresponding clusters, if you want to run the simple frailty model without shared frailty, you do not need to use <code>+cluster()</code> and the
+formula only contains the name of the covariates. To run the multi-event model, 
+<code>Surv(tstop, status)</code> formula should be applied along with <code>+event()</code> to specify the corresponding events. If multi-event data
+is fitted, please use 1,2...,K to denote the event id from the input data. To run the recurrent event model, 
+<code>Surv(tstart, tstop, status)</code> formula should be applied along with <code>+cluster()</code> where the cluster here denotes the individual id and
+each individual may have many observed events at different time points.
+</p>
+<p>The default frailty will be log-normal frailty, in order to fit other frailty models, simply set parameter <code>frailty</code> as "InvGauss", "Gamma" or "PVF",
+the parameter <code>power</code> is only used when <code>frailty</code>=PVF and since the likelihood of PVF (tweedie) distribution is approximated using 
+<code>Tweedie</code> function from package mgcv, 1&lt;<code>power</code>&lt;2.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>fmm</code> that contains the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>coefficient estimated from a specific model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est.tht</code></td>
+<td>
+<p>frailty parameter estimated from a specific model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>frailty for each observation estimated from a specific model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>likelihood</code></td>
+<td>
+<p>The observed log-likelihood given estimated parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>The input data re-ordered by cluster id. <code>y</code> is the event time, <code>X</code> is covariate matrix and <code>d</code> is the status while 0 indicates censoring.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frailty</code></td>
+<td>
+<p>frailty used for model fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>power used for model fitting is PVF frailty is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>total number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>convergence threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>formula applied as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefname</code></td>
+<td>
+<p>name of each coefficient from input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>id for individuals or clusters, 1,2...,a. Note that, since the original id may not be the sequence starting from 1, this output
+id may not be identical to the original id. Also, the order of id is corresponding to the returned <code>input</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>total number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>total number of individuals or clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datatype</code></td>
+<td>
+<p>model used for fitting.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Huang, X., Xu, J. and Zhou, Y. (2022). Profile and Non-Profile MM Modeling of Cluster Failure Time and Analysis of ADNI Data. <em>Mathematics</em>, 10(4), 538.
+</p>
+</li>
+<li>
+<p> Huang, X., Xu, J. and Zhou, Y. (2023). Efficient algorithms for survival data with multiple outcomes using the frailty model. <em>Statistical Methods in Medical Research</em>, 32(1), 118-132.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Kidney data fitted by Clustered Inverse Gaussian Frailty Model
+
+
+InvG_real_cl = frailtyMM(Surv(time, status) ~ age + sex + cluster(id),
+                         kidney, frailty = "invgauss")
+InvG_real_cl
+
+# Cgd data fitted by Recurrent Log-Normal Frailty Model
+
+logN_real_re = frailtyMM(Surv(tstart, tstop, status) ~ sex + treat + cluster(id),
+                         cgd, frailty = "gamma")
+logN_real_re
+
+
+# Simulated data example
+
+data(simdataCL)
+
+# Parameter estimation under different model structure and frailties
+
+# Clustered Gamma Frailty Model
+gam_cl = frailtyMM(Surv(time, status) ~ . + cluster(id), 
+                   simdataCL, frailty = "gamma")
+
+
+# Clustered Log-Normal Frailty Model
+logn_cl = frailtyMM(Surv(time, status) ~ . + cluster(id), 
+                    simdataCL, frailty = "lognormal")
+
+# Clustered Inverse Gaussian Frailty Model
+invg_cl = frailtyMM(Surv(time, status) ~ . + cluster(id), 
+                    simdataCL, frailty = "invgauss")
+                   
+data(simdataME)
+
+# Multi-event Gamma Frailty Model
+gam_me = frailtyMM(Surv(time, status) ~ . + cluster(id), 
+                   simdataCL, frailty = "gamma")
+
+
+# Multi-event Log-Normal Frailty Model
+logn_me = frailtyMM(Surv(time, status) ~ . + event(id), 
+                    simdataME, frailty = "lognormal")
+
+# Multi-event Inverse Gaussian Frailty Model
+invg_me = frailtyMM(Surv(time, status) ~ . + event(id),
+                    simdataME, frailty = "invgauss")
+
+data(simdataRE)
+
+# Recurrent event Gamma Frailty Model
+gam_re = frailtyMM(Surv(start, end, status) ~ . + cluster(id),
+                   simdataRE, frailty = "gamma")
+
+# Recurrent event Log-Normal Frailty Model
+logn_re = frailtyMM(Surv(start, end, status) ~ . + cluster(id),
+                   simdataRE, frailty = "lognormal")
+
+# Recurrent event Inverse Gaussian Frailty Model
+invg_re = frailtyMM(Surv(start, end, status) ~ . + cluster(id), 
+                    simdataRE, frailty = "invgauss")
+
+
+# Obtain the summary statistics under fitted model
+
+coef(gam_cl)
+summary(gam_cl)
+
+</code></pre>
+
+
+</div>

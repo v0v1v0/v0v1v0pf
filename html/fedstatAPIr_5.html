@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fedstat_data_load_with_filters</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Download subset of indicator data from fedstat.ru by specifying filters in JSON</h2>
+
+<h3>Description</h3>
+
+<p>This function is a wrapper for the other functions of the package
+to provide a simple one function API for fedstat.ru
+</p>
+<p>There are two basic terms in this API: <code>filter_field</code> and <code>filter_value</code>
+</p>
+<p>The <code style="white-space: pre;">⁠filter field⁠</code> reflects the individual property of the data point.
+For example, Year, Region, Unit of measurement, etc.
+Each filter field has its own title (<code>filter_field_title</code>),
+it is simply a human-readable word or phrase (e.g. "Year", "Region")
+that reflects the essence of the property by which filtering takes place
+</p>
+<p>The <code style="white-space: pre;">⁠filter value⁠</code> reflects the individual property specific value of the data point.
+(e.g. 2021 for the Year, "Russian Federation" for the region, etc.)
+It also has a title (<code>filter_value_title</code>) with
+the same purpose as <code>filter_field_title</code>
+</p>
+<p><code>filters</code> should use <code>filter_field_title</code> in names and <code>filter_value_title</code> in values as
+they are presented on fedstat.ru. If for some reason the specified filters
+do not return the expected result, it is worth using
+<code>fedstat_get_data_ids</code> separately and inspecting possible
+filter values in <code>data_ids</code> to see if the strings are defined correctly
+(e.g. encoding issues, mixing latin and cyrillic symbols)
+</p>
+<p><code>filter_value_title</code> currently supports the following special values:
+</p>
+
+<ol><li>
+<p> asterix (*), alias for "select all possible filter values for this filter field"
+</p>
+</li></ol>
+<p>Unspecified filters use asterix as a default
+(i.e. all possible filter values are selected and a warning is given)
+</p>
+<p>Internally normalized <code>filter_field_title</code> and <code>filter_value_title</code> are
+used (all lowercase, removed extra whitespaces)
+to compare the equality of <code>data_ids</code> and <code>filters</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fedstat_data_load_with_filters(
+  indicator_id,
+  ...,
+  filters = list(),
+  timeout_seconds = 180,
+  retry_max_times = 3,
+  disable_warnings = FALSE,
+  httr_verbose = NULL,
+  loading_steps_verbose = TRUE,
+  return_type = c("data", "dictionary"),
+  try_to_parse_ObsValue = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>indicator_id</code></td>
+<td>
+<p>character, indicator id/code from indicator URL.
+For example for indicator with URL https://www.fedstat.ru/indicator/37426 indicator id will be 37426</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to httr::GET and httr::POST</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filters</code></td>
+<td>
+<p>JSON in R list form. The structure should be like this:
+</p>
+<pre>
+{
+ "filter_field_title1": ["filter_value_title1", "filter_value_title2"],
+ "filter_field_title2": ["filter_value_title1", "filter_value_title2"],
+ ...
+}
+</pre>
+<p>Where for example <code>filter_field_title1</code> could be a string "Year" with
+<code>filter_value_title1</code> equal to 2020 and <code>filter_field_title2</code>
+could be a string "OKATO" with <code>filter_value_title1</code>
+equal to "Russian Federation"
+Not actual filter field titles and filter values titles
+because of ASCII requirement for CRAN</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeout_seconds</code></td>
+<td>
+<p>numeric, maximum time before a new GET and POST request is tried</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retry_max_times</code></td>
+<td>
+<p>numeric, maximum number of tries to GET and POST <code>data_ids</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disable_warnings</code></td>
+<td>
+<p>bool, enables or disables following warnings:
+</p>
+
+<ol>
+<li>
+<p> About non matched <code>filter_value_title</code> in <code>filters</code> and <code>filter_value_title</code> from <code>data_ids</code>;
+</p>
+</li>
+<li>
+<p> About unspecified <code>filter_filed_title</code> in filters.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>httr_verbose</code></td>
+<td>
+<p><code>httr::verbose()</code> or NULL, outputs messages to the console
+about the processing of the request</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loading_steps_verbose</code></td>
+<td>
+<p>logical, print data loading steps to console</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_type</code></td>
+<td>
+<p>character, "data" or "dicionary", data for actual data,
+dictionary for sdmx lookup table (full data codes dictionary)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>try_to_parse_ObsValue</code></td>
+<td>
+<p>logical, try to parse ObsValue column from character to R numeric type</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>data.frame with filtered indicator data from fedstat.ru
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>
+  fedstat_get_data_ids,
+  fedstat_data_ids_filter,
+  fedstat_post_data_ids_filtered,
+  fedstat_parse_sdmx_to_table
+  </code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Download CPI data
+# for all goods and services for Russian Federation
+data &lt;- fedstat_data_load_with_filters(
+  indicator_id = "31074",
+  filters = list(
+    "Territory" = "Russian Federation",
+    "Year" = "2023",
+    "Period" = "January",
+    "Types of goods and services" = "*"
+  )
+)
+# Not actual filter field titles and filter values titles because of ASCII requirement for CRAN
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>synthetic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>synthetic instrument constructors</h2>
+
+<h3>Description</h3>
+
+<p>define spreads, guaranteed_spreads, butterflies, and other synthetic instruments
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">synthetic(primary_id = NULL, currency = NULL, multiplier = 1,
+  identifiers = NULL, assign_i = TRUE, overwrite = TRUE, ...,
+  members = NULL, type = "synthetic")
+
+synthetic.instrument(primary_id, currency, members, memberratio, ...,
+  multiplier = 1, tick_size = NULL, identifiers = NULL, assign_i = TRUE,
+  type = c("synthetic.instrument", "synthetic"))
+
+spread(primary_id = NULL, currency = NULL, members, memberratio,
+  tick_size = NULL, ..., multiplier = 1, identifiers = NULL,
+  assign_i = TRUE)
+
+butterfly(primary_id = NULL, currency = NULL, members, tick_size = NULL,
+  identifiers = NULL, assign_i = TRUE, ...)
+
+guaranteed_spread(primary_id = NULL, currency = NULL, root_id = NULL,
+  suffix_id = NULL, members = NULL, memberratio = c(1, -1), ...,
+  multiplier = NULL, identifiers = NULL, assign_i = TRUE,
+  tick_size = NULL)
+
+ICS_root(primary_id, currency = NULL, members, multiplier = NULL,
+  identifiers = NULL, assign_i = TRUE, overwrite = TRUE,
+  tick_size = NULL, ...)
+
+ICS(primary_id, assign_i = TRUE, identifiers = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>primary_id</code></td>
+<td>
+<p>chr string of primary identifier of instrument to be defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>currency</code></td>
+<td>
+<p>chr string name of currency denomination</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multiplier</code></td>
+<td>
+<p>multiplier of the spread (1 / divisor for price weighted baskets)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>identifiers</code></td>
+<td>
+<p>identifiers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>assign_i</code></td>
+<td>
+<p>TRUE/FALSE. Should the instrument be assigned in the <code>.instrument</code> environment?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>if FALSE and an instrument with the same <code>primary_id</code>
+is already defined, an error will be thrown and no instruments will be 
+created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>any other passthrough parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>members</code></td>
+<td>
+<p>vector of primary_ids of member instruments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of instrument; wrappers do not require this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memberratio</code></td>
+<td>
+<p>vector of weights for each leg. negative numbers for selling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tick_size</code></td>
+<td>
+<p>minimum price change of the spread</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root_id</code></td>
+<td>
+<p>instrument identifier for the root contract, default NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suffix_id</code></td>
+<td>
+<p>identifiers for the member contract suffixes, default NULL, 
+will be split as <code>members</code>, see Details</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Simple derivatives like <code>option</code> or <code>future</code> contracts typically have one underlying instrument.  
+While properties like strike and expiration vary for these derivative contracts or series, the underlying is well understood.
+</p>
+<p>More complex derivatives are typically modeled as baskets of underlying products, and are typically traded over-the-counter or as proprietary in-house products.
+</p>
+<p>The general <code>synthetic</code> function is intended to be extended to support these arbitrary baskets of assets.
+</p>
+<p><code>spread</code> <code>guaranteed_spread</code> and <code>butterfly</code> are wrappers for <code>synthetic.instrument</code>. <code>synthetic.instrument</code> will make a call to synthetic to create the final instrument.
+</p>
+<p>The <code>suffix_id</code> parameter of wrapper functions such as  <code>guaranteed_spread</code> is presumed to 
+be a string describing the <code>members</code>. 
+It will be <code>strsplit</code> using the regex "[-;:_,\.]" to create the <code>members</code> vector,
+and potentially combined with a <code>root_id</code>.
+</p>
+<p>Most wrappers will build <code>primary_id</code> if it is NULL, either by combining <code>root_id</code> and <code>suffix_id</code>, or
+by passing <code>members</code> in a call to <code>make_spread_id</code>
+</p>
+<p><code>ICS</code> will build an Intercommodity Spread.  Although the expiration date and ratio may change, 
+the members of a given ICS will not change.  Therefore, <code>ICS_root</code> can be used to hold the 
+members of an Intercommodity Spread.  If an <code>ICS_root</code> has not been defined, then <code>members</code>
+will be a required argument for <code>ICS</code>
+</p>
+<p>We welcome assistance from others to model more complex OTC derivatives such as swap products.
+</p>
+
+
+<h3>Value</h3>
+
+<p>called for side effect. stores an instrument in .instrument environment
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Brian Peterson, Garrett See
+</p>
+
+
+<h3>See Also</h3>
+
+<p>instrument, future, option_series.yahoo
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+stock('SPY','USD',1)
+stock('DIA','USD',1)
+spread('SPY.DIA','USD',c('SPY','DIA'),c(1,-1))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

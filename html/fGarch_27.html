@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>formula-methods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract GARCH model formula</h2>
+
+<h3>Description</h3>
+
+<p>Extracts formula from a formula GARCH object. 
+</p>
+
+
+<h3>Details</h3>
+
+<p><code>formula</code> is a generic function which extracts the formula
+expression from objects returned by modeling functions.
+</p>
+<p>The <code>"fGARCH"</code> method extracts the <code>@formula</code> expression
+slot from an object of class <code>"fGARCH"</code> as returned by the
+function <code>garchFit</code>.
+</p>
+<p>The returned formula has always a left hand side. If the argument
+<code>data</code> was an univariate time series and no name was specified to
+the series, then the left hand side is assigned the name of the
+data.set. In the multivariate case the rectangular <code>data</code> object
+must always have column names, otherwise the fitting will be stopped
+with an error message
+</p>
+<p>The class of the returned value depends on the input to the
+function <code>garchFit</code> who created the object. The returned
+value is always of the same class as the input object to the
+argument <code>data</code> in the function <code>garchFit</code>, i.e. if
+you fit a <code>"timeSeries"</code> object, you will get back from 
+the function <code>fitted</code> also a <code>"timeSeries"</code> object, 
+if you fit an object of class <code>"zoo"</code>, you will get back 
+again a <code>"zoo"</code> object. The same holds for a <code>"numeric"</code>
+vector, for a <code>"data.frame"</code>, and for objects of class
+<code>"ts", "mts"</code>.
+</p>
+<p>In contrast, the slot itself returns independent of the class 
+of the data input always a numeric vector, i.e. the function 
+call r<code>slot(object, "fitted")</code> will return a numeric vector.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>Methods for <code>formula</code> defined in package <span class="pkg">fGarch</span>:
+</p>
+
+<dl>
+<dt>object = "fGARCH"</dt>
+<dd>
+<p>Extractor function for formula expression.
+</p>
+</dd>
+</dl>
+<h3>Note</h3>
+
+<p>(GNB) Contrary to the description of the returned value of the
+<code>"fGARCH"</code> method, it is always <code>"numeric"</code>.
+</p>
+<p>TODO: either implement the documented behaviour or fix the
+documentation.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Diethelm Wuertz for the Rmetrics <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-port
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>garchFit</code>,
+class <code>fGARCH</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## garchFit -
+   fit = garchFit(~garch(1, 1), data = garchSim(), trace = FALSE)
+   
+## formula - 
+   formula(fit)
+
+## A Bivariate series and mis-specified formula:
+   x = garchSim(n = 500)
+   y = garchSim(n = 500)
+   z = cbind(x, y)
+   colnames(z)
+   class(z)
+   ## Not run: 
+   garchFit(z ~garch(1, 1), data = z, trace = FALSE)
+   
+## End(Not run)
+   # Returns:
+   # Error in .garchArgsParser(formula = formula, data = data, trace = FALSE) :  
+   #   Formula and data units do not match.
+   
+## Doubled column names in data set - formula can't fit:
+   colnames(z) &lt;- c("x", "x")
+   z[1:6,]
+   ## Not run: 
+   garchFit(x ~garch(1, 1), data = z, trace = FALSE)
+   
+## End(Not run)
+   # Again the error will be noticed:
+   # Error in garchFit(x ~ garch(1, 1), data = z) : 
+   #   Column names of data are not unique.
+
+## Missing column names in data set - formula can't fit:
+   z.mat &lt;- as.matrix(z)
+   colnames(z.mat) &lt;- NULL
+   z.mat[1:6,]
+   ## Not run: 
+   garchFit(x ~ garch(1, 1), data = z.mat, trace = FALSE)
+   
+## End(Not run)
+   # Again the error will be noticed:
+   # Error in .garchArgsParser(formula = formula, data = data, trace = FALSE) : 
+   #   Formula and data units do not match
+</code></pre>
+
+
+</div>

@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cont_plot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Produce contribution plots</h2>
+
+<h3>Description</h3>
+
+<p>This function produces a contribution plot from
+functional control charts for
+a given observation of a phase II data set, using ggplot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cont_plot(cclist, id_num, which_plot = c("T2", "spe"), print_id = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cclist</code></td>
+<td>
+<p>A <code>data.frame</code> produced by
+<code>control_charts_pca</code>, <code>control_charts_sof_pc</code>
+<code>regr_cc_fof</code>, or <code>regr_cc_sof</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id_num</code></td>
+<td>
+<p>An index number giving the observation in the
+phase II data set to be plotted, i.e. 1 for the first observation,
+2 for the second, and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which_plot</code></td>
+<td>
+<p>A character vector.
+Each value indicates which contribution you want to plot:
+</p>
+<p>"T2" indicates contribution to the Hotelling's T2 statistic,
+</p>
+<p>"spe" indicates contribution to the squared prediction error statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_id</code></td>
+<td>
+<p>A logical value, if TRUE,
+it prints also the id of the observation
+in the title of the ggplot.
+Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A ggplot containing the contributions of functional variables to the
+monitoring statistics.
+Each plot is a bar plot, with bars corresponding to contribution values and
+horizontal black segments denoting corresponding (empirical) upper limits.
+Bars are coloured by red if contributions exceed their limit.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(funcharts)
+data("air")
+air &lt;- lapply(air, function(x) x[201:300, , drop = FALSE])
+fun_covariates &lt;- c("CO", "temperature")
+mfdobj_x &lt;- get_mfd_list(air[fun_covariates],
+                         n_basis = 15,
+                         lambda = 1e-2)
+y &lt;- rowMeans(air$NO2)
+y1 &lt;- y[1:60]
+y_tuning &lt;- y[61:90]
+y2 &lt;- y[91:100]
+mfdobj_x1 &lt;- mfdobj_x[1:60]
+mfdobj_x_tuning &lt;- mfdobj_x[61:90]
+mfdobj_x2 &lt;- mfdobj_x[91:100]
+mod &lt;- sof_pc(y1, mfdobj_x1)
+cclist &lt;- regr_cc_sof(object = mod,
+                      y_new = y2,
+                      mfdobj_x_new = mfdobj_x2,
+                      y_tuning = y_tuning,
+                      mfdobj_x_tuning = mfdobj_x_tuning,
+                      include_covariates = TRUE)
+get_ooc(cclist)
+cont_plot(cclist, 3)
+
+
+</code></pre>
+
+
+</div>

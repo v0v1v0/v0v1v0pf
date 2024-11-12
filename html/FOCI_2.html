@@ -1,0 +1,212 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>foci</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variable selection by the FOCI algorithm</h2>
+
+<h3>Description</h3>
+
+<p>FOCI is a variable selection algorithm based on the measure of conditional dependence <code>codec</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">foci(
+  Y,
+  X,
+  num_features = NULL,
+  stop = TRUE,
+  na.rm = TRUE,
+  standardize = "scale",
+  numCores = parallel::detectCores(),
+  parPlat = "none",
+  printIntermed = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Vector of responses (length n)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Matrix of predictors (n by p)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_features</code></td>
+<td>
+<p>Number of variables to be selected, cannot be larger than p. The default value is NULL and in that
+case it will be set equal to p. If stop == TRUE (see below), then num_features is irrelevant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stop</code></td>
+<td>
+<p>Stops at the first instance of negative codec, if TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Removes NAs if TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Standardize covariates if set equal to "scale" or "bounded". Otherwise will use the raw inputs.
+The default value is "scale" and normalizes each column of X to have mean zero and variance 1. If set equal to "bounded"
+map the values of each column of X to [0, 1].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numCores</code></td>
+<td>
+<p>Number of cores that are going to be used for
+parallelizing the variable selecction process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parPlat</code></td>
+<td>
+<p>Specifies the parallel platform to chunk data by rows.
+It can take three values:
+1- The default value is set to 'none', in which case no row chunking
+is done;
+2- the <code>parallel</code> cluster to be used for row chunking;
+3- "locThreads", specifying that row chunking will be done via
+threads on the host machine.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>printIntermed</code></td>
+<td>
+<p>The default value is TRUE, in which case print intermediate results from the cluster nodes before final processing.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>FOCI is a forward stepwise algorithm that uses the conditional dependence coefficient (<code>codec</code>)
+at each step, instead of the multiple correlation coefficient
+as in ordinary forward stepwise. If <code>stop</code> == TRUE, the process is stopped at the first instance of
+nonpositive codec, thereby selecting a subset of variables. Otherwise, a set of covariates of size
+<code>num_features</code>, ordered according to predictive power (as measured by codec) is produced.
+</p>
+<p><em>Parallel computation:</em>
+</p>
+<p>The computation can be lengthy, so the package offers two kinds of
+parallel computation.
+</p>
+<p>The first, controlled by the argument <code>numCores</code>,
+specifies the number of cores to be used on the host
+machine. If at a given step there are k candidate variables
+under consideration for inclusion, these k tasks are assigned
+to the various cores.
+</p>
+<p>The second approach, controlled by the argument <code>parPlat</code>
+("parallel platform"), involves the user first setting up a cluster via
+the <span class="pkg">parallel</span> package. The data are divided into chunks by rows,
+with each cluster node applying FOCI to its data chunk.  The
+union of the results is then formed, and fed through FOCI one more
+time to adjust the discrepancies. The idea is that that last step
+will not be too lengthy, as the number of candidate variables has
+already been reduced.  A cluster size of r may actually
+produce a speedup factor of more than r (Matloff 2016).
+</p>
+<p>Potentially the best speedup is achieved by using the two approaches
+together.
+</p>
+<p>The first approach cannot be used on Windows platforms, as
+<code>parallel::mcapply</code> has no effect.  Windows users should thus
+use the second approach only.
+</p>
+<p>In addition to speed, the second approach is useful for diagnostics, as
+the results from the different chunks gives the user an
+idea of the degree of sampling variability in the
+FOCI results.
+</p>
+<p>In the second approach, a random permutation is applied to the
+rows of the dataset, as many datasets are sorted by one or more
+columns.
+</p>
+<p>Note that if a certain value of a feature is rare in the
+full dataset, it may be absent entirely in some chunk.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "foci", with attributes
+<code>selectedVar</code>, showing the selected variables in decreasing
+order of (conditional) predictive power, and <code>stepT</code>, listing
+the 'codec' values. Typically the latter will begin to level off at
+some point, with additional marginal improvements being small.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Mona Azadkia, Sourav Chatterjee, and Norman Matloff
+</p>
+
+
+<h3>References</h3>
+
+<p>Azadkia, M. and Chatterjee, S. (2019). A simple measure
+of conditional dependence.
+<a href="https://arxiv.org/pdf/1910.12327.pdf">https://arxiv.org/pdf/1910.12327.pdf</a>.
+</p>
+<p>Matloff, N. (2016). Software Alchemy: Turning Complex
+Statistical Computations into Embarrassingly-Parallel Ones.
+<em>J. of Stat. Software.</em>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>codec</code>, <code>xicor</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1
+n = 1000
+p = 100
+x &lt;- matrix(rnorm(n * p), nrow = n)
+colnames(x) = paste0(rep("x", p), seq(1, p))
+y &lt;- x[, 1] * x[, 10] + x[, 20]^2
+# with num_features equal to 3 and stop equal to FALSE, foci will give a list of
+# three selected features
+result1 = foci(y, x, num_features = 3, stop = FALSE, numCores = 1)
+result1
+# Example 2
+# same example, but stop according to the stopping rule
+result2 = foci(y, x, numCores = 1)
+result2
+## Not run: 
+# Windows use of multicore
+library(parallel)
+cls &lt;- makeCluster(parallel::detectCores())
+foci(y, x, parPlat = cls)
+# run on physical cluster
+cls &lt;- makePSOCKcluster('machineA','machineB')
+foci(y, x, parPlat = cls)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

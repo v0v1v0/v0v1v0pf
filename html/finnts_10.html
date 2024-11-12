@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prep_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prep Data</h2>
+
+<h3>Description</h3>
+
+<p>Preps data with various feature engineering recipes to create features before training models
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prep_data(
+  run_info,
+  input_data,
+  combo_variables,
+  target_variable,
+  date_type,
+  forecast_horizon,
+  external_regressors = NULL,
+  hist_start_date = NULL,
+  hist_end_date = NULL,
+  combo_cleanup_date = NULL,
+  fiscal_year_start = 1,
+  clean_missing_values = TRUE,
+  clean_outliers = FALSE,
+  box_cox = TRUE,
+  stationary = TRUE,
+  forecast_approach = "bottoms_up",
+  parallel_processing = NULL,
+  num_cores = NULL,
+  target_log_transformation = FALSE,
+  fourier_periods = NULL,
+  lag_periods = NULL,
+  rolling_window_periods = NULL,
+  recipes_to_run = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>run_info</code></td>
+<td>
+<p>Run info using <code>set_run_info()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input_data</code></td>
+<td>
+<p>A standard data frame, tibble, or spark data frame using sparklyr of historical time series data.
+Can also include external regressors for both historical and future data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combo_variables</code></td>
+<td>
+<p>List of column headers within input data to be used to separate individual time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_variable</code></td>
+<td>
+<p>The column header formatted as a character value within input data you want to forecast.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_type</code></td>
+<td>
+<p>The date granularity of the input data. Finn accepts the following as a character string:
+day, week, month, quarter, year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forecast_horizon</code></td>
+<td>
+<p>Number of periods to forecast into the future.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>external_regressors</code></td>
+<td>
+<p>List of column headers within input data to be used as features in multivariate models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hist_start_date</code></td>
+<td>
+<p>Date value of when your input_data starts. Default of NULL uses earliest date value in
+input_data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hist_end_date</code></td>
+<td>
+<p>Date value of when your input_data ends. Default of NULL uses the latest date value in
+input_data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combo_cleanup_date</code></td>
+<td>
+<p>Date value to remove individual time series that don't contain non-zero values after
+that specified date. Default of NULL is to not remove any time series and attempt to forecast all time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fiscal_year_start</code></td>
+<td>
+<p>Month number of start of fiscal year of input data, aids in building out date features.
+Formatted as a numeric value. Default of 1 assumes fiscal year starts in January.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clean_missing_values</code></td>
+<td>
+<p>If TRUE, cleans missing values. Only impute values for missing data within an
+existing series, and does not add new values onto the beginning or end, but does provide a value of 0 for said
+values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clean_outliers</code></td>
+<td>
+<p>If TRUE, outliers are cleaned and inputted with values more in line with historical data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>box_cox</code></td>
+<td>
+<p>Apply box-cox transformation to normalize variance in data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stationary</code></td>
+<td>
+<p>Apply differencing to make data stationary</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forecast_approach</code></td>
+<td>
+<p>How the forecast is created. The default of 'bottoms_up' trains models for each individual
+time series. Value of 'grouped_hierarchy' creates a grouped time series to forecast at while 'standard_hierarchy' creates
+a more traditional hierarchical time series to forecast, both based on the hts package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel_processing</code></td>
+<td>
+<p>Default of NULL runs no parallel processing and forecasts each individual time series
+one after another. Value of 'local_machine' leverages all cores on current machine Finn is running on.
+Value of 'spark' runs time series in parallel on a spark cluster in Azure Databricks/Synapse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_cores</code></td>
+<td>
+<p>Number of cores to run when parallel processing is set up. Used when running parallel computations
+on local machine or within Azure. Default of NULL uses total amount of cores on machine minus one. Can't be greater
+than number of cores on machine minus 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_log_transformation</code></td>
+<td>
+<p>If TRUE, log transform target variable before training models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fourier_periods</code></td>
+<td>
+<p>List of values to use in creating fourier series as features. Default of NULL automatically chooses
+these values based on the date_type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag_periods</code></td>
+<td>
+<p>List of values to use in creating lag features. Default of NULL automatically chooses these values
+based on date_type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rolling_window_periods</code></td>
+<td>
+<p>List of values to use in creating rolling window features. Default of NULL automatically
+chooses these values based on date_type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recipes_to_run</code></td>
+<td>
+<p>List of recipes to run on multivariate models that can run different recipes. A value of NULL runs
+all recipes, but only runs the R1 recipe for weekly and daily date types. A value of "all" runs all recipes, regardless
+of date type. A list like c("R1") or c("R2") would only run models with the R1 or R2 recipe.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>No return object. Feature engineered data is written to disk based on the output locations provided in
+<code>set_run_info()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data_tbl &lt;- timetk::m4_monthly %&gt;%
+  dplyr::rename(Date = date) %&gt;%
+  dplyr::mutate(id = as.character(id)) %&gt;%
+  dplyr::filter(
+    Date &gt;= "2013-01-01",
+    Date &lt;= "2015-06-01"
+  )
+
+run_info &lt;- set_run_info()
+
+prep_data(run_info,
+  input_data = data_tbl,
+  combo_variables = c("id"),
+  target_variable = "value",
+  date_type = "month",
+  forecast_horizon = 3,
+  recipes_to_run = "R1"
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ptFCReg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functional concurrent regression using pointwise multiple linear regression.</h2>
+
+<h3>Description</h3>
+
+<p>Functional concurrent regression using pointwise multiple linear regression.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ptFCReg(tGrid, dat)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tGrid</code></td>
+<td>
+<p>A vector of length <code class="reqn">m</code> with the input time points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>A list of input functional/scalar covariates. 
+Each field corresponds to a functional (a matrix) or scalar (a vector) variable. 
+The last entry is assumed to be the functional response if no entry is names <code>'Y'</code>. 
+If a field corresponds to a functional variable, it should be an <code class="reqn">n</code>-by-<code class="reqn">m</code> matrix,
+where each row holds the observations for one subject on the common grid <code>tGrid</code>. 
+If a field corresponds to a scalar covariate, it should be a vector of length <code class="reqn">n</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following fields: 
+</p>
+
+<dl>
+<dt>beta0</dt>
+<dd>
+<p>A vector containing the time-varying intercept evaluated on <code>tGrid</code>.</p>
+</dd>
+<dt>beta</dt>
+<dd>
+<p>A matrix for the concurrent regression effects, 
+where rows correspond to different predictors and columns to different time points in <code>tGrid</code>.</p>
+</dd>
+<dt>tGrid</dt>
+<dd>
+<p>The input <code>tGrid</code>.</p>
+</dd>
+<dt>R2</dt>
+<dd>
+<p>A vector of the time-varying <code class="reqn">R^2(t)</code>, evaluated at <code class="reqn">t</code> in <code>tGrid</code>.</p>
+</dd>
+<dt>Ldf</dt>
+<dd>
+<p>A list holding the input data, each element of which is a data frame holding 
+the data observed at one element of <code>tGrid</code>.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 50
+nGridIn &lt;- 101
+tGrid &lt;- seq(0, 1, length.out=nGridIn) # Functional data support
+muX1 &lt;- tGrid * 2 # mean function for X_1
+sigma &lt;- 1
+beta0 &lt;- 0
+beta &lt;- rbind(cos(tGrid), 1.5 + sin(tGrid))
+Z &lt;- MASS::mvrnorm(n, rep(0, 2), diag(2))
+X_1 &lt;- Z[, 1, drop=FALSE] %*% matrix(1, 1, nGridIn) + matrix(muX1, n, nGridIn, byrow=TRUE)
+epsilon &lt;- rnorm(n, sd=sigma)
+Y &lt;- t(sapply(seq_len(n), function(i) {
+  beta0 + beta[1,] * X_1[i, ] + beta[2,] * Z[i, 2] + epsilon[i]
+}))
+dat &lt;- list(X1=X_1, Z1=Z[, 2], Y=Y)
+res &lt;- ptFCReg(tGrid = tGrid, dat = dat)
+</code></pre>
+
+
+</div>

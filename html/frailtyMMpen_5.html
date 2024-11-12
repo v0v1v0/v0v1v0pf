@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frailtyMMpen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting penalized frailty models with clustered, multi-event and recurrent data using MM algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This formula is used to fit the penalized regression. 3 types of the models can be fitted similar to the function
+<code>frailtyMM</code>. In addition, variable selection can be done by three types of penalty, LASSO, MCP and SCAD with the following
+objective function where <code class="reqn">\lambda</code> is the tuning parameter and <code class="reqn">q</code> is the dimension of <code class="reqn">\boldsymbol{\beta}</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">l(\boldsymbol{\beta},\Lambda_0|Y_{obs}) - n\sum_{p=1}^{q} p(|\beta_p|, \lambda).</code>
+</p>
+
+<p>The BIC is computed using the following equation,
+</p>
+<p style="text-align: center;"><code class="reqn">-2l(\hat{\boldsymbol{\beta}}, \hat{\Lambda}_0) + G_n(\hat{S}+1)\log(n),</code>
+</p>
+
+<p>where <code class="reqn">G_n=\max\{1, \log(\log(q+1))\}</code> and <code class="reqn">\hat{S}</code> is the degree of freedom.
+</p>
+<p>Surrogate function is also derived for penalty part for efficient estimation of penalized regression, similar to the notation used
+in <code>frailtyMM</code>, we let <code class="reqn">\boldsymbol{\alpha}</code> be the collection of all parameters and baseline hazard function. Given that,
+</p>
+<p><img src="../help/figures/fig15.png" style="width:750px;max-width:75%;" alt="fig15.png"></p>
+<p>by local quadratic approximation,
+</p>
+<p><img src="../help/figures/fig16.png" style="width:750px;max-width:75%;" alt="fig16.png"></p>
+<p>And thus, the surrogate function given <code class="reqn">k^{th}</code> iteration result is as follows,
+</p>
+<p><img src="../help/figures/fig17.png" style="width:750px;max-width:75%;" alt="fig17.png"></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">frailtyMMpen(
+  formula,
+  data,
+  frailty = "gamma",
+  power = NULL,
+  penalty = "LASSO",
+  gam = NULL,
+  tune = NULL,
+  tol = 1e-05,
+  maxit = 200,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula where the left hand side is an object of the type <code>Surv</code>
+and the right hand side contains the variables and additional specifications. 
+<code>+cluster()</code> function specify the group id for clustered data or individual id for recurrent data.
+<code>+event()</code> function specify the event id for multi-event data (only two events are allowed).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The <code>data.frame</code> where the formula argument can be evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frailty</code></td>
+<td>
+<p>The frailty used for model fitting. The default is "lognormal", other choices are
+"invgauss", "gamma" and "pvf". (Note that the computation time for PVF family will be slow 
+due to the non-explicit expression of likelihood function)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>The power used if PVF frailty is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>The penalty used for regularization, the default is "LASSO", other choices are "MCP" and "SCAD".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gam</code></td>
+<td>
+<p>The tuning parameter for MCP and SCAD which controls the concavity of the penalty. For MCP, 
+</p>
+<p style="text-align: center;"><code class="reqn">p^{\prime}(\beta, \lambda)=sign(\beta)(\lambda - \frac{|\beta|}{\gamma})</code>
+</p>
+<p> and for "SCAD",
+</p>
+<p style="text-align: center;"><code class="reqn">p^{\prime}(\beta, \lambda)=\lambda\{I(|\beta| \leq \lambda)+\frac{(\gamma \lambda-|\beta|)_{+}}{(\gamma-1) \lambda} I(|\beta|&gt;\lambda)\}.</code>
+</p>
+
+<p>The default value of <code class="reqn">\gamma</code> for MCP is 3 and SCAD is 3.7.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune</code></td>
+<td>
+<p>The sequence of tuning parameters provided by user. If not provided, the default grid will be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The tolerance level for convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>Maximum iterations for MM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments pass to the function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Without a given <code>tune</code>, the default sequence of tuning parameters are used to provide the regularization path.
+The formula is same as the input for function <code>frailtyMM</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>fmm</code> that contains the following fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>matrix of coefficient estimated from a specific model where each column correponds to an input tuning parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est.tht</code></td>
+<td>
+<p>vector of frailty parameters estimated from a specific model with respect to each tuning parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>list of frailty for each observation estimated from a specific model with respect to each tuning parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>likelihood</code></td>
+<td>
+<p>vector of the observed log-likelihood given estimated parameters with respect to each tuning parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BIC</code></td>
+<td>
+<p>vector of the BIC given estimated parameters with respect to each tuning parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune</code></td>
+<td>
+<p>vector of tuning parameters used for penalized regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune.min</code></td>
+<td>
+<p>tuning parameter where minimal of BIC is obtained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>convergence threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>The input data re-ordered by cluster id. <code>y</code> is the event time, <code>X</code> is covariate matrix and <code>d</code> is the status while 0 indicates censoring.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>input stopping time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>input covariate matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>input censoring indicator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>formula applied as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefname</code></td>
+<td>
+<p>name of each coefficient from input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>id for individuals or clusters, 1,2...,a. Note that, since the original id may not be the sequence starting from 1, this output
+id may not be identical to the original id. Also, the order of id is corresponding to the returned <code>input</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>total number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>total number of individuals or clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datatype</code></td>
+<td>
+<p>model used for fitting.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Huang, X., Xu, J. and Zhou, Y. (2022). Profile and Non-Profile MM Modeling of Cluster Failure Time and Analysis of ADNI Data. <em>Mathematics</em>, 10(4), 538.
+</p>
+</li>
+<li>
+<p> Huang, X., Xu, J. and Zhou, Y. (2023). Efficient algorithms for survival data with multiple outcomes using the frailty model. <em>Statistical Methods in Medical Research</em>, 32(1), 118-132.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>frailtyMM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(simdataCL)
+
+# Penalized regression under clustered frailty model
+
+# Clustered Gamma Frailty Model
+
+# Using default tuning parameter sequence
+gam_cl1 = frailtyMMpen(Surv(time, status) ~ . + cluster(id),
+                       simdataCL, frailty = "gamma")
+
+
+# Using given tuning parameter sequence
+gam_cl2 = frailtyMMpen(Surv(time, status) ~ . + cluster(id), 
+                       simdataCL, frailty = "gamma", tune = 0.1)
+
+# Obtain the coefficient where minimum BIC is obtained
+coef(gam_cl1)
+
+# Obtain the coefficient with tune = 0.2.
+coef(gam_cl1, tune = 0.2)
+
+# Plot the regularization path
+plot(gam_cl1)
+
+# Get the degree of freedom and BIC for the sequence of tuning parameters provided
+print(gam_cl1)
+
+
+
+</code></pre>
+
+
+</div>

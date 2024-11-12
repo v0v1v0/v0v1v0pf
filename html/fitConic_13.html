@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitConic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fit Data to A Conic Section Curve 
+</h2>
+
+<h3>Description</h3>
+
+<p>This function fits data to an ellipse, hyperbola, or parabola.
+It can do so without any initial conditions, or can accept
+initial parameter values when known.  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitConic(X, Y = NULL, parInit = NULL, conicType = c("e", "h", "p"),
+weights = NULL, LambdaIni = 1, epsilonP = 1e-06, epsilonF = 1e-06, IterMAX = 20000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p> vector of x-values, or a Nx2 array of x and y values.
+In the latter case, the input <code>y</code> is ignored. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p> vector of y-values. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parInit</code></td>
+<td>
+
+<p>Optional. A vector either of six values representing an initial guess
+at the "ABCDEF" coefficients of the quadratic, or five values
+representing an initial guess at the "hvab,theta" coefficients.
+In the latter case, a value of either "e" or "h" is required for
+<code>conicType</code>.  See the Details section for more information. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conicType</code></td>
+<td>
+
+<p>If <code>parInit</code> is either NULL or the "hvab,theta" option,
+<code>conicType</code> is required. Enter either "e", "h", or "p" for
+fitting to ellipse, hyperbola, or parabola. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+
+<p>Optional vector of weights to apply to data. Must be same length as the input data. Only non-negative integer weights are allowed. See the Details section. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LambdaIni</code></td>
+<td>
+
+<p>A control parameter used in the fitting algorithm. Typically
+there is no reason to change from the default value. 
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilonP</code></td>
+<td>
+
+<p>A tolerance value to determine whether convergence has occurred. 
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilonF</code></td>
+<td>
+
+<p>A tolerance parameter for determining when to adjust lambda
+away from the input value <code>LambdaIni</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IterMAX</code></td>
+<td>
+
+<p>A "safety" value to avoid loop thrashing when convergence isn't taking place. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>ParInit</code>, when supplied is either a 6-value set representing the standard quadratic form  Ax^2 + Bxy + Cy^2 +Dx + Ey +F = 0  or a 5-value set representing the "hvab,theta" form ((x-h)cosA +(y-v)sinA)^2/a^2 + ((x-h)sinA-(y-v)cosA)^2/b^2 = 1 . In the latter case the value <code>conicType</code> is required, because ellipses and hyperbolas have a different sign for the y-term. 
+In most cases, the bootstrapper tools work well enough to allow the main algorithm to fit to an ellipse or hyperbola. However, "knowledge is power." If you have a good idea approximately what the <code>ParIni</code> values are,
+entering them will help avoid convergence to the wrong local minimum. 
+The algorithm branch which fits data to parabolas does not use or need
+initialization, as it uses a RANSAC-type search to find 
+the best rotation angle, and then does a simple quadratic polynomial fit. 
+The <code>weights</code> input is restricted to nonnegative integers at this time. Doubles are rounded and negative values are set to zero. A zero weight will remove the matching data value from the dataset. 
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>parA </code>vector of the six "ABCDEF" coefficients
+<code>RSS </code>'root sum square' figure of merit describing the relative fit quality
+<code>iters </code>number of iterations at convergence
+<code>exitCode </code>1 means ellipse, 2 means hyperbola, 3 means parabola.
+If other values show up (possibly -1, 0, 4), most likely the
+dataset led to a degenerate case such as a line fit. 
+</p>
+
+
+
+<h3>Author(s)</h3>
+
+<p>Carl Witthoft &lt;carl@witthoft.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://people.cas.uab.edu/~mosya/cl/">https://people.cas.uab.edu/~mosya/cl/</a> for information
+on the original "LMA" fitting algorithm. 
+<a href="https://math.stackexchange.com/questions/426150">https://math.stackexchange.com/questions/426150</a> and 
+<a href="https://math.stackexchange.com/questions/2800817">https://math.stackexchange.com/questions/2800817</a>
+for various related equations concerning conic sections.
+<a href="https://en.wikipedia.org/wiki/Ellipse">https://en.wikipedia.org/wiki/Ellipse</a> for several parameter
+conversion formulas
+</p>
+
+
+<h3>See Also</h3>
+
+  
+<p><code>createConic</code> , <code>fitParabola </code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+##-create a hyperbola, add noise
+Ang =  0.42 #radians
+xh &lt;- seq(-20,20,by=0.1)
+parAxyh &lt;- c(0, 1, 0, -2, 4, -15 )
+parAxyhr &lt;- rotateA(parAxyh, Ang)$parA
+newxyr &lt;-createConic(xh,parAxyhr)
+newxyrn &lt;- createConic(xh,parAxyhr,ranFun=rnorm, noise= 0.05)
+plot(newxyr, t = 'l',asp=TRUE)
+points(newxyrn, pch = '.', cex = 3)
+# Now find the hyperbola for that dataset
+hypfitr &lt;-fitConic(newxyrn, conicType = 'h')
+hypdatr &lt;- createConic(xh, hypfitr$parA)
+lines(hypdatr, col='red')
+</code></pre>
+
+
+</div>

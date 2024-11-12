@@ -1,0 +1,738 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modPB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Photo-Based module - Generate photo-based estimates.</h2>
+
+<h3>Description</h3>
+
+<p>Generates percent, area or ratio-of-means estimates, with associated
+sampling error by domain (and estimation unit). Calculations are based on
+Patterson (2012) photo-based estimators for the Nevada photo-based
+inventory.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modPB(
+  PBpopdat = NULL,
+  tabtype = "PCT",
+  sumunits = FALSE,
+  ratio = FALSE,
+  landarea = "ALL",
+  landarea.filter = NULL,
+  nonsamp.pntfilter = NULL,
+  pntfilter = NULL,
+  pfilter = NULL,
+  rowvar = NULL,
+  colvar = NULL,
+  domlut = NULL,
+  domvarlst = NULL,
+  ratioden = "ROWVAR",
+  gainloss = FALSE,
+  gainloss.vals = NULL,
+  addtitle = FALSE,
+  returntitle = FALSE,
+  savedata = FALSE,
+  table_opts = NULL,
+  title_opts = NULL,
+  savedata_opts = NULL,
+  gui = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>PBpopdat</code></td>
+<td>
+<p>List. Population data objects returned from modPBpop().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tabtype</code></td>
+<td>
+<p>String. Type of units for the table ("PCT", "AREA").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumunits</code></td>
+<td>
+<p>Logical. If TRUE, estimation units are combined to one table
+for output. Note: only available if tabtype="AREA". Acres</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio</code></td>
+<td>
+<p>Logical. If TRUE, ratio estimates are generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>landarea</code></td>
+<td>
+<p>String. Sample area for estimates ("ALL", "CHANGE"). Used to
+describe landarea.filter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>landarea.filter</code></td>
+<td>
+<p>String. filter for land area. Must be R syntax.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonsamp.pntfilter</code></td>
+<td>
+<p>String. An expression for filtering nonsampled
+points (e.g., cloud coverage). Must be R syntax.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pntfilter</code></td>
+<td>
+<p>String. A global filter for the pnt file. Must be R syntax.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pfilter</code></td>
+<td>
+<p>String. A global filter for the plt file. Must be R syntax.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rowvar</code></td>
+<td>
+<p>String. Name of domain variable in pnt used for output
+estimation table rows. If only 1 domain, must be rowvar. If no domain,
+rowvar=NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colvar</code></td>
+<td>
+<p>String. Name of domain variable in pnt used for output
+estimation table columns. If only 1 domain, colvar=NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domlut</code></td>
+<td>
+<p>DF/DT or comma-delimited (*.csv). Look-up table to define the
+variables in the pnt table with category codes (DOMCODE) and code names
+(DOMNAME), and to set a pretty name for the variable to use in output table
+(DOMTITLE). This table is also used to populate rowvar/colvar,
+row.orderby/col.orderby, and title.rowvar/title.colvar parameters. Optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domvarlst</code></td>
+<td>
+<p>String vector. A vector of variable names that can be row
+or column domains (codes and names). Optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratioden</code></td>
+<td>
+<p>String. ("ROWVAR" or "COLVAR"). If ratio, defines whether
+the rowvar or colvar in estimation output table is the denominator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gainloss</code></td>
+<td>
+<p>Logical. If TRUE, a table with the difference of gain and
+loss along with the variance and standard error, in percent, is generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gainloss.vals</code></td>
+<td>
+<p>String vector. A vector of names for values in gainloss
+table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addtitle</code></td>
+<td>
+<p>Logical. If TRUE and savedata=TRUE, adds title to outfile.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returntitle</code></td>
+<td>
+<p>Logical. If TRUE, returns a character string of the title
+of the output data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata</code></td>
+<td>
+<p>Logical. If TRUE, saves table(s) to outfolder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table_opts</code></td>
+<td>
+<p>List. See help(table_options()) for a list of
+options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title_opts</code></td>
+<td>
+<p>List. See help(title_options()) for a list of options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savedata_opts</code></td>
+<td>
+<p>List. See help(savedata_options()) for a list
+of options. Only used when savedata = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gui</code></td>
+<td>
+<p>Logical. If gui, user is prompted for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters for modPBpop() if PBpopdat is NULL.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If variables are NULL, then it will prompt user to input variables.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with estimates with percent sampling error for rowvar (and
+colvar).  If sumunits=TRUE or unitvar=NULL and colvar=NULL, one data frame
+is returned.  Otherwise, a list object is returned with the following
+information.  If savedata=TRUE, all data frames are written to outfolder.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p> DF. Estimated percent cover or area by rowvar, colvar, (and
+estimation unit).  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pse</code></td>
+<td>
+<p> DF. Percent sampling error of estimates by
+rowvar, colvar (and estimation unit). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>titlelst</code></td>
+<td>
+<p> List with 1 or 2
+string vectors. If returntitle=TRUE a list with table title(s). The list
+contains one title if est and pse are in the same table and two titles if
+est and pse are in separate tables. Row and column tables are also included
+in list. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw</code></td>
+<td>
+<p> List of data frames. If rawdata=TRUE, a list
+including the processing data used for estimation including: number of plots
+and conditions; stratification information; and 1 to 8 tables with
+calculated values for table cells and totals (See processing data below). </p>
+</td>
+</tr>
+</table>
+<p>Raw data
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pntsampcnt</code></td>
+<td>
+<p> Table. Number of points by rowvar/colvar (sampled and
+nonsampled). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratdat</code></td>
+<td>
+<p> Data frame. Strata information by estimation unit. </p>
+</td>
+</tr>
+</table>
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>Variable</b> </td>
+<td style="text-align: left;"> <b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> unitvar
+</td>
+<td style="text-align: left;"> estimation unit</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> strvar </td>
+<td style="text-align: left;"> strata </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> areavar </td>
+<td style="text-align: left;"> If
+tabtype='AREA', area by strata for estimation unit</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> n.strata </td>
+<td style="text-align: left;">
+number of plots in strata (after totally nonsampled plots removed) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+n.total </td>
+<td style="text-align: left;"> number of plots for estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> TOTAREA </td>
+<td style="text-align: left;"> If
+tabtype='AREA', total area for estimation unit </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> strwt </td>
+<td style="text-align: left;">
+proportion of area (or number of plots) by strata (strata weight) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<table><tr style="vertical-align: top;">
+<td><code>processing data</code></td>
+<td>
+<p> Data frames. Separate data frames of variables used
+in estimation process for the rowvar, colvar and combination of rowvar and
+colvar (if colvar is not NULL), and grand total by estimation unit
+(unit.rowest, unit.colest, unit.grpest, respectively) and summed estimation
+units, if FIA=TRUE (rowest, colest, grpest, respectively).
+</p>
+<p>The data frames include the following information: </p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+<b>Variable</b> </td>
+<td style="text-align: left;"> <b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> phat </td>
+<td style="text-align: left;"> estimated
+proportion of covered land </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> phat.var </td>
+<td style="text-align: left;"> variance of estimated
+proportion of covered land </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> areavar </td>
+<td style="text-align: left;"> If tabtype='AREA', total
+area for estimation unit</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est </td>
+<td style="text-align: left;"> If tabtype='AREA', estimated area
+of land phat*areavar If tabtype='PCT', estimated percent cover of land
+phat*100 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est.var </td>
+<td style="text-align: left;"> variance of estimated area of land
+phat.var*areavar </td>
+</tr>
+<tr>
+<td style="text-align: left;"> If tabtype='PCT', estimated percent cover of land
+phat.var*100 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est.se </td>
+<td style="text-align: left;"> standard error of estimated area or
+percent cover sqrt(est.var) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est.cv </td>
+<td style="text-align: left;"> coefficient of variance of
+estimated area or percent cover est.se/est </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est.pse </td>
+<td style="text-align: left;"> percent
+sampling error of estimated area of percent cover est.cv*100 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+CI99left </td>
+<td style="text-align: left;"> left tail of 99 percent confidence interval for estimate </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> CI99right </td>
+<td style="text-align: left;"> right tail of 99 percent confidence interval for
+estimate </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI95left </td>
+<td style="text-align: left;"> left tail of 95 percent confidence interval
+for estimate </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI95right </td>
+<td style="text-align: left;"> right tail of 95 percent confidence
+interval for estimate </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI67left </td>
+<td style="text-align: left;"> left tail of 67 percent
+confidence interval for estimate </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI67right </td>
+<td style="text-align: left;"> right tail of 67
+percent confidence interval for estimate </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+<p>if ratio=TRUE: </p>
+
+<table>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> <b>Variable</b> </td>
+<td style="text-align: left;">
+<b>Description</b>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> phat.n </td>
+<td style="text-align: left;"> estimated proportion of covered land,
+for numerator (colvar) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> phat.var.n </td>
+<td style="text-align: left;"> variance of estimated
+proportion of covered land, for numerator (colvar) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> phat.d </td>
+<td style="text-align: left;">
+estimated proportion of covered land, for denominator (rowvar) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+phat.var.d </td>
+<td style="text-align: left;"> variance of estimated proportion of covered land, for
+denominator (rowvar) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> covar </td>
+<td style="text-align: left;"> covariance of estimated proportion
+of numerator (rowvar) and denominator (colvar) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> rhat </td>
+<td style="text-align: left;"> ratio of
+estimated proportions (numerator-colvar / denominator-rowvar) </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+rhat.var </td>
+<td style="text-align: left;"> variance of ratio of estimated proportions </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> rhat.se
+</td>
+<td style="text-align: left;"> standard error of ratio of estimated proportions sqrt(rhat.var) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> rhat.cv </td>
+<td style="text-align: left;"> coefficient of variation of ratio of estimated proportions
+rhat.se/rhat </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> areavar </td>
+<td style="text-align: left;"> If tabtype='AREA', total area for
+estimation unit</td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est </td>
+<td style="text-align: left;"> If tabtype='AREA', estimated area of land
+rhat*areavar If tabtype='PCT', estimated percent cover of land rhat*100 </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> est.var </td>
+<td style="text-align: left;"> variance of estimated area of land rhat.var*areavar </td>
+</tr>
+<tr>
+<td style="text-align: left;"> If
+tabtype='PCT', estimated percent cover of land rhat.var*100 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est.se
+</td>
+<td style="text-align: left;"> standard error of estimated area or percent cover sqrt(est.var) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> est.cv </td>
+<td style="text-align: left;"> coefficient of variance of estimated area or percent cover
+est.se/est </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> est.pse </td>
+<td style="text-align: left;"> percent sampling error of estimated area of
+percent cover est.cv*100 </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI99left </td>
+<td style="text-align: left;"> left tail of 99 percent
+confidence interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI99right </td>
+<td style="text-align: left;"> right tail of
+99 percent confidence interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI95left </td>
+<td style="text-align: left;">
+left tail of 95 percent confidence interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;">
+CI95right </td>
+<td style="text-align: left;"> right tail of 95 percent confidence interval for estimated
+area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI67left </td>
+<td style="text-align: left;"> left tail of 67 percent confidence interval for
+estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+<td style="text-align: left;"> CI67right </td>
+<td style="text-align: left;"> right tail of 67 percent confidence
+interval for estimated area </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+</table>
+</td>
+</tr></table>
+<h3>Note</h3>
+
+<p>STRATA:<br> Stratification is used to reduce variance in population estimates
+by partitioning the population into homogenous classes (strata), such as
+forest and nonforest. For stratified sampling methods, the strata sizes
+(weights) must be either known or estimated. Remotely-sensed data is often
+used to generate strata weights with proporation of pixels by strata. If
+stratification is desired (strata=TRUE), the required data include: stratum
+assignment for the center location of each plot, stored in either pltassgn
+or cond; and a look-up table with the area or proportion of the total area
+of each strata value by estimation unit, making sure the name of the strata
+(and estimation unit) variable and values match the plot assignment name(s)
+and value(s).
+</p>
+<p>sumunits:<br> An estimation unit is a population, or area of interest, with
+known area and number of plots. Individual counties or combined
+Super-counties are common estimation units for FIA. An estimation unit may
+also be a subpopulation of a larger population (e.g., Counties within a
+State). Subpopulations are mutually exclusive and independent within a
+population, therefore estimated totals and variances are additive. For
+example, State-level estimates are generated by summing estimates from all
+subpopulations within the State (Bechtold and Patterson. 2005. Chapter 2).
+Each plot must be assigned to only one estimation unit.
+</p>
+<p>If sumunits=TRUE, estimates are generated by estimation unit, summed
+together, and returned as one estimate. If rawdata=TRUE, estimates by
+individual estimation unit are also returned.
+</p>
+<p>If sumunits=FALSE, estimates are generated and returned by estimation unit
+as one data frame. If savedata=TRUE, a separate file is written for each
+estimation unit.
+</p>
+<p>stratcombine:<br> If TRUE and less than 2 plots in any one estimation unit,
+all estimation units with 10 or less plots are combined. The current method
+for combining is to group the estimation unit with less than 10 plots with
+the estimation unit following in consecutive order (numeric or
+alphabetical), restrained by survey unit (UNITCD) if included in dataset,
+and continuing until the number of plots equals 10. If there are no
+estimation units following in order, it is combined with the estimation unit
+previous in order.
+</p>
+<p>rowlut/collut:<br> There are several objectives for including rowlut/collut
+look-up tables: 1) to include descriptive names that match row/column codes
+in the input table; 2) to use number codes that match row/column names in
+the input table for ordering rows; 3) to add rows and/or columns with 0
+values for consistency. No duplicate names are allowed.
+</p>
+<p>Include 2 columns in the table:<br> 1-the merging variable with same name as
+the variable in the input merge table;<br> 2-the ordering or descriptive
+variable.<br> If the ordering variable is the rowvar/colvar in the input
+table and the descriptive variable is in rowlut/collut, set
+row.orderby/col.orderby equal to rowvar/colvar. If the descriptive variable
+is the rowvar/colvar in the input table, and the ordering code variable is
+in rowlut/collut, set row.orderby/col.orderby equal to the variable name of
+the code variable in rowlut/collut.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Tracey S. Frescino, Paul L. Patterson, Elizabeth A. Freeman
+</p>
+
+
+<h3>References</h3>
+
+<p>Frescino, Tracey S.; Moisen, Gretchen G.; Megown, Kevin A.;
+Nelson, Val J.; Freeman, Elizabeth A.; Patterson, Paul L.; Finco, Mark;
+Brewer, Ken; Menlove, James 2009.  Nevada Photo-Based Inventory Pilot (NPIP)
+photo sampling procedures. Gen. Tech. Rep.  RMRS-GTR-222. Fort Collins, CO:
+U.S. Department of Agriculture, Forest Service, Rocky Mountain Research
+Station. 30 p.
+</p>
+<p>Patterson, Paul L. 2012. Photo-based estimators for the Nevada photo-based
+inventory.  Res. Pap. RMRS-RP-92. Fort Collins, CO: U.S. Department of
+Agriculture, Forest Service, Rocky Mountain Research Station. 14 p.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load necessary data from FIESTA
+## Point data
+icepntfn &lt;- system.file("extdata",
+                        "PB_data/icepnt_utco1135.csv",
+                         package = "FIESTA")
+icepnt &lt;- read.csv(icepntfn)
+
+## Plot data
+icepltfn &lt;- system.file("extdata",
+                        "PB_data/icepltassgn_utco1135.csv",
+                         package = "FIESTA")
+iceplt &lt;- read.csv(icepltfn)
+
+## County data
+unitareafn &lt;- system.file("extdata", 
+                          "PB_data/unitarea_utco1135.csv",
+                           package = "FIESTA")
+unitarea &lt;- read.csv(unitareafn)
+
+## ICE Cover
+icecoverfn &lt;- system.file("extdata",
+                          "PB_data/cover_LUT.csv",
+                           package = "FIESTA")
+icecover &lt;- read.csv(icecoverfn)
+names(icecover) &lt;- sub("cover", "cover_1", names(icecover))
+
+# Set up population data (see ?modPBpop() for more information)
+PBpopunit &lt;- modPBpop(pnt = icepnt, 
+                      pltassgn = iceplt, 
+                      pltassgnid = "plot_id", 
+                      pntid = "dot_cnt",
+                      unitarea = unitarea, 
+                      unitvar = "ESTN_UNIT")
+# Photo-based estimation with point-level data by estimation unit (county)                       
+## Without summing units
+cover1.unit.area &lt;- modPB(
+  PBpopdat = PBpopunit,
+  tabtype = "AREA",
+  rowvar = "cover_1",
+  nonsamp.pntfilter = "cover_1 != 999",
+  table_opts = list(rowlut = icecover),
+  title_opts = list(title.rowvar = "Land Cover (2011)")
+) 
+
+cover1.unit.area$est
+                          
+## With summing units
+cover1.unit.area.sum &lt;- modPB(
+  PBpopdat = PBpopunit,
+  tabtype = "AREA",
+  rowvar = "cover_1",
+  nonsamp.pntfilter = "cover_1 != 999",
+  sumunits = TRUE,
+  table_opts = list(rowlut = icecover),
+  title_opts = list(title.rowvar = "Land Cover (2011)")
+)
+
+cover1.unit.area.sum$est   
+          
+</code></pre>
+
+
+</div>

@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.flexgam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Predicts values for the object of class flexgam
+</h2>
+
+<h3>Description</h3>
+
+<p>Predicts values for the given object and a given dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'flexgam'
+predict(object, newdata=NULL, type=c("response","linear.predictor", 
+        "terms"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>Object of class flexgam.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+
+<p>New data to build predicted values. Same behaviour as in standard predict.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Should the fitted values (<code>'response'</code>) or the linear predictor (<code>'linear.predictor'</code>) be predicted. Alternatively the linear predictor for each covariate separately is given (<code>'terms'</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Currently not used
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Calculates the predicted values for the given model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Numeric vector or matrix of fitted values
+</p>
+
+
+<h3>Note</h3>
+
+<p>The sum of the <code>'terms'</code> is not the <code>'linear.predictor'</code> since the <code>'terms'</code> misses the scaling.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Elmar Spiegel
+</p>
+
+
+<h3>References</h3>
+
+<p>Spiegel, Elmar, Thomas Kneib and Fabian Otto-Sobotka. Generalized additive models with flexible response functions. Statistics and Computing (2017). https://doi.org/10.1007/s11222-017-9799-6
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flexgam</code>, <code>deviance.flexgam</code>, <code>response.flexgam</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 1000
+x1 &lt;- runif(n)
+x2 &lt;- runif(n)
+x3 &lt;- runif(n)
+eta_orig &lt;- -1 + 2*sin(6*x1) + exp(x2) + x3
+pi_orig &lt;- pgamma(eta_orig, shape=2, rate=sqrt(2))
+y &lt;- rbinom(n,size=1,prob=pi_orig)
+
+Data &lt;- data.frame(y,x1,x2,x3)
+formula &lt;- y ~ s(x1,k=20,bs="ps") + s(x2,k=20,bs="ps") + x3
+
+# Fix smoothing parameters to save computational time.
+control2 &lt;- list("fix_smooth" = TRUE, "quietly" = TRUE, "sm_par_vec" = 
+                     c("lambda" = 100, "s(x1)" = 2000, "s(x2)" = 9000))
+
+set.seed(2)
+model_2 &lt;- flexgam(formula=formula, data=Data, type="FlexGAM2", 
+                   family=binomial(link=logit), control = control2)
+
+
+set.seed(2)
+n &lt;- 1000
+x1 &lt;- runif(n)
+x2 &lt;- runif(n)
+x3 &lt;- runif(n)
+eta_orig &lt;- -1 + 2*sin(6*x1) + exp(x2) + x3
+pi_orig &lt;- pgamma(eta_orig, shape=2, rate=sqrt(2))
+y &lt;- rbinom(n,size=1,prob=pi_orig)
+
+newData &lt;- data.frame(y,x1,x2,x3)
+
+fitted_2 &lt;- predict(model_2, newdata=newData)
+
+</code></pre>
+
+
+</div>

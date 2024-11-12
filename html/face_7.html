@@ -1,0 +1,402 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>face.sparse</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fast covariance estimation for sparse functional data
+</h2>
+
+<h3>Description</h3>
+
+<p>The function is to estimate the mean and covariance function
+from a cluster of functions/longitudinal observations.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">face.sparse(data, newdata = NULL,
+             center = TRUE, argvals.new = NULL,
+             knots = 7, 
+             p = 3, m = 2, lambda = NULL, lambda_mean = NULL,
+             search.length = 14, 
+             lower = -3, upper = 10, lower2 = -3, upper2 = 5,
+             calculate.scores = FALSE,pve=0.99,two_step=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>a data frame with three arguments:
+(1) <code>argvals</code>: observation times;
+(2) <code>subj</code>: subject indices;
+(3) <code>y</code>: values of observations.
+Missing values not allowed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+
+<p>of the same strucutre as <code>data</code>; defaults to NULL, then no prediction. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+
+<p>logical. If TRUE, then Pspline smoothing of the population mean will be conducted and
+subtracted from the data before covariance smoothing; if FALSE, then
+the population mean will be just 0s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals.new</code></td>
+<td>
+
+<p>a vector of observation time points to evaluate mean function, covariance function, error variance
+and etc. If NULL,
+then 100 equidistant points in the range of <code>data$argvals</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+
+<p>the number of knots for B-spline basis functions to be used; defaults to 7.
+The resulting number of basis functions is the number of interior knots plus the degree of B-splines.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>the degrees of B-splines; defaults to 3.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+
+<p>the order of differencing penalty; defaults to 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>the value of the smoothing parameter for covariance smoothing; defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda_mean</code></td>
+<td>
+
+<p>the value of the smoothing parameter for mean smoothing; defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search.length</code></td>
+<td>
+
+<p>the number of equidistant (log scale) smoothing parameters to search; defaults to 14.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+
+<p>bounds for log smoothing parameter for first step of estimation; defaults are -3 and 10, respectively.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower2, upper2</code></td>
+<td>
+
+<p>bounds for log smoothing parameter for second step of estimation; defaults are <code>lower</code> and 5, respectively.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calculate.scores</code></td>
+<td>
+
+<p>if TRUE, scores will be calculated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pve</code></td>
+<td>
+
+<p>Defaults 0.99. To select the number of eigenvalues by percentage of variance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>two_step</code></td>
+<td>
+
+<p>if TRUE, a two-step estimation procedure will be applied.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a generalized version of bivariate P-splines (Eilers and Marx, 2003) for
+covariance smoothing of sparse functional or longitudinal data.
+It uses tensor product B-spline basis functions and
+employes a differencing penalty on the assosciated parameter matrix.
+The only smoothing parameter in the method is selected
+by leave-one-subject-out cross validation and is implemented with a fast algorithm.
+</p>
+<p>There are two steps for estimation. During the first step, the objective function to minimize
+is the penalized least squares on empirical estimates of covariance function. During the second step,
+the covariance between the empirical estimates (depending on the estimates of 
+covariance function) are accounted and thus a generalized penalized
+least squares are minimized.
+</p>
+<p>If <code>center</code> is TRUE, then a population mean will be calculated and is smoothed by
+univariate P-spline smoothing:<code>pspline</code> (Eilers and Marx, 1996). This univariate
+smoothing uses leave-one-subject-out cross validation to select the smoothing parameter.
+</p>
+<p>The knots are "equally-spaced", the differencing penalty in Eilers and Marx (2003)
+is used.
+</p>
+<p>If the functional data are observed at the same grid for each function/curve
+and can be organized into
+a data matrix, then <code>fpca.face</code> in the package <code>refund</code>
+should instead be used. <code>fpca.face</code> allows a small percentage (less than
+30 percent) of 
+missing data in the data matrix.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Input</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.pred,mu.pred,Chat.diag.pred, var.error.pred</code></td>
+<td>
+<p>Predicted/estimated objects at
+<code>newdata$argvals</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Theta</code></td>
+<td>
+<p>Estimated parameter matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals.new</code></td>
+<td>
+<p>Vector of time points to evaluate population parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.new, Chat.new,Cor.new,Cor.raw.new,Chat.raw.diag.new, var.error.new</code></td>
+<td>
+<p>Estimated objects at
+<code>argvals.new</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigenfunctions, eigenvalues</code></td>
+<td>
+<p>Estimated eigenfunctions (scaled eigenvector) and eigenvalues at <code>argvals.new</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.hat,var.error.hat</code></td>
+<td>
+<p>Estimated objects at  <code>data$argvals</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calculate.scores, rand_eff</code></td>
+<td>
+<p>if <code>calculate.scores</code> is TRUE (default to FALSE), then predicted scores <code>rand_eff$scores</code> will be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>...</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Luo Xiao &lt;lxiao5@ncsu.edu&gt; and Cai Li &lt;cli9@ncsu.edu&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Luo Xiao, Cai Li, William Checkley and Ciprian Crainiceanu, Fast covariance estimation
+for sparse functional data, Stat. Comput., doi: <a href="https://doi.org/10.1007/s11222-017-9744-8">10.1007/s11222-017-9744-8</a>.
+</p>
+<p>Paul Eilers and Brian  Marx, Multivariate calibration with temperature
+interaction using two-dimensional penalized signal regression,
+Chemometrics and Intelligent Laboratory Systems 66 (2003), 159-174.
+</p>
+<p>Paul Eilers and Brian Marx, Flexible smoothing with B-splines and penalties,
+Statist. Sci., 11, 89-121, 1996.
+</p>
+<p>Simon N. Wood, P-splines with derivative based penalties and tensor product 
+smoothing of unevenly distributed data, Stat. Comput., doi: <a href="https://doi.org/10.1007/s11222-016-9666-x">10.1007/s11222-016-9666-x</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fpca.face</code> and <code>fpca.sc</code> in <code>refund</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+##########################
+#### CD4 data example
+##########################
+
+require(refund)
+data(cd4)
+n &lt;- nrow(cd4)
+Tt &lt;- ncol(cd4)
+
+id &lt;- rep(1:n,each=Tt)
+t &lt;- rep(-18:42,times=n)
+y &lt;- as.vector(t(cd4))
+sel &lt;- which(is.na(y))
+
+
+## organize data and apply FACEs
+data &lt;- data.frame(y=log(y[-sel]),
+argvals = t[-sel],
+subj = id[-sel])
+data &lt;- data[data$y&gt;4.5,]
+fit_face &lt;- face.sparse(data,argvals.new=(-20:40))
+
+## set calculate.scores to TRUE if want to get scores
+fit_face &lt;- face.sparse(data,argvals.new=(-20:40),calculate.scores=TRUE)
+scores &lt;- fit_face$rand_eff$scores
+
+data.h &lt;- data
+tnew &lt;- fit_face$argvals.new
+
+## scatter plots
+Xlab &lt;- "Months since seroconversion"
+Ylab &lt;- "log (CD4 count)"
+par(mfrow=c(1,1),mar = c(4.5,4.5,3,2))
+id &lt;- data.h$subj
+uid &lt;- unique(id)
+plot(data.h$argvals,data.h$y,
+type = "n", ylim = c(4.5,8),
+xlab = Xlab, ylab = Ylab,
+cex.lab = 1.25,cex.axis=1.25,cex.main = 1.25)
+
+for(i in 1:10){
+seq &lt;- which(id==uid[i])
+lines(data.h$argvals[seq],data.h$y[seq],lty=1,col="gray",lwd=1,type="l")
+#points(data.h$argvals[seq],data.h$y[seq],col=1,lty=1,pch=1)
+}
+
+Sample &lt;- seq(10,50,by=10)
+for(i in Sample){
+seq &lt;- which(id==uid[i])
+lines(data.h$argvals[seq],data.h$y[seq],lty=1,col="black",lwd=1,type="l")
+}
+lines(tnew,fit_face$mu.new,lwd=2,lty=2,col="red")
+
+## plots of variance/correlation functions
+
+Cov &lt;- fit_face$Chat.new
+Cov_diag &lt;- diag(Cov)
+Cor &lt;- fit_face$Cor.new
+
+par(mfrow=c(1,2),mar=c(4.5,4.1,3,4.5))
+
+
+plot(tnew,Cov_diag,type="l",
+xlab = Xlab, ylab="",main= "CD4: variance function",
+#ylim = c(0.8,1.5),
+cex.axis=1.25,cex.lab=1.25,cex.main=1.25,lwd=2)
+
+require(fields)
+image.plot(tnew,tnew,Cor,
+xlab=Xlab, ylab = Xlab,
+main = "CD4: correlation function",
+cex.axis=1.25,cex.lab=1.25,cex.main=1.25,
+axis.args = list(at = c(0,0.2,0.4,0.6,0.8,1.0)),
+legend.shrink=0.75,legend.line=-1.5)
+
+
+## prediction of several subjects
+
+par(mfrow=c(2,2),mar=c(4.5,4.5,3,2))
+Sample &lt;- c(30,40,50,60)
+for(i in 1:4){
+sel &lt;- which(id==uid[Sample[i]])
+dati &lt;- data.h[sel,]
+
+seq &lt;- -20:40
+k &lt;- length(seq)
+dati_pred &lt;- data.frame(y = rep(NA,nrow(dati) + k ),
+argvals = c(rep(NA,nrow(dati)),seq),
+subj=rep(dati$subj[1],nrow(dati) + k )
+)
+
+dati_pred[1:nrow(dati),] &lt;- dati
+yhat2 &lt;- predict(fit_face,dati_pred)
+
+data3 &lt;- dati
+Ylim &lt;- range(c(data3$y,yhat2$y.pred))
+
+plot(data3$argvals,data3$y,xlab=Xlab,ylab=Ylab, main = paste("Male ",i,sep=""),
+ylim = c(4,8.5),
+cex.lab=1.25,cex.axis = 1.25,cex.main = 1.25,pch=1,xlim=c(-20,40))
+
+Ord &lt;- nrow(dati) + 1:k
+lines(dati_pred$argvals[Ord],yhat2$y.pred[Ord],col="red",lwd=2)
+lines(dati_pred$argvals[Ord],
+yhat2$y.pred[Ord] - 1.96*yhat2$se.pred[Ord], col="red",lwd=1,lty=2)
+lines(dati_pred$argvals[Ord],
+yhat2$y.pred[Ord] + 1.96*yhat2$se.pred[Ord], col="red",lwd=1,lty=2)
+
+lines(tnew,fit_face$mu.new,lty=3,col="black",lwd=2)
+legend("bottomleft",c("mean","prediction"),lty=c(3,1),col=1:2,lwd=2,bty="n")
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

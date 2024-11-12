@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flag_ranges</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>flag_ranges</h2>
+
+<h3>Description</h3>
+
+<p>Function to compare stratigraphic ranges in x to a
+set of reference ranges from y. A list of two elements
+is returned. The first is a dataframe summarising
+the overall error status, specific error counts
+FAD and LAD differences, and the 95% density
+distributions of the FAD and LAD errors for each
+unique taxon in the column of x denoted by the first
+element of xcols. If a taxon in x is not present in
+y, it is assigned the status 000 and its other
+entries in the returned dataframe will be NA.
+The second element of the returned list is the error
+code for every individual element of the column of
+x denoted by the first element of xcols - this will
+have the same number of rows as x. If x is a range
+table rather than an occurrence dataset, then the two
+list elements will have the same number of rows.
+Ranges for comparison may be supplied directly in y,
+or y may be another occurrence dataset, in which case
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flag_ranges(
+  x = NULL,
+  y = NULL,
+  xcols = c("genus", "max_ma", "min_ma"),
+  ycols = NULL,
+  flag.diff = 5,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Stratigraphic range data for taxa as a whole
+or for individual fossil occurrences</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>The same as in x. This is the dataset to
+which ranges will be compared</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xcols</code></td>
+<td>
+<p>A character vector of length three
+specifying, in the following order, the taxonomic name,
+stratigraphic base (FAD) and stratigraphic top (LAD)
+columns in x.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ycols</code></td>
+<td>
+<p>An optional character vector of length
+three for the same column types as in xcols, but for
+dataset y. This is useful if the column names differ
+between the datasets</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag.diff</code></td>
+<td>
+<p>A vector of thresholds, given in millions
+of years which will be used to flag discrepancies
+between occurrence FADs and LADs with respect to the
+reference range. This is a convenience parameter so that
+occurrences with large discrepancies can be quickly
+identified. Multiple thresholds can be supplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical of length one determining if
+the flagging progress should be reported to the console</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of two data.frames, the first recording
+overall error statistics, the second recording error
+types for each element of x. In the second data.frame,
+FAD or LAD differences in excess of the supplied threshold(s)
+are marked with 1, otherwise 0
+</p>
+
+
+<h3>See Also</h3>
+
+<p>age_ranges is called internally to generate
+the range table for comparison.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load the example datasets
+data(brachios)
+data(sepkoski)
+# subsample brachios to make for a short example runtime
+set.seed(1)
+brachios &lt;- brachios[sample(1:nrow(brachios), 1000),]
+# update brachios to GTS2020 to match Sepkoski
+brachios &lt;- chrono_scale(brachios, srt = "early_interval", end = "late_interval",
+                          max_ma = "max_ma", min_ma = "min_ma", verbose = FALSE)
+brachios$max_ma &lt;- brachios$newFAD
+brachios$min_ma &lt;- brachios$newLAD
+# drop occurrences with older LADs than FADs
+brachios &lt;- brachios[brachios$max_ma &gt; brachios$min_ma,]
+# trim the Sepkoski Compendium to the relevant entries
+sepkoski &lt;- sepkoski[which(sepkoski$PHYLUM == "Brachiopoda"),]
+# run flag ranges
+flg &lt;- flag_ranges(x = brachios, y = sepkoski, ycols = c("GENUS", "RANGE_BASE", "RANGE_TOP"))
+</code></pre>
+
+
+</div>

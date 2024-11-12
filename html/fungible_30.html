@@ -1,0 +1,289 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>faAlign</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Align the columns of two factor loading matrices</h2>
+
+<h3>Description</h3>
+
+<p>Align factor loading matrices across solutions using the Hungarian algorithm
+to locate optimal matches. faAlign will match the factors of F2 (the input
+matrix) to those in F1 (the target matrix) to minimize a least squares
+discrepancy function or to maximize factor congruence coefficients (i.e.,
+vector cosines).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">faAlign(F1, F2, Phi2 = NULL, MatchMethod = "LS")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>F1</code></td>
+<td>
+<p>target Factor Loadings Matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F2</code></td>
+<td>
+<p>input Factor Loadings Matrix. F2 will be aligned with the target
+matrix, F1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi2</code></td>
+<td>
+<p>optional factor correlation matrix for F2 (default = NULL).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MatchMethod</code></td>
+<td>
+<p>"LS" (Least Squares) or "CC" (congruence coefficients).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>F2</code></td>
+<td>
+<p>re-ordered and reflected loadings of F2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi2</code></td>
+<td>
+<p>reordered and reflected factor correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FactorMap</code></td>
+<td>
+<p>a 2 x k matrix (where k is the number of columns of F1) structured such that
+row 1: the original column order of F2; row 2: the sorted column order of
+F2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UniqueMatch</code></td>
+<td>
+<p>(logical) indicates whether a unique match was
+found.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MatchMethod</code></td>
+<td>
+<p>"LS" (least squares) or "CC" (congruence
+coefficients, i.e., cosines).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CC</code></td>
+<td>
+<p>Congruence coefficients for the
+matched factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LS</code></td>
+<td>
+<p>Root-mean-squared-deviations (least squares
+criterion) for the matched factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dsgn</code></td>
+<td>
+<p>The Diagonal Sign Matrix that reflects the matched factors to 
+have positive salient loadings.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The Hungarian algorithm is implemented with the clue (Cluster
+Ensembles, Hornik, 2005) package. See Hornik K (2005). A CLUE for CLUster
+Ensembles. <em>Journal of Statistical Software, 14</em>(12). doi:
+10.18637/jss.v014.i12 (URL: http://doi.org/10.18637/jss.v014.i12).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Niels Waller
+</p>
+
+
+<h3>References</h3>
+
+<p>Kuhn, H. W. (1955). The Hungarian Method for the assignment
+problem. <em>Naval Research Logistics Quarterly, 2</em>, 83-97.
+</p>
+<p>Kuhn, H. W. (1956). Variants of the Hungarian method for assignment
+problems. <em>Naval Research Logistics Quarterly, 3</em>, 253-258.
+</p>
+<p>Papadimitriou, C. &amp; Steiglitz, K. (1982). Combinatorial Optimization:
+Algorithms and Complexity. Englewood Cliffs: Prentice Hall.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faLocalMin()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# This example demonstrates the computation of 
+# non-parametric bootstrap confidence intervals
+# for rotated factor loadings.
+
+
+library(GPArotation)
+
+data(HS9Var)
+
+HS9 &lt;- HS9Var[HS9Var$school == "Grant-White",7:15]
+
+# Compute an R matrix for the HSVar9 Mental Abilities Data
+R.HS9 &lt;- cor(HS9)
+
+varnames &lt;- c( "vis.per", "cubes", 
+            "lozenges", "paragraph.comp",
+            "sentence.comp","word.mean",
+            "speed.add", "speed.count.dots",
+            "speed.discr")
+
+
+
+# Extract and rotate a 3-factor solution
+# via unweighted least squares factor extraction 
+# and oblimin rotation. 
+
+NFac &lt;- 3
+NVar &lt;- 9
+B &lt;- 200      # Number of boostrap samples
+NSubj &lt;- nrow(HS9)
+
+# Unrotated 3 factor uls solution 
+ F3.uls &lt;- fals(R = R.HS9, nfactors = NFac)
+ 
+# Rotate via oblimin 
+ F3.rot &lt;- oblimin(F3.uls$loadings, 
+                      gam = 0, 
+                      normalize = FALSE)
+
+ F3.loadings &lt;- F3.rot$loadings
+ F3.phi &lt;- F3.rot$Phi
+ 
+ # Reflect factors so that salient loadings are positive
+ Dsgn &lt;- diag(sign(colSums(F3.loadings^3)))
+ F3.loadings &lt;- F3.loadings %*% Dsgn
+ F3.phi &lt;- Dsgn %*% F3.phi %*% Dsgn
+ 
+ rownames(F3.loadings) &lt;- varnames
+ colnames(F3.loadings) &lt;- paste0("f", 1:3)
+ colnames(F3.phi) &lt;- rownames(F3.phi) &lt;- paste0("f", 1:3)
+ 
+ cat("\nOblimin rotated factor loadings for 9 Mental Abilities Variables")
+ print( round(F3.loadings, 2))
+ 
+ cat("\nFactor correlation matrix")
+ print( round( F3.phi, 2))
+ 
+  # Declare variables to hold bootstrap output
+  Flist &lt;- Philist &lt;- as.list(rep(0, B))
+  UniqueMatchVec &lt;- rep(0, B)
+  rows &lt;- 1:NSubj
+ 
+  # Analyze bootstrap samples and record results 
+  for(i in 1:B){
+    cat("\nWorking on sample ", i)
+    set.seed(i)
+    
+    # Create bootstrap sanples
+    bsRows &lt;- sample(rows, NSubj, replace= TRUE)
+    Fuls &lt;- fals(R = cor(HS9[bsRows, ]), nfactors = NFac)
+    # rotated loadings
+    Fboot &lt;- oblimin(Fuls$loadings,
+                             gam = 0, 
+                             normalize = FALSE)
+    
+    
+    out &lt;- faAlign(F1 = F3.loadings, 
+                   F2 = Fboot$loadings, 
+                   MatchMethod = "LS")
+    
+    Flist[[i]] &lt;- out$F2 # aligned version of Fboot$loadings
+    UniqueMatchVec[i] &lt;- out$UniqueMatch
+  }
+  
+  cat("\nNumber of Unique Matches: ", 
+      100*round(mean(UniqueMatchVec),2),"%\n")
+
+  
+  #  Make a 3D array from list of matrices
+  arr &lt;- array( unlist(Flist) , c(NVar, NFac, B) )
+  
+  #  Get quantiles of factor elements over third dimension (samples)
+  F95 &lt;- apply( arr , 1:2 , quantile, .975 )
+  F05 &lt;- apply( arr , 1:2 , quantile, .025 )
+  Fse &lt;- apply( arr , 1:2, sd  )
+  
+  cat("\nUpper Bound 95% CI\n")
+  print( round(F95,3))
+  cat("\n\nLower Bound 95% CI\n")
+  print( round(F05,3))
+  
+  # plot distribution of bootstrap estimates
+  # for example element
+  hist(arr[5,1,], xlim=c(.4,1),
+       main = "Bootstrap Distribution for F[5,1]",
+       xlab = "F[5,1]")
+  
+  print(round (F3.loadings, 2))
+  cat("\nStandard Errors")
+  print( round( Fse, 2))
+
+</code></pre>
+
+
+</div>

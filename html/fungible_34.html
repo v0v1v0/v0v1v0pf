@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>faLocalMin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Investigate local minima in  faMain objects</h2>
+
+<h3>Description</h3>
+
+<p>Compute pairwise root mean squared deviations (RMSD) 
+among rotated factor patterns in an <code>faMain</code> object. 
+Prior to computing the RMSD values, each pair of solutions is aligned to 
+the first member of the pair.  Alignment is accomplished using the 
+Hungarian algorithm as described in <code>faAlign</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">faLocalMin(fout, Set = 1, HPthreshold = 0.1, digits = 5, PrintLevel = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fout</code></td>
+<td>
+<p>(Object from class  <code>faMain</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Set</code></td>
+<td>
+<p>(Integer) The index of the solution set (i.e., the collection of 
+rotated factor patterns with a common complexity value) from an 
+<code>faMain</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HPthreshold</code></td>
+<td>
+<p>(Scalar) A number between [0, 1] that defines the 
+hyperplane threshold. Factor pattern elements below <code>HPthreshold</code> in absolute 
+value are counted in the hyperplane count.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>(Integer) Specifies the  number of significant 
+digits in the printed output. Default <code>digits = 5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PrintLevel</code></td>
+<td>
+<p>(Integer) Determines the level of printed output.
+PrintLevel = 
+</p>
+
+<ul>
+<li> <p><strong>0</strong>: No output is printed. 
+</p>
+</li>
+<li> <p><strong>1</strong>: Print output for the six most discrepant pairs of 
+rotated factor patterns.
+</p>
+</li>
+<li> <p><strong>2</strong>: Print output for all  pairs of rotated factor patterns.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Compute pairwise RMSD values among rotated factor patterns from 
+an <code>faMain</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>faLocalMin</code> function will produce the following output.
+</p>
+
+<ul>
+<li> <p><strong>rmsdTable</strong>: (Matrix) A table of <code>RMSD</code> values for each  pair of 
+rotated factor patterns in  solution set <code>Set</code>.
+</p>
+</li>
+<li> <p><strong>Set</strong>: (Integer) The index of the user-specified solution set.
+</p>
+</li>
+<li> <p><strong>complexity.val</strong> (Numeric): The common complexity value for all members 
+in the user-specified solution set.
+</p>
+</li>
+<li> <p><strong>HPcount</strong>: (Integer) The hyperplane count for each factor pattern in the solution set.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Niels Waller
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Factor Analysis Routines: 
+<code>BiFAD()</code>,
+<code>Box26</code>,
+<code>GenerateBoxData()</code>,
+<code>Ledermann()</code>,
+<code>SLi()</code>,
+<code>SchmidLeiman()</code>,
+<code>faAlign()</code>,
+<code>faEKC()</code>,
+<code>faIB()</code>,
+<code>faMB()</code>,
+<code>faMain()</code>,
+<code>faScores()</code>,
+<code>faSort()</code>,
+<code>faStandardize()</code>,
+<code>faX()</code>,
+<code>fals()</code>,
+<code>fapa()</code>,
+<code>fareg()</code>,
+<code>fsIndeterminacy()</code>,
+<code>orderFactors()</code>,
+<code>print.faMB()</code>,
+<code>print.faMain()</code>,
+<code>promaxQ()</code>,
+<code>summary.faMB()</code>,
+<code>summary.faMain()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  ## Generate Population Model and Monte Carlo Samples ####
+  sout &lt;- simFA(Model = list(NFac = 5,
+                          NItemPerFac = 5,
+                           Model = "orthogonal"),
+              Loadings = list(FacLoadDist = "fixed",
+                              FacLoadRange = .8),
+              MonteCarlo = list(NSamples = 100, 
+                                SampleSize = 500),
+              Seed = 655342)
+
+  ## Population EFA loadings
+  (True_A &lt;- sout$loadings)
+
+  ## Population Phi matrix
+  sout$Phi
+
+  ## Compute EFA on Sample 67 ####
+  fout &lt;- faMain (R = sout$Monte$MCData[[67]],
+                numFactors = 5,
+                targetMatrix = sout$loadings,
+                facMethod = "fals",
+                rotate= "cfT",
+                rotateControl = list(numberStarts = 50,
+                                     standardize="CM",
+                                     kappa = 1/25),
+                Seed=3366805)
+
+  ## Summarize output from faMain
+  summary(fout, Set = 1, DiagnosticsLevel = 2, digits=4)
+
+  ## Investigate Local Solutions
+  LMout &lt;- faLocalMin(fout, 
+                    Set = 1,
+                    HPthreshold = .15,
+                    digits= 5, 
+                    PrintLevel = 1)
+                    
+  ## Print hyperplane count for each factor pattern 
+  ## in the solution set
+  LMout$HPcount
+  
+## End(Not run)
+</code></pre>
+
+
+</div>

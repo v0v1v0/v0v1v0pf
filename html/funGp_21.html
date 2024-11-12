@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_active_in</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extraction of active inputs in a given model structure</h2>
+
+<h3>Description</h3>
+
+<p>The fgpm_factory function returns an object of class <code>"Xfgpm"</code>
+with the function call of all the evaluated models stored in the <code>@log.success@args</code> and
+<code>@log.crashes@args</code> slots. The <code>get_active_in</code> function interprets the arguments linked to any
+structural configuration and returns a list with two elements: (i) a <code>matrix</code> of scalar input
+variables kept active; and (ii) a <code>list</code> of functional input variables kept active.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_active_in(sIn = NULL, fIn = NULL, args)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sIn</code></td>
+<td>
+<p>An optional matrix of scalar input coordinates with all the orignal scalar input variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fIn</code></td>
+<td>
+<p>An optional list of functional input coordinates with all the original functional input
+variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>args</code></td>
+<td>
+<p>An object of class <code>"modelCall"</code>, which specifies the model structure for
+which the active inputs should be extracted.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>"list"</code>, containing the following information extracted from the
+<em>args</em> parameter: (i) a <code>matrix</code> of scalar input variables kept active; and (ii) a <code>list</code>
+of functional input variables kept active.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>José Betancourt, François Bachoc, Thierry Klein and Jérémy Rohmer
+</p>
+
+
+<h3>References</h3>
+
+<p>Betancourt, J., Bachoc, F., Klein, T., Idier, D., Rohmer, J., and Deville, Y. (2024),
+"funGp: An R Package for Gaussian Process Regression with Scalar and Functional Inputs".
+<em>Journal of Statistical Software</em>, <strong>109</strong>, 5, 1–51.
+(<a href="https://doi.org/10.18637/jss.v109.i05">doi:10.18637/jss.v109.i05</a>)
+</p>
+<p>Betancourt, J., Bachoc, F., and Klein, T. (2020),
+R Package Manual: "Gaussian Process Regression for Scalar and Functional Inputs with funGp - The in-depth tour".
+<em>RISCOPE project</em>.
+<a href="https://hal.science/hal-02536624">[HAL]</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><strong>*</strong> which_on for details on how to obtain only the indices of the active inputs.
+</p>
+<p><strong>*</strong> modelCall for details on the <em>args</em> argument.
+</p>
+<p><strong>*</strong> fgpm_factory for funGp heuristic model selection.
+</p>
+<p><strong>*</strong> Xfgpm for details on object delivered by fgpm_factory.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Use precalculated Xfgpm object named xm
+# indices of active inputs in the best model
+xm@log.success@args[[1]] # the full fgpm call
+set.seed(100)
+n.tr &lt;- 32
+sIn &lt;- expand.grid(x1 = seq(0,1,length = n.tr^(1/5)), x2 = seq(0,1,length = n.tr^(1/5)),
+x3 = seq(0,1,length = n.tr^(1/5)), x4 = seq(0,1,length = n.tr^(1/5)),
+x5 = seq(0,1,length = n.tr^(1/5)))
+fIn &lt;- list(f1 = matrix(runif(n.tr*10), ncol = 10), f2 = matrix(runif(n.tr*22), ncol = 22))
+which_on(sIn, fIn, xm@log.success@args[[1]]) # only the indices extracted by which_on
+
+# data structures of active inputs
+active &lt;- get_active_in(sIn, fIn, xm@log.success@args[[1]])
+active$sIn.on # scalar data structures
+active$fIn.on # functional data structures
+# identifying selected model and corresponding fgpm arguments
+opt.model &lt;- xm@model
+opt.args &lt;- xm@log.success@args[[1]]
+
+# generating new input data for prediction
+n.pr &lt;- 243
+sIn.pr &lt;- expand.grid(x1 = seq(0,1,length = n.pr^(1/5)), x2 = seq(0,1,length = n.pr^(1/5)),
+                      x3 = seq(0,1,length = n.pr^(1/5)), x4 = seq(0,1,length = n.pr^(1/5)),
+                      x5 = seq(0,1,length = n.pr^(1/5)))
+fIn.pr &lt;- list(f1 = matrix(runif(n.pr*10), ncol = 10), f2 = matrix(runif(n.pr*22), ncol = 22))
+
+# pruning data structures for prediction to keep only active inputs!!
+active &lt;- get_active_in(sIn.pr, fIn.pr, opt.args)
+
+# making predictions
+preds &lt;- predict(opt.model, sIn.pr = active$sIn.on, fIn.pr = active$fIn.on)
+
+# plotting predictions
+plot(preds)
+
+
+# preparing new data for simulation based on inputs kept active____________________________
+opt.model &lt;- xm@model
+opt.args &lt;- xm@log.success@args[[1]]
+
+# generating new input data for simulation
+n.sm &lt;- 243
+sIn.sm &lt;- expand.grid(x1 = seq(0,1,length = n.pr^(1/5)), x2 = seq(0,1,length = n.pr^(1/5)),
+                      x3 = seq(0,1,length = n.pr^(1/5)), x4 = seq(0,1,length = n.pr^(1/5)),
+                      x5 = seq(0,1,length = n.pr^(1/5)))
+fIn.sm &lt;- list(f1 = matrix(runif(n.sm*10), ncol = 10), f2 = matrix(runif(n.sm*22), ncol = 22))
+
+# pruning data structures for simulation to keep only active inputs!!
+active &lt;- get_active_in(sIn.sm, fIn.sm, opt.args)
+
+# making light simulations
+sims_l &lt;- simulate(opt.model, nsim = 10, sIn.sm = active$sIn.on, fIn.sm = active$fIn.on)
+
+# plotting light simulations
+plot(sims_l)
+
+## Not run: 
+# rebuilding of 3 best models using new data_______________________________________________
+# NOTE: this example is of higher complexity than the previous ones. We recomend you run
+#       the previous examples and understand the @log.success and @log.crashes slots in
+#       the Xfgpm object delivered by fgpm_factory.
+#
+#       In the second example above we showed how to use get_active_in to prune the input
+#       data structures for prediction based on the fgpm arguments of the best model found
+#       by fgpm_factory. In this new example we generalize that concept by: (i) rebuilding
+#       the 3 best models found by fgpm_factory using new data, (ii) pruning the input
+#       data structures used for prediction with each of the models, and (iii) plotting
+#       the predictions made by the three models. The key ingredient here is that the
+#       three best models might have different scalar and functional inputs active. The
+#       get_active_in function will allow to process the data structures in order to
+#       extract only the scalar inputs required to re-build the model and then to make
+#       predictions with each model. Check also the funGp manual for further details
+#
+#       funGp manual: https://doi.org/10.18637/jss.v109.i05
+
+
+# &lt;&lt;&lt;&lt;&lt;&lt;&lt; PART 1: calling fgpm_factory to perform the structural optimization &gt;&gt;&gt;&gt;&gt;&gt;&gt;
+#         -------------------------------------------------------------------
+# this part is precalculated and loaded via data("precalculated_Xfgpm_objects")
+summary(xm)
+
+# &lt;&lt;&lt;&lt;&lt;&lt;&lt; PART 2: re-building the three best models found by fgpm_factory &gt;&gt;&gt;&gt;&gt;&gt;&gt;
+#         ---------------------------------------------------------------
+# recovering the fgpm arguments of the three best models
+argStack &lt;- xm@log.success@args[1:3]
+
+# new data arrived, now we have 243 observations
+n.nw &lt;- 243 # more points!
+sIn.nw &lt;- expand.grid(x1 = seq(0,1,length = n.nw^(1/5)), x2 = seq(0,1,length = n.nw^(1/5)),
+                      x3 = seq(0,1,length = n.nw^(1/5)), x4 = seq(0,1,length = n.nw^(1/5)),
+                      x5 = seq(0,1,length = n.nw^(1/5)))
+fIn.nw &lt;- list(f1 = matrix(runif(n.nw*10), ncol = 10), f2 = matrix(runif(n.nw*22), ncol = 22))
+sOut.nw &lt;- fgp_BB7(sIn.nw, fIn.nw, n.nw)
+
+# the second best model
+modelDef(xm,2)
+# re-building the three best models based on the new data (compact code with all 3 calls)
+newEnv &lt;- list(sIn = sIn.nw, fIn = fIn.nw, sOut = sOut.nw)
+modStack &lt;- lapply(1:3, function(i) eval(parse(text =  modelDef(xm,i)), env = newEnv))
+
+
+# &lt;&lt;&lt;&lt;&lt;&lt;&lt; PART 3: making predictions from the three best models found by fgpm_factory &gt;&gt;&gt;&gt;&gt;&gt;&gt;
+#         ---------------------------------------------------------------------------
+# generating input data for prediction
+n.pr &lt;- 32
+sIn.pr &lt;- expand.grid(x1 = seq(0,1,length = n.pr^(1/5)), x2 = seq(0,1,length = n.pr^(1/5)),
+                      x3 = seq(0,1,length = n.pr^(1/5)), x4 = seq(0,1,length = n.pr^(1/5)),
+                      x5 = seq(0,1,length = n.pr^(1/5)))
+fIn.pr &lt;- list(f1 = matrix(runif(n.pr*10), ncol = 10), matrix(runif(n.pr*22), ncol = 22))
+
+# making predictions based on the three best models (compact code with all 3 calls)
+preds &lt;- do.call(cbind, Map(function(model, args) {
+  active &lt;- get_active_in(sIn.pr, fIn.pr, args)
+  predict(model, sIn.pr = active$sIn.on, fIn.pr = active$fIn.on)$mean
+}, modStack, argStack))
+
+
+# &lt;&lt;&lt;&lt;&lt;&lt;&lt; PART 4: plotting predictions from the three best models found by fgpm_factory &gt;&gt;&gt;&gt;&gt;&gt;&gt;
+#         -----------------------------------------------------------------------------
+# plotting predictions made by the three models
+plot(1, xlim = c(1,nrow(preds)), ylim = range(preds), xaxt = "n",
+     xlab = "Prediction point index", ylab = "Output",
+     main = "Predictions with best 3 structural configurations")
+axis(1, 1:nrow(preds))
+for (i in seq_len(n.pr)) {lines(rep(i,2), range(preds[i,1:3]), col = "grey35", lty = 3)}
+points(preds[,1], pch = 21, bg = "black")
+points(preds[,2], pch = 23, bg = "red")
+points(preds[,3], pch = 24, bg = "green")
+legend("bottomleft", legend = c("Model 1", "Model 2", "Model 3"),
+       pch = c(21, 23, 24), pt.bg = c("black", "red", "green"), inset = c(.02,.08))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

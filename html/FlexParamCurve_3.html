@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extraF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compare Two <code class="reqn">nlsList</code> Models Using Extra Sum-of-Squares F-Tests</h2>
+
+<h3>Description</h3>
+
+<p>Function to compare two nested models using extra sum-of-squares F-Tests.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+
+extraF(submodel = 1,
+
+
+genmodel = 1,
+
+
+warn = TRUE)
+
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>submodel</code></td>
+<td>
+<p><code class="reqn">nlsList</code> model with fewer curve parameters (reduced model)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genmodel</code></td>
+<td>
+<p><code class="reqn">nlsList</code> model with more curve parameters (general model)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warn</code></td>
+<td>
+<p>logical specifying whether to report working R environment if previously exists</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Models must be entered in the correct order with the reduced model appearing
+</p>
+<p>first in the call and the more general model appearing later. These must be nested models,
+</p>
+<p>i.e. the general model must contain all of the curve parameters in the reduced model and more.
+</p>
+<p>Entering models with the same number of parameters will produce NAs in the output, but
+</p>
+<p>the function will produce seemingly adequate output with non-nested models. The user must
+</p>
+<p>check that models are nested prior to use.
+</p>
+<p>This function is primarily designed to be called by the model selection functions
+</p>
+<p><code>pn.modselect.step</code> and <code>pn.mod.compare</code> but can be used independently.
+</p>
+<p>Extra sum-of-squares is obtained from: </p>
+<pre>F = (SS1 - SS2)/(df1 - df2) / (SS2 / df2)</pre>
+<p>where SS = sum-of-squares and df = degrees of freedom, for the more reduced model (1) and the
+</p>
+<p>more general model (2), respectively.
+</p>
+<p>If the F value is significant then the more general model provides a significant improvement
+</p>
+<p>over the reduced model, but if the models are not significantly different then the reduced
+</p>
+<p>parameter model is to be preferred.
+</p>
+<p>In extraF (formulated especially for nlsList models), the root mean square error
+</p>
+<p>(and sum of squares) is inflated to the value expected if all groups (levels) were 
+</p>
+<p>fitted [i.e. RSE  =  RSE* (sqrt(n1) / sqrt(n0)), where RSE is root mean square error, n0 is the sample size (total
+</p>
+<p>number of data points used in fit) for the model with missing levels, and n1 is the inflated sample size (total number
+</p>
+<p>of data points in dataset)]. This is based on RSE changing with the square root of sample size, as discussed in the help file for
+</p>
+<p><code>pn.mod.compare</code>. Degrees of freedom are then increased to the vaue if all individuals had been fitted successfully, 
+</p>
+<p>i.e. total df - (# curve parameters * # levels). Thus, RSE and df are enlarged for models with missing levels so all models are
+</p>
+<p>compared based on the variability expected if all levels had been fitted . This allows the Fstat from extraF to be independent of missing levels
+</p>
+<p>in either of the two models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> listing the names of the models compared, F,
+</p>
+<p>numerator degrees of freedom,
+</p>
+<p>demonimator degrees of freedom, P value and the residual sum of squares for both the general
+</p>
+<p>and reduced models</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Oswald &lt;steve.oswald@psu.edu&gt;</p>
+
+
+<h3>References</h3>
+
+<p>Ritz, C. and Streibigg, J. C. (2008) <code class="reqn">Nonlinear regression with R.</code>
+</p>
+<p>Springer-Verlag, New York.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>extraF.nls</code>
+</p>
+<p><code>nlsList</code>
+</p>
+<p><code>pn.modselect.step</code>
+</p>
+<p><code>pn.mod.compare</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+   #compare two nested nlsList models (4 vs 8 parameter models)
+
+
+   modpar(posneg.data$age, posneg.data$mass, pn.options = "myoptions")
+
+
+   # (only first 4 group levels in data used for example's sake)
+
+
+   subdata&lt;-subset(posneg.data, as.numeric(row.names (posneg.data) ) &lt; 53)
+
+
+   richardsR2.lis &lt;- nlsList(mass ~ SSposnegRichards(age, Asym = Asym, K = K,
+
+
+     Infl = Infl, M = M, RAsym = RAsym, Rk = Rk, Ri = Ri,modno = 2, pn.options = "myoptions")
+
+
+                        , data = subdata)
+
+
+   richardsR12.lis &lt;- nlsList(mass ~ SSposnegRichards(age, Asym = Asym, K = K,
+
+
+     Infl = Infl, M = M, modno = 12, pn.options = "myoptions")
+
+
+                        , data = subdata)
+
+
+   extraF(richardsR12.lis, richardsR2.lis)
+
+
+</code></pre>
+
+
+</div>

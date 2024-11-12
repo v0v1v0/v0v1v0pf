@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>chop</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Prepare data for flux rate estimation with <code>flux</code> or GPP/Reco modelling.
+</h2>
+
+<h3>Description</h3>
+
+<p>The function simply constructs a list of <code>data.frame</code>s that each contains the data for one closed chamber measurement or for one NEE/GPP or <code class="reqn">R_{eco}</code> model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">chop(dat, factors, nmes = NULL, min.cm = 3)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+
+<p><code>data.frame</code> containing static closed chamber data for several chamber measurements. See columns and example for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+
+<p>A character vector giving the names of the columns that are used to partition the data in <code>dat</code> into chunks that each contains the data for one chamber placement. <code>factors</code> <code class="reqn">\subset</code> <code>columns</code>! See example.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmes</code></td>
+<td>
+
+<p>A character vector giving the names of the columns that are used to name the data chunks. <code>nmes</code> <code class="reqn">\subset</code> <code>columns</code>! See example.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.cm</code></td>
+<td>
+
+<p>Integer giving the minimum number of concentration measurements allowed per chamber measurement. Defaults to 3 because a linear fit to 2 points does not make any sense. Attention: Chamber placements with less than <code>min.cm</code> measurements are quietly skipped.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This could easily be hand scripted (e.g. with <code>split</code>) but the function shall provide a simple way to obtain the structure needed for <code>flux</code> and it also carries naming information.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list with 2 entries. The first is itself a list of <code>data.frame</code>s containing the concentration measurements that result from the field sampling during one chamber placement (if <code>factors</code> was specified correctly) and the columns specified in <code>columns</code>. The entries in the list are named according to <code>nmes</code>. However, the second part of the upper level list is a table with the naming information. This is handed over to <code>flux</code> and <code>plot.fluss</code>. See example.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gerald Jurasinski &lt;gerald.jurasinski@uni-rostock.de&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flux</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load example data
+data(tt.pre)
+
+## extract field concentration measurements
+gcd &lt;- tt.pre[tt.pre$sampletype_a=="P",]
+
+## partition the data into data tables per chamber measurement
+gcd.parts &lt;- chop(gcd, factors = c("date", "spot", "veg"), 
+nmes = c("date", "veg", "spot"))
+# have a look at the first three tables
+gcd.parts$tables[1:3]
+# have a look at the names part of the returned object
+gcd.parts$nmes
+# use inspect to have a look at (a) specific data table(s)
+inspect(gcd.parts, c("2011-03-15.c.3", "2011-03-15.c.6", "2011-03-15.p.6"))
+# inspect the same tables using their indices
+inspect(gcd.parts, c(3,6,12))
+inspect(gcd.parts, c("c.3", "c.6", "p.6"))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>funnel_step</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Continue to funnel</h2>
+
+<h3>Description</h3>
+
+<p>Continue to funnel
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">funnel_step(tbl, moment_type, type, name = moment_type, optional = FALSE, ...)
+
+funnel_steps(tbl, moment_types, type, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tbl</code></td>
+<td>
+<p>A table of different moments and timestamps</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>moment_type</code></td>
+<td>
+<p>The next moment in the funnel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of after_join (e.g. "first-first", "any-any")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>If you want a custom name instead of the moment_type; needed if the moment type is already in the sequence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optional</code></td>
+<td>
+<p>Whether this step in the funnel should be optional. If so, the following step will also try joining
+in a way that skips this step. Note that multiple optional steps in a row aren't supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra arguments passed on to after_left_join. For <code>funnel_steps</code>, these are passed on to <code>funnel_step</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>moment_types</code></td>
+<td>
+<p>For <code>funnel_steps</code>, a character vector of
+moment types, which are applied in order</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+
+activity &lt;- tibble::tribble(
+  ~ "user_id", ~ "event", ~ "timestamp",
+  1, "landing", "2019-07-01",
+  1, "registration", "2019-07-02",
+  1, "purchase", "2019-07-07",
+  1, "purchase", "2019-07-10",
+  2, "landing", "2019-08-01",
+  2, "registration", "2019-08-15",
+  3, "landing", "2019-05-01",
+  3, "registration", "2019-06-01",
+  3, "purchase", "2019-06-04",
+  4, "landing", "2019-06-13")
+
+activity %&gt;%
+  funnel_start(moment_type = "landing",
+               moment = "event",
+               tstamp = "timestamp",
+               user = "user_id")  %&gt;%
+funnel_step(moment_type = "registration",
+           type = "first-firstafter")
+
+</code></pre>
+
+
+</div>

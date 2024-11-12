@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dom_height</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the dominant height of forest inventory data plots</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to get a data frame with Dominant height values for each plot
+in an forest inventory data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dom_height(
+  df,
+  th,
+  dbh,
+  plot,
+  obs,
+  dom,
+  .groups,
+  merge_data = FALSE,
+  dh_name = "DH"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th</code></td>
+<td>
+<p>Quoted name of the total height variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbh</code></td>
+<td>
+<p>Quoted name of the diameter at breast height variable. Used to filter out trees with no diameter measurement.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>Quoted name of the plot variable. used to differentiate the data's plots. If this argument is missing, the defined groups in the data frame will be used, If there are no groups in the data, the function will fail.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>Quoted name of the observations variable. This will be used to tell which trees are dominant, i.e. it's the variable that tells the type of tree; if it is normal, dominant, suppressed, etc. If this argument is not supplied, the function will calculate the average value of 2 trees with bigger height values in each plot, and use that as the dominant value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dom</code></td>
+<td>
+<p>Character value for the dominant tree code used in the observations variable variable supplied  in the <code>obs</code> argument. This is used alongside the <code>obs</code> argument to differentiate dominant trees from the others.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.groups</code></td>
+<td>
+<p>Optional argument. Quoted name(s) of grouping variables that can be added to differentiate subdivisions of the data. Default: <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_data</code></td>
+<td>
+<p>If <code>TRUE</code>, will merge the original data frame with the dominant height table. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dh_name</code></td>
+<td>
+<p>Character value for the name of the dominant height variable created. Default: <code>"DH"</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame with the the dominant height values by plot.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sollano Rabelo Braga <a href="mailto:sollanorb@gmail.com">sollanorb@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(forestmangr)
+data("exfm9")
+head(exfm9)
+
+# Let's say we need to get the dominant height (DH) values for a forest inventory data.
+# If we don't have a variable that tells which trees are dominant, it's ok. We can
+# still estimate DH using this function. It will average the top 2 trees of each plot:
+dom_height(df=exfm9,th="TH",dbh="DBH",plot="PLOT")
+
+# Of course, if we do have a variable that differentiate the dominant trees, it's
+# best we use it. For that we use the obs argument, and the dom argument.
+# In this data, the OBS variable is used to tell the type of tree.
+# Let's check the levels in our OBS variable, to see which one is associated 
+# with dominant trees.
+
+levels(as.factor(exfm9$OBS))
+
+# So, the "D" level must be the one that tells which trees are dominant. Let's use it: 
+dom_height(df=exfm9,th="TH",dbh="DBH",plot="PLOT",obs="OBS",dom="D")
+
+# If there are subdivisions of the data, like different strata, they can be included in the
+# .groups argument: 
+dom_height(df=exfm9,th="TH",dbh="DBH",plot="PLOT",obs="OBS",dom="D",.groups="STRATA")
+
+# It's possible to automatically bind the dominant heights table to the original data, 
+# using the merge_data argument:
+
+dom_height(df=exfm9,th="TH",dbh="DBH",plot="PLOT",obs="OBS",
+dom="D",.groups="STRATA", merge_data=TRUE)
+
+</code></pre>
+
+
+</div>

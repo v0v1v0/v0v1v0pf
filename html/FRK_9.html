@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auto_BAUs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic BAU generation</h2>
+
+<h3>Description</h3>
+
+<p>This function calls the generic function <code>auto_BAU</code> (not exported) after a series of checks and is the easiest way to generate a set of Basic Areal Units (BAUs) on the manifold being used; see details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auto_BAUs(
+  manifold,
+  type = NULL,
+  cellsize = NULL,
+  isea3h_res = NULL,
+  data = NULL,
+  nonconvex_hull = TRUE,
+  convex = -0.05,
+  tunit = NULL,
+  xlims = NULL,
+  ylims = NULL,
+  spatial_BAUs = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>manifold</code></td>
+<td>
+<p>object of class <code>manifold</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>either “grid” or “hex”, indicating whether gridded or hexagonal BAUs should be used. If <code>type</code> is unspecified, “hex” will be used if we are on the sphere, and “grid” will used otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cellsize</code></td>
+<td>
+<p>denotes size of gridcell when <code>type</code> = “grid”. Needs to be of length 1 (square-grid case) or a vector of length <code>dimensions(manifold)</code> (rectangular-grid case)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isea3h_res</code></td>
+<td>
+<p>resolution number of the isea3h DGGRID cells for when type is “hex” and manifold is the surface of a <code>sphere</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>object of class <code>SpatialPointsDataFrame</code>, <code>SpatialPolygonsDataFrame</code>,  <code>STIDF</code>, or <code>STFDF</code>. Provision of <code>data</code> implies that the domain is bounded, and is thus necessary when the manifold is a <code>real_line, plane</code>, or <code>STplane</code>, but is not necessary when the manifold is the surface of a <code>sphere</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonconvex_hull</code></td>
+<td>
+<p>flag indicating whether to use <code>fmesher</code> to generate a non-convex hull. Otherwise a convex hull is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convex</code></td>
+<td>
+<p>convex parameter used for smoothing an extended boundary when working on a bounded domain (that is, when the object <code>data</code> is supplied); see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tunit</code></td>
+<td>
+<p>temporal unit when requiring space-time BAUs. Can be "secs", "mins", "hours", etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlims</code></td>
+<td>
+<p>limits of the horizontal axis (overrides automatic selection)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylims</code></td>
+<td>
+<p>limits of the vertical axis (overrides automatic selection)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatial_BAUs</code></td>
+<td>
+<p>object of class <code>SpatialPolygonsDataFrame</code> or <code>SpatialPixelsDataFrame</code> representing the spatial BAUs to be used in a spatio-temporal setting (if left <code>NULL</code>, the spatial BAUs are constructed automatically using the data)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>currently unused</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>auto_BAUs</code> constructs a set of Basic Areal Units (BAUs) used both for data pre-processing and for prediction. As such, the BAUs need to be of sufficienly fine resolution so that inferences are not affected due to binning.
+</p>
+<p>Two types of BAUs are supported by <code>FRK</code>: “hex” (hexagonal) and “grid” (rectangular). In order to have a “grid” set of BAUs, the user should specify a cellsize of length one, or of length equal to the dimensions of the manifold, that is, of length 1 for <code>real_line</code> and of length 2 for the surface of a <code>sphere</code> and <code>plane</code>. When a “hex” set of BAUs is desired, the first element of <code>cellsize</code> is used to determine the side length by dividing this value by approximately 2. The argument <code>type</code> is ignored with <code>real_line</code> and “hex” is not available for this manifold.
+</p>
+<p>If the object <code>data</code> is provided, then automatic domain selection may be carried out by employing the <code>fmesher</code> function <code>fm_nonconvex_hull_inla</code>, which finds a (non-convex) hull surrounding the data points (or centroids of the data polygons). This domain is extended and smoothed using the parameter <code>convex</code>. The parameter <code>convex</code> should be negative, and a larger absolute value for <code>convex</code> results in a larger domain with smoother boundaries.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>auto_basis</code> for automatically constructing basis functions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## First a 1D example
+library(sp)
+set.seed(1)
+data &lt;- data.frame(x = runif(10)*10, y = 0, z= runif(10)*10)
+coordinates(data) &lt;- ~x+y
+Grid1D_df &lt;- auto_BAUs(manifold = real_line(),
+                       cellsize = 1,
+                       data=data)
+## Not run: spplot(Grid1D_df)
+
+## Now a 2D example
+data(meuse)
+coordinates(meuse) = ~x+y # change into an sp object
+
+## Grid BAUs
+GridPols_df &lt;- auto_BAUs(manifold = plane(),
+                         cellsize = 200,
+                         type = "grid",
+                         data = meuse,
+                         nonconvex_hull = 0)
+## Not run: plot(GridPols_df)
+
+## Hex BAUs
+HexPols_df &lt;- auto_BAUs(manifold = plane(),
+                        cellsize = 200,
+                        type = "hex",
+                        data = meuse,
+                        nonconvex_hull = 0)
+## Not run: plot(HexPols_df)
+</code></pre>
+
+
+</div>

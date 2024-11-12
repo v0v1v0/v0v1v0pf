@@ -1,0 +1,316 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FRBhotellingS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Robust Hotelling test using the S-estimator </h2>
+
+<h3>Description</h3>
+
+<p>Robust one-sample and two-sample Hotelling test using the S-estimator and the Fast and Robust Bootstrap.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+FRBhotellingS(formula, data=NULL, ...)
+
+## Default S3 method:
+FRBhotellingS(X, Y=NULL, mu0 = 0, R = 999, bdp = 0.5, conf = 0.95,
+method = c("HeFung", "pool"), control=Scontrol(...),
+na.action=na.omit, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p> an object of class <code>formula</code>; a symbolic description of the model to be fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p> data frame from which variables specified in formula are to be taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p> a matrix or data-frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p> an optional matrix or data-frame in case of a two-sample test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu0</code></td>
+<td>
+<p> an optional vector of data values (or a single number which will be repeated p times) indicating the
+true value of the mean (does not apply in case of the two-sample test). Default is the null vector <code>mu0=0</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p> number of bootstrap samples. Default is <code>R=999</code>.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bdp</code></td>
+<td>
+<p> required breakdown point. Should have <code class="reqn">0 &lt; </code> <code>bdp</code> <code class="reqn">\le 0.5</code>, the default is 0.5 </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p> confidence level for the simultaneous confidence intervals. Default is <code>conf=0.95</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p> for the two-sample Hotelling test, indicates the way the common covariance matrix is estimated:
+<code>"pool"</code>= pooled covariance matrix, <code>"HeFung"</code>= using the He and Fung method </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list with control parameters for tuning the computing algorithm, see <code>Scontrol</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p> a function which indicates what should happen when the data contain NAs. Defaults to <code>na.omit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>allows for specifying control parameters directly instead of via <code>control</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>  The classical Hotelling test for testing if the mean equals a certain center or if two means 
+are equal is modified into a robust one through substitution of the empirical estimates 
+by the S-estimates of location and scatter. The S-estimator uses Tukey's biweight function where the constant is chosen
+to obtain the desired breakdown point as specified by <code>bdp</code>. 
+One-sample S-estimates are computed by a call to the implementation of the fast-S algorithm in the <span class="pkg">rrcov</span> package of Todorov and Filzmoser (2009). For two-sample S-estimates an adaptation of the fast-S algorithm is used. 
+The tuning parameters of the algorithm can be changed via <code>control</code>.
+</p>
+<p>The fast and robust bootstrap is used to mimic the distribution of the test statistic under the null hypothesis. 
+For instance, the 5% critical value for the test is given by the 95% quantile of the recalculated statistics. 
+</p>
+<p>Robust simultaneous confidence intervals for linear combinations of the mean (or difference in means) are developed similarly to the classical case
+(Johnson and Wichern, 1988, page 239). The value <code>CI</code> is a matrix with the confidence intervals for each element
+of the mean (or difference in means), with level <code>conf</code>. It consists of two rows, the first being the lower bound and the second the upper bound.
+Note that these intervals are rather conservative in the sense that the simultaneous confidence level holds for all linear combinations
+and here only <code class="reqn">p</code> of these are considered (with <code class="reqn">p</code> the dimension of the data).
+</p>
+<p>For the two-sample Hotelling test we assume that the samples have an underlying distribution with the same covariance matrix.
+This covariance matrix can be estimated in two different ways using the pooled covariance matrix or the two-sample 
+estimator of He and Fung (He and Fung 2000), and argument <code>method</code> defaults to the second option. 
+For more details see Roelant et al. (2008).
+</p>
+<p>In the two-sample version, the null hypothesis always states that the two means are equal. For the one-sample version, the default
+null hypothesis is that the mean equals zero, but the hypothesized value can be changed and specified through argument <code>mu0</code>.
+</p>
+<p>Bootstrap samples are discarded if the fast and robust covariance estimate is not positive definite, such that the actual number 
+of recalculations used can be lower than <code>R</code>. This number is returned as <code>ROK</code>.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>FRBhot</code> which extends class <code>htest</code> and contains at least the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>statistic </code></td>
+<td>
+<p>the value of the robust test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue </code></td>
+<td>
+<p>p-value of the robust one or two-sample Hotelling test, determined by the fast and robust bootstrap</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate </code></td>
+<td>
+<p>the estimated mean vector or vectors depending on whether it was a one-sample test or a two-sample test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative </code></td>
+<td>
+<p>a character string describing the alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method </code></td>
+<td>
+<p>a character string indicating what type of Hotelling test was performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name </code></td>
+<td>
+<p>a character string giving the name(s) of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>teststat.boot </code></td>
+<td>
+<p>the bootstrap recalculated values of the robust test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI </code></td>
+<td>
+<p>bootstrap simultaneous confidence intervals for each component of the center</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf </code></td>
+<td>
+<p>a copy of the <code>conf</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma </code></td>
+<td>
+<p>covariance of one-sample or common covariance matrix in the case of two samples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>implicit weights corresponding to the S-estimates (i.e. final weights in the RWLS procedure at the end of the fast-S algorithm)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outFlag</code></td>
+<td>
+<p>outlier flags: 1 if the robust distance of the observation exceeds the .975 quantile of (the square root of)
+the chi-square distribution with degrees of freedom equal to the dimension of <code>X</code>; 0 otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROK</code></td>
+<td>
+<p>number of bootstrap samples actually used (i.e. not discarded due to non-positive definite covariance </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Ella Roelant, Stefan Van Aelst and Gert Willems </p>
+
+
+<h3>References</h3>
+
+ 
+
+<ul>
+<li>
+<p> X. He and W.K. Fung (2000) High breakdown estimation for multiple populations with applications to discriminant analysis. 
+<em>Journal of Multivariate Analysis</em>, <b>72</b>, 151–162.
+</p>
+</li>
+<li>
+<p> R.A. Johnson, D.W. Wichern (1988) Applied Multivariate Statistical Analysis, 2nd Edition, Prentice-Hall.
+</p>
+</li>
+<li>
+<p> E. Roelant, S. Van Aelst and G. Willems, (2008) Fast Bootstrap for Robust Hotelling Tests, COMPSTAT 2008: 
+Proceedings in Computational Statistics (P. Brito, Ed.) Heidelberg: Physika-Verlag, 709–719.
+</p>
+</li>
+<li>
+<p> M. Salibian-Barrera, S. Van Aelst and G. Willems (2008) Fast and robust bootstrap. 
+<em>Statistical Methods and Applications</em>, <b>17</b>, 41–71. 
+</p>
+</li>
+<li>
+<p> V. Todorov and P. Filzmoser (2009), An Object Oriented Framework for Robust Multivariate Analysis. 
+<em>Journal of Statistical Software</em>, <b>32</b>(3), 1–47.
+<a href="https://doi.org/10.18637/jss.v032.i03">doi:10.18637/jss.v032.i03</a>.
+</p>
+</li>
+<li>
+<p> S. Van Aelst and G. Willems (2013), Fast and robust bootstrap for multivariate inference: The R package FRB. 
+<em>Journal of Statistical Software</em>, <b>53</b>(3), 1–32.
+<a href="https://doi.org/10.18637/jss.v053.i03">doi:10.18637/jss.v053.i03</a>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+ <p><code>plot.FRBhot</code>,<code>summary.FRBhot</code>, <code>FRBhotellingMM</code>, <code>Scontrol</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## One sample robust Hotelling test
+data(delivery, package="robustbase")
+delivery.x &lt;- delivery[,1:2]
+FRBhotellingS(delivery.x,R=199)
+
+## One sample robust Hotelling test
+data(ForgedBankNotes)
+samplemean &lt;- apply(ForgedBankNotes, 2, mean)
+res = FRBhotellingS(ForgedBankNotes, mu0=samplemean,R=199)
+res
+# Note that the test rejects the hypothesis that the true mean equals the
+# sample mean; this is due to outliers in the data (i.e. the robustly estimated
+# mean apparently significantly differs from the non-robust sample mean.
+
+# Graphical display of the results:
+plot(res)
+# It is clear from the (scaled) simultaneous confidence limits that the rejection
+# of the hypothesis is due to the differences in variables Bottom and Diagonal
+
+## Two sample robust Hotelling test
+data(hemophilia, package="rrcov")
+grp &lt;-as.factor(hemophilia[,3])
+x &lt;- hemophilia[which(grp==levels(grp)[1]),1:2]
+y &lt;- hemophilia[which(grp==levels(grp)[2]),1:2]
+
+#using the pooled covariance matrix to estimate the common covariance matrix
+res = FRBhotellingS(x,y,method="pool")
+
+#using the estimator of He and Fung to estimate the common covariance matrix
+res = FRBhotellingS(x,y,method="HeFung",R=199)
+
+# or using the formula interface
+
+res = FRBhotellingS(as.matrix(hemophilia[,-3])~hemophilia[,3],method="HeFung",R=99)
+
+
+# From the confidence limits it can be seen that the significant difference
+# is mainly caused by the AHFactivity variable. The graphical display helps too:
+plot(res)
+# the red line on the histogram indicates the test statistic value in the original
+# sample (it is omitted if the statistic exceeds 100)
+
+</code></pre>
+
+
+</div>

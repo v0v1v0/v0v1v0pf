@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sanitize_vft</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fix common problems in <em>ViewFullTable</em> and <em>ViewTaxonomy</em> data.</h2>
+
+<h3>Description</h3>
+
+<p>These functions fix common problems of <em>ViewFullTable</em> and <em>ViewTaxonomy</em>
+data:
+</p>
+
+<ul>
+<li>
+<p> Ensure that each column has the correct type.
+</p>
+</li>
+<li>
+<p> Ensure that missing values are represented with <code>NA</code>s – not with the
+literal string "NULL".
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">sanitize_vft(.data, na = c("", "NA", "NULL"), ...)
+
+sanitize_taxa(.data, na = c("", "NA", "NULL"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>A dataframe; either a ForestGEO <em>ViewFullTable</em>
+(<code>sanitize_vft()</code>).
+or <em>ViewTaxonomy</em> (<code>sanitize_vft()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na</code></td>
+<td>
+<p>Character vector of strings to interpret as missing values. Set this
+option to <code>character()</code> to indicate no missing values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to <code>readr::type_convert()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A dataframe.
+</p>
+
+
+<h3>Acknowledgments</h3>
+
+<p>Thanks to Shameema Jafferjee Esufali for motivating this functions.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>read_vft()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">assert_is_installed("fgeo.x")
+
+vft &lt;- fgeo.x::vft_4quad
+
+# Introduce problems to show how to fix them
+# Bad column types
+vft[] &lt;- lapply(vft, as.character)
+# Bad representation of missing values
+vft$PlotName &lt;- "NULL"
+
+# "NULL" should be replaced by `NA` and `DBH` should be numeric
+str(vft[c("PlotName", "DBH")])
+
+# Fix
+vft_sane &lt;- sanitize_vft(vft)
+str(vft_sane[c("PlotName", "DBH")])
+
+taxa &lt;- read.csv(fgeo.x::example_path("taxa.csv"))
+# E.g. inserting bad column types
+taxa[] &lt;- lapply(taxa, as.character)
+# E.g. inserting bad representation of missing values
+taxa$SubspeciesID &lt;- "NULL"
+
+# "NULL" should be replaced by `NA` and `ViewID` should be integer
+str(taxa[c("SubspeciesID", "ViewID")])
+
+# Fix
+taxa_sane &lt;- sanitize_taxa(taxa)
+str(taxa_sane[c("SubspeciesID", "ViewID")])
+</code></pre>
+
+
+</div>

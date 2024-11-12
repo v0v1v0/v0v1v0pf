@@ -1,0 +1,269 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimable.2fis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Statistical and algorithmic aspects of requesting 2-factor interactions to be estimable in FrF2 </h2>
+
+<h3>Description</h3>
+
+<p>This help page documents the statistical and algorithmic details of requesting 2-factor interactions to be estimable in FrF2 
+</p>
+
+
+<h3>Details</h3>
+
+<p>The option <code>estimable</code> allows to specify 2-factor interactions (2fis) that 
+have to be estimable in the model. Whenever a resolution V or higher design is available, 
+this option is unnecessary, because all 2fis are estimable in the sense that they are 
+not aliased with any main effect or any other 2fi. If resolution V or higher is not affordable, 
+the option <code>estimable</code> can ensure that certain 2fis can nevertheless be estimated. 
+</p>
+<p>Per default, it is assumed that a resolution IV design is required, 
+as it is normally not reasonable to allow main effects to be 
+aliased with other 2-factor interactions in this situation. There are two types of 
+estimability that are distinguished by the setting of option <code>clear</code> in 
+function <code>FrF2</code> (cf. Groemping 2010).
+</p>
+<p>Let us first consider designs of at least resolution IV. 
+With option <code>clear=TRUE</code>, <code>FrF2</code> searches for 
+a model for which all main effects and all 2fis given in <code>estimable</code> are 
+clear of aliasing with any other 2fis. This is a weaker requirement than resolution V, 
+because 2fis outside those specified in <code>estimable</code> may be aliased with 
+each other. But it is much stronger than what is done in case of <code>clear=FALSE</code>: 
+For the latter, <code>FrF2</code> searches for a design that has a distinct column in 
+the model matrix for each main effect and each interaction requested 
+in <code>estimable</code>. 
+</p>
+<p>Users can explicitly permit that resolution III designs are included in the 
+search of designs for which the specified 2fis are estimable (by the <code>res3=TRUE</code> option). 
+In case of <code>clear=TRUE</code>, this leads to the somewhat 
+strange situation that main effects can be aliased with 2fis from outside 
+<code>estimable</code> while 2fis from inside <code>estimable</code> are not aliased with 
+any main effects or 2fis. 
+</p>
+<p>With <code>clear=TRUE</code>, the algorithm compares the requirement set to 
+catalogued sets of clear 2fis by a graph isomorphism algorithm from R-package 
+<span class="pkg">igraph</span>. For details of this algorithm, 
+cf. Groemping (2012). With the catalogue <code>catlg</code> available in this package, 
+the best (minimum aberration) existing clear designs are guaranteed to be found 
+for up to 64 runs and have a good chance to be found for 128 runs. For 128 runs, 
+it is possible to load an additional large catalogue (package <span class="pkg">FrF2.catlg128</span>) 
+in order to also guarantee that the best clear design is found. For 256 and 512 runs, 
+only one or two resolution IV designs of each size are catalogued so that 
+option <code>estimable</code> can try to influence allocation of factors to columns, 
+but may fail although an appropriate clear design would exist outside the catalogued 
+designs.<br>
+The search for a clear design 
+is often fast. If it isn't, option <code>sort</code> 
+of function <code>FrF2</code> can help. For the occasional situation where 
+this doesn't help either, a manual search may help, see <code>CIG</code> 
+for an example of how to proceed.<br>
+Since version 2 of package <span class="pkg">FrF2</span>, requesting 2fis to be clear is compatible 
+with blocking a design. The algorithm behind that functionality is based on 
+Godolphin (2021) and is described in Groemping (2021). 
+The default implementation strives for a guartanteed and best possible result. 
+Arguments <code>firsthit</code> and <code>useV</code> to function <code>FrF2</code> 
+can be used for trying to obtain a possibly not best result (<code>firsthit</code>) 
+faster or to use a (sometimes) faster algorithm that is not guaranteed 
+to deliver a result even though it might exist for resolution IV situations 
+(<code>useV=FALSE</code>). 
+</p>
+<p>With <code>clear=FALSE</code>, the algorithm loops through the eligible designs from 
+<code>catlg.select</code> from good to worse (in terms of MA) and, for each design, loops 
+through all eligible permutations of the experiment factors from <code>perms</code>. 
+If <code>perms</code> is omitted, the permutations are looped through in lexicographic 
+order starting from 1:nfac or <code>perm.start</code>. Especially in this case, 
+run times of the search algorithm can be very long. 
+The <code>max.time</code> option allows to limit this run time. 
+If the time limit is reached, the final situation (catalogued design and 
+current permutation of experiment factors) is printed so that the user can 
+decide to proceed later with this starting point (indicated by <code>catlg.select</code> 
+for the catalogued design(s) to be used and <code>perm.start</code> for the current 
+permutation of experiment factors). 
+</p>
+<p>With <code>clear=TRUE</code>, the algorithm loops through the eligible designs from 
+<code>catlg.select</code> from good to worse (in terms of MA) and, for each design, 
+uses a subgraph isomorphism check from package <code>igraph</code>. There are two such 
+algorithms, VF2 (the default, Cordella et al. 2001) and LAD (introduced with 
+version 1.7 of package <span class="pkg">FrF2</span>, Solnon 2010), 
+which can be chosen with the  <code>method</code> option. 
+Run times of the subgraph isomorphism search are often fast, 
+but can also be very very slow in unlucky situations. 
+Where the VF2 algorithm is particularly slow, the LAD algorithm is often fast 
+(see Groemping 2014b). 
+Especially for the VF2 algorithm, run times may strongly depend on the ordering 
+of factors, which can be influenced by the option <code>sort</code>.
+As the slowness of the process is intrinsic to the subgraph isomorphism 
+search problem (which is NP-complete), a <code>max.time</code> option analogous to 
+the <code>clear=FALSE</code> situation would be of very limited use only and is 
+therefore not available. Instead, it is possible to have a look at the 
+number of the design that was in the process of being searched when the 
+process was interrupted (with the command <code>FrF2.currentlychecked()</code>).
+</p>
+<p>Note that - according to the structure of the catalogued designs and the lexicographic 
+order of checking permutations - the initial order of the factors has a strong influence 
+on the run time for larger or unlucky problems. For example, consider 
+an experiment in 32~runs and 11~factors, for six of which the pairwise interactions are to be estimable 
+(Example 1 in Wu and Chen 1992). <code>estimable</code> for this model can be specified as <br><code>formula("~(F+G+H+J+K+L)^2")</code> <br>
+OR <br><code>formula("~(A+B+C+D+E+F)^2")</code>.<br>
+The former runs a lot faster than the latter (I have not yet seen the latter finish 
+the first catalogued design, if <code>perms</code> is not specified). 
+The reason is that the latter needs more permutations of the experiment factors than 
+the former, since the factors with high positions 
+change place faster and more often than those with low positions. 
+</p>
+<p>For this particular design, it is very advisable to constrain the 
+permutations of the experiment factors to the different subset selections of six factors 
+from eleven, since permutations within the sets do not change the possibility of accomodating 
+a design. The required permutations for the second version of this example 
+can be obtained e.g. by the following code: 
+</p>
+<p><code>perms.6 &lt;- combn(11,6)</code><br><code>perms.full &lt;- matrix(NA,ncol(perms.6),11)</code><br><code>for (i in 1:ncol(perms.6))</code><br><code>perms.full[i,] &lt;- c(perms.6[,i],setdiff(1:11,perms.6[,i]))</code><br></p>
+<p>Handing perms.full to the procedure using the <code>perms</code> option makes the second version of the 
+requested interaction terms fast as well, since up to almost 40 Mio permutations of experiment 
+factors are reduced to at most 462. Thus, whenever possible, 
+one should try to limit the permutations necessary in case of <code>clear=FALSE</code>.
+</p>
+<p>In order to support relatively comfortable creation of distinct designs of some frequently-used types 
+of required interaction patterns, the function <code>compromise</code> has been 
+divised: it supports creation of the so-called compromise plans of classes 1 to 4 (cf. 
+e.g. Addelman 1962; Ke, Tang and Wu 2005; Groemping 2012). 
+The list it returns also contains a component <code>perms.full</code> that can be used as input 
+for the <code>perms</code> option.
+</p>
+<p>Please contact me with any suggestions for improvements.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Ulrike Groemping </p>
+
+
+<h3>References</h3>
+
+<p>Addelman, S. (1962). Symmetrical and asymmetrical fractional factorial plans. 
+<em>Technometrics</em> <b>4</b>, 47-58.
+</p>
+<p>Chen, J., Sun, D.X. and Wu, C.F.J. (1993). A catalogue of 2-level and 3-level 
+orthogonal arrays. 
+<em>International Statistical Review</em> <b>61</b>, 131-145. 
+</p>
+<p>Cordella, L.P., Foggia, P., Sansone, C. and Vento, M. (2001). 
+An improved algorithm for matching large graphs. <em>Proc. of the 3rd 
+IAPR TC-15 Workshop on Graphbased Representations in Pattern Recognition</em>,
+149–159.
+</p>
+<p>Godolphin, J. (2021). Construction of Blocked Factorial Designs to Estimate 
+Main Effects and Selected Two-Factor Interactions. <em>J. Royal Statistical Society</em> <b>B 83</b>, 5-29. 
+doi: <a href="https://doi.org/10.1111/rssb.12397">10.1111/rssb.12397</a>.
+</p>
+<p>Groemping, U. (2010). “Clear” and “Distinct”: two approaches for regular 
+fractional factorial designs with estimability requirements. 
+<em>Reports in Mathematics, Physics and Chemistry</em>, report 02/2010, 
+Department II, Beuth University of Applied Sciences Berlin.
+<a href="http://www1.bht-berlin.de/FB_II/reports/Report-2010-002.pdf">http://www1.bht-berlin.de/FB_II/reports/Report-2010-002.pdf</a>.
+</p>
+<p>Groemping, U. (2012). Creating clear designs: a graph-based algorithm and a 
+catalogue of clear compromise plans. <em>IIE Transactions</em> <b>44</b>, 988–1001. 
+Early preprint available at <a href="http://www1.bht-berlin.de/FB_II/reports/Report-2010-005.pdf">http://www1.bht-berlin.de/FB_II/reports/Report-2010-005.pdf</a>.
+</p>
+<p>Groemping, U. (2014a). R Package FrF2 for Creating and Analyzing Fractional 
+Factorial 2-Level Designs. <em>Journal of Statistical Software</em>, <b>56</b>, 
+Issue 1, 1-56. <a href="https://www.jstatsoft.org/v56/i01/">https://www.jstatsoft.org/v56/i01/</a>.
+</p>
+<p>Groemping, U. (2014b). A Note on Dominating Fractional Factorial 
+Two-Level Designs With Clear Two-Factor Interactions. <em>Technometrics</em> 
+<b>56</b>, 42–45.
+</p>
+<p>Groemping, U. (2021). An algorithm for blocking regular fractional factorial 
+2-level designs with clear two-factor interactions. <em>Computational Statistics and Data Analysis</em> 
+<b>153</b>, 1-18. doi: <a href="https://doi.org/10.1016/j.csda.2020.107059">10.1016/j.csda.2020.107059</a>. Preprint at 
+<a href="http://www1.bht-berlin.de/FB_II/reports/Report-2019-003.pdf">Report 3/2019</a>.
+</p>
+<p>Ke, W., Tang, B. and Wu, H. (2005). Compromise plans with clear two-factor interactions. 
+<em>Statistica Sinica</em> <b>15</b>, 709-715.
+</p>
+<p>Solnon, C. (2010). AllDifferent-based Filtering for Subgraph Isomorphism.
+<em>Artificial Intelligence</em> <b>174</b>, 850–864.
+</p>
+<p>Wu, C.F.J. and Chen, Y. (1992) 
+A graph-aided method for planning two-level experiments when certain interactions 
+are important. 
+<em>Technometrics</em> <b>34</b>, 162-175. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p> See also <code>FrF2</code> for regular fractional factorials, 
+<code>catlg</code> for the Chen, Sun, Wu (1993) and larger catalogues of designs 
+and some accessor functions, and function <code>compromise</code> for a convenience 
+function to handle estimability requests for compromise plans</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">########## usage of estimable ###########################
+  ## design with all 2fis of factor A estimable on distinct columns in 16 runs
+  FrF2(16, nfactors=6, estimable = rbind(rep(1,5),2:6), clear=FALSE)
+  FrF2(16, nfactors=6, estimable = c("AB","AC","AD","AE","AF"), clear=FALSE)
+  FrF2(16, nfactors=6, estimable = formula("~A+B+C+D+E+F+A:(B+C+D+E+F)"), 
+       clear=FALSE)
+            ## formula would also accept self-defined factor names
+            ## from factor.names instead of letters A, B, C, ...
+            
+  ## estimable does not need any other input
+  FrF2(estimable=formula("~(A+B+C)^2+D+E"))
+
+  ## estimable with factor names 
+  ## resolution three must be permitted, as FrF2 first determines that 8 runs 
+  ##     would be sufficient degrees of freedom to estimate all effects 
+  ##     and then tries to accomodate the 2fis from the model clear of aliasing in 8 runs
+  FrF2(estimable=formula("~one+two+three+four+two:three+two:four"), 
+       factor.names=c("one","two","three","four"), res3=TRUE)
+  ## clear=FALSE allows to allocate all effects on distinct columns in the 
+  ##     8 run MA resolution IV design
+  FrF2(estimable=formula("~one+two+three+four+two:three+two:four"), 
+       factor.names=c("one","two","three","four"), clear=FALSE)
+
+  ## 7 factors instead of 6, but no requirements for factor G
+  FrF2(16, nfactors=7, estimable = formula("~A+B+C+D+E+F+A:(B+C+D+E+F)"), 
+       clear=FALSE)
+  ## larger design for handling this with all required effects clear
+  FrF2(32, nfactors=7, estimable = formula("~A+B+C+D+E+F+A:(B+C+D+E+F)"), 
+       clear=TRUE)
+  ## 16 run design for handling this with required 2fis clear, but main effects aliased
+  ## (does not usually make sense)
+  FrF2(16, nfactors=7, estimable = formula("~A+B+C+D+E+F+A:(B+C+D+E+F)"), 
+       clear=TRUE, res3=TRUE)
+
+## example for necessity of perms for the clear=FALSE case
+## based on Wu and Chen Example 1
+  ## Not run: 
+  ## runs per default about max.time=60 seconds, before throwing error with 
+  ##        interim results
+  ## results could be used in select.catlg and perm.start for restarting with 
+  ##       calculation of further possibilities
+  FrF2(32, nfactors=11, estimable = formula("~(A+B+C+D+E+F)^2"), clear=FALSE)
+  ## would run for a long long time (I have not yet been patient enough)
+  FrF2(32, nfactors=11, estimable = formula("~(A+B+C+D+E+F)^2"), clear=FALSE, 
+       max.time=Inf)
+  
+## End(Not run)
+  ## can be easily done with perms, 
+  ## as only different subsets of six factors are non-isomorphic
+  perms.6 &lt;- combn(11,6)
+  perms.full &lt;- matrix(NA,ncol(perms.6),11)
+  for (i in 1:ncol(perms.6))
+     perms.full[i,] &lt;- c(perms.6[,i],setdiff(1:11,perms.6[,i]))
+  ## function compromise will calculate the necessary perms entries automatically
+  compromise(11,1:6)$perms.full
+  FrF2(32, nfactors=11, estimable = formula("~(A+B+C+D+E+F)^2"), clear=FALSE, 
+      perms = perms.full )
+</code></pre>
+
+
+</div>

@@ -1,0 +1,95 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>emotion</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>EEG and EMG recordings in a computerised gambling study</h2>
+
+<h3>Description</h3>
+
+<p>To analyse the functional relationship between electroencephalography (EEG) and facial electromyography (EMG), Gentsch et al. (2014) simultaneously recorded EEG and EMG signals from 24 participants while they were playing a computerised gambling task. The given subset contains aggregated observations of 23 participants. Curves were averaged over each subject and each of the 8 study settings, resulting in 23 times 8 curves.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("emotion")</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A list with the following 10 variables.
+</p>
+
+<dl>
+<dt><code>power</code></dt>
+<dd>
+<p>factor variable with levels <em>high</em> and <em>low</em></p>
+</dd>
+<dt><code>game_outcome</code></dt>
+<dd>
+<p>factor variable with levels <em>gain</em> and <em>loss</em></p>
+</dd>
+<dt><code>control</code></dt>
+<dd>
+<p>factor variable with levels <em>high</em> and <em>low</em></p>
+</dd>
+<dt><code>subject</code></dt>
+<dd>
+<p>factor variable with 23 levels</p>
+</dd>
+<dt><code>EEG</code></dt>
+<dd>
+<p>matrix; EEG signal in wide format</p>
+</dd>
+<dt><code>EMG</code></dt>
+<dd>
+<p>matrix; EMG signal in wide format</p>
+</dd>
+<dt><code>s</code></dt>
+<dd>
+<p>time points for the functional covariate</p>
+</dd>
+<dt><code>t</code></dt>
+<dd>
+<p>time points for the functional response</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>The aim is to explain potentials in the EMG signal by study settings as well as
+the EEG signal (see Ruegamer et al., 2018).
+</p>
+
+
+<h3>Source</h3>
+
+<p>Gentsch,  K.,  Grandjean,  D.  and  Scherer,  K.  R.  (2014)  Coherence  explored  between  emotion components:  Evidence from event-related potentials and facial electromyography. Biological Psychology, 98, 70-81.
+</p>
+<p>Ruegamer D., Brockhaus, S., Gentsch K., Scherer, K., Greven, S. (2018). Boosting factor-specific functional historical models for the detection of synchronization in bioelectrical signals. Journal of the Royal Statistical Society: Series C (Applied Statistics), 67, 621-642. 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("emotion", package = "FDboost")
+
+# fit function-on-scalar model with random effect and power effect
+fos_random_power &lt;- FDboost(EMG ~ 1 + brandomc(subject, df = 2)
+                            + bolsc(power, df = 2),
+                            timeformula = ~ bbs(t, df = 3),
+                            data = emotion)
+## Not run:                             
+# fit function-on-function model with intercept and historical EEG effect
+# where limits specifies the used lag between EMG and EEG signal
+fof_historical &lt;- FDboost(EMG ~ 1 + bhist(EEG, s = s, time = t,
+                          limits = function(s,t) s &lt; t - 3),
+                          timeformula = ~ bbs(t, df = 3), data = emotion,
+                          control = boost_control(mstop = 200))                            
+
+## End(Not run)
+</code></pre>
+
+
+</div>

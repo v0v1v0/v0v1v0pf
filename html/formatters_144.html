@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pagination_algo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pagination</h2>
+
+<h3>Description</h3>
+
+<p>Pagination
+</p>
+
+
+<h3>Pagination Algorithm</h3>
+
+<p>Pagination is performed independently in the vertical and horizontal
+directions based solely on a <em>pagination data frame</em>, which includes the
+following information for each row/column:
+</p>
+
+<ul>
+<li>
+<p> Number of lines/characters rendering the row will take <strong>after
+word-wrapping</strong> (<code>self_extent</code>)
+</p>
+</li>
+<li>
+<p> The indices (<code>reprint_inds</code>) and number of lines (<code>par_extent</code>)
+of the rows which act as <strong>context</strong> for the row
+</p>
+</li>
+<li>
+<p> The row's number of siblings and position within its siblings
+</p>
+</li>
+</ul>
+<p>Given <code>lpp</code> (<code>cpp</code>) is already adjusted for rendered elements which
+are not rows/columns and a data frame of pagination information,
+pagination is performed via the following algorithm with <code>start = 1</code>.
+</p>
+<p>Core Pagination Algorithm:
+</p>
+
+<ol>
+<li>
+<p> Initial guess for pagination position is <code>start + lpp</code> (<code>start + cpp</code>)
+</p>
+</li>
+<li>
+<p> While the guess is not a valid pagination position, and <code>guess &gt; start</code>,
+decrement guess and repeat.
+</p>
+
+<ul><li>
+<p> An error is thrown if all possible pagination positions between
+<code>start</code> and <code>start + lpp</code> (<code>start + cpp</code>) would be <code style="white-space: pre;">⁠&lt; start⁠</code>
+after decrementing
+</p>
+</li></ul>
+</li>
+<li>
+<p> Retain pagination index
+</p>
+</li>
+<li>
+<p> If pagination point was less than <code>NROW(tt)</code> (<code>ncol(tt)</code>), set
+<code>start</code> to <code>pos + 1</code>, and repeat steps (1) - (4).
+</p>
+</li>
+</ol>
+<p>Validating Pagination Position:
+</p>
+<p>Given an (already adjusted) <code>lpp</code> or <code>cpp</code> value, a pagination is invalid if:
+</p>
+
+<ul>
+<li>
+<p> The rows/columns on the page would take more than (adjusted) <code>lpp</code> lines/<code>cpp</code>
+characters to render <strong>including</strong>:
+</p>
+
+<ul>
+<li>
+<p> word-wrapping
+</p>
+</li>
+<li>
+<p> (vertical only) context repetition
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> (vertical only) footnote messages and/or section divider lines
+take up too many lines after rendering rows
+</p>
+</li>
+<li>
+<p> (vertical only) row is a label or content (row-group summary) row
+</p>
+</li>
+<li>
+<p> (vertical only) row at the pagination point has siblings, and
+it has less than <code>min_siblings</code> preceding or following siblings
+</p>
+</li>
+<li>
+<p> pagination would occur within a sub-table listed in <code>nosplitin</code>
+</p>
+</li>
+</ul>
+</div>

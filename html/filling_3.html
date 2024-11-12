@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fill.HardImpute</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>HardImpute : Generalized Spectral Regularization</h2>
+
+<h3>Description</h3>
+
+<p>If the assumed underlying model has sufficiently many zeros, the LASSO type
+shrinkage estimator is known to overestimate the number of non-zero coefficients.
+<code>fill.HardImpute</code> aims at overcoming such difficulty via low-rank assumption
+and hard thresholding idea, well-known concept in conventional regression analysis.
+In algorithmic aspect, it takes output of <code>SoftImpute</code> as warm-start matrices
+for iterative estimation process.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fill.HardImpute(
+  A,
+  lambdas = c(10, 1, 0.1),
+  maxiter = 100,
+  tol = 0.001,
+  rk = (min(dim(A)) - 1)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>an <code class="reqn">(n\times p)</code> partially observed matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>a length-<code class="reqn">t</code> vector regularization parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations to be performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>stopping criterion for an incremental progress.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rk</code></td>
+<td>
+<p>assumed rank of the matrix.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list containing </p>
+
+<dl>
+<dt>X</dt>
+<dd>
+<p>an <code class="reqn">(n\times p\times t)</code> cubic array after completion at each <code>lambda</code> value.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Mazumder R, Hastie T, Tibshirani R (2010).
+“Spectral Regularization Algorithms for Learning Large Incomplete Matrices.”
+<em>J. Mach. Learn. Res.</em>, <b>11</b>, 2287–2322.
+ISSN 1532-4435.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fill.SoftImpute</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load image data of 'lena128'
+data(lena128)
+
+## transform 5% of entries into missing
+A &lt;- aux.rndmissing(lena128, x=0.05)
+
+## apply the method with 3 rank conditions
+fill1 &lt;- fill.HardImpute(A, lambdas=c(500,100,50), rk=10)
+fill2 &lt;- fill.HardImpute(A, lambdas=c(500,100,50), rk=50)
+fill3 &lt;- fill.HardImpute(A, lambdas=c(500,100,50), rk=100)
+
+## visualize only the last ones from each run
+opar &lt;- par(no.readonly=TRUE)
+par(mfrow=c(2,2), pty="s")
+image(A, col=gray((0:100)/100), axes=FALSE, main="5% missing")
+image(fill1$X[,,3], col=gray((0:100)/100), axes=FALSE, main="Rank 10")
+image(fill2$X[,,3], col=gray((0:100)/100), axes=FALSE, main="Rank 50")
+image(fill3$X[,,3], col=gray((0:100)/100), axes=FALSE, main="Rank 100")
+par(opar)
+
+</code></pre>
+
+
+</div>

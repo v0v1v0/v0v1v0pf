@@ -1,0 +1,225 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>block</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Statistical and algorithmic aspects of blocking in FrF2 </h2>
+
+<h3>Description</h3>
+
+<p>This help page documents the statistical and algorithmic details of blocking in FrF2 
+</p>
+
+
+<h3>Details</h3>
+
+<p>Blocking is done with the purpose to balance the design with respect to a factor 
+that is known or strongly suspected to have an influence but is not in itself of interest, 
+and it is usually assumed that block factors do not interact with experimental factors. 
+Examples are batches of material that are not large enough to accomodate the complete 
+experiment so that e.g. half the experiment is done on the first batch and the other half 
+on the second batch (two blocks). The block factor should be orthogonal to the experimental 
+factors, at least to their main effects. Per default, it is also requested that the block 
+factor is orthogonal to the 2-factor interactions. This can be changed by the user, if no 
+such design can be found.
+</p>
+<p>Blocking is currently implemented for regular fractional factorial designs only.<br>
+There are two principal ways to handle blocked designs, manual definition 
+(i.e. the user specifies exactly which columns are to be used for which purpose) and automatic 
+definition. Each situation has its specifics. These are detailed below. For users with 
+not so much mathematical/statistical background, it will often be best to use the automatic way, 
+specifying the treatment factors of interest via <code>nfactors</code> or <code>factor.names</code> 
+and a single number for <code>blocks</code> or <code>WPs</code>. 
+Users with more mathematical background may want to use the manual definitions, perhaps 
+in conjunction with published catalogues of good block designs, or 
+after inspecting possibilities with functions <code>blockpick</code>, <code>blockpick.big</code> (default before version 2 for large settings) or <code>colpick</code> (default since version 2 for large settings or settings with estimability requirements).
+</p>
+
+<dl>
+<dt>Manual definition of blocked designs for regular fractional factorials</dt>
+<dd>
+<p>The user can start from a design with a number of factors and manually specify which factors or 
+interactions are to be used as block generators. If this route is chosen, <code>blocks</code> 
+can be a vector of factor names or factor letters, or of the same form as generators, except that 
+not only base factors but all factors can be used and single factors are permitted 
+(which would lead to resolution II designs if used in generators). For example, <br><code>block = Letters[c(2,4,5)]</code> <br>
+or <br><code>block = list(2,4,5)</code> <br>
+specify that the 2nd, 4th and 5th factor are to be used as block generators, while <br><code>block = c("Day","Shift")</code><br>
+indicates that the named factors “Day” and “Shift” specified in <code>factor.names</code> 
+are to be treated as blocking factors). In this case, the number of blocks is calculated, 
+and a new factor with the default name “Blocks” (in general the name chosen in 
+option <code>block.name</code>) is generated, which would for example contain as levels 
+the Day/Shift combinations. It is also possible to choose interaction effects rather than factors themselves 
+as block generators, e.g. <br><code>block = c("ABCD","EFGH") </code> <br>
+or<br><code>block = list(c(1,2,3,4),c(5,6,7,8)) </code>. <br>
+Finally, it is also possible to specify choice of blocks using a vector of Yates column numbers, 
+in order to be able to use catalogued blocking structures of this form, e.g. from Sitter, Chen and Feder 
+(1997).<br>
+The block main effects are defined by the <code>k.block</code> specified effect 
+and all interactions between them. The specified block effects are required to be independent from each other, 
+which implies that they generate <code>2^k.block</code> blocks. <br>
+CAUTION: If the user manually generates a blocked design, it is his/her responsibility to ensure a 
+good choice of design (e.g. by using a catalogued design from Bisgaard 1994, 
+Sun, Wu and Chen 1997, Sitter, Chen and Feder (1997), or Cheng and Wu 2002).
+Since version 2 of package <span class="pkg">FrF2</span>, manual blocking is also checked for confounding 
+of the block factor with main effects or two-factor interactions; 
+this implies that some earlier code will now require the additional specification 
+of argument <code>alias.block.2fis=TRUE</code> in order to avoid errors.
+</p>
+</dd>
+<dt>Automatic definition of blocked designs for regular fractional factorials</dt>
+<dd>
+<p>If the user only specifies the number of blocks required for the experiment, function <code>FrF2</code> 
+automatically generates the blocks. For full factorial designs, function <code>FrF2</code> uses function <code>colpick</code> 
+with subsequent <code>blockgencreate</code>, except where the Sun, Wu and Chen (1997) catalogue of blocked designs 
+contains suitable block generators for a design without estimability requirements 
+(implemented in function <code>blockpick</code>, which also calls <code>colpick</code>, if that 
+catalogue does not offer a solution). 
+Otherwise, depending on the situation, 
+function <code>FrF2</code> uses function <code>blockpick</code> or function <code>colpick</code> 
+with subsequent <code>blockgencreate</code>; 
+function <code>blockpick</code> treats smaller problems (<code>choose(nruns-1-nfactors,k.block) &lt; 100000</code>) 
+without estimability requirements and with <code>force.godolphin=FALSE</code> (the latter is per default set to TRUE 
+whenever <code>alias.block.2fis=TRUE</code>), 
+other problems are treated by function <code>colpick</code>.
+</p>
+<p>Use of the earlier default function <code>blockpick.big</code> for large cases or the earlier behavior for full factorial designs 
+can be requested with the argument 
+<code>block.old=TRUE</code>; this should only be done for reproducing earlier results, as the new methodology is definitely superior. 
+</p>
+<p>The search for an appropriate blocked design starts with the overall best unblocked design 
+(in terms of aberration or MaxC2, if requested). 
+If this best design does not yield an adequate blocking possibility, the search continues with 
+the next best design and so forth (exception: with an estimability requirement, only a single design, prefiltered for the estimability requirement, is subjected to the blocking algorithm). <br>
+For the smaller problems, function <code>blockpick</code> 
+looks for <code>k.block</code> independent subsets among the eligible columns of the design. 
+(The eligible columns are all columns of the Yates matrix that are neither occupied 
+by treatment main effects nor by 2fis among treatments (if <code>alias.block.2fis=FALSE</code>, 
+which is the default), or all columns of the Yates matrix that are not occupied by treatment main effects 
+(if <code>alias.block.2fis=TRUE</code>). Note that no effort is made to avoid aliasing with 2-factor interactions, 
+if <code>alias.block.2fis=TRUE</code> is chosen. 
+</p>
+<p>For the larger problems, or blocking in combination with requiring some 2fis to be clear of aliasing, 
+or per default for blocking with permitting 2fis to be aliased with blocks, 
+function <code>colpick</code> creates a <code class="reqn">q \times n</code> <b>X</b> matrix for creating 
+blocks of size <code class="reqn">2^q</code> based on the approach described by Godolphin (2021); 
+function <code>blockgencreate</code> creates block generators from this matrix. 
+This approach can be used in combination with argument <code>estimable</code>, 
+as long as <code>clear=TRUE</code>. The implementation of this approach is described in Groemping (2021).
+The argument <code>force.godolphin</code> of function <code>FrF2</code> can enforce the Godolphin approach instead 
+of the default approach for small blocked designs without <code>alias.block.2fis=TRUE</code>, 
+and the Godolphin approach can be switched off for <code>alias.block.2fis=TRUE</code> applications by explicitly requesting 
+<code>force.godolphin=FALSE</code>. Note that the Godolphin approach solely focuses on clear 2fis 
+of the blocked design and does not attempt to avoid confounding of the block factor with non-clear 2fis; it may 
+thus confound 2fis with the block factor even if this were avoidable, maintaining the same number of clear 2fis.
+</p>
+<p>For the larger problems, in versions before 2.0, which can be activated in current versions with <code>block.old=TRUE</code>,
+function <code>blockpick.big</code> permutes the k~base factors of candidate designs with <code>nfactors + k.block</code> factors 
+in search of a design the first <code>k.block</code>~factors of which can be used for block construction. Any 
+specification of design (via options <code>design</code> or <code>generators</code>) is ignored. Note that function 
+<code>blockpick.big</code> is not guaranteed to find an existing blocked design.
+</p>
+<p>Sun, Wu and Chen (1997) provided a catalogue of blocked designs 
+with a few quality criteria, and they stated that there is no single best design, but that the choice 
+depends on the situation. <code>FrF2</code> always comes up with one specific solution design. 
+Comparisons to the catalogued designs in Sun, Wu and Chen (1997) have shown that 
+the designs found in <code>FrF2</code> are often but not always isomorphic to the catalogued ones. 
+Differences do occur, especially if the base designs are resolution III, or if <code>blockpick.big</code> 
+has to be used. Expert users who want to be certain to use a “best” blocked design should manually 
+implement a specific catalogued design or inspect several solutions from functions <code>blockpick</code> or <code>colpick</code> (or, if desparate, <code>blockpick.big</code>). 
+</p>
+</dd>
+</dl>
+<p>Please contact me with any suggestions for improvements.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Ulrike Groemping </p>
+
+
+<h3>References</h3>
+
+<p>Bisgaard, S. (1994a). Blocking generators for small <code class="reqn">2^{k-p}</code> designs. 
+<em>J. Quality Technology</em> <b>26</b>, 288-294.
+</p>
+<p>Chen, J., Sun, D.X. and Wu, C.F.J. (1993) 
+A catalogue of 2-level and 3-level orthogonal arrays. 
+<em>International Statistical Review</em> <b>61</b>, 131-145. 
+</p>
+<p>Cheng, C.-S. and Tsai, P.-W. (2009). 
+Optimal two-level regular fractional factorial block and split-plot designs. 
+<em>Biometrika</em> <b>96</b>, 83-93.
+</p>
+<p>Cheng, S.W. and Wu, C.F.J. (2002). 
+Choice of optimal blocking schemes in 2-level and 3-level designs. 
+<em>Technometrics</em> <b>44</b>, 269-277. 
+</p>
+<p>Godolphin, J. (2021). Construction of Blocked Factorial Designs to Estimate 
+Main Effects and Selected Two-Factor Interactions. <em>J. Royal Statistical Society</em> <b>B 83</b>, 5-29. 
+doi: <a href="https://doi.org/10.1111/rssb.12397">10.1111/rssb.12397</a>.
+</p>
+<p>Groemping, U. (2019). An algorithm for blocking regular fractional 
+factorial 2-level designs with clear two-factor interactions. 
+<em>Reports in Mathematics, Physics and Chemistry</em>, <a href="http://www1.bht-berlin.de/FB_II/reports/Report-2019-003.pdf">Report 3/2019</a>, 
+Department II, Beuth University of Applied Sciences Berlin.
+</p>
+<p>Sitter, R.R., Chen, J. and Feder, M. (1997). 
+Fractional Resolution and Minimum Aberration in Blocked 2n-k Designs.
+<em>Technometrics</em> <b>39</b>, 382–390.
+</p>
+<p>Sun, D.X., Wu, C.F.J. and Chen, Y.Y. (1997). 
+Optimal blocking schemes for <code class="reqn">2^p</code> and <code class="reqn">2^{n-p}</code> designs. <em>Technometrics</em> <b>39</b>, 
+298-307. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p> See Also <code>FrF2</code> for regular fractional factorials, 
+<code>catlg</code> for the Chen, Sun, Wu catalogue of designs 
+and some accessor functions, 
+and <code>splitplot</code> for the statistical aspects of split-plot designs.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">########## automatic blocked designs ###################
+## from a full factorial ##
+FrF2(8,3,blocks=2)
+## with replication
+run.order(FrF2(8,3,blocks=2,wbreps=2))
+run.order(FrF2(8,3,blocks=2,wbreps=2,repeat.only=TRUE))
+run.order(FrF2(8,3,blocks=2,bbreps=2))
+run.order(FrF2(8,3,blocks=2,bbreps=2,wbreps=2))
+
+## automatic blocked design with fractions
+FrF2(16,7,blocks=4,alias.block.2fis=TRUE)
+## isomorphic non-catalogued design as basis
+FrF2(16,gen=c(7,11,14),blocks=4,alias.block.2fis=TRUE)
+## FrF2 uses blockpick.big and ignores the generator
+FrF2(64,gen=c(7,11,14),blocks=16,alias.block.2fis=TRUE)
+
+########## manual blocked design ####################
+### example that shows why order of blocks is not randomized
+### can of course be randomized by user, if appropriate
+FrF2(32,9,blocks=c("Day","Shift"),alias.block.2fis=TRUE, 
+    factor.names=list(Day=c("Wednesday","Thursday"), Shift=c("Morning","Afternoon"),
+        F1="",F2="",F3="",F4="",F5="",F6="",F7=""), default.levels=c("current","new"))
+
+########## blocked design with estimable 2fis ####################
+### all interactions of last two factors to be estimable clearly
+### in 64 run design with blocks of size 4
+### not possible with catalogue entry 9-3.1
+FrF2(design="9-3.2", blocks=16, alias.block.2fis=TRUE, 
+    factor.names = list(C1="",C2="",C3="",C4="",C5="",C6="",C7="",
+    N1=c("low","high"),N2=c("low","high")), 
+    default.levels = c("current","new"),
+    estimable=compromise(9, 8:9)$requirement)
+
+</code></pre>
+
+
+</div>

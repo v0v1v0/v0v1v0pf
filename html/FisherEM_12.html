@@ -1,0 +1,298 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sfem</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+The sparse Fisher-EM algorithm
+</h2>
+
+<h3>Description</h3>
+
+<p>The sparse Fisher-EM algorithm is a sparse version of the Fisher-EM algorithm. The sparsity is introduced within the F step which estimates the discriminative subspace. The sparsity on U is obtained by adding a l1 penalty to the optimization problem of the F step.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sfem(Y,K=2:6,obj=NULL,model='AkjBk',method='reg',crit='icl',maxit=50,eps=1e-6,
+    init='kmeans',nstart=5,Tinit=c(),kernel='',disp=FALSE,l1=0.1,l2=0,nbit=2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+ 
+<p>The data matrix. Categorical variables and missing values are not allowed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+
+<p>An integer vector specifying the numbers of mixture components (clusters) among which the model selection criterion will choose the most appropriate number of groups. Default is 2:6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>An object of class 'fem' previously learned with the 'fem' function which will be used as initialization of the sparse FisherEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A vector of discriminative latent mixture (DLM) models to fit. There are 12 different models: "DkBk", "DkB", "DBk", "DB", "AkjBk", "AkjB", "AkBk", "AkBk", "AjBk", "AjB", "ABk", "AB".  The option "all" executes the Fisher-EM algorithm on the 12 DLM models and select the best model according to the maximum value obtained by model selection criterion. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>The method use for the fitting of the projection matrix associated to the discriminative subspace. Three methods are available: 'svd', 'reg' and 'gs'. The 'reg' method is the default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit</code></td>
+<td>
+<p>The model selection criterion to use for selecting the most appropriate model for the data. There are 3 possibilities: "bic", "aic" or "icl". Default is "icl".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+
+<p>The maximum number of iterations before the stop of the Fisher-EM algorithm. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+
+<p>The threshold value for the likelihood differences to stop the Fisher-EM algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+
+<p>The initialization method for the Fisher-EM algorithm. There are 4 options: "random" for a randomized initialization, "kmeans" for an initialization by the kmeans algorithm, "hclust" for hierarchical clustering initialization or "user" for a specific initialization through the parameter "Tinit". Default is "kmeans". Notice that for "kmeans" and "random", several initializations are asked and the initialization associated with the highest likelihood is kept (see "nstart").
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart</code></td>
+<td>
+<p>The number of restart if the initialization is "kmeans" or "random". In such a case, the initialization associated with the highest likelihood is kept.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tinit</code></td>
+<td>
+
+<p>A n x K matrix which contains posterior probabilities for initializing the algorithm (each line corresponds to an individual).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p>It enables to deal with the n &lt; p problem. By default, no kernel (" ") is used. But the user has the choice between 3 options for the kernel: "linear", "sigmoid" or "rbf".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp</code></td>
+<td>
+
+<p>If true, some messages are printed during the clustering. Default is false.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l1</code></td>
+<td>
+
+<p>The l1 penalty value (lasso) which has to be in [0,1]. A small value (close to 0) leads to a very sparse loading matrix whereas a value equals to 1 corresponds to no sparsity. Default is 0.1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l2</code></td>
+<td>
+
+<p>The l2 penalty value (elasticnet). Defaults is 0 (no regularization).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbit</code></td>
+<td>
+
+<p>The number of iterations for the lasso procedure. Defaults is 2.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list is returned: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The number of groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cls</code></td>
+<td>
+<p>the group membership of each individual estimated by the Fisher-EM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>the posterior probabilities of each individual for each group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>The loading matrix which determines the orientation of the discriminative subspace.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>The estimated mean in the subspace.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>my</code></td>
+<td>
+<p>The estimated mean in the observation space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop</code></td>
+<td>
+<p>The estimated mixture proportion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>The covariance matrices in the subspace.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic</code></td>
+<td>
+<p>The value of the Akaike information criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bic</code></td>
+<td>
+<p>The value of the Bayesian information criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>icl</code></td>
+<td>
+<p>The value of the integrated completed likelihood criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>The log-likelihood values computed at each iteration of the FEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll</code></td>
+<td>
+<p>the log-likelihood value obtained at the last iteration of the FEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The call of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>Some information to pass to the plot.fem function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit</code></td>
+<td>
+<p>The model selction criterion used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l1</code></td>
+<td>
+<p>The l1 value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l2</code></td>
+<td>
+<p>The l2 value.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Charles Bouveyron and Camille Brunet
+</p>
+
+
+<h3>References</h3>
+
+<p>Charles Bouveyron and Camille Brunet (2012), Simultaneous model-based clustering and visualization in the Fisher discriminative subspace, Statistics and Computing, 22(1), 301-324 &lt;doi:10.1007/s11222-011-9249-9&gt;.
+</p>
+<p>Charles Bouveyron and Camille Brunet (2014), "Discriminative variable selection for clustering with the sparse Fisher-EM algorithm", Computational Statistics, vol. 29(3-4), pp. 489-513 &lt;10.1007/s00180-013-0433-6&gt;.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>fem, plot.fem, fem.ari, summary.fem</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(iris)
+res = sfem(iris[,-5],K=3,model='DkBk',l1=seq(.01,.3,.05))
+res
+plot(res)
+fem.ari(res,as.numeric(iris[,5]))
+</code></pre>
+
+
+</div>

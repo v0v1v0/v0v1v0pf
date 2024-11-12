@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LocSpheReg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Local Fréchet Regression for Spherical Data</h2>
+
+<h3>Description</h3>
+
+<p>Local Fréchet regression for spherical data with respect to the geodesic distance.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LocSpheReg(xin = NULL, yin = NULL, xout = NULL, optns = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p>A vector of length n with input measurement points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yin</code></td>
+<td>
+<p>An n by m matrix holding the spherical data, of which the sum of squares of elements within each row is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>A vector of length k with output measurement points; Default: <code>xout = xin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of options control parameters specified by <code>list(name=value)</code>. See ‘Details’.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Available control options are
+</p>
+
+<dl>
+<dt>bw</dt>
+<dd>
+<p>A scalar used as the bandwidth or <code>"CV"</code> (default).</p>
+</dd>
+<dt>kernel</dt>
+<dd>
+<p>A character holding the type of kernel functions for local Fréchet regression for densities; <code>"rect"</code>, <code>"gauss"</code>, <code>"epan"</code>, <code>"gausvar"</code>, <code>"quar"</code> - default: <code>"gauss"</code>.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>Input <code>xout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yout</code></td>
+<td>
+<p>A k by m matrix holding the fitted responses, of which each row is a spherical vector, corresponding to each element in <code>xout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p>Input <code>xin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yin</code></td>
+<td>
+<p>Input <code>yin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optns</code></td>
+<td>
+<p>A list of control options used.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p><cite>Petersen, A., &amp; Müller, H.-G. (2019). "Fréchet regression for random objects with Euclidean predictors." The Annals of Statistics, 47(2), 691–719.</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1)
+n &lt;- 200
+# simulate the data according to the simulation in Petersen &amp; Müller (2019)
+xin &lt;- runif(n)
+err_sd &lt;- 0.2
+xout &lt;- seq(0,1,length.out = 51)
+
+phi_true &lt;- acos(xin)
+theta_true &lt;- pi * xin
+ytrue &lt;- cbind(
+  sin(phi_true) * cos(theta_true),
+  sin(phi_true) * sin(theta_true),
+  cos(phi_true)
+)
+basis &lt;- list(
+  b1 = cbind(
+    cos(phi_true) * cos(theta_true),
+    cos(phi_true) * sin(theta_true),
+    -sin(phi_true)
+  ),
+  b2 = cbind(
+    sin(theta_true),
+    -cos(theta_true),
+    0
+  )
+)
+yin_tg &lt;- basis$b1 * rnorm(n, mean = 0, sd = err_sd) + 
+  basis$b2 * rnorm(n, mean = 0, sd = err_sd)
+yin &lt;- t(sapply(seq_len(n), function(i) {
+  tgNorm &lt;- sqrt(sum(yin_tg[i,]^2))
+  if (tgNorm &lt; 1e-10) {
+    return(ytrue[i,])
+  } else {
+    return(sin(tgNorm) * yin_tg[i,] / tgNorm + cos(tgNorm) * ytrue[i,])
+  }
+}))
+
+res &lt;- LocSpheReg(xin=xin, yin=yin, xout=xout, optns = list(bw = 0.15, kernel = "epan"))
+
+</code></pre>
+
+
+</div>

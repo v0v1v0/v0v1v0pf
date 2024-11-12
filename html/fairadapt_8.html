@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fairadapt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fair data adaptation (fairadapt)</h2>
+
+<h3>Description</h3>
+
+<p>Implementation of fair data adaptation with quantile preservation
+(Plecko &amp; Meinshausen, 2020). Uses only plain <code>R</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fairadapt(
+  formula,
+  prot.attr,
+  adj.mat,
+  train.data,
+  test.data = NULL,
+  cfd.mat = NULL,
+  top.ord = NULL,
+  res.vars = NULL,
+  quant.method = rangerQuants,
+  visualize.graph = FALSE,
+  eval.qfit = NULL,
+  ...
+)
+
+## S3 method for class 'fairadapt'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Object of class <code>formula</code> describing the response and
+the covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prot.attr</code></td>
+<td>
+<p>A value of class <code>character</code> describing the binary
+protected attribute. Must be one of the entries of <code>colnames(adj.mat)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj.mat</code></td>
+<td>
+<p>Matrix of class <code>matrix</code> encoding the relationships in
+the causal graph. <code>M[i,j] == 1L</code> implies the existence of an edge from
+node i to node j. Must include all the variables appearing in the formula
+object. When the <code>adj.mat</code> argument is set to <code>NULL</code>, then the
+<code>top.ord</code> argument has to be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>train.data, test.data</code></td>
+<td>
+<p>Training data &amp; testing data, both of class
+<code>data.frame</code>. Test data is by default <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cfd.mat</code></td>
+<td>
+<p>Symmetric matrix of class <code>matrix</code> encoding the
+bidirected edges in the causal graph. <code style="white-space: pre;">⁠M[i,j] == M[j, i] == 1L⁠</code>
+implies the existence of a bidirected edge between nodes i and j. Must
+include all the variables appearing in the formula object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top.ord</code></td>
+<td>
+<p>A vector of class <code>character</code> describing the
+topological ordering of the causal graph. Default value is <code>NULL</code>,
+but this argument must be supplied if <code>adj.mat</code> is not specified.
+Also must include all the variables appearing in the formula object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res.vars</code></td>
+<td>
+<p>A vector of class <code>character</code> listing all the resolving
+variables, which should not be changed by the adaption procedure. Default
+value is <code>NULL</code>, corresponding to no resolving variables. Resolving
+variables should be a subset of the descendants of the protected attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quant.method</code></td>
+<td>
+<p>A function choosing the method used for quantile
+regression. Default value is <code>rangerQuants</code> (using random forest
+quantile regression). Other implemented options are <code>linearQuants</code> and
+<code>mcqrnnQuants</code>. A custom function can be supplied by the user here,
+and the associated method for the S3 generic <code>computeQuants</code> needs to be
+added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>visualize.graph</code></td>
+<td>
+<p>A <code>logical</code> indicating whether the causal graph
+should be plotted upon calling the <code>fairadapt()</code> function. Default
+value is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval.qfit</code></td>
+<td>
+<p>Argument indicating whether the quality of the quantile
+regression fit should be computed using cross-validation. Default value is
+<code>NULL</code>, but whenever a positive integer value is specified, then it is
+interpreted as the number of folds used in the cross-validation procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments forwarded to the function passed as
+<code>quant.method</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>"fairadapt"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The procedure takes the training and testing data as an input, together with
+the causal graph given by an adjacency matrix and the list of resolving
+variables, which should be kept fixed during the adaptation procedure. The
+procedure then calculates a fair representation of the data, after which
+any classification method can be used. There are, however, several valid
+training options yielding fair predictions, and the best of them can be
+chosen with cross-validation. For more details we refer the user to the
+original paper. Most of the running time is due to the quantile regression
+step using the ranger package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>fairadapt</code>, containing the original and
+adapted training and testing data, together with the causal graph and some
+additional meta-information.
+</p>
+
+
+<h3>References</h3>
+
+<p>Plecko, D. &amp; Meinshausen, N. (2020).
+Fair Data Adaptation with Quantile Preservation.
+Journal of Machine Learning Research, 21(242), 1-44.
+</p>
+<p>Plecko, D. &amp; Bennett, N. &amp; Meinshausen, N. (2024).
+fairadapt: Causal reasoning for fair data pre-processing.
+Journal of Statistical Software, 110(4).
+<a href="https://doi.org/10.18637/jss.v110.i04">doi:10.18637/jss.v110.i04</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n_samp &lt;- 200
+uni_dim &lt;- c(       "gender", "edu", "test", "score")
+uni_adj &lt;- matrix(c(       0,     1,      1,       0,
+                           0,     0,      1,       1,
+                           0,     0,      0,       1,
+                           0,     0,      0,       0),
+                  ncol = length(uni_dim),
+                  dimnames = rep(list(uni_dim), 2),
+                  byrow = TRUE)
+
+uni_ada &lt;- fairadapt(score ~ .,
+  train.data = head(uni_admission, n = n_samp),
+  test.data = tail(uni_admission, n = n_samp),
+  adj.mat = uni_adj,
+  prot.attr = "gender"
+)
+
+uni_ada
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsl_dilate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Dilate image using FSL</h2>
+
+<h3>Description</h3>
+
+<p>This function calls <code>fslmaths -ero</code> after inverting the image
+to dilate an image with either 
+the default FSL kernel or the kernel specified in <code>kopts</code>.  The function
+either saves the image or returns an object of class nifti.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsl_dilate(..., outfile = tempfile(fileext = ".nii.gz"), retimg = FALSE)
+
+fsldilate(
+  file,
+  outfile = NULL,
+  retimg = TRUE,
+  reorient = FALSE,
+  intern = FALSE,
+  kopts = "",
+  opts = "",
+  verbose = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>readnii</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outfile</code></td>
+<td>
+<p>(character) resultant dilated image name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retimg</code></td>
+<td>
+<p>(logical) return image of class nifti</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>(character) image to be dilated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reorient</code></td>
+<td>
+<p>(logical) If retimg, should file be reoriented when read in?
+Passed to <code>readnii</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intern</code></td>
+<td>
+<p>(logical) to be passed to <code>system</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kopts</code></td>
+<td>
+<p>(character) options for kernel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>(character) additional options to be passed to fslmaths</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(logical) print out command before running</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Result from system command, depends if intern is TRUE or FALSE.  If 
+retimg is TRUE, then the image will be returned.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Functions with underscores have different defaults
+and will return an output filename, so to be used for piping
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (have.fsl()){
+system.time({
+dims = c(50, 50, 20)
+x = array(rnorm(prod(dims)), dim = dims) 
+img = nifti(x, dim= dims, 
+datatype = convert.datatype()$FLOAT32, cal.min = min(x), 
+cal.max = max(x), pixdim = rep(1, 4))
+mask = img &gt; .5
+dilated = fsldilate(mask, kopts = "-kernel boxv 5", retimg=TRUE)
+})
+}    
+</code></pre>
+
+
+</div>

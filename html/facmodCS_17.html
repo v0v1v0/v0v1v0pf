@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fmmcSemiParam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Semi-parametric factor model Monte Carlo</h2>
+
+<h3>Description</h3>
+
+<p>Simulate asset returns using semi-parametric Monte Carlo, by 
+making use of a fitted factor model. Residuals are randomly generated from a 
+chosen parametric distribution (Normal, Cornish-Fisher or Skew-t). Factor 
+returns are resampled through non-parametric or stationary bootstrap.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fmmcSemiParam(
+  B = 1000,
+  factor.ret,
+  beta,
+  alpha,
+  resid.par,
+  resid.dist = c("normal", "Cornish-Fisher", "skew-t", "empirical"),
+  boot.method = c("random", "block"),
+  seed = 123
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap samples. Default is 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.ret</code></td>
+<td>
+<p><code>T x K</code> matrix or data.frame of factor returns having
+a complete history of data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p><code>N x K</code> matrix of factor betas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p><code>N x 1</code> matrix of factor alphas (intercepts). If missing, 
+these are assumed to be 0 for all funds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.par</code></td>
+<td>
+<p>matrix of parameters for the residual 
+distribution. See <code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.dist</code></td>
+<td>
+<p>the residual distribution; one of "normal", 
+"Cornish-Fisher" or "skew-t". Default is "normal".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot.method</code></td>
+<td>
+<p>the resampling method for factor returns; one of "random"
+or "block".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>integer to set random number generator state before resampling 
+factor returns.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Refer to Yindeng Jiang's PhD thesis referenced below for motivation
+and empirical results. An abstract can be found at 
+&lt;http://gradworks.umi.com/33/77/3377280.html&gt;.
+</p>
+<p><code>T</code> is the no. of observations, <code>K</code> is the no. of factors, <code>N</code> 
+is the no. of assets or funds, <code>P</code> is the no. of parameters for the 
+residual distribution and <code>B</code> is the no. of bootstrap samples.
+</p>
+<p>The columns in <code>resid.par</code> depend on the choice of <code>resid.dist</code>. 
+If <code>resid.dist = "normal"</code>, <code>resid.par</code> has one column for 
+standard deviation. If <code>resid.dist = "Cornish-Fisher"</code>, <code>resid.par</code> 
+has three columns for sigma=standard deviation, skew=skewness and ekurt=
+excess kurtosis. If <code>resid.dist = "skew-t"</code>, <code>resid.par</code> has four 
+columns for xi=location, omega=scale, alpha=shape, and nu=degrees of freedom. 
+Cornish-Fisher distribution is based on the Cornish-Fisher expansion of the 
+Normal quantile. If <code>resid.dist = "empirical"</code>, <code>resid.par</code> should be the TxN residuals
+retunred by the ffm object. Skew-t is the skewed Student's t-distribution– Azzalini and 
+Captiano. The parameters can differ across funds, though the type of 
+distribution is the same. 
+</p>
+<p>Bootstrap method: "random" corresponds to random sampling with replacement, 
+and "block" corresponds to stationary block bootstrap– Politis and Romano 
+(1994).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>sim.fund.ret</code></td>
+<td>
+<p><code>B x N</code> matrix of simulated fund returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot.factor.ret</code></td>
+<td>
+<p><code>B x K</code> matrix of resampled factor returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim.residuals</code></td>
+<td>
+<p><code>B x N</code> matrix of simulated residuals.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Eric Zivot, Yi-An Chen, Sangeetha Srinivasan.
+</p>
+
+
+<h3>References</h3>
+
+<p>Jiang, Y. (2009). Factor model Monte Carlo methods for general 
+fund-of-funds portfolio management. University of Washington.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>http://gradworks.umi.com/33/77/3377280.html
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#Empirical deistribution 
+data("factorDataSetDjia5Yrs")
+exposure.vars &lt;- 
+fit.ffm &lt;- fitFfm(data = factorDataSetDjia5Yrs, 
+                  asset.var = "TICKER",
+                   ret.var = "RETURN", 
+                   date.var = "DATE", 
+                   exposure.vars = c("P2B", "MKTCAP", "SECTOR"), 
+                   addIntercept = FALSE)
+                   
+resid.par &lt;- fit.ffm$residuals
+fmmc.returns.ffm &lt;- fmmcSemiParam(factor.ret = fit.ffm$factor.returns,
+                                   beta = fit.ffm$beta, 
+                                   resid.par = resid.par,
+                                   resid.dist = "empirical", 
+                                   boot.method = "block")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

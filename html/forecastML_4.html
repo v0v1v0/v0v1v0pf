@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_windows</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create time-contiguous validation datasets for model evaluation</h2>
+
+<h3>Description</h3>
+
+<p>Flexibly create blocks of time-contiguous validation datasets to assess the forecast accuracy
+of trained models at various times in the past. These validation datasets are similar to
+the outer loop of a nested cross-validation model training setup.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_windows(
+  lagged_df,
+  window_length = 12L,
+  window_start = NULL,
+  window_stop = NULL,
+  skip = 0,
+  include_partial_window = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lagged_df</code></td>
+<td>
+<p>An object of class 'lagged_df' or 'grouped_lagged_df' from <code>create_lagged_df</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window_length</code></td>
+<td>
+<p>An integer that defines the length of the contiguous validation dataset in dataset rows/dates.
+If dates were given in <code>create_lagged_df()</code>, the validation window is 'window_length' * 'date frequency' in calendar time.
+Setting <code>window_length = 0</code> trains the model on (a) the entire dataset or (b) between a single <code>window_start</code> and
+<code>window_stop</code> value. Specifying multiple <code>window_start</code> and <code>window_stop</code> values with vectors of
+length &gt; 1 overrides <code>window_length</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window_start</code></td>
+<td>
+<p>Optional. A row index or date identifying the row/date to start creating contiguous validation datasets. A
+vector of start rows/dates can be supplied for greater control. The length and order of <code>window_start</code> should match <code>window_stop</code>.
+If <code>length(window_start) &gt; 1</code>, <code>window_length</code>, <code>skip</code>, and <code>include_partial_window</code> are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window_stop</code></td>
+<td>
+<p>Optional. An index or date identifying the row/date to stop creating contiguous validation datasets. A
+vector of start rows/dates can be supplied for greater control. The length and order of <code>window_stop</code> should match <code>window_start</code>.
+If <code>length(window_stop) &gt; 1</code>, <code>window_length</code>, <code>skip</code>, and <code>include_partial_window</code> are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>An integer giving a fixed number of dataset rows/dates to skip between validation datasets. If dates were given
+in <code>create_lagged_df()</code>, the time between validation windows is <code>skip</code> * 'date frequency'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_partial_window</code></td>
+<td>
+<p>Boolean. If <code>TRUE</code>, keep validation datasets that are shorter than <code>window_length</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 object of class 'windows': A data.frame giving the indices for the validation datasets.
+</p>
+
+
+<h3>Methods and related functions</h3>
+
+<p>The output of <code>create_windows()</code> is passed into
+</p>
+
+<ul><li> <p><code>train_model</code>
+</p>
+</li></ul>
+<p>and has the following generic S3 methods
+</p>
+
+<ul><li> <p><code>plot</code>
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Sampled Seatbelts data from the R package datasets.
+data("data_seatbelts", package = "forecastML")
+
+# Example - Training data for 2 horizon-specific models w/ common lags per feature.
+horizons &lt;- c(1, 12)
+lookback &lt;- 1:15
+
+data_train &lt;- create_lagged_df(data_seatbelts, type = "train", outcome_col = 1,
+                               lookback = lookback, horizon = horizons)
+
+# All historical window lengths of 12 plus any partial windows at the end of the dataset.
+windows &lt;- create_windows(data_train, window_length = 12)
+windows
+
+# Two custom validation windows with different lengths.
+windows &lt;- create_windows(data_train, window_start = c(20, 80), window_stop = c(30, 100))
+windows
+</code></pre>
+
+
+</div>

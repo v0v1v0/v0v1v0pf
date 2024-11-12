@@ -1,0 +1,253 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>blockpick</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Function to show potential block assignments </h2>
+
+<h3>Description</h3>
+
+<p>Functions to investigate potential assignments of blocks 
+and show alias information of resulting designs, meant for expert users
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">blockpick(k, gen, k.block, design = NULL, show = 10, 
+                       alias.block.2fis = FALSE, select.catlg = catlg)
+blockpick.big(k, gen, k.block, design = NULL, show = 10, 
+                       alias.block.2fis = FALSE, select.catlg = catlg)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p> the number of base factors (designs have <code>2^k</code> runs) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gen</code></td>
+<td>
+<p> vector of generating columns from Yates matrix; 
+for a full factorial, choose <code>gen = 0</code> or 
+<code>gen=numeric(0)</code> for 
+no generating columns; but note that there is always just the one 
+and only catalogued design returned for a full factorial.<br>
+For function <code>blockpick</code>, <code>gen</code> refers to the generators 
+of the base design only, and block columns are automatically added by 
+<code>blockpick</code>.<br>
+For function <code>blockpick.big</code>, <code>gen</code> refers to the generators 
+for treatment factors and block generators. In fact, <code>blockpick.big</code> 
+will always use the first <code>k.block</code> (base) factors for block generation. 
+Hence, for example for generating a design in 64 runs and 7 factors with 
+32 blocks, <code>gen</code> must have 6 entries in order to accomodate the 
+7 treatment factors together with the 5 block generators.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k.block</code></td>
+<td>
+<p> number of base factors needed for constructing blocks; 
+there will be <code>2^k.block</code> blocks in the design </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p> design name (character string) of a specific design from the 
+catalogue given in select.catlg </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show</code></td>
+<td>
+<p> numeric integer indicating how many results are to be shown;
+the search for possible allocations stops, once <code>show</code> variants 
+have been found. Note that the best designs may not be found early in 
+the process, especially if a large number of eligible columns is available 
+and many blocks are needed (e.g. 
+full factorial in 64 runs with 16 blocks). In such cases, increasing <code>show</code> may 
+lead to finding a better design (but may also increase calculation 
+time from long to unbearable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alias.block.2fis</code></td>
+<td>
+<p> logical, indicates whether 2fis may be aliased with blocks </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select.catlg</code></td>
+<td>
+<p> design catalogue of class <code>catlg</code> </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>blockpick</code> is used per default by function <code>FrF2</code> 
+for problems with <code>choose(nruns-1-nfactors,k.block) &lt; 100000</code> and without 
+estimability requirements. <code>blockpick</code> will find a design, if it exists. 
+However, it may take a long time and/or much storage space in problems with 
+large numbers of runs and blocks.
+</p>
+<p>In <span class="pkg">FrF2</span> versions before 2.0, function <code>blockpick.big</code> was used for 
+large use cases; this can still be requested using argument <code>block.old=TRUE</code>. 
+Since FrF2 version 2, the <code>Godolphin (2021) based approach</code> 
+is used instead, both for 
+large cases and for cases where blocking is combined with estimability requirements 
+(<code>clear=TRUE</code> only); the big advantage is the ability of combining blocking with 
+estimability requirements, and a substantial speed gain if small blocks are needed. 
+</p>
+<p>All approaches investigate the potential assignment of blocks such that 
+main effects of treatment factors are not aliased with block main effects. 
+It is left to the user whether or not 2fis amoong treatment effects may be 
+aliased with block main effects (option <code>alias.block.2fis</code>). (For the Godolphin 
+approach to work, one will usually need to set <code>alias.block.2fis</code> to TRUE.)
+</p>
+<p>Following Sun, Wu and Chen (1997), there is no single best block assignment. 
+<code>blockpick</code> uses their catalogue for full factorials (implemented up to 256 runs). 
+For fractional factorials, it develops designs according to a 
+principle similar to that underlying the Sun Wu Chen catalogue that works also in 
+uncatalogued situations. 
+</p>
+<p>Function <code>blockpick.big</code> uses a strategy similar to <code>splitpick</code> 
+and <code>leftadjust</code>
+and often finds a solution quickly where <code>blockpick</code> does not work with the 
+given ressources. However, it is not guaranteed to find existing solutions 
+or a best solution. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>blockpick</code> outputs a list of entries with information on at most <code>show</code> suitable 
+assignments. It ends with an error, if no suitable solution can be found.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>gen</code></td>
+<td>
+<p>generator column numbers of the base design (w.r.t. the Yates matrix)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basics</code></td>
+<td>
+<p>named vector with number of runs (<code>nruns</code>), number of blocks (<code>nblocks</code>), 
+number of treatment factors (<code>ntreat</code>) and resolution of base design (<code>res.base</code>);
+the vector is numeric or character, depending on whether resolution is known exactly or 
+as “5+” only</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blockcols</code></td>
+<td>
+<p>matrix with at most show rows; each row contains the <code>k.block</code> 
+column numbers (w.r.t. the Yates matrix) of the block generators
+for the current assignment (the <code>2^k.block-1</code> columns for block main 
+effects can be obtained from these).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alias.2fis.block</code></td>
+<td>
+<p>list of character vectors, which contain the 2fis 
+aliased with block main effects for the respective rows of <code>blockcols</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nblock.2fis</code></td>
+<td>
+<p>vector with number of 2fis aliased with block main effects 
+for the respective rows of <code>blockcols</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nclear.2fis</code></td>
+<td>
+<p>vector with number of 2fis clear (of aliasing with block main effects 
+and treatment main effects or 2fis) 
+for the respective rows of <code>blockcols</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clear.2fis</code></td>
+<td>
+<p>list of character vectors, which contain the 2fis that are 
+counted in <code>nclear.2fis</code> 
+for the respective rows of <code>blockcols</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Ulrike Groemping </p>
+
+
+<h3>References</h3>
+
+ 
+<p>Chen, J., Sun, D.X. and Wu, C.F.J. (1993) 
+A catalogue of 2-level and 3-level orthogonal arrays. 
+<em>International Statistical Review</em> <b>61</b>, 131-145. 
+</p>
+<p>Sun, D.X., Wu, C.F.J. and Chen, Y.Y. (1997). 
+Optimal blocking schemes for <code class="reqn">2^n</code> and <code class="reqn">2^{n-p}</code> designs. <em>Technometrics</em> <b>39</b>, 
+298-307. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p> See Also <code>FrF2</code>  </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## look at possibilities for running a 32 run design with 6 factors in 8 blocks
+## running this without alias.block.2fis=TRUE throws an error: not possible
+## Not run: blockpick(k=5,design="6-1.1",k.block=3)
+## the 8th to 10th design have more clear 2fis than the earlier ones
+blockpick(k=5,design="6-1.1",k.block=3,alias.block.2fis=TRUE)
+## function FrF2 can be used to manually accomodate this 
+des32.6fac.8blocks.MaxC2 &lt;- FrF2(32,6,blocks=c(3,12,21),alias.block.2fis=TRUE)
+summary(des32.6fac.8blocks.MaxC2)
+## automatic block generation leads to more aliased 2fis
+summary(FrF2(32,6,blocks=8,alias.block.2fis=TRUE))
+
+## look at possibilities for blocking design 7-3.1 from Chen, Sun, Wu catalogue
+blockpick(4,design="7-3.1",k.block=2,alias.block.2fis=TRUE)
+
+## big design
+## running this throws an error on many machines because of too little memory
+## Not run: blockpick(6,design="7-1.2",k.block=5,alias.block.2fis=TRUE)
+## for obtaining a design for this scenario with blockpick.big, 
+## the number of factors must be increased to 7+k.block=12
+## designs 12-6.1 and 12-6.2 dont do it, 12-6.3 does
+bpb &lt;- blockpick.big(6,design="12-6.3",k.block=5,alias.block.2fis=TRUE)
+bpb
+## based on the result of blockpick.big, a blocked design can be obtained as follows:
+## (not run for saving check time on CRAN)
+## Not run: 
+des64.7fac.32blocks &lt;- FrF2(64,gen=bpb$gen[1,], blocks = as.list(1:5), 
+   alias.block.2fis=TRUE)
+str(des64.7fac.32blocks)
+## if the seven factors are to be named A,...,G:
+des64.7fac.32blocks &lt;- FrF2(64,gen=bpb$gen[1,], blocks = as.list(1:5), 
+   alias.block.2fis=TRUE, factor.names=c(paste("b",1:5,sep=""),Letters[1:7]))
+str(des64.7fac.32blocks)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

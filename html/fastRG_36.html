@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_tidygraph</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sample a random dot product graph as a tidygraph graph</h2>
+
+<h3>Description</h3>
+
+<p>There are two steps to using the <code>fastRG</code> package. First,
+you must parameterize a random dot product graph by
+sampling the latent factors. Use functions such as
+<code>dcsbm()</code>, <code>sbm()</code>, etc, to perform this specification.
+Then, use <code style="white-space: pre;">⁠sample_*()⁠</code> functions to generate a random graph
+in your preferred format.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sample_tidygraph(factor_model, ...)
+
+## S3 method for class 'undirected_factor_model'
+sample_tidygraph(factor_model, ...)
+
+## S3 method for class 'directed_factor_model'
+sample_tidygraph(factor_model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>factor_model</code></td>
+<td>
+<p>A <code>directed_factor_model()</code> or
+<code>undirected_factor_model()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored. Do not use.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements the <code>fastRG</code> algorithm as
+described in Rohe et al (2017). Please see the paper
+(which is short and open access!!) for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tidygraph::tbl_graph()</code> object that is possibly a
+multigraph (that is, we take there to be multiple edges
+rather than weighted edges).
+</p>
+<p>When <code>factor_model</code> is <strong>undirected</strong>:
+</p>
+<div class="sourceCode"><pre>- the graph is undirected and one-mode.
+</pre></div>
+<p>When <code>factor_model</code> is <strong>directed</strong> and <strong>square</strong>:
+</p>
+<div class="sourceCode"><pre>- the graph is directed and one-mode.
+</pre></div>
+<p>When <code>factor_model</code> is <strong>directed</strong> and <strong>rectangular</strong>:
+</p>
+<div class="sourceCode"><pre>- the graph is undirected and bipartite.
+</pre></div>
+<p>Note that working with bipartite graphs in <code>tidygraph</code> is more
+complex than working with one-mode graphs.
+</p>
+
+
+<h3>References</h3>
+
+<p>Rohe, Karl, Jun Tao, Xintian Han, and Norbert Binkiewicz. 2017.
+"A Note on Quickly Sampling a Sparse Matrix with Low Rank Expectation."
+Journal of Machine Learning Research; 19(77):1-13, 2018.
+<a href="https://www.jmlr.org/papers/v19/17-128.html">https://www.jmlr.org/papers/v19/17-128.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other samplers: 
+<code>sample_edgelist.matrix()</code>,
+<code>sample_edgelist()</code>,
+<code>sample_igraph()</code>,
+<code>sample_sparse()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(igraph)
+library(tidygraph)
+
+set.seed(27)
+
+##### undirected examples ----------------------------
+
+n &lt;- 100
+k &lt;- 5
+
+X &lt;- matrix(rpois(n = n * k, 1), nrow = n)
+S &lt;- matrix(runif(n = k * k, 0, .1), nrow = k)
+
+# S will be symmetrized internal here, or left unchanged if
+# it is already symmetric
+
+ufm &lt;- undirected_factor_model(
+  X, S,
+  expected_density = 0.1
+)
+
+ufm
+
+### sampling graphs as edgelists ----------------------
+
+edgelist &lt;- sample_edgelist(ufm)
+edgelist
+
+### sampling graphs as sparse matrices ----------------
+
+A &lt;- sample_sparse(ufm)
+
+inherits(A, "dsCMatrix")
+isSymmetric(A)
+dim(A)
+
+B &lt;- sample_sparse(ufm)
+
+inherits(B, "dsCMatrix")
+isSymmetric(B)
+dim(B)
+
+### sampling graphs as igraph graphs ------------------
+
+sample_igraph(ufm)
+
+### sampling graphs as tidygraph graphs ---------------
+
+sample_tidygraph(ufm)
+
+##### directed examples ----------------------------
+
+n2 &lt;- 100
+
+k1 &lt;- 5
+k2 &lt;- 3
+
+d &lt;- 50
+
+X &lt;- matrix(rpois(n = n2 * k1, 1), nrow = n2)
+S &lt;- matrix(runif(n = k1 * k2, 0, .1), nrow = k1, ncol = k2)
+Y &lt;- matrix(rexp(n = k2 * d, 1), nrow = d)
+
+fm &lt;- directed_factor_model(X, S, Y, expected_in_degree = 2)
+fm
+
+### sampling graphs as edgelists ----------------------
+
+edgelist2 &lt;- sample_edgelist(fm)
+edgelist2
+
+### sampling graphs as sparse matrices ----------------
+
+A2 &lt;- sample_sparse(fm)
+
+inherits(A2, "dgCMatrix")
+isSymmetric(A2)
+dim(A2)
+
+B2 &lt;- sample_sparse(fm)
+
+inherits(B2, "dgCMatrix")
+isSymmetric(B2)
+dim(B2)
+
+### sampling graphs as igraph graphs ------------------
+
+# since the number of rows and the number of columns
+# in `fm` differ, we will get a bipartite igraph here
+
+# creating the bipartite igraph is slow relative to other
+# sampling -- if this is a blocker for
+# you please open an issue and we can investigate speedups
+
+dig &lt;- sample_igraph(fm)
+is_bipartite(dig)
+
+### sampling graphs as tidygraph graphs ---------------
+
+sample_tidygraph(fm)
+
+</code></pre>
+
+
+</div>

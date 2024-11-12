@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>which.wavelet.best</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find out what wavelet is good for forecasting your series.
+</h2>
+
+<h3>Description</h3>
+
+<p>A big question with many wavelet methods is which wavelet
+should one use for a particular task. This function tries some
+forecasting on your time series with all Daubechies compactly
+supported wavelets available to it and returns a list of the
+forecasting performance for each choice, and indicates which
+wavelet gave the best results. This wavelet can then be used
+in future forecasting.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">which.wavelet.best(x, n.to.test = 10, go.back=5,
+	forecast.type = "recursive", lapplyfn = lapply)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Your times series (not necessarily of dyadic length!)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.to.test</code></td>
+<td>
+<p>How many observations at the end to test as part
+of the assessment process. The default, 10, means that 10 observations
+at the end of the series will all be forecast. This number should
+be reasonably big to enable forecasts of more than a few data points,
+but not too large.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>go.back</code></td>
+<td>
+<p>Controls the <code>go.back</code> argument to
+<code>testforecast</code>. Number of repeats of the
+procedure on successively one-unit of time earlier series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forecast.type</code></td>
+<td>
+<p>The type of forecasting as detailed in
+<code>forecastlpacf</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lapplyfn</code></td>
+<td>
+<p>Type of list processing function. By default it
+uses R's <code>lapply</code> function. However, if you use the
+<code>parallel</code> library you can replace this with
+<code>mclapply</code> which will make this function go faster using
+parallel computation. Don't forget to set the
+<code>options(mc.cores=4)</code> argument to what you wish (here it is
+set to 4 in this example, but you should set it to something that
+is appropriate for your machine environment).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function uses all choices of wavelet to forecast the
+last <code>n.to.test</code> observations of your time series. It
+works out the forecasting error in doing so for each choice of
+wavelet and returns a list telling you which wavelet did best.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame containing information on the root mean squared
+forecasting error performance of the locally stationary forecasting
+method for different wavelets. The data frame has four columns and
+a row for each wavelet tried. The first and second column give
+the filter number and family for each wavelet. The third column
+gives the root mean squared error for each combination of
+wavelet. The fourth column contains an indicator that shows
+which wavelet was best (there might be more than one).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Guy Nason
+</p>
+
+
+<h3>References</h3>
+
+<p>Killick, R., Knight, M.I., Nason, G.P., Nunes M.A., Eckley I.A. (2023) Automatic Locally Stationary Time Series Forecasting with
+application to predicting U.K. Gross Value Added Time Series under sudden shocks caused by the COVID pandemic 
+<a href="https://arxiv.org/abs/2303.07772">arXiv:2303.07772</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>testforecast</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# Generate simulated example
+#
+x &lt;- tvar2sim()
+#
+# Work out which wavelet is best for forecasting this series
+#
+# Note: to speed up I also do:
+#	library("parallel")
+#	options(mc.cores=4)	# You have a four core machine, eg 
+#	tmp &lt;- which.wavelet.best(x, lapplyfn=mclapply)
+#
+# Note2: The following command can take a few minutes to run, even on
+#	a fairly recent (2013) machine. You can speed it up by using
+#	parallel execution as noted above, or by reducing go.back or
+#	by reducing n.to.test, and also shortening the time series x to
+#	more recent values. However, you need to be careful if you shorten
+#	x too much then you are not basing the best wavelet decision on the
+#	right time series. Similarly, by reducing go.back you are not
+#	insuring your answer across runs across many internal forecasts. 
+#
+## Not run: tmp &lt;- which.wavelet.best(x)
+#
+# Print out what the result was:
+#
+## Not run: print(tmp)
+#   filter.number      family       mse    min.mse
+#1              1 DaubExPhase 0.2139173 &lt;- Min MSE
+#2              2 DaubExPhase 0.5040532           
+#3              3 DaubExPhase 0.4064091           
+#4              4 DaubExPhase 0.3077695           
+#5              5 DaubExPhase 0.3706422           
+#6              6 DaubExPhase 0.6617254           
+#7              7 DaubExPhase 0.5477581           
+#8              8 DaubExPhase 0.6881407           
+#9              9 DaubExPhase 0.5514298           
+#10            10 DaubExPhase 0.5551846           
+#11             4 DaubLeAsymm 0.3134285           
+#12             5 DaubLeAsymm 0.3910101           
+#13             6 DaubLeAsymm 0.7480980           
+#14             7 DaubLeAsymm 0.5700830           
+#15             8 DaubLeAsymm 0.5661297           
+#16             9 DaubLeAsymm 0.5689345           
+#17            10 DaubLeAsymm 0.5580267           
+</code></pre>
+
+
+</div>

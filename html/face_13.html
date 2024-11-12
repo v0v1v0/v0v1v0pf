@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pspline</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Univariate P-spline smoothing
+</h2>
+
+<h3>Description</h3>
+
+<p>Univariate P-spline smoothing with the smoothing parameter selected by leave-one-subject-out cross validation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pspline(data, argvals.new = NULL, knots = 35,
+            p = 3, m = 2, lambda = NULL,
+            search.length = 100,
+            lower = -20, upper = 20)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>a data frame with three arguments: 
+(1) <code>argvals</code>: observation times;
+(2) <code>subj</code>: subject indices;
+(3) <code>y</code>: values of observations.
+Missing values not allowed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals.new</code></td>
+<td>
+
+<p>a vector of observations times for prediction; if NULL, then the same as <code>data$argvals</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+
+<p>a vector of interior knots or the number of knots for B-spline basis functions to be used; defaults to 35.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>the degrees of B-splines; defaults to 3.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+
+<p>the order of differencing penalty; defaults to 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>the value of the smoothing parameter; defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search.length</code></td>
+<td>
+
+<p>the number of equidistant (log scale) smoothing parameters to search; defaults to 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+
+<p>bounds for log smoothing parameter; defaults are -20 and 20.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function is an implementation of the P-spline smoothing in Eilers and Marx (1996). P-splines uses B-splines as basis functions and employs a differencing penalty on the coefficients. Leave-one-subject-out cross validation is used for selecting the smoothing parameter and a fast algorithm is implemented.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>Fitted mean values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>B-spline design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>Estimated coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>Eigenvalues</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p>Knots</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The degrees of B-splines</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>The order of differencing penalty</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The value of the smoothing parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argvals.new</code></td>
+<td>
+<p>A vector of observations times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.new</code></td>
+<td>
+<p>Fitted mean values at <code>argvals.new</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Luo Xiao &lt;lxiao5@ncsu.edu&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Paul Eilers and Brian Marx, Flexible smoothing with B-splines and penalties,
+Statist. Sci., 11, 89-121, 1996.
+</p>
+<p>Luo Xiao, Cai Li, William Checkley and Ciprian Crainiceanu, Fast covariance estimation
+for sparse functional data, Stat. Comput., doi: <a href="https://doi.org/10.1007/s11222-017-9744-8">10.1007/s11222-017-9744-8</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gam</code> in <code>mgcv</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## cd4 data
+require(refund)
+data(cd4)
+n &lt;- nrow(cd4)
+T &lt;- ncol(cd4)
+
+id &lt;- rep(1:n,each=T)
+t &lt;- rep(-18:42,times=n)
+y &lt;- as.vector(t(cd4))
+sel &lt;- which(is.na(y))
+
+## organize data
+data &lt;- data.frame(y=log(y[-sel]),
+argvals = t[-sel],
+subj = id[-sel])
+data &lt;- data[data$y&gt;4.5,]
+
+## smooth
+fit &lt;- pspline(data)
+
+## plot
+plot(data$argvals,fit$mu.new,type="p")
+
+## prediction
+pred &lt;- predict(fit,quantile(data$argvals,c(0.2,0.6)))
+pred
+
+## End(Not run)
+</code></pre>
+
+
+</div>

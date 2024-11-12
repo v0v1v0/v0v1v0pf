@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FCLP.fixedBeta</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Solves a Fuzzy Linear Programming problem with fuzzy constraints.</h2>
+
+<h3>Description</h3>
+
+<p>The goal is to solve a linear programming problem having fuzzy constraints. 
+</p>
+<p style="text-align: center;"><code class="reqn">Max\, f(x)\ or\ Min\ f(x)</code>
+</p>
+  
+<p style="text-align: center;"><code class="reqn">s.t.:\quad Ax&lt;=b+(1-\beta)*t</code>
+</p>
+
+<p>Where <code class="reqn">t</code> means we allow not to satisfy the constraint, exceeding the bound <code class="reqn">b</code> at most in <code class="reqn">t</code>.
+</p>
+<p><code>FCLP.fixedBeta</code> uses the classic solver (simplex) to solve the problem with a fixed value of <code class="reqn">\beta</code>.
+</p>
+<p><code>FCLP.sampledBeta</code> solves the problem in the same way than <code>FCLP.fixedBeta</code> but 
+using several <code class="reqn">\beta's</code> taking values in a sample of the <code class="reqn">[0,1]</code> inteval.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FCLP.fixedBeta(
+  objective,
+  A,
+  dir,
+  b,
+  t,
+  beta = 0.5,
+  maximum = TRUE,
+  verbose = TRUE
+)
+
+FCLP.sampledBeta(
+  objective,
+  A,
+  dir,
+  b,
+  t,
+  min = 0,
+  max = 1,
+  step = 0.25,
+  maximum = TRUE,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>A vector <code class="reqn">(c_1, c_2, \ldots, c_n)</code> with the objective function coefficients <code class="reqn">f(x)=c_1 x_1+\ldots+c_n x_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>Technological matrix of Real Numbers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>Vector of strings with the direction of the inequalities, of the same length as <code>b</code> and <code>t</code>. Each element 
+of the vector must be one of "=", "&gt;=", "&lt;=", "&lt;" or "&gt;".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>Vector with the right hand side of the constraints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>Vector with the tolerance of each constraint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The value of <code class="reqn">\beta</code> to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maximum</code></td>
+<td>
+<p><code>TRUE</code> to maximize the objective function, <code>FALSE</code> to minimize the objective function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>TRUE</code> to show aditional screen info, <code>FALSE</code> to hide aditional screen info.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min</code></td>
+<td>
+<p>The lower bound of the interval to take the sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max</code></td>
+<td>
+<p>The upper bound of the interval to take the sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>The sampling step.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>FCLP.fixedBeta</code> returns the solution for the given beta if the solver has found it or NULL if not.
+</p>
+<p><code>FCLP.sampledBeta</code> returns the solutions for the sampled <code class="reqn">\beta's</code> if the solver has found them. 
+If the solver hasn't found solutions for any of the <code class="reqn">\beta's</code> sampled, return NULL.
+</p>
+
+
+<h3>References</h3>
+
+<p>Verdegay, J.L. Fuzzy mathematical programming. In: Fuzzy Information and Decision Processes, pages 231-237, 1982. M.M. Gupta and E.Sanchez (eds).
+</p>
+<p>Delgado, M. and Herrera, F. and Verdegay, J.L. and Vila, M.A. Post-optimality analisys on the membership function of a fuzzy linear programming problem. Fuzzy Sets and Systems, 53:289-297, 1993.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FCLP.classicObjective</code>, <code>FCLP.fuzzyObjective</code>
+</p>
+<p><code>FCLP.fuzzyUndefinedObjective</code>, <code>FCLP.fuzzyUndefinedNormObjective</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## maximize:   3*x1 + x2
+## s.t.:       1.875*x1   - 1.5*x2 &lt;= 4 + (1-beta)*5
+##              4.75*x1 + 2.125*x2 &lt;= 14.5 + (1-beta)*6
+##               x1, x2 are non-negative real numbers
+
+obj &lt;- c(3, 1)
+A &lt;- matrix(c(1.875, 4.75, -1.5, 2.125), nrow = 2)
+dir &lt;- c("&lt;=", "&lt;=")
+b &lt;- c(4, 14.5)
+t &lt;- c(5, 6)
+valbeta &lt;- 0.5
+max &lt;- TRUE
+
+FCLP.fixedBeta(obj, A, dir, b, t, beta=valbeta, maximum = max, verbose = TRUE)
+
+FCLP.sampledBeta(obj, A, dir, b, t, min=0, max=1, step=0.25, maximum = max, verbose = TRUE)
+</code></pre>
+
+
+</div>

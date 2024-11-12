@@ -1,0 +1,309 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ctlcc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Level conditional coherent reconciliation for cross-temporal hierarchies</h2>
+
+<h3>Description</h3>
+
+<p>This function implements a forecast reconciliation procedure inspired by the original
+proposal by Hollyman et al. (2021) for cross-temporal hierarchies. Level conditional
+coherent reconciled forecasts are conditional on (i.e., constrained by) the base
+forecasts of a specific upper level in the hierarchy (exogenous constraints). It also
+allows handling the linear constraints linking the variables endogenously (Di Fonzo
+and Girolimetto, 2022). The function can calculate Combined Conditional Coherent (CCC)
+forecasts as simple averages of Level-Conditional Coherent (LCC) and bottom-up
+reconciled forecasts, with either endogenous or exogenous constraints.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ctlcc(base, agg_mat, nodes = "auto", agg_order, comb = "ols", res = NULL,
+      CCC = TRUE, const = "exogenous", hfbts = NULL, tew = "sum",
+      approach = "proj", nn = NULL, settings = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix containing the base forecasts to
+be reconciled; <code class="reqn">n</code> is the total number of variables, <code class="reqn">m</code> is the max. order of temporal
+aggregation, <code class="reqn">k^\ast</code> is the sum of (a subset of) (<code class="reqn">p-1</code>) factors of <code class="reqn">m</code>,
+excluding <code class="reqn">m</code>, and <code class="reqn">h</code> is the forecast horizon for the lowest frequency time series.
+The row identifies a time series, and the forecasts in each row are ordered from the
+lowest frequency (most temporally aggregated) to the highest frequency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_mat</code></td>
+<td>
+<p>A (<code class="reqn">n_a \times n_b</code>) numeric matrix representing the cross-sectional
+aggregation matrix. It maps the <code class="reqn">n_b</code> bottom-level (free)
+variables into the <code class="reqn">n_a</code> upper (constrained) variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes</code></td>
+<td>
+<p>A (<code class="reqn">L \times 1</code>) numeric vector indicating the number of variables
+in each of the upper <code class="reqn">L</code> levels of the hierarchy. The <em>default</em>
+value is the string "<code>auto</code>" which calculates the number of variables in each level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg_order</code></td>
+<td>
+<p>Highest available sampling frequency per seasonal cycle (max. order
+of temporal aggregation, <code class="reqn">m</code>), or a vector representing a subset of <code class="reqn">p</code> factors
+of <code class="reqn">m</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comb</code></td>
+<td>
+<p>A string specifying the reconciliation method. For a complete list, see ctcov.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>A (<code class="reqn">n \times N(k^\ast+m)</code>) optional numeric matrix containing the
+in-sample residuals at all the temporal frequencies ordered from the lowest frequency
+to the highest frequency (columns) for each variable (rows). This matrix is used
+to compute some covariance matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CCC</code></td>
+<td>
+<p>A logical value indicating whether the Combined Conditional Coherent reconciled
+forecasts reconciliation should include bottom-up forecasts (<code>TRUE</code>, <em>default</em>), or not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>const</code></td>
+<td>
+<p>A string specifying the reconciliation constraints:
+</p>
+
+<ul>
+<li>
+<p> "<code>exogenous</code>" (<em>default</em>): Fixes the top level of each sub-hierarchy.
+</p>
+</li>
+<li>
+<p> "<code>endogenous</code>": Coherently revises both the top and bottom levels.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hfbts</code></td>
+<td>
+<p>A (<code class="reqn">n \times mh</code>) numeric matrix containing high frequency bottom base
+forecasts defined by the user. This parameter can be omitted
+if only base forecasts are used (see Di Fonzo and Girolimetto, 2024).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tew</code></td>
+<td>
+<p>A string specifying the type of temporal aggregation. Options include:
+"<code>sum</code>" (simple summation, <em>default</em>), "<code>avg</code>" (average),
+"<code>first</code>" (first value of the period), and "<code>last</code>"
+(last value of the period).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approach</code></td>
+<td>
+<p>A string specifying the approach used to compute the reconciled
+forecasts. Options include:
+</p>
+
+<ul>
+<li>
+<p> "<code>proj</code>" (<em>default</em>): Projection approach according to Byron (1978, 1979).
+</p>
+</li>
+<li>
+<p> "<code>strc</code>": Structural approach as proposed by Hyndman et al. (2011).
+</p>
+</li>
+<li>
+<p> "<code>proj_osqp</code>": Numerical solution using <a href="https://osqp.org/"><span class="pkg">osqp</span></a>
+for projection approach.
+</p>
+</li>
+<li>
+<p> "<code>strc_osqp</code>": Numerical solution using <a href="https://osqp.org/"><span class="pkg">osqp</span></a>
+for structural approach.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nn</code></td>
+<td>
+<p>A string specifying the algorithm to compute non-negative reconciled forecasts:
+</p>
+
+<ul>
+<li>
+<p> "<code>osqp</code>": quadratic programming optimization
+(<a href="https://osqp.org/"><span class="pkg">osqp</span></a> solver).
+</p>
+</li>
+<li>
+<p> "<code>sntz</code>": heuristic "set-negative-to-zero" (Di Fonzo and Girolimetto, 2023).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>settings</code></td>
+<td>
+<p>An object of class <code>osqpSettings</code> specifying settings
+for the <a href="https://osqp.org/"><span class="pkg">osqp</span></a> solver. For details, refer to the
+<a href="https://osqp.org/"><span class="pkg">osqp</span> documentation</a> (Stellato et al., 2020).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>ctcov</code>
+</p>
+
+<dl>
+<dt><code>mse</code></dt>
+<dd>
+<p>If <code>TRUE</code> (<em>default</em>) the residuals used to compute the covariance
+matrix are not mean-corrected.</p>
+</dd>
+<dt><code>shrink_fun</code></dt>
+<dd>
+<p>Shrinkage function of the covariance matrix, shrink_estim (<em>default</em>).</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A (<code class="reqn">n \times h(k^\ast+m)</code>) numeric matrix of cross-temporal reconciled forecasts.
+</p>
+
+
+<h3>References</h3>
+
+<p>Byron, R.P. (1978), The estimation of large social account matrices,
+<em>Journal of the Royal Statistical Society, Series A</em>, 141, 3, 359-367.
+<a href="https://doi.org/10.2307/2344807">doi:10.2307/2344807</a>
+</p>
+<p>Byron, R.P. (1979), Corrigenda: The estimation of large social account matrices,
+<em>Journal of the Royal Statistical Society, Series A</em>, 142(3), 405.
+<a href="https://doi.org/10.2307/2982515">doi:10.2307/2982515</a>
+</p>
+<p>Di Fonzo, T. and Girolimetto, D. (2024), Forecast combination-based forecast reconciliation:
+Insights and extensions, <em>International Journal of Forecasting</em>, 40(2), 490–514.
+<a href="https://doi.org/10.1016/j.ijforecast.2022.07.001">doi:10.1016/j.ijforecast.2022.07.001</a>
+</p>
+<p>Di Fonzo, T. and Girolimetto, D. (2023b) Spatio-temporal reconciliation of solar forecasts.
+<em>Solar Energy</em> 251, 13–29. <a href="https://doi.org/10.1016/j.solener.2023.01.003">doi:10.1016/j.solener.2023.01.003</a>
+</p>
+<p>Hyndman, R.J., Ahmed, R.A., Athanasopoulos, G. and Shang, H.L. (2011),
+Optimal combination forecasts for hierarchical time series,
+<em>Computational Statistics &amp; Data Analysis</em>, 55, 9, 2579-2589.
+<a href="https://doi.org/10.1016/j.csda.2011.03.006">doi:10.1016/j.csda.2011.03.006</a>
+</p>
+<p>Hollyman, R., Petropoulos, F. and Tipping, M.E. (2021), Understanding forecast reconciliation.
+<em>European Journal of Operational Research</em>, 294, 149–160. <a href="https://doi.org/10.1016/j.ejor.2021.01.017">doi:10.1016/j.ejor.2021.01.017</a>
+</p>
+<p>Stellato, B., Banjac, G., Goulart, P., Bemporad, A. and Boyd, S. (2020), OSQP:
+An Operator Splitting solver for Quadratic Programs,
+<em>Mathematical Programming Computation</em>, 12, 4, 637-672.
+<a href="https://doi.org/10.1007/s12532-020-00179-2">doi:10.1007/s12532-020-00179-2</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Level conditional coherent reconciliation: 
+<code>cslcc()</code>,
+<code>telcc()</code>
+</p>
+<p>Cross-temporal framework: 
+<code>ctboot()</code>,
+<code>ctbu()</code>,
+<code>ctcov()</code>,
+<code>ctmo()</code>,
+<code>ctrec()</code>,
+<code>cttd()</code>,
+<code>cttools()</code>,
+<code>iterec()</code>,
+<code>tcsrec()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# Aggregation matrix for Z = X + Y, X = XX + XY and Y = YX + YY
+A &lt;- matrix(c(1,1,1,1,1,1,0,0,0,0,1,1), 3, byrow = TRUE)
+# (7 x 7) base forecasts matrix (simulated), agg_order = 4
+base &lt;- rbind(rnorm(7, rep(c(40, 20, 10), c(1, 2, 4))),
+              rnorm(7, rep(c(20, 10, 5), c(1, 2, 4))),
+              rnorm(7, rep(c(20, 10, 5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))),
+              rnorm(7, rep(c(10, 5, 2.5), c(1, 2, 4))))
+# (7 x 70) in-sample residuals matrix (simulated)
+res &lt;- matrix(rnorm(70*7), nrow = 7)
+# (4 x 4) Naive high frequency bottom base forecasts vector:
+# all forecasts are set equal to 2.5
+naive &lt;- matrix(2.5, 4, 4)
+
+## EXOGENOUS CONSTRAINTS (Hollyman et al., 2021)
+# Level Conditional Coherent (LCC) reconciled forecasts
+exo_LC &lt;- ctlcc(base = base, agg_mat = A, agg_order = 4, comb = "wlsh", nn = "osqp",
+                hfbts = naive, res = res, nodes = "auto", CCC = FALSE)
+
+# Combined Conditional Coherent (CCC) reconciled forecasts
+exo_CCC &lt;- ctlcc(base = base, agg_mat = A, agg_order = 4, comb = "wlsh",
+                hfbts = naive, res = res, nodes = "auto", CCC = TRUE)
+
+# Results detailed by level:
+info_exo &lt;- recoinfo(exo_CCC, verbose = FALSE)
+# info_exo$lcc
+
+## ENDOGENOUS CONSTRAINTS (Di Fonzo and Girolimetto, 2024)
+# Level Conditional Coherent (LCC) reconciled forecasts
+endo_LC &lt;- ctlcc(base = base, agg_mat = A, agg_order = 4, comb = "wlsh",
+                 res = res, nodes = "auto", CCC = FALSE,
+                 const = "endogenous")
+
+# Combined Conditional Coherent (CCC) reconciled forecasts
+endo_CCC &lt;- ctlcc(base = base, agg_mat = A, agg_order = 4, comb = "wlsh",
+                  res = res, nodes = "auto", CCC = TRUE,
+                  const = "endogenous")
+
+# Results detailed by level:
+info_endo &lt;- recoinfo(endo_CCC, verbose = FALSE)
+# info_endo$lcc
+
+</code></pre>
+
+
+</div>

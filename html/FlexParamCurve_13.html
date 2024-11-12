@@ -1,0 +1,359 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>posnegRichards.eqn</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Equations of the FlexParamCurve Family</h2>
+
+<h3>Description</h3>
+
+<p>Function to solve any of the equations in the FlexParamCurve family,
+</p>
+<p>depending on user-specified parameters and model choice</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+
+posnegRichards.eqn(x,
+
+
+Asym = NA,
+
+
+K = NA,
+
+
+Infl = NA,
+
+
+M = NA,
+
+
+RAsym = NA,
+
+
+Rk = NA,
+
+
+Ri = NA,
+
+
+RM = NA,
+
+
+modno,
+
+
+pn.options,
+
+
+Envir = .GlobalEnv)
+
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector of the primary predictor variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Asym</code></td>
+<td>
+<p>a numeric value for the asymptote of the positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>a numeric value for the rate parameter of the positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Infl</code></td>
+<td>
+<p>a numeric value for the point of inflection of the positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>a numeric value for the shape parameter of the positive (increasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RAsym</code></td>
+<td>
+<p>a numeric value for the asymptote of the negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rk</code></td>
+<td>
+<p>a numeric value for the rate parameter of the negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ri</code></td>
+<td>
+<p>a numeric value for the point of inflection of the negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RM</code></td>
+<td>
+<p>a numeric value for the shape parameter of the negative (decreasing) curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modno</code></td>
+<td>
+<p>a numeric value (currently integer only) between 1 and 36 specifying the identification
+</p>
+<p>number of the equation to be fitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pn.options</code></td>
+<td>
+<p>a character vector specifying a list of parameters and options for plotting</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Envir</code></td>
+<td>
+<p>a valid R environment to find pn.options, by default this is the global environment</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function fits 1 of 32 possible FlexParamCurve equations (plus custon model #17). Equations 
+</p>
+<p>can fit both monotonic and non-monotonic curves (two different trajectories).
+</p>
+<p>These equations have also been described as double-Richards curves, or positive-negative Richards curves.
+</p>
+<p>From version 1.2 onwards this function can fit curves that exhibit negative followed by positive
+</p>
+<p>trajectories or double-positive or double-negative trajectories. This function can now also fit two 
+</p>
+<p>component (biphasic) models, where the first curve is used up to the x-value (e.g. age) of intersection and the 
+</p>
+<p>second curve is used afterwards, thus the curves are not joined as in standard models (see <code>SSposnegRichards</code>
+</p>
+<p>for details.
+</p>
+<p>The 32 possible equations are all based on the subtraction of one Richards curve from another, producing:
+</p>
+<p><code class="reqn">y = A / ([1+ m exp(-k (t-i))]1/m) - A' / ([1+ m' exp(-k' (t-i' ))]1/m' )</code>, where A=Asym, k=K, i=Infl, m=M,
+</p>
+<p>A'=RAsym, k'=Rk, i'=Ri, m'=RM; as described in the Arguments section above.
+</p>
+<p>All 32 possible equations are simply reformulations of this equation, in each case fixing a parameter or
+</p>
+<p>multiple parameters to (by default) the mean parameter across all individuals in the dataset (such as produced by a <code>nls</code>
+</p>
+<p>model). All models are detailed in the <code>SSposnegRichards</code> help file. Any models that require parameter fixing
+</p>
+<p>(i.e. all except model #1) extract appropriate values from the specified list passed by name to pn.options for the fixed parameters. 
+</p>
+<p>This object is most easily created by running <code>modpar</code> and can be adjusted manually or by using 
+</p>
+<p><code>change.pnparameters</code> to user required specification.
+</p>
+<p>If parameters are omitted in the call but required by the <code class="reqn">modno</code> specified in the call, then they will be automatically extracted
+</p>
+<p>from the pn.options object supplied, with the appropriate warning. Thus, it is not necessary to list out parameters and modno but is 
+</p>
+<p>a useful exercise if you are unfamiliar or in doubt of exactly which model is being specified by <code class="reqn">modno</code>, see <code>SSposnegRichards</code>
+</p>
+<p>for a list. If a parameter is supplied separately with the call then this value will override those stored in for the same parameter in <code class="reqn">modno</code>:
+</p>
+<p>see examples below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>the solution of the equation specified (by modno), given the user-entered parameters</p>
+
+
+<h3>Note</h3>
+
+<p>Any models that require parameter fixing (i.e. all except model #1) extract appropriate values from the specified
+</p>
+<p>list passed to pn.options for the fixed parameters. This object is most easily created by running <code>modpar</code> 
+</p>
+<p>and can be adjusted manually or by using <code>change.pnparameters</code> to user required specification.
+</p>
+<p>Version 1.5 saves many variables, and internal variables in the package environment:
+</p>
+<p>FlexParamCurve:::FPCEnv. By default, the pn.options file is copied to the environment
+</p>
+<p>specified by the functions (global environment by default). Model selection routines
+</p>
+<p>also copy from FPCenv to the global environment all nlsList models fitted during 
+</p>
+<p>model selection to provide backcompatibility with code for earlier versions. The user
+</p>
+<p>can redirect the directory to copy to by altering the Envir argument when calling the 
+</p>
+<p>function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Oswald &lt;steve.oswald@psu.edu&gt;</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SSposnegRichards</code>
+</p>
+<p><code>modpar</code>    </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+require(graphics)
+
+
+# calculate y (dependent variable) for a given x for an 8-parameter double-Richards model
+
+
+         #create pnmodelparams for fixed parameters 
+
+
+   	 modpar(posneg.data$age, posneg.data$mass, pn.options = "myoptions")
+
+
+   	 x = 10
+
+
+   	 y &lt;- posnegRichards.eqn(x, 1000, 0.5, 25, 1, 100, 0.5, 125, 
+
+
+   	 1, modno = 1, pn.options = "myoptions")
+
+
+   	 print( c(x = x, y = y) )
+
+
+   	 
+
+
+# plot 8-parameter model using saved parameter values from modpar
+
+
+	 plot(posneg.data$age, posneg.data$mass, pch = ".")
+
+
+	 curve(posnegRichards.eqn(x,modno = 1, pn.options = "myoptions"), add = TRUE, lwd = 3)
+
+
+	 
+
+
+# plot 3-parameter model using saved parameter values from modpar
+
+
+         curve(posnegRichards.eqn(x,modno = 32, pn.options = "myoptions"), add = TRUE, col =2
+
+
+               , lwd = 3)
+
+
+	 
+
+
+# tweak the plot of a 3-parameter model by user specifying a lower asymptote:
+
+
+#      ie give some parameter values
+
+
+# directly and others through pn.options by default
+
+
+         curve(posnegRichards.eqn(x,modno = 32, Asym = 3200, pn.options = "myoptions"),
+
+
+               add = TRUE, col = 5, lwd = 3)
+
+
+	 
+
+
+# calculate y (dependent variable) for a given x for a 4-parameter Richards model 
+
+
+# (note that second curve parameters are unneeded) and replaced with value from pn.options.
+
+
+# User-supplied variables over-ride those stored in pn.options object
+
+
+	 x = 10
+
+
+   	 y &lt;- posnegRichards.eqn(x, 1000, 0.5, 25, 1, 
+
+
+   	 1, modno = 12, pn.options = "myoptions")
+
+
+   	 print( c(x = x, y = y) )
+
+
+   	 
+
+
+# plot a logistic curve (M=1),  note that second curve parameters are unneeded
+
+
+         plot(1:200, posnegRichards.eqn(1:200, Asym = 1000, K = 0.5, Infl = 25, M = 1, 
+
+
+   	         modno = 12, pn.options = "myoptions"), xlim = c(1, 200), xlab = "x", 
+
+
+   		 ylab = "y", pch = 1, cex = 0.7)
+
+
+
+
+
+# plot a double-logistic curve (M=1, RM=1),  
+
+
+#note that second curve parameters are unneeded 	     
+
+
+   	 plot(1:200, posnegRichards.eqn(1:200, Asym = 1000, K = 0.5, Infl = 25, M = 1,
+
+
+   	      RAsym = -100, Rk = 0.5, Ri = 125, RM = 1,
+
+
+   	      modno = 1, pn.options = "myoptions"), xlim = c(1, 200), xlab = "x", 
+
+
+   		 ylab = "y", pch = 1, cex = 0.7)
+
+
+</code></pre>
+
+
+</div>

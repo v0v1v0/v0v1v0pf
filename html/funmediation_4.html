@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simulate_funmediation_example</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>simulate_funmediation_example function</h2>
+
+<h3>Description</h3>
+
+<p>Simulates a dataset for demonstrating the funmediation function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simulate_funmediation_example(
+  nsub = 500,
+  nlevels = 2,
+  ntimes = 100,
+  observe_rate = 0.4,
+  alpha_int = function(t) {
+     return(t^0.5)
+ },
+  alpha_X = function(t) {
+     return(-(t/2)^0.5)
+ },
+  beta_M = function(t) {
+     (1/2) * (exp(t) - 1)
+ },
+  beta_int = 0,
+  beta_X = 0.2,
+  sigma_Y = 1,
+  sigma_M_error = 2,
+  rho_M_error = 0.8,
+  simulate_binary_Y = FALSE,
+  make_covariate_S = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nsub</code></td>
+<td>
+<p>Number of subjects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlevels</code></td>
+<td>
+<p>Number of treatment groups or levels on the treatment variable X.
+Subjects are assumed to be randomly assigned to each level with equal
+probability (i.e., the probability per level is 1/nlevel).  Default is 2 for
+a randomized controlled trial with a control group X=0 and an experimental
+group X=1.  There should not be less than 2 or more than 5 groups for purposes
+of this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntimes</code></td>
+<td>
+<p>Number of potential times that could be observed on each subject</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observe_rate</code></td>
+<td>
+<p>Proportion of potential times on which there are actually
+observations. Not all times are observed; this is assumed to be completely random and
+to be done by design to reduce participant burden.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_int</code></td>
+<td>
+<p>Function representing the time-varying mean of mediator variable
+for the level of treatment with all treatment dummy codes X set to 0 (e.g., the
+control group).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_X</code></td>
+<td>
+<p>Function representing the time-varying effect of X on the
+mediator (if there are two treatment levels) or a list of nlevels-1
+functions representing the effect of receiving each nonzero level of X rather
+than control (if there are more than two treatment levels).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_M</code></td>
+<td>
+<p>Function representing the functional coefficient for cumulative
+(scalar-on-function) effect of the mediator M on the treatment Y adjusting
+for the treatment X</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_int</code></td>
+<td>
+<p>Mean of Y if the X is zero and M is the 0 function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_X</code></td>
+<td>
+<p>Numeric value representing the direct effect of X on Y after adjusting
+for M (if there are two treatment levels) or a vector of nlevels-1 numeric values
+(if there are more than two treatment levels)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma_Y</code></td>
+<td>
+<p>Error standard deviation of the outcome Y (conditional on
+treatment and mediator trajectory)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma_M_error</code></td>
+<td>
+<p>Error standard deviation of the mediator M (conditional
+on treatment and time)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho_M_error</code></td>
+<td>
+<p>Autoregressive correlation coefficient of the error
+in the mediator M, from one observation to the next</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulate_binary_Y</code></td>
+<td>
+<p>Whether Y should be generated from a binary
+logistic (TRUE) or Gaussian (FALSE) model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>make_covariate_S</code></td>
+<td>
+<p>Whether to generate a random binary covariate S
+at the subject (i.e., time-invariant) level. It will be generated to have 
+zero population-level relationship to the outcome.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+
+<dl>
+<dt>time_grid</dt>
+<dd>
+<p>The time grid for interpreting functional coefficients.</p>
+</dd>
+<dt>true_alpha_int</dt>
+<dd>
+<p>True value of the time-varying alpha_int parameter,
+representing the time-specific mean of the mediator M when the
+treatment value X is 0. </p>
+</dd>
+<dt>true_alpha_X</dt>
+<dd>
+<p>True value of the time-varying alpha_X parameter,
+representing the effect of X on M.  This is a single number if nlevels=2,
+or a vector of effects if nlevels&gt;2.</p>
+</dd>
+<dt>true_beta_int</dt>
+<dd>
+<p>True value of the beta_M parameter, representing
+the mean of the outcome Y when X=0 and M=0.</p>
+</dd>
+<dt>true_beta_M</dt>
+<dd>
+<p>True value of the beta_M parameter, representing the
+functional effect of treatment on the outcome Y.</p>
+</dd>
+<dt>true_beta_X</dt>
+<dd>
+<p>True value of the beta_X parameter, representing the
+effect of treatment on the outcome Y adjusting for the mediator. This
+is a single function if nlevels=2, or a vector of functions if nlevels&gt;2.</p>
+</dd>
+<dt>true_indirect</dt>
+<dd>
+<p>True value of the indirect parameter, representing
+the indirect (mediated) effect of treatment on the outcome Y.  This is
+a single number if nlevels=2, or a vector of effects if nlevels&gt;2.</p>
+</dd>
+<dt>dataset</dt>
+<dd>
+<p>The simulated longitudinal dataset in long form.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+# Simplest way to call the function:
+simulation_all_defaults &lt;- simulate_funmediation_example()
+summary(simulation_all_defaults)
+head(simulation_all_defaults)
+# Changing the sample size to be larger:
+simulation_larger &lt;- simulate_funmediation_example(nsub=10000)
+summary(simulation_larger)
+# Changing the effect of the mediator to be null:
+simulation_null &lt;- simulate_funmediation_example(beta_M=function(t) {return(0*t)})
+summary(simulation_null)
+# Simulating a exposure variable with three levels (two dichotomous dummy codes)
+simulation_three_group &lt;- simulate_funmediation_example(nlevels=3,
+                              alpha_X = list(function(t) {return(.1*t)},
+                                             function(t) {return(-(t/2)^.5)}),
+                              beta_X = c(-.2,.2))
+print(summary(simulation_three_group));
+
+</code></pre>
+
+
+</div>
